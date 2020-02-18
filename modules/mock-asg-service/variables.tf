@@ -7,3 +7,12 @@ variable "ami_id" {
   description = "The ID of the AMI to deploy"
   type        = string
 }
+
+variable "cloud_init_parts" {
+  description = "Cloud init scripts"
+  type = map(object({
+    content_type = string
+    content      = string
+  }))
+  default = {}
+}

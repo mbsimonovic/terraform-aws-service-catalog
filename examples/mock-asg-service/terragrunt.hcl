@@ -13,4 +13,11 @@ include {
 inputs = {
   vpc_id = dependency.vpc.outputs.vpc_id
   ami_id = "ami-abcd1234"
+
+  cloud_init_parts = {
+    foo = {
+      content_type = "text/x-shellscript"
+      content      = "echo 'This is my custom content'"
+    }
+  }
 }
