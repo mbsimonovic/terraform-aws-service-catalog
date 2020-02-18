@@ -3,6 +3,10 @@ generate "provider" {
   if_exists = "overwrite"
   contents  = <<EOF
 provider "random" {}
+
+provider "aws" {
+  region = "eu-west-1"
+}
 EOF
 }
 

@@ -17,7 +17,12 @@ inputs = {
   cloud_init_parts = {
     foo = {
       content_type = "text/x-shellscript"
-      content      = "echo 'This is my custom content'"
+      content      = <<EOF
+#!/usr/bin/env bash
+echo 'Hello, World custom!' > /home/ubuntu/test-custom.txt
+EOF
     }
   }
+
+  key_name = "jim-brikman"
 }
