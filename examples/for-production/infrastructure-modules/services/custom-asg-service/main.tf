@@ -1,5 +1,5 @@
 module "mock_asg_service" {
-  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/mock-asg-service?ref=mock-experiment"
+  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/services/mock-asg-service?ref=mock-experiment"
 
   vpc_id   = var.vpc_id
   ami_id   = var.ami_id

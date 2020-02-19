@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 module "mock_asg_service" {
-  source = "../../../modules/mock-asg-service"
+  source = "../../../../modules/services/mock-asg-service"
 
   vpc_id = data.aws_vpc.default.id
   ami_id = "ami-abcd1234"

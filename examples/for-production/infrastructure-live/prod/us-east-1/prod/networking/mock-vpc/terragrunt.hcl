@@ -1,5 +1,5 @@
 terraform {
-  source = "../../../../../../../../modules/mock-vpc"
+  source = "../../../../../../../../modules/networking/mock-vpc"
 }
 
 include {

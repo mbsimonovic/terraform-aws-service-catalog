@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 module "mock_vpc" {
-  source = "../../../modules/mock-vpc"
+  source = "../../../../modules/networking/mock-vpc"
 
   vpc_name = var.vpc_name
 }
