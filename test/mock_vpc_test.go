@@ -11,7 +11,7 @@ func TestMockVpc(t *testing.T) {
 	terraformOptions := &terraform.Options{
 		TerraformDir: "../modules/mock-vpc",
 		Vars: map[string]interface{}{
-			"vpc_name": "oie",
+			"vpc_name": "vpc-test",
 		},
 	}
 
