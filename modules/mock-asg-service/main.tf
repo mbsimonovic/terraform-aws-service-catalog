@@ -10,11 +10,9 @@ resource "random_pet" "example" {
 locals {
   # Default cloud init script for this module
   cloud_init = {
+    filename     = "mock-asg-service-cloud-init"
     content_type = "text/x-shellscript"
-    content      = <<EOF
-#!/usr/bin/env bash
-echo 'Hello, World!' > /home/ubuntu/test-default.txt
-EOF
+    content      = file("${path.module}/cloud-init.sh")
   }
 
   # Merge in all the cloud init scripts the user has passed in
@@ -29,6 +27,7 @@ data "template_cloudinit_config" "cloud_init" {
     for_each = local.cloud_init_parts
 
     content {
+      filename     = part.value["filename"]
       content_type = part.value["content_type"]
       content      = part.value["content"]
     }

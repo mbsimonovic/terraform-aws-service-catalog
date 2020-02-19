@@ -11,6 +11,7 @@ variable "ami_id" {
 variable "cloud_init_parts" {
   description = "Cloud init scripts"
   type = map(object({
+    filename     = string
     content_type = string
     content      = string
   }))

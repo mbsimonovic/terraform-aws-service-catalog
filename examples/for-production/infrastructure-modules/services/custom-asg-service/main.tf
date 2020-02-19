@@ -9,11 +9,9 @@ module "mock_asg_service" {
   port = 8080
   cloud_init_parts = {
     foo = {
+      filename     = "custom-asg-service-cloud-init"
       content_type = "text/x-shellscript"
-      content      = <<EOF
-#!/usr/bin/env bash
-echo 'Hello, World from custom ASG service!' > /home/ubuntu/test-custom.txt
-EOF
+      content      = file("${path.module}/cloud-init.sh")
     }
   }
 }
