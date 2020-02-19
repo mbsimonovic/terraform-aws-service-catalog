@@ -9,7 +9,9 @@ to deploy this module directly in production, check out the [examples/for-produc
 
 ## Deploy instructions
 
-1. Install [Terraform](https://www.terraform.io/) and [Terragrunt](https://terragrunt.gruntwork.io/).
+1. Install [Terraform](https://www.terraform.io/).
 1. Configure your AWS credentials 
    ([instructions](https://blog.gruntwork.io/a-comprehensive-guide-to-authenticating-to-aws-on-the-command-line-63656a686799)).
-1. Run `terragrunt apply`.   
+1. Run `terraform init`.   
+1. Run `terraform apply`.  
+1. When you're done testing, run `terraform destroy` to clean up.  
