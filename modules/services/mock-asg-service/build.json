@@ -1,0 +1,33 @@
+{
+  "variables": {
+    "branch_name": "mock-experiment",
+    "github_auth_token": "{{env `GITHUB_OAUTH_TOKEN`}}"
+  },
+  "builders": [
+    {
+      "type": "docker",
+      "image": "ubuntu:18.04",
+      "commit": true
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "inline": [
+        "apt-get update && apt-get install -y jq curl sudo",
+        "curl -Ls https://raw.githubusercontent.com/gruntwork-io/gruntwork-installer/master/bootstrap-gruntwork-installer.sh | bash /dev/stdin --version v0.0.22",
+        "gruntwork-install --module-name mock-asg-service --repo https://github.com/gruntwork-io/aws-service-catalog --tag {{user `branch_name`}}"
+      ],
+      "environment_vars": [
+        "GITHUB_OAUTH_TOKEN={{user `github_auth_token`}}"
+      ]
+    }
+  ],
+  "post-processors": [
+    {
+      "type": "docker-tag",
+      "repository": "gruntwork-io/mock-asg-service",
+      "tag": "latest"
+    }
+  ]
+}
