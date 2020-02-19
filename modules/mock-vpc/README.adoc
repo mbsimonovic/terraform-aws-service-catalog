@@ -1,0 +1,141 @@
+:type: service
+:name: Mock VPC
+:description: Mock VPC
+:icon: /_docs/mock-vpc-icon.png
+:category: networking
+:cloud: aws
+:tags: vpc, routing, network-security
+:license: gruntwork
+:built-with: terraform
+
+// AsciiDoc TOC settings
+:toc:
+:toc-placement!:
+:toc-title:
+
+// GitHub specific settings. See https://gist.github.com/dcode/0cfbf2699a1fe9b46ff04c41721dda74 for details.
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+
+= Mock Auto Scaling Group
+
+image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
+image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
+
+This repo contains a mock module for running a VPC using https://www.terraform.io[Terraform].
+
+image::../../_docs/mock-vpc-architecture.png?raw=true[VPC architecture]
+
+toc::[]
+
+
+
+
+== Features
+
+* Deploy a mock VPC
+* Configure three tiers of subnets: public, private app, private persistence
+* Set up route tables
+* Deploy Internet Gateways and NAT Gateways
+* Create VPC endpoints
+
+
+
+
+== Learn
+
+NOTE: This repo is a part of the https://gruntwork.io/service-catalog/[Gruntwork Service Catalog], a collection of
+reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
+sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catallog/[How to use the Gruntwork
+Service Catalog]!
+
+=== Core concepts
+
+* https://gruntwork.io/guides/networking/how-to-deploy-production-grade-vpc-aws/#core_concepts[VPC Core Concepts]:
+  Or VPC deployment guide walks you through all the basics you need to know to do networking in AWS, including VPCs,
+  subnets, route tables, Internet Gateways, NAT Gateways, Security Groups, Network ACLs, and more.
+
+=== Repo organization
+
+* link:/modules[modules]: the main implementation code for this repo, broken down into multiple standalone, orthogonal submodules.
+* link:/examples[examples]: This folder contains working examples of how to use the submodules.
+* link:/test[test]: Automated tests for the modules and examples.
+
+
+
+
+== Deploy
+
+=== Non-production deployment (quick start for learning)
+
+If you just want to try this repo out for experimenting and learning, check out the following resources:
+
+* link:/examples/for-learning-and-testing[examples/for-learning-and-testing folder]: The
+  `examples/for-learning-and-testing` folder contains standalone sample code optimized for learning, experimenting, and
+  testing (but not direct production usage).
+
+=== Production deployment
+
+If you want to deploy this repo in production, check out the following resources:
+
+* link:/examples/for-production[examples/for-production folder]: The `examples/for-production` folder contains sample
+  code optimized for direct usage in production. This is code from the [Gruntwork Reference
+  Architecture](https://gruntwork.io/reference-architecture/), and it shows you how we build an end-to-end, integrated
+  tech stack on top of the Gruntwork Service Catalog.
+* https://gruntwork.io/guides/networking/how-to-deploy-production-grade-vpc-aws/[How to deploy a production-grade VPC on
+  AWS]: A step-by-step guide for deploying a production-grade VPC on AWS using the code in this repo.
+
+
+
+
+== Manage
+
+=== Day-to-day operations
+
+* link:core-concepts.md#how-to-authenticate-kubectl[How to authenticate kubectl to EKS]
+* link:./modules/eks-cluster-control-plane/README.md#control-plane-logging[How to enable Control Plane logging]
+* link:./modules/eks-cluster-control-plane/README.md#how-do-i-deploy-pods-on-fargate[How to deploy Pods on Fargate]
+* link:./modules/eks-cluster-workers/README.md#how-do-i-enable-cluster-auto-scaling[How to enable worker node autoscaling]
+* link:./modules/eks-cluster-control-plane/README.md#how-do-i-associate-iam-roles-to-pods[How to associate IAM roles to the Pods?]
+* link:./modules/eks-k8s-role-mapping/README.md#restricting-specific-actions[How to restrict users to specific actions on the EKS cluster]
+* link:./modules/eks-k8s-role-mapping/README.md#restricting-by-namespace[How to restrict users to specific namespaces on the EKS cluster]
+
+=== Major changes
+
+* link:./modules/eks-cluster-control-plane/README.md#how-do-i-upgrade-the-kubernetes-version-of-the-cluster[How to upgrade Kubernetes versions]
+* link:./modules/eks-cluster-workers/README.md#how-do-i-roll-out-an-update-to-the-instances[How to upgrade worker nodes]
+
+
+
+
+== Support
+
+If you need help with this repo or anything else related to infrastructure or DevOps, Gruntwork offers
+https://gruntwork.io/support/[Commercial Support] via Slack, email, and phone/video. If you're already a Gruntwork
+customer, hop on Slack and ask away! If not, https://www.gruntwork.io/pricing/[subscribe now]. If you're not sure,
+feel free to email us at link:mailto:support@gruntwork.io[support@gruntwork.io].
+
+
+
+
+== Contributions
+
+Contributions to this repo are very welcome and appreciated! If you find a bug or want to add a new feature or even
+contribute an entirely new module, we are very happy to accept pull requests, provide feedback, and run your changes
+through our automated test suite.
+
+Please see
+https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/#contributing-to-the-gruntwork-service-catalog[Contributing to the Gruntwork Service Catalog]
+for instructions.
+
+
+
+
+== License
+
+Please see link:LICENSE.txt[LICENSE.txt] for details on how the code in this repo is licensed.
