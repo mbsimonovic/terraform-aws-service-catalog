@@ -17,6 +17,11 @@ variable "cloud_init_parts" {
   default = {}
 }
 
+variable "port" {
+  description = "The port the service should listen on"
+  type        = number
+}
+
 variable "key_name" {
   description = "SSH key pair name"
   type        = string
