@@ -61,7 +61,7 @@ Service Catalog]!
 
 === Repo organization
 
-* link:/modules[modules]: the main implementation code for this repo, broken down into multiple standalone, orthogonal submodules.
+* link:/modules[modules]: The main implementation code for this repo, broken down into multiple standalone, orthogonal submodules.
 * link:/examples[examples]: This folder contains working examples of how to use the submodules.
 * link:/test[test]: Automated tests for the modules and examples.
 
@@ -83,9 +83,9 @@ If you just want to try this repo out for experimenting and learning, check out 
 If you want to deploy this repo in production, check out the following resources:
 
 * link:/examples/for-production[examples/for-production folder]: The `examples/for-production` folder contains sample
-  code optimized for direct usage in production. This is code from the [Gruntwork Reference
-  Architecture](https://gruntwork.io/reference-architecture/), and it shows you how we build an end-to-end, integrated
-  tech stack on top of the Gruntwork Service Catalog.
+code optimized for direct usage in production. This is code from the
+https://gruntwork.io/reference-architecture/:[Gruntwork Reference Architecture], and it shows you how we build an
+end-to-end, integrated tech stack on top of the Gruntwork Service Catalog.
 * https://gruntwork.io/guides/kubernetes/how-to-deploy-production-grade-kubernetes-cluster-aws/#deployment_walkthrough[How to deploy a production-grade Kubernetes cluster on AWS]: A step-by-step guide for deploying a production-grade EKS cluster on AWS using the code in this repo.
 
 
