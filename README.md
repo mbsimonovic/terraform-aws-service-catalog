@@ -1,6 +1,6 @@
 # Gruntwork Service Catalog for AWS
 
-This repo contains the code for the https://gruntwork.io/service-catalog/[Gruntwork Service Catalog] for AWS. It 
+This repo contains the code for the [Gruntwork Service Catalog](https://gruntwork.io/service-catalog/) for AWS. It 
 consists of a number of reusable, customizable, battle-tested [infrastructure-as-code modules](/modules) that you can 
 use to deploy your production infrastructure, including Docker orchestration, EC2 orchestration, load balancing, 
 networking, databases, caches, monitoring, alerting, CI/CD, secrets management, VPN, and much more. 
