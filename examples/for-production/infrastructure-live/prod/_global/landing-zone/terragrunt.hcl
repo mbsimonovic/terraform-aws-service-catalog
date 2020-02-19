@@ -7,22 +7,22 @@ terraform {
 inputs = {
   user = {
     alice = {
-     groups = ["user-self-mgmt", "developers", "ssh-sudo-users"]
+      groups = ["user-self-mgmt", "developers", "ssh-sudo-users"]
     }
 
     bob = {
-     path   = "/"
-     groups = ["user-self-mgmt", "ops", "admins"]
-     tags   = {
-       foo = "bar"
-     }
+      path   = "/"
+      groups = ["user-self-mgmt", "ops", "admins"]
+      tags   = {
+        foo = "bar"
+      }
     }
 
     carol = {
-     groups               = ["user-self-mgmt", "developers", "ssh-users"]
-     pgp_key              = "keybase:carol_on_keybase"
-     create_login_profile = true
-     create_access_keys   = true
+      groups               = ["user-self-mgmt", "developers", "ssh-users"]
+      pgp_key              = "keybase:carol_on_keybase"
+      create_login_profile = true
+      create_access_keys   = true
     }
   }
 }
