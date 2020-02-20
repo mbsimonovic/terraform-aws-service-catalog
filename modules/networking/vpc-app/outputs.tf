@@ -73,14 +73,3 @@ output "num_availability_zones" {
 output "availability_zones" {
   value = module.vpc.availability_zones
 }
-output "origin_vpc_route53_resolver_endpoint_id" {
-  value = module.dns_mgmt_to_app.origin_vpc_route53_resolver_endpoint_id
-}
-
-output "destination_vpc_route53_resolver_primary_ip" {
-  value = module.dns_mgmt_to_app.destination_vpc_route53_resolver_primary_ip
-}
-
-output "destination_vpc_route53_resolver_secondary_ip" {
-  value = module.dns_mgmt_to_app.destination_vpc_route53_resolver_secondary_ip
-}

@@ -40,16 +40,6 @@ variable "kms_key_user_iam_arns" {
   # example = ["arn:aws:iam::<aws-account-id>:user/<iam-user-name>"]
 }
 
-variable "terraform_state_aws_region" {
-  description = "The AWS region of the S3 bucket used to store Terraform remote state"
-  type        = string
-}
-
-variable "terraform_state_s3_bucket" {
-  description = "The name of the S3 bucket used to store Terraform remote state"
-  type        = string
-}
-
 variable "allow_private_persistence_internet_access" {
   description = "Should the private persistence subnet be allowed outbound access to the internet?"
   type        = bool
