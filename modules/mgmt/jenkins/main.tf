@@ -266,7 +266,7 @@ module "high_disk_usage_root_volume_alarms" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "jenkins_backup" {
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ec2-backup?ref=v0.15.0"
+  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ec2-backup?ref=v0.18.0"
 
   instance_name = module.jenkins.jenkins_asg_name
 
