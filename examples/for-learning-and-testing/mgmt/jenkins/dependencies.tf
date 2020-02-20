@@ -16,5 +16,5 @@ data "aws_route53_zone" "jenkins" {
 
 locals {
   # The ids param is a set, so to consistently extract the same item, we convert to a list and sort first.
-  subnet_for_example = sort(tolist(data.aws_subnet_ids.default.ids))[0]
+  subnet_for_jenkins = sort(tolist(data.aws_subnet_ids.default.ids))[0]
 }

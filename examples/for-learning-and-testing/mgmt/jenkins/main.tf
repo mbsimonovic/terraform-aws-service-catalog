@@ -17,8 +17,8 @@ module "jenkins" {
   # To keep this example simple, we run it in the default VPC and put everything in the same subnets. In production,
   # you'll want to use a custom VPC, with Jenkins in a private subnet and the ALB in a public subnet.
   vpc_id            = data.aws_vpc.default.id
-  jenkins_subnet_id = local.subnet_for_example
-  alb_subnet_ids    = [local.subnet_for_example]
+  jenkins_subnet_id = local.subnet_for_jenkins
+  alb_subnet_ids    = data.aws_subnet_ids.default.ids
 
   # Configure a domain name for Jenkins
   hosted_zone_id             = data.aws_route53_zone.jenkins.id
