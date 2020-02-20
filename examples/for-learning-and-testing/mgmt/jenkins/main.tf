@@ -25,8 +25,10 @@ module "jenkins" {
   domain_name                = "${var.jenkins_subdomain}.${var.base_domain_name}"
   acm_ssl_certificate_domain = var.acm_ssl_certificate_domain
 
-  # To keep this example simple, we allow incoming HTTP and SSH connections from anywhere. In production, you'll want
-  # to limit access to trusted servers only (e.g., solely a bastion host or VPN server).
+  # To keep this example simple, we make the ALB public and allow incoming HTTP and SSH connections from anywhere. In
+  # production, you'll want to use an internal ALB and limit access to trusted servers only (e.g., solely a bastion
+  # host or VPN server).
+  is_internal_alb                      = false
   allow_incoming_http_from_cidr_blocks = ["0.0.0.0/0"]
   allow_ssh_from_cidr_blocks           = ["0.0.0.0/0"]
 }

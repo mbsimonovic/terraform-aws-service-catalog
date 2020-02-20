@@ -137,6 +137,12 @@ variable "cloud_init_parts" {
   default = {}
 }
 
+variable "is_internal_alb" {
+  description = "Set to true to make the Jenkins ALB an internal ALB that cannot be accessed from the public Internet. We strongly recommend setting this to true to keep Jenkins more secure."
+  type        = bool
+  default     = true
+}
+
 variable "allow_incoming_http_from_cidr_blocks" {
   description = "The IP address ranges in CIDR format from which to allow incoming HTTP requests to Jenkins."
   type        = list(string)

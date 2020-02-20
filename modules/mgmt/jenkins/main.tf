@@ -44,6 +44,7 @@ module "jenkins" {
   domain_name          = var.domain_name
   acm_cert_domain_name = var.acm_ssl_certificate_domain
 
+  is_internal_alb                             = var.is_internal_alb
   allow_incoming_http_from_cidr_blocks        = var.allow_incoming_http_from_cidr_blocks
   allow_incoming_http_from_security_group_ids = var.allow_incoming_http_from_security_group_ids
 
