@@ -33,7 +33,7 @@ func TestAccountBaselines(t *testing.T) {
 			false,
 			false,
 		},
-		/*{
+		{
 			"TestRootNewOrgPlan",
 			"account-baseline-root",
 			true,
@@ -53,7 +53,7 @@ func TestAccountBaselines(t *testing.T) {
 			false,
 			false,
 			true,
-		},*/
+		},
 	}
 
 	for _, testCase := range testCases {
