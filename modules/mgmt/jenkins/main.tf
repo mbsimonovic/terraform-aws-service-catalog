@@ -92,7 +92,7 @@ data "template_cloudinit_config" "cloud_init" {
 }
 
 data "template_file" "user_data" {
-  template = file("${path.module}/user-data/user-data.sh")
+  template = file("${path.module}/user-data.sh")
 
   vars = {
     # This is the default name tag for the server-group module Jenkins uses under the hood
@@ -150,9 +150,9 @@ data "aws_iam_policy_document" "build_permissions" {
   }
 }
 
-resource "aws_iam_role_policy" "auto_deploy_permissions" {
-  couont = length(var.build_permission_actions) > 0 ? 1 : 0
-  name   = "build-permissions"
+resource "aws_iam_role_policy" "deploy_this_account_permissions" {
+  count  = length(var.build_permission_actions) > 0 ? 1 : 0
+  name   = "deploy-this-account-permissions"
   role   = module.jenkins.jenkins_iam_role_id
   policy = module.auto_deploy_iam_policies.allow_access_to_all_other_accounts
 }
@@ -175,8 +175,9 @@ module "auto_deploy_iam_policies" {
   allow_access_to_other_account_arns = var.external_account_auto_deploy_iam_role_arns
 }
 
-resource "aws_iam_role_policy" "auto_deploy_permissions" {
-  name   = "auto-deploy-other-accounts-permissions"
+resource "aws_iam_role_policy" "deploy_other_account_permissions" {
+  count  = length(var.external_account_auto_deploy_iam_role_arns) > 0 ? 1 : 0
+  name   = "deploy-other-accounts-permissions"
   role   = module.jenkins.jenkins_iam_role_id
   policy = module.auto_deploy_iam_policies.allow_access_to_all_other_accounts
 }

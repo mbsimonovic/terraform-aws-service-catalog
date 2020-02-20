@@ -112,7 +112,8 @@ function start_ssh_grunt {
     args+=("--role-arn" "$$external_account_ssh_grunt_role_arn")
   fi
 
-  sudo /usr/local/bin/ssh-grunt iam install "${args[@]}"
+  # We need double dollar signs as Terraform will try to interpolate a single dollar sign followed by curly braces
+  sudo /usr/local/bin/ssh-grunt iam install "$${args[@]}"
 }
 
 function start_server {
