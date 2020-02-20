@@ -1,0 +1,83 @@
+defaults: &defaults
+  machine: true
+  environment:
+    GRUNTWORK_INSTALLER_VERSION: v0.0.21
+    TERRATEST_LOG_PARSER_VERSION: v0.13.24
+    MODULE_CI_VERSION: v0.16.1
+    TERRAFORM_VERSION: 0.12.12
+    PACKER_VERSION: 1.4.1
+    GOLANG_VERSION: 1.13.3
+
+install_gruntwork_utils: &install_gruntwork_utils
+  name: install gruntwork utils
+  command: |
+    curl -Ls https://raw.githubusercontent.com/gruntwork-io/gruntwork-installer/master/bootstrap-gruntwork-installer.sh | bash /dev/stdin --version "${GRUNTWORK_INSTALLER_VERSION}"
+    gruntwork-install --module-name "gruntwork-module-circleci-helpers" --repo "https://github.com/gruntwork-io/module-ci" --tag "${MODULE_CI_VERSION}"
+    gruntwork-install --module-name "git-helpers" --repo "https://github.com/gruntwork-io/module-ci" --tag "${MODULE_CI_VERSION}"
+    gruntwork-install --binary-name "docs-generator" --repo "https://github.com/gruntwork-io/module-ci" --tag "v0.13.11"
+    gruntwork-install --binary-name "terratest_log_parser" --repo "https://github.com/gruntwork-io/terratest" --tag "${TERRATEST_LOG_PARSER_VERSION}"
+    configure-environment-for-gruntwork-module \
+      --terraform-version ${TERRAFORM_VERSION} \
+      --packer-version ${PACKER_VERSION} \
+      --go-version ${GOLANG_VERSION}
+
+version: 2.0
+jobs:
+  test:
+    <<: *defaults
+    steps:
+      - checkout
+
+      # Install gruntwork utilities
+      - run:
+          <<: *install_gruntwork_utils
+
+      - run:
+          name: run tests
+          command: |
+            mkdir -p /tmp/logs
+            run-go-tests --path ./test/security --timeout 1h --parallelism 64 | tee /tmp/logs/all.log
+          no_output_timeout: 3600s
+
+      - run:
+          command: terratest_log_parser --testlog /tmp/logs/all.log --outputdir /tmp/logs
+          when: always
+      - store_artifacts:
+          path: /tmp/logs
+      - store_test_results:
+          path: /tmp/logs
+
+  deploy:
+    <<: *defaults
+    steps:
+      - checkout
+
+      - run:
+          <<: *install_gruntwork_utils
+
+      - run:
+          name: generate documentation
+          command: |
+            # Generate the latest public docs for this repo by: cloning the module-XXX-public version of this repo, deleting its original contents, cloning a fresh checkout of this repo, running the docs-generator in it, and committing the changes
+            git clone "git@github.com:$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME-public.git" "$HOME/$CIRCLE_PROJECT_REPONAME-public"
+            git clone "git@github.com:$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME.git" "$HOME/$CIRCLE_PROJECT_REPONAME-clean"
+            rm -rf "$HOME/$CIRCLE_PROJECT_REPONAME-public"/*
+            docs-generator --input-path "$HOME/$CIRCLE_PROJECT_REPONAME-clean" --output-path "$HOME/$CIRCLE_PROJECT_REPONAME-public" --github-org $CIRCLE_PROJECT_USERNAME --github-repo-name $CIRCLE_PROJECT_REPONAME
+            cd "$HOME/$CIRCLE_PROJECT_REPONAME-public" && git-add-commit-push --commit-all --branch-name master --message "Auto-generate docs for release $CIRCLE_TAG"
+
+workflows:
+  version: 2
+  build-and-test:
+    jobs:
+      - test:
+          filters:
+            tags:
+              only: /^v.*/
+      - deploy:
+          requires:
+            - test
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
