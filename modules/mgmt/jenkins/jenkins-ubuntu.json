@@ -1,8 +1,8 @@
 {
   "variables": {
+    "service_catalog_ref": null,
     "aws_region": "us-east-1",
     "copy_to_regions": "",
-    "service_catalog_ref": null,
     "github_auth_token": "{{env `GITHUB_OAUTH_TOKEN`}}",
     "encrypt_boot": "false",
     "ami_users": "",

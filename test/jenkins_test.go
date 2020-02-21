@@ -19,7 +19,17 @@ const baseDomainForTest = "gruntwork.in"
 const acmDomainForTest = "*.gruntwork.in"
 
 // Regions in Gruntwork Phx DevOps account that have ACM certs
-var regionsForTest = []string{"us-east-1", "us-east-2", "us-west-1", "us-west-2", "eu-west-1", "eu-central-1", "ap-northeast-1", "ap-southeast-2", "ca-central-1"}
+var regionsForTest = []string{
+	"us-east-1",
+	"us-east-2",
+	"us-west-1",
+	"us-west-2",
+	"eu-west-1",
+	"eu-central-1",
+	"ap-northeast-1",
+	"ap-southeast-2",
+	"ca-central-1",
+}
 
 // Tags in Gruntwork Phx DevOps account to uniquely find Hosted Zone for baseDomainForTest
 var domainNameTagsForTest = map[string]interface{}{"original": "true"}
@@ -45,8 +55,8 @@ func TestJenkins(t *testing.T) {
 		packerOptions := &packer.Options{
 			Template: "../modules/mgmt/jenkins/jenkins-ubuntu.json",
 			Vars: map[string]string{
-				"aws_region":         awsRegion,
-				"tag_or_branch_name": git.GetCurrentBranchName(t),
+				"aws_region":          awsRegion,
+				"service_catalog_ref": git.GetCurrentBranchName(t),
 			},
 			RetryableErrors: map[string]string{
 				"Could not connect to pkg.jenkins.io": "The Jenkins Debian repo sometimes has connectivity issues",
