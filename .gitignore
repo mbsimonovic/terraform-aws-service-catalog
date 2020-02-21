@@ -21,3 +21,6 @@ out/
 
 # Terragrunt
 .terragrunt-cache
+
+# Terratest
+.test-data
