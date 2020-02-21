@@ -3,18 +3,6 @@
 
 set -e
 
-readonly MODULE_SECURITY_VERSION="v0.18.1"
-readonly MODULE_AWS_MONITORING_VERSION="v0.16.0"
-readonly MODULE_STATEFUL_SERVER_VERSION="v0.7.1"
-readonly MODULE_CI_VERSION="v0.15.0"
-readonly KUBERGRUNT_VERSION="v0.5.1"
-readonly BASH_COMMONS_VERSION="v0.1.2"
-readonly TERRAFORM_VERSION="0.12.6"
-readonly TERRAGRUNT_VERSION="v0.19.19"
-readonly KUBECTL_VERSION="v1.12.0"
-readonly HELM_VERSION="v2.11.0"
-readonly PACKER_VERSION="1.3.3"
-readonly DOCKER_VERSION="18.06.1~ce~3-0~ubuntu"
 readonly JENKINS_USER="jenkins"
 
 function install_security_packages {
@@ -195,42 +183,130 @@ function install_aws_cli {
 }
 
 function install_build_dependencies {
-  install_terraform "$TERRAFORM_VERSION"
-  install_terragrunt "$TERRAGRUNT_VERSION"
-  install_packer "$PACKER_VERSION"
-  install_kubectl "$KUBECTL_VERSION"
-  install_helm "$HELM_VERSION"
-  install_docker "$DOCKER_VERSION"
+  local -r terraform_version="$1"
+  local -r terragrunt_version="$2"
+  local -r kubectl_version="$3"
+  local -r helm_version="$4"
+  local -r packer_version="$5"
+  local -r docker_version="$6"
+
+  install_terraform "$terraform_version"
+  install_terragrunt "$terragrunt_version"
+  install_packer "$packer_version"
+  install_kubectl "$kubectl_version"
+  install_helm "$helm_version"
+  install_docker "$docker_version"
   install_git
 }
 
 function install_gruntwork_modules {
   local -r jenkins_version="$1"
-  local -r enable_ssh_grunt="$2"
-  local -r enable_cloudwatch_metrics="$3"
-  local -r enable_cloudwatch_log_aggregation="$4"
+  local -r module_security_version="$2"
+  local -r module_aws_monitoring_version="$3"
+  local -r module_stateful_server_version="$4"
+  local -r module_ci_version="$5"
+  local -r kubergrunt_version="$6"
+  local -r bash_commons_version="$7"
+  local -r enable_ssh_grunt="$8"
+  local -r enable_cloudwatch_metrics="$9"
+  local -r enable_cloudwatch_log_aggregation="${10}"
 
   install_aws_cli
-  install_bash_commons "$BASH_COMMONS_VERSION"
-  install_security_packages "$MODULE_SECURITY_VERSION" "$enable_ssh_grunt"
-  install_monitoring_packages "$MODULE_AWS_MONITORING_VERSION" "$enable_cloudwatch_metrics" "$enable_cloudwatch_log_aggregation"
-  install_stateful_server_packages "$MODULE_STATEFUL_SERVER_VERSION"
-  install_ci_packages "$MODULE_CI_VERSION" "$jenkins_version"
-  install_kubergrunt "$KUBERGRUNT_VERSION"
+  install_bash_commons "$bash_commons_version"
+  install_security_packages "$module_security_version" "$enable_ssh_grunt"
+  install_monitoring_packages "$module_aws_monitoring_version" "$enable_cloudwatch_metrics" "$enable_cloudwatch_log_aggregation"
+  install_stateful_server_packages "$module_stateful_server_version"
+  install_ci_packages "$module_ci_version" "$jenkins_version"
+  install_kubergrunt "$kubergrunt_version"
 }
 
 function install_jenkins {
-  local jenkins_version
-  local enable_ssh_grunt="true"
-  local enable_cloudwatch_metrics="true"
-  local enable_cloudwatch_log_aggregation="true"
+  # Read from env vars to make it easy to set these in a Packer template (without super-wide --module-param foo=bar code).
+  # Fallback to default version if the env var is not set.
+  local jenkins_version="${jenkins_version:-2.204.2}"
+  local module_security_version="${module_security_version:-v0.18.1}"
+  local module_aws_monitoring_version="${module_aws_monitoring_version:-v0.16.0}"
+  local module_stateful_server_version="${module_stateful_server_version:-v0.7.1}"
+  local module_ci_version="${module_ci_version:-v0.15.0}"
+  local kubergrunt_version="${kubergrunt_version:-v0.5.1}"
+  local bash_commons_version="${bash_commons_version:-v0.1.2}"
+  local terraform_version="${terraform_version:-0.12.21}"
+  local terragrunt_version="${terragrunt_version:-v0.22.3}"
+  local kubectl_version="${kubectl_version:-v1.17.3}"
+  local helm_version="${helm_version:-v2.11.0}"
+  local packer_version="${packer_version:-1.5.4}"
+  local docker_version="${docker_version:-18.06.1~ce~3-0~ubuntu}"
+  local enable_ssh_grunt="${enable_ssh_grunt:-true}"
+  local enable_cloudwatch_metrics="${enable_cloudwatch_metrics:-true}"
+  local enable_cloudwatch_log_aggregation="${enable_cloudwatch_log_aggregation:-true}"
 
   while [[ $# > 0 ]]; do
     local key="$1"
 
     case "$key" in
       --jenkins-version)
+        assert_not_empty "$key" "$2"
         jenkins_version="$2"
+        shift
+        ;;
+      --module-security-version)
+        assert_not_empty "$key" "$2"
+        module_security_version="$2"
+        shift
+        ;;
+      --module-aws-monitoring-version)
+        assert_not_empty "$key" "$2"
+        module_aws_monitoring_version="$2"
+        shift
+        ;;
+      --module-stateful-server-version)
+        assert_not_empty "$key" "$2"
+        module_stateful_server_version="$2"
+        shift
+        ;;
+      --module-ci-version)
+        assert_not_empty "$key" "$2"
+        module_ci_version="$2"
+        shift
+        ;;
+      --kubergrunt-version)
+        assert_not_empty "$key" "$2"
+        kubergrunt_version="$2"
+        shift
+        ;;
+      --bash-commons-version)
+        assert_not_empty "$key" "$2"
+        bash_commons_version="$2"
+        shift
+        ;;
+      --terraform-version)
+        assert_not_empty "$key" "$2"
+        terraform_version="$2"
+        shift
+        ;;
+      --terragrunt-version)
+        assert_not_empty "$key" "$2"
+        terragrunt_version="$2"
+        shift
+        ;;
+      --kubectl-version)
+        assert_not_empty "$key" "$2"
+        kubectl_version="$2"
+        shift
+        ;;
+      --helm-version)
+        assert_not_empty "$key" "$2"
+        helm_version="$2"
+        shift
+        ;;
+      --packer-version)
+        assert_not_empty "$key" "$2"
+        packer_version="$2"
+        shift
+        ;;
+      --docker-version)
+        assert_not_empty "$key" "$2"
+        docker_version="$2"
         shift
         ;;
       --enable-ssh-grunt)
@@ -254,11 +330,27 @@ function install_jenkins {
     shift
   done
 
-  assert_not_empty "--jenkins-version" "$jenkins_version"
   assert_env_var_not_empty "GITHUB_OAUTH_TOKEN"
 
-  install_gruntwork_modules "$jenkins_version" "$enable_ssh_grunt" "$enable_cloudwatch_metrics" "$enable_cloudwatch_log_aggregation"
-  install_build_dependencies
+  install_gruntwork_modules \
+    "$jenkins_version" \
+    "$module_security_version" \
+    "$module_aws_monitoring_version" \
+    "$module_stateful_server_version" \
+    "$module_ci_version" \
+    "$kubergrunt_version" \
+    "$bash_commons_version" \
+    "$enable_ssh_grunt" \
+    "$enable_cloudwatch_metrics" \
+    "$enable_cloudwatch_log_aggregation"
+
+  install_build_dependencies \
+    "$terraform_version" \
+    "$terragrunt_version" \
+    "$kubectl_version" \
+    "$helm_version" \
+    "$packer_version" \
+    "$docker_version"
 }
 
 install_jenkins "$@"
