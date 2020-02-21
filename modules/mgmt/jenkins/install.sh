@@ -246,7 +246,7 @@ function install_jenkins {
         shift
         ;;
       *)
-        log "ERROR: Unrecognized argument: $key"
+        echo "ERROR: Unrecognized argument: $key"
         exit 1
         ;;
     esac
