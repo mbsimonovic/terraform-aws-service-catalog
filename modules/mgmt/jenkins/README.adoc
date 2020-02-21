@@ -1,0 +1,145 @@
+:type: service
+:name: Jenkins
+:description: Deploy Jenkins CI Server on AWS.
+:icon: /_docs/jenkins-icon.png
+:category: ci-cd
+:cloud: aws
+:tags: jenkins, ec2, ci, cd
+:license: gruntwork
+:built-with: terraform, bash
+
+// AsciiDoc TOC settings
+:toc:
+:toc-placement!:
+:toc-title:
+
+// GitHub specific settings. See https://gist.github.com/dcode/0cfbf2699a1fe9b46ff04c41721dda74 for details.
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+
+= Jenkins CI Server
+
+image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
+image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
+
+This folder contains code to deploy [Jenkins CI Server](https://jenkins.io/) on AWS.
+
+image::../../_docs/jenkins-architecture.png?raw=true[Jenkins architecture]
+
+toc::[]
+
+
+
+
+== Features
+
+* Deploy Jenkins CI Server
+* Run Jenkins in an Auto Scaling Group for high availability
+* Store the `JENKINS_HOME` directory in an EBS Volume
+* Take nightly snapshots of the EBS Volume using the `ec2-backup` scheduled Lambda function
+* Run an ALB in front of Jenkins so it's not accessible directly to users
+* Configure DNS in Route 53 and TLS in AWS Certificate Manager (ACM)
+* Send all logs and metrics to CloudWatch
+* Configure alerts in CloudWatch for CPU, memory, and disk space usage
+* Manage SSH access with IAM groups using `ssh-grunt`
+* Manage deployment permissions for the server using IAM roles
+* OS hardening, including `fail2ban`, `ntp`, `auto-update`, `ip-lockdown`, and more
+
+
+
+
+== Learn
+
+NOTE: This repo is a part of the https://gruntwork.io/service-catalog/[Gruntwork Service Catalog], a collection of
+reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
+sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catallog/[How to use the Gruntwork
+Service Catalog]!
+
+=== Core concepts
+
+// TODO: update this URL when https://github.com/gruntwork-io/gruntwork-io.github.io/pull/265 is merged!
+* https://gruntwork.io/guides/automation-and-workflows/how-to-configure-a-production-grade-ci-cd-setup-for-apps-and-infrastructure-code/#core_concepts[CI
+  / CD Core Concepts]: An overview of the core concepts you need to understand what a typical CI/CD pipeline entails
+  for application and infrastructure code, including a sample workflow, infrastructure to support CI/CD, and threat
+  models to consider to protect your infrastructure.
+* https://jenkins.io/doc/[Jenkins Documentation]
+
+=== Repo organization
+
+* link:/modules[modules]: The main implementation code for this repo, broken down into multiple standalone, orthogonal submodules.
+* link:/examples[examples]: This folder contains working examples of how to use the submodules.
+* link:/test[test]: Automated tests for the modules and examples.
+
+
+
+
+== Deploy
+
+=== Non-production deployment (quick start for learning)
+
+If you just want to try this repo out for experimenting and learning, check out the following resources:
+
+* link:/examples/for-learning-and-testing[examples/for-learning-and-testing folder]: The
+  `examples/for-learning-and-testing` folder contains standalone sample code optimized for learning, experimenting, and
+  testing (but not direct production usage).
+
+=== Production deployment
+
+If you want to deploy this repo in production, check out the following resources:
+
+* link:/examples/for-production[examples/for-production folder]: The `examples/for-production` folder contains sample
+  code optimized for direct usage in production. This is code from the
+  https://gruntwork.io/reference-architecture/:[Gruntwork Reference Architecture], and it shows you how we build an
+  end-to-end, integrated tech stack on top of the Gruntwork Service Catalog.
+* https://gruntwork.io/guides/automation-and-workflows/how-to-configure-a-production-grade-ci-cd-setup-for-apps-and-infrastructure-code/[How
+  to configure a production-grade CI/CD workflow for application and infrastructure code]: step-by-step guide on how to
+  configure CI / CD for your apps and infrastructure.
+
+
+
+
+== Manage
+
+=== Day-to-day operations
+
+* link:core-concepts.md#the-jenkins_home-directory[The JENKINS_HOME directory]
+* link:core-concepts.md#why-use-an-alb[Why use an ALB?]
+
+=== Major changes
+
+* link:core-concepts.md#upgrading-jenkins[Upgrading Jenkins]
+
+
+
+
+== Support
+
+If you need help with this repo or anything else related to infrastructure or DevOps, Gruntwork offers
+https://gruntwork.io/support/[Commercial Support] via Slack, email, and phone/video. If you're already a Gruntwork
+customer, hop on Slack and ask away! If not, https://www.gruntwork.io/pricing/[subscribe now]. If you're not sure,
+feel free to email us at link:mailto:support@gruntwork.io[support@gruntwork.io].
+
+
+
+
+== Contributions
+
+Contributions to this repo are very welcome and appreciated! If you find a bug or want to add a new feature or even
+contribute an entirely new module, we are very happy to accept pull requests, provide feedback, and run your changes
+through our automated test suite.
+
+Please see
+https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/#contributing-to-the-gruntwork-service-catalog[Contributing to the Gruntwork Service Catalog]
+for instructions.
+
+
+
+
+== License
+
+Please see link:LICENSE.txt[LICENSE.txt] for details on how the code in this repo is licensed.
