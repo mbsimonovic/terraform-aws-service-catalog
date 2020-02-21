@@ -11,5 +11,7 @@ module "vpc_app" {
   num_nat_gateways = var.num_nat_gateways
   vpc_name         = var.vpc_name
 
-  kms_key_user_iam_arns = var.kms_key_user_iam_arns
+  // Providing an Key avoids to create a new one every run,
+  // this is good to avoid since each costs $1/month
+  kms_key_arn = data.aws_kms_key.dedicated_test_key.arn
 }

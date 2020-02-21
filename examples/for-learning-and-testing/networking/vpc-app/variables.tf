@@ -22,9 +22,3 @@ variable "vpc_name" {
   description = "The name of the VPC"
   type        = string
 }
-
-variable "kms_key_user_iam_arns" {
-  description = "VPC Flow Logs will be encrypted with a KMS Key (a Customer Master Key). The IAM Users specified in this list will have access to this key."
-  type        = list(string)
-  # example = ["arn:aws:iam::<aws-account-id>:user/<iam-user-name>"]
-}

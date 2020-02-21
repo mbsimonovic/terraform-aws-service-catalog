@@ -12,7 +12,6 @@ The resources that are created include:
 1. Internet Gateways to route traffic to the public Internet from public subnets.
 1. NATs to route traffic to the public Internet from private subnets.
 1. Network ACLs that control what traffic can go in and out of each subnet.
-1. VPC Peering connection that allows limited access from the Mgmt VPC.
 
 Under the hood, this is all implemented using Terraform modules from the Gruntwork
 [module-vpc](https://github.com/gruntwork-io/module-vpc) repo. If you don't have access to this repo, email

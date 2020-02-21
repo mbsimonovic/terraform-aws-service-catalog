@@ -123,5 +123,6 @@ module "vpc_flow_logs" {
   vpc_id                    = module.vpc.vpc_id
   cloudwatch_log_group_name = "${module.vpc.vpc_name}-vpc-flow-logs"
   kms_key_users             = var.kms_key_user_iam_arns
+  kms_key_arn               = var.kms_key_arn
 }
 

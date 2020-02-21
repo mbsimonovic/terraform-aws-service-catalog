@@ -37,7 +37,13 @@ variable "tenancy" {
 variable "kms_key_user_iam_arns" {
   description = "VPC Flow Logs will be encrypted with a KMS Key (a Customer Master Key). The IAM Users specified in this list will have access to this key."
   type        = list(string)
+  default     = null
   # example = ["arn:aws:iam::<aws-account-id>:user/<iam-user-name>"]
+}
+
+variable "kms_key_arn" {
+  type        = string
+  default     = null
 }
 
 variable "allow_private_persistence_internet_access" {
