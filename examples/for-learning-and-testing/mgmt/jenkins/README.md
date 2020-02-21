@@ -17,31 +17,32 @@ To deploy Jenkins, you need to:
 
 ### Build the AMI using Packer
 
-1. Install [Packer](https://packer.io/) (minimum version 1.5.4)
+1. Install [Packer](https://packer.io/)
 1. Configure your AWS credentials 
    ([instructions](https://blog.gruntwork.io/a-comprehensive-guide-to-authenticating-to-aws-on-the-command-line-63656a686799)).
 1. Create a [GitHub personal access 
    token](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line)
    with `repo` permissions and set it as the environment variable `GITHUB_OAUTH_TOKEN`: e.g., 
    `export GITHUB_OAUTH_TOKEN=xxx`.   
-1. `cd modules/mgmt/jenkins/packer`.
 1. Find the version of the Gruntwork AWS Service Catalog you want to use by looking at the [releases 
    page](/releases). 
 1. Run the build:
 
     ```bash
     packer build \
-      -var 'aws_region="<REGION YOU WANT TO USE>"' \
-      -var 'aws_service_catalog_ref="<SERVICE CATALOG VERSION YOU WANT TO USE>"' \
-      -var "github_auth_token=\"$GITHUB_OAUTH_TOKEN\"" \
-      . # Don't skip the dot!
+      -var aws_region="<REGION YOU WANT TO USE>" \
+      -var aws_service_catalog_ref="<SERVICE CATALOG VERSION YOU WANT TO USE>" \
+      modules/mgmt/jenkins/jenkins-ubuntu.json
     ```
 
-    _(Yes, all those quotes are necessary! It's to work around a [bug in 
-    Packer](https://github.com/hashicorp/packer/issues/8748).)_
+    See also the `variables` block in [jenkins-ubuntu.json](/modules/mgmt/jenkins/jenkins-ubuntu.json) for other 
+    variables you can set.
+1. When the build finishes, it'll output the ID of the AMI:
 
-    See also [variables.pkr.hcl](/modules/mgmt/jenkins/packer/variables.pkr.hcl) for other variables you can set.
-1. When the build finishes, it'll output the ID of the AMI: e.g., `ami-abcd1234`. Note this down for the next step.
+    ```
+    --> amazon-ebs: AMIs were created:
+    us-east-1: ami-abcd1234efgh5678
+    ```
 
 
 ### Deploy the AMI using Terraform

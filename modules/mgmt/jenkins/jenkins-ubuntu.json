@@ -71,6 +71,7 @@
       "enable_ssh_grunt={{user `enable_ssh_grunt`}}",
       "enable_cloudwatch_metrics={{user `enable_cloudwatch_metrics`}}",
       "enable_cloudwatch_log_aggregation={{user `enable_cloudwatch_log_aggregation`}}"
-    ]
+    ],
+    "sleep_before": "30s"
   }]
 }
