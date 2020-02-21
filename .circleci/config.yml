@@ -36,7 +36,7 @@ jobs:
           name: run tests
           command: |
             mkdir -p /tmp/logs
-            run-go-tests --path ./test/security --timeout 1h --parallelism 64 | tee /tmp/logs/all.log
+            run-go-tests --path ./test --timeout 1h --parallelism 64 | tee /tmp/logs/all.log
           no_output_timeout: 3600s
 
       - run:
