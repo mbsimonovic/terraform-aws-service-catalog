@@ -30,8 +30,8 @@ To deploy Jenkins, you need to:
 
     ```bash
     packer build \
-      -var aws_region="<REGION YOU WANT TO USE>" \
-      -var aws_service_catalog_ref="<SERVICE CATALOG VERSION YOU WANT TO USE>" \
+      -var aws_region="<AWS REGION YOU WANT TO USE>" \
+      -var service_catalog_ref="<SERVICE CATALOG VERSION YOU WANT TO USE>" \
       modules/mgmt/jenkins/jenkins-ubuntu.json
     ```
 
