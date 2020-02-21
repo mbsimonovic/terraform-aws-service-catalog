@@ -7,7 +7,6 @@ readonly MODULE_SECURITY_VERSION="v0.18.1"
 readonly MODULE_AWS_MONITORING_VERSION="v0.16.0"
 readonly MODULE_STATEFUL_SERVER_VERSION="v0.7.1"
 readonly MODULE_CI_VERSION="v0.15.0"
-readonly JENKINS_VERSION="2.204.2"
 readonly KUBERGRUNT_VERSION="v0.5.1"
 readonly BASH_COMMONS_VERSION="v0.1.2"
 readonly TERRAFORM_VERSION="0.12.6"
@@ -85,6 +84,16 @@ function install_kubergrunt {
   echo "Installing Kubergrunt"
   gruntwork-install --binary-name "kubergrunt" --repo "https://github.com/gruntwork-io/kubergrunt" --tag "$version"
   sudo chmod 755 /usr/local/bin/kubergrunt
+}
+
+function assert_not_empty {
+  local -r arg_name="$1"
+  local -r arg_value="$2"
+
+  if [[ -z "$arg_value" ]]; then
+    log_error "The value for '$arg_name' cannot be empty."
+    exit 1
+  fi
 }
 
 function assert_env_var_not_empty {
@@ -196,20 +205,22 @@ function install_build_dependencies {
 }
 
 function install_gruntwork_modules {
-  local -r enable_ssh_grunt="$1"
-  local -r enable_cloudwatch_metrics="$2"
-  local -r enable_cloudwatch_log_aggregation="$3"
+  local -r jenkins_version="$1"
+  local -r enable_ssh_grunt="$2"
+  local -r enable_cloudwatch_metrics="$3"
+  local -r enable_cloudwatch_log_aggregation="$4"
 
   install_aws_cli
   install_bash_commons "$BASH_COMMONS_VERSION"
   install_security_packages "$MODULE_SECURITY_VERSION" "$enable_ssh_grunt"
   install_monitoring_packages "$MODULE_AWS_MONITORING_VERSION" "$enable_cloudwatch_metrics" "$enable_cloudwatch_log_aggregation"
   install_stateful_server_packages "$MODULE_STATEFUL_SERVER_VERSION"
-  install_ci_packages "$MODULE_CI_VERSION" "$JENKINS_VERSION"
+  install_ci_packages "$MODULE_CI_VERSION" "$jenkins_version"
   install_kubergrunt "$KUBERGRUNT_VERSION"
 }
 
 function install_jenkins {
+  local jenkins_version
   local enable_ssh_grunt="true"
   local enable_cloudwatch_metrics="true"
   local enable_cloudwatch_log_aggregation="true"
@@ -218,6 +229,10 @@ function install_jenkins {
     local key="$1"
 
     case "$key" in
+      --jenkins-version)
+        jenkins_version="$2"
+        shift
+        ;;
       --enable-ssh-grunt)
         enable_ssh_grunt="$2"
         shift
@@ -239,9 +254,10 @@ function install_jenkins {
     shift
   done
 
+  assert_not_empty "--jenkins-version" "$jenkins_version"
   assert_env_var_not_empty "GITHUB_OAUTH_TOKEN"
 
-  install_gruntwork_modules "$enable_ssh_grunt" "$enable_cloudwatch_metrics" "$enable_cloudwatch_log_aggregation"
+  install_gruntwork_modules "$jenkins_version" "$enable_ssh_grunt" "$enable_cloudwatch_metrics" "$enable_cloudwatch_log_aggregation"
   install_build_dependencies
 }
 
