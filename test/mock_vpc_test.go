@@ -9,7 +9,7 @@ import (
 
 func TestMockVpc(t *testing.T) {
 	terraformOptions := &terraform.Options{
-		TerraformDir: "../modules/mock-vpc",
+		TerraformDir: "../modules/networking/mock-vpc",
 		Vars: map[string]interface{}{
 			"vpc_name": "vpc-test",
 		},
