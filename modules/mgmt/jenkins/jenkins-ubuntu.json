@@ -39,7 +39,7 @@
     "inline": [
       "sudo DEBIAN_FRONTEND=noninteractive apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get -y upgrade && sudo DEBIAN_FRONTEND=noninteractive apt-get -y install jq curl",
       "curl -Ls https://raw.githubusercontent.com/gruntwork-io/gruntwork-installer/master/bootstrap-gruntwork-installer.sh | bash /dev/stdin --version v0.0.22",
-      "gruntwork-install --module-name mgmt/jenkins --repo https://github.com/gruntwork-io/aws-service-catalog --tag {{user `tag_or_branch_name`}} --module-param jenkins_version={{user `jenkins_version`}} --module-param enable-ssh-grunt={{user `enable_ssh_grunt`}} --module-param enable-cloudwatch-metrics={{user `enable_cloudwatch_metrics`}} --module-param enable-cloudwatch-log-aggregation={{user `enable_cloudwatch_log_aggregation`}}"
+      "gruntwork-install --module-name mgmt/jenkins --repo https://github.com/gruntwork-io/aws-service-catalog --tag {{user `tag_or_branch_name`}} --module-param jenkins-version={{user `jenkins_version`}} --module-param enable-ssh-grunt={{user `enable_ssh_grunt`}} --module-param enable-cloudwatch-metrics={{user `enable_cloudwatch_metrics`}} --module-param enable-cloudwatch-log-aggregation={{user `enable_cloudwatch_log_aggregation`}}"
     ],
     "environment_vars": [
       "GITHUB_OAUTH_TOKEN={{user `github_auth_token`}}"
