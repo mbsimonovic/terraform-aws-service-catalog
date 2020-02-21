@@ -1,7 +1,7 @@
 # AWS App Account Baseline Example
 
-This is an example of how to use the [account-baseline-app](/modules/account-baseline-app) to establish security baseline 
-for AWS Landing Zone for configuring the app accounts (e.g., dev, stage, prod) of an AWS Organization - including setting up AWS Config, AWS CloudTrail, 
+This is an example of how to use the [account-baseline-app](/modules/landingzone/account-baseline-app) to establish security baseline
+for AWS Landing Zone for configuring the app accounts (e.g., dev, stage, prod) of an AWS Organization - including setting up AWS Config, AWS CloudTrail,
 Amazon Guard Duty, IAM users, IAM groups, IAM password policy, and more.
 
 ## Quick start

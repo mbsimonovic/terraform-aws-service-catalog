@@ -1,7 +1,7 @@
 # AWS Security Account Baseline Example
 
-This is an example of how to use the [account-baseline-security](/modules/account-baseline-security) to establish security baseline 
-for AWS Landing Zone for configuring the security account (the one where all your IAM users and IAM groups are defined) of an AWS Organization - including setting up AWS Config, AWS CloudTrail, 
+This is an example of how to use the [account-baseline-security](/modules/landingzone/account-baseline-security) to establish security baseline
+for AWS Landing Zone for configuring the security account (the one where all your IAM users and IAM groups are defined) of an AWS Organization - including setting up AWS Config, AWS CloudTrail,
 Amazon Guard Duty, IAM users, IAM groups, IAM password policy, and more.
 
 ## Quick start
