@@ -67,14 +67,14 @@ func TestAccountBaselines(t *testing.T) {
 			//os.Setenv("SKIP_bootstrap", "true")
 			//os.Setenv("SKIP_plan_and_verify", "true")
 
-			workingDir := filepath.Join("../examples/for-learning-and-testing/landingzone", testCase.exampleDir)
+			_examplesDir := test_structure.CopyTerraformFolderToTemp(t, "../", filepath.Join("examples", "for-learning-and-testing", "landingzone", testCase.exampleDir))
 
 			test_structure.RunTestStage(t, "bootstrap", func() {
 				logger.Logf(t, "Bootstrapping variables")
 
 				awsRegion := testcommon.PickAwsRegion(t)
 
-				terraformOptions := testcommon.CreateBaseTerraformOptions(t, workingDir, awsRegion)
+				terraformOptions := testcommon.CreateBaseTerraformOptions(t, _examplesDir, awsRegion)
 
 				if testCase.isOrg {
 					terraformOptions.Vars["create_organization"] = testCase.createOrg
@@ -89,13 +89,13 @@ func TestAccountBaselines(t *testing.T) {
 					terraformOptions.Vars["dev_permitted_services"] = []string{"ec2", "s3", "rds", "dynamodb", "elasticache"}
 				}
 
-				test_structure.SaveTerraformOptions(t, workingDir, terraformOptions)
+				test_structure.SaveTerraformOptions(t, _examplesDir, terraformOptions)
 			})
 
 			test_structure.RunTestStage(t, "plan_and_verify", func() {
 				logger.Log(t, "Running terraform plan")
 
-				terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
+				terraformOptions := test_structure.LoadTerraformOptions(t, _examplesDir)
 
 				// We're testing against a separate account and need to connect to root account
 				// Just storing the env vars in the in-memory map
