@@ -35,6 +35,8 @@ var regionsForTest = []string{
 var domainNameTagsForTest = map[string]interface{}{"original": "true"}
 
 func TestJenkins(t *testing.T) {
+	t.Parallel()
+
 	// Uncomment the items below to skip certain parts of the test
 	//os.Setenv("TERRATEST_REGION", "eu-west-1")
 	//os.Setenv("SKIP_cleanup", "true")

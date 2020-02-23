@@ -8,6 +8,8 @@ import (
 )
 
 func TestMockAsgService(t *testing.T) {
+	t.Parallel()
+
 	terraformOptions := &terraform.Options{
 		TerraformDir: "../examples/for-learning-and-testing/services/mock-asg-service",
 	}
