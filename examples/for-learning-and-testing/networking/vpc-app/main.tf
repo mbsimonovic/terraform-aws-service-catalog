@@ -5,7 +5,6 @@ provider "aws" {
 module "vpc_app" {
   source = "../../../../modules/networking/vpc-app"
 
-  aws_account_id   = var.aws_account_id
   aws_region       = var.aws_region
   cidr_block       = var.cidr_block
   num_nat_gateways = var.num_nat_gateways
@@ -13,5 +12,5 @@ module "vpc_app" {
 
   // Providing an Key avoids to create a new one every run,
   // this is good to avoid since each costs $1/month
-  kms_key_arn = data.aws_kms_key.dedicated_test_key.arn
+  kms_key_arn =  data.aws_kms_key.kms_key.arn
 }

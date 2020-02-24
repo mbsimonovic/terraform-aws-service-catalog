@@ -8,11 +8,6 @@ variable "aws_region" {
   type        = string
 }
 
-variable "aws_account_id" {
-  description = "The ID of the AWS Account in which to create resources."
-  type        = string
-}
-
 variable "vpc_name" {
   description = "Name of the VPC. Examples include 'prod', 'dev', 'mgmt', etc."
   type        = string

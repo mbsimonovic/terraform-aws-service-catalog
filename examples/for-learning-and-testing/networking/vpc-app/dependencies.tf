@@ -1,6 +1,6 @@
-data "aws_kms_key" "dedicated_test_key" {
+data "aws_kms_key" "kms_key" {
   // If you get an error like "AccessDeniedException: The specified KMS key does not exist or is not
-  // allowed to be used with LogGroup, you need to check if the key has the right permissions.
+  // allowed to be used with LogGroup", you need to check if the key has the right permissions.
   //  principals {
   //      type = "Service"
   //      identifiers = [
@@ -9,6 +9,6 @@ data "aws_kms_key" "dedicated_test_key" {
   //      ]
   //    }
 
-  key_id = "alias/dedicated-test-key"
+  key_id = var.kms_key_id
 }
 

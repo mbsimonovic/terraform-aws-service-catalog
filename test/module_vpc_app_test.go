@@ -12,7 +12,6 @@ func TestVpcApp(t *testing.T) {
 		TerraformDir: "../examples/for-learning-and-testing/networking/vpc-app",
 		Vars: map[string]interface{}{
 			"vpc_name": "vpc-test",
-			"aws_account_id": "123",
 			"aws_region": "us-east-1",
 			"cidr_block": "10.100.0.0/18",
 			"num_nat_gateways": "1",
