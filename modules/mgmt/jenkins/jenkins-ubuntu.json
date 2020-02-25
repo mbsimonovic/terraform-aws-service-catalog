@@ -1,6 +1,7 @@
 {
   "variables": {
     "service_catalog_ref": null,
+    "version_tag": null,
     "aws_region": "us-east-1",
     "ami_name": "jenkins-server",
     "copy_to_regions": "",
@@ -45,7 +46,10 @@
     "ssh_username": "ubuntu",
     "encrypt_boot": "{{user `encrypt_boot`}}",
     "ami_users": "{{user `ami_users`}}",
-    "ami_regions": "{{user `copy_to_regions`}}"
+    "ami_regions": "{{user `copy_to_regions`}}",
+    "tags": {
+      "version": "{{user `version_tag`}}"
+    }
   }],
   "provisioners": [{
     "type": "shell",

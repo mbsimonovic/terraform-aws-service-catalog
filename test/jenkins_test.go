@@ -53,12 +53,14 @@ func TestJenkins(t *testing.T) {
 
 	test_structure.RunTestStage(t, "build_ami", func() {
 		awsRegion := aws.GetRandomRegion(t, regionsForTest, nil)
+		branchName := git.GetCurrentBranchName(t)
 
 		packerOptions := &packer.Options{
 			Template: "../modules/mgmt/jenkins/jenkins-ubuntu.json",
 			Vars: map[string]string{
 				"aws_region":          awsRegion,
-				"service_catalog_ref": git.GetCurrentBranchName(t),
+				"service_catalog_ref": branchName,
+				"version_tag":         branchName,
 			},
 			RetryableErrors: map[string]string{
 				"Could not connect to pkg.jenkins.io": "The Jenkins Debian repo sometimes has connectivity issues",
