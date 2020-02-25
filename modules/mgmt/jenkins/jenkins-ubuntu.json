@@ -2,6 +2,7 @@
   "variables": {
     "service_catalog_ref": null,
     "aws_region": "us-east-1",
+    "ami_name": "jenkins-server",
     "copy_to_regions": "",
     "github_auth_token": "{{env `GITHUB_OAUTH_TOKEN`}}",
     "encrypt_boot": "false",
@@ -25,7 +26,7 @@
   },
   "sensitive-variables": ["github_auth_token"],
   "builders": [{
-    "ami_name": "jenkins-server-{{isotime | clean_resource_name}}",
+    "ami_name": "{{user `ami_name`}}-{{isotime | clean_resource_name}}",
     "ami_description": "An Ubuntu AMI that runs Jenkins.",
     "instance_type": "t2.micro",
     "region": "{{user `aws_region`}}",
