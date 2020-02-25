@@ -129,14 +129,14 @@ module "ssh_grunt_policies" {
 
   # Since our IAM users are defined in a separate AWS account, we need to give ssh-grunt permission to make API calls to
   # that account.
-  allow_access_to_other_account_arns = [var.external_account_ssh_grunt_role_arn]
+  allow_access_to_other_account_arns = var.external_account_ssh_grunt_role_arn == "" ? [] : [var.external_account_ssh_grunt_role_arn]
 }
 
 resource "aws_iam_role_policy" "ssh_grunt_permissions" {
   count  = var.enable_ssh_grunt ? 1 : 0
   name   = "ssh-grunt-permissions"
   role   = module.jenkins.jenkins_iam_role_id
-  policy = module.ssh_grunt_policies.allow_access_to_other_accounts[0]
+  policy = var.external_account_ssh_grunt_role_arn == "" ? module.ssh_grunt_policies.ssh_grunt_permissions : module.ssh_grunt_policies.allow_access_to_other_accounts[0]
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
