@@ -63,7 +63,6 @@ Library], a collection of reusable, battle-tested, production ready infrastructu
 === Repo organization
 
 * link:/modules[modules]: the main implementation code for this repo, broken down into multiple standalone, orthogonal submodules.
-* link:/codegen[codegen]: Code generation utilities that help generate modules in this repo.
 * link:/examples[examples]: This folder contains working examples of how to use the submodules.
 * link:/test[test]: Automated tests for the modules and examples.
 
@@ -74,17 +73,19 @@ Library], a collection of reusable, battle-tested, production ready infrastructu
 
 If you just want to try this repo out for experimenting and learning, check out the following resources:
 
-* link:/examples/account-baseline-root[examples/account-baseline-root]: The `examples/account-baseline-root`
-folder contains sample code optimized for learning, experimenting, and testing (but not production usage).
+* link:/examples/for-learning-and-testing/landingzone[examples/for-learning-and-testing/landingzone folder]: The
+  `examples/for-learning-and-testing/landingzone` folder contains standalone sample code optimized for learning, experimenting, and
+  testing (but not direct production usage).
 
 === Production deployment
 
 If you want to deploy this repo in production, check out the following resources:
 
-* **_Coming soon_**. We have not yet added this module to the
-  https://github.com/gruntwork-io/infrastructure-modules-multi-account-acme[Acme example Reference Architecture].
+* link:/examples/for-production[examples/for-production folder]: The `examples/for-production` folder contains sample
+  code optimized for direct usage in production. This is code from the
+  https://gruntwork.io/reference-architecture/:[Gruntwork Reference Architecture], and it shows you how we build an
+  end-to-end, integrated tech stack on top of the Gruntwork Service Catalog.
 * link:https://gruntwork.io/guides/foundations/how-to-configure-production-grade-aws-account-structure/[How to configure a production-grade AWS account structure]
-
 
 == Support
 

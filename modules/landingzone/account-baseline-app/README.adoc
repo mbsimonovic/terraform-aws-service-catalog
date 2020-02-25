@@ -61,7 +61,6 @@ Library], a collection of reusable, battle-tested, production ready infrastructu
 === Repo organization
 
 * link:/modules[modules]: the main implementation code for this repo, broken down into multiple standalone, orthogonal submodules.
-* link:/codegen[codegen]: Code generation utilities that help generate modules in this repo.
 * link:/examples[examples]: This folder contains working examples of how to use the submodules.
 * link:/test[test]: Automated tests for the modules and examples.
 
