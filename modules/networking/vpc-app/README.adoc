@@ -1,12 +1,12 @@
 :type: service
-:name: Jenkins
-:description: Deploy Jenkins CI Server on AWS.
-:icon: /_docs/jenkins-icon.png
-:category: ci-cd
+:name: Virtual Private Cloud (VPC)
+:description: Deploy a VPC on AWS.
+:icon: /_docs/amazon-vpc-icon.png
+:category: networking
 :cloud: aws
-:tags: jenkins, ec2, ci, cd
+:tags: vpc, ec2
 :license: gruntwork
-:built-with: terraform, bash
+:built-with: terraform
 
 // AsciiDoc TOC settings
 :toc:
