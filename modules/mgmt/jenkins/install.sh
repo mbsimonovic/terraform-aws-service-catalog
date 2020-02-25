@@ -5,22 +5,32 @@ set -e
 
 readonly JENKINS_USER="jenkins"
 
+# Jenkins version
 readonly DEFAULT_JENKINS_VERSION="2.204.2"
+
+# Gruntwork module versions
+readonly DEFAULT_BASH_COMMONS_VERSION="v0.1.2"
 readonly DEFAULT_MODULE_SECURITY_VERSION="v0.18.1"
 readonly DEFAULT_MODULE_AWS_MONITORING_VERSION="v0.18.2"
 readonly DEFAULT_MODULE_STATEFUL_SERVER_VERSION="v0.7.1"
 readonly DEFAULT_MODULE_CI_VERSION="v0.15.0"
+
+# Enable / disable features
+readonly DEFAULT_ENABLE_SSH_GRUNT="true"
+readonly DEFAULT_ENABLE_CLOUDWATCH_METRICS="true"
+readonly DEFAULT_ENABLE_CLOUDWATCH_LOG_AGGREGATION="true"
+
+# Build tooling
 readonly DEFAULT_KUBERGRUNT_VERSION="v0.5.1"
-readonly DEFAULT_BASH_COMMONS_VERSION="v0.1.2"
 readonly DEFAULT_TERRAFORM_VERSION="0.12.21"
 readonly DEFAULT_TERRAGRUNT_VERSION="v0.22.3"
 readonly DEFAULT_KUBECTL_VERSION="v1.17.3"
 readonly DEFAULT_HELM_VERSION="v2.11.0"
 readonly DEFAULT_PACKER_VERSION="1.5.4"
 readonly DEFAULT_DOCKER_VERSION="18.06.1~ce~3-0~ubuntu"
-readonly DEFAULT_ENABLE_SSH_GRUNT="true"
-readonly DEFAULT_ENABLE_CLOUDWATCH_METRICS="true"
-readonly DEFAULT_ENABLE_CLOUDWATCH_LOG_AGGREGATION="true"
+
+# You can set the version of the build tooling to this value to skip installing it
+readonly SKIP_INSTALL_VERSION="NONE"
 
 function install_security_packages {
   local -r module_security_version="$1"
@@ -86,6 +96,11 @@ function install_ci_packages {
 function install_kubergrunt {
   local -r version="$1"
 
+  if [[ "$version" == "$SKIP_INSTALL_VERSION" ]]; then
+    echo "Kubergrunt version is set to $SKIP_INSTALL_VERSION, so skipping install."
+    return
+  fi
+
   echo "Installing Kubergrunt"
   gruntwork-install --binary-name "kubergrunt" --repo "https://github.com/gruntwork-io/kubergrunt" --tag "$version"
   sudo chmod 755 /usr/local/bin/kubergrunt
@@ -121,6 +136,11 @@ function install_bash_commons {
 function install_terraform {
   local -r version="$1"
 
+  if [[ "$version" == "$SKIP_INSTALL_VERSION" ]]; then
+    echo "Terraform version is set to $SKIP_INSTALL_VERSION, so skipping install."
+    return
+  fi
+
   echo "Installing Terraform $version"
   wget "https://releases.hashicorp.com/terraform/${version}/terraform_${version}_linux_amd64.zip"
   unzip "terraform_${version}_linux_amd64.zip"
@@ -131,6 +151,11 @@ function install_terraform {
 function install_terragrunt {
   local -r version="$1"
 
+  if [[ "$version" == "$SKIP_INSTALL_VERSION" ]]; then
+    echo "Terragrunt version is set to $SKIP_INSTALL_VERSION, so skipping install."
+    return
+  fi
+
   echo "Installing Terragrunt $version"
   wget "https://github.com/gruntwork-io/terragrunt/releases/download/$version/terragrunt_linux_amd64"
   sudo cp terragrunt_linux_amd64 /usr/local/bin/terragrunt
@@ -139,6 +164,11 @@ function install_terragrunt {
 
 function install_packer {
   local -r version="$1"
+
+  if [[ "$version" == "$SKIP_INSTALL_VERSION" ]]; then
+    echo "Packer version is set to $SKIP_INSTALL_VERSION, so skipping install."
+    return
+  fi
 
   echo "Installing Packer $version"
   wget "https://releases.hashicorp.com/packer/${version}/packer_${version}_linux_amd64.zip"
@@ -150,6 +180,11 @@ function install_packer {
 function install_kubectl {
   local -r version="$1"
 
+  if [[ "$version" == "$SKIP_INSTALL_VERSION" ]]; then
+    echo "kubectl version is set to $SKIP_INSTALL_VERSION, so skipping install."
+    return
+  fi
+
   echo "Installing Kubectl $version"
   wget "https://storage.googleapis.com/kubernetes-release/release/${version}/bin/linux/amd64/kubectl"
   sudo mv kubectl /usr/local/bin/kubectl
@@ -158,6 +193,11 @@ function install_kubectl {
 
 function install_helm {
   local -r version="$1"
+
+  if [[ "$version" == "$SKIP_INSTALL_VERSION" ]]; then
+    echo "Helm version is set to $SKIP_INSTALL_VERSION, so skipping install."
+    return
+  fi
 
   echo "Installing Helm $version"
   wget "https://storage.googleapis.com/kubernetes-helm/helm-${version}-linux-amd64.tar.gz"
@@ -173,6 +213,11 @@ function install_helm {
 # Based on: https://docs.docker.com/engine/installation/linux/ubuntu/#install-using-the-repository
 function install_docker {
   local -r version="$1"
+
+  if [[ "$version" == "$SKIP_INSTALL_VERSION" ]]; then
+    echo "Docker version is set to $SKIP_INSTALL_VERSION, so skipping install."
+    return
+  fi
 
   echo "Installing Docker $version"
 
