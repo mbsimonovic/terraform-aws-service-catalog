@@ -2,7 +2,9 @@
 
 This is an example of how to use the [account-baseline-root](/modules/landingzone/account-baseline-root) to establish security baseline
 for AWS Landing Zone for configuring the root account (AKA master account) of an AWS Organization - including setting up child accounts,
-AWS Config, AWS CloudTrail, Amazon Guard Duty, IAM users, IAM groups, IAM password policy, and more.
+AWS Config, AWS CloudTrail, Amazon Guard Duty, IAM users, IAM groups, IAM password policy, and more. This example is optimized for
+learning, experimenting, and testing (but not direct production usage). If you want to deploy this module directly in production, check
+out the [examples/for-production folder](/examples/for-production).
 
 **NOTE:** Destroying the example via `terraform destroy` or removing entries from `child_accounts` will only remove an AWS account from an organization.
 Terraform **will not close the account**. The member account must be prepared to be a standalone account beforehand.
