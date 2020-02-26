@@ -37,13 +37,13 @@ toc::[]
 
 Get a secure baseline for the app accounts of your AWS Organization that includes:
 
-* link:/modules/aws-config-multi-region[aws-config-multi-region]
-* link:/modules/cloudtrail[cloudtrail]
-* link:/modules/cross-account-iam-roles[cross-account-iam-roles]
-* link:/modules/guardduty-multi-region[guardduty-multi-region]
-* link:/modules/iam-groups[iam-groups]
-* link:/modules/iam-user-password-policy[iam-user-password-policy]
-* link:/modules/iam-users[iam-users]
+* https://github.com/gruntwork-io/module-security/tree/master/modules/aws-config-multi-region[aws-config-multi-region]
+* https://github.com/gruntwork-io/module-security/tree/master/modules/cloudtrail[cloudtrail]
+* https://github.com/gruntwork-io/module-security/tree/master/modules/cross-account-iam-roles[cross-account-iam-roles]
+* https://github.com/gruntwork-io/module-security/tree/master/modules/guardduty-multi-region[guardduty-multi-region]
+* https://github.com/gruntwork-io/module-security/tree/master/modules/iam-groups[iam-groups]
+* https://github.com/gruntwork-io/module-security/tree/master/modules/iam-users[iam-users]
+* https://github.com/gruntwork-io/module-security/tree/master/modules/iam-user-password-policy[iam-user-password-policy]
 
 
 == Learn
