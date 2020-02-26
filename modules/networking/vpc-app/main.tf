@@ -118,11 +118,12 @@ module "vpc_network_acls" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "vpc_flow_logs" {
-  source = "git::git@github.com:gruntwork-io/module-vpc.git//modules/vpc-flow-logs?ref=v0.8.1"
+  source = "git::git@github.com:gruntwork-io/module-vpc.git//modules/vpc-flow-logs?ref=v0.8.2"
 
   vpc_id                    = module.vpc.vpc_id
   cloudwatch_log_group_name = "${module.vpc.vpc_name}-vpc-flow-logs"
   kms_key_users             = var.kms_key_user_iam_arns
   kms_key_arn               = var.kms_key_arn
+  create_resources          = var.create_flow_logs
 }
 

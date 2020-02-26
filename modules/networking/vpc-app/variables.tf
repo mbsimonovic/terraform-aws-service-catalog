@@ -23,6 +23,17 @@ variable "num_nat_gateways" {
   type        = number
 }
 
+# ----------------------------------------------------------------------------------------------------------------------
+# OPTIONAL PARAMETERS
+# The remaining variables are optional.
+# ----------------------------------------------------------------------------------------------------------------------
+
+variable "create_flow_logs" {
+  description = "If you set this variable to false, this module will not create VPC Flow Logs resources. This is used as a workaround because Terraform does not allow you to use the 'count' parameter on modules. By using this parameter, you can optionally create or not create the resources within this module."
+  type        = bool
+  default     = true
+}
+
 variable "tenancy" {
   description = "The allowed tenancy of instances launched into the selected VPC. Must be one of: default, dedicated, or host."
   type        = string
@@ -37,6 +48,7 @@ variable "kms_key_user_iam_arns" {
 }
 
 variable "kms_key_arn" {
+  description =  "The ARN of a KMS key to use for encrypting VPC the flow log. A new KMS key will be created if this is not supplied."
   type        = string
   default     = null
 }
