@@ -32,7 +32,7 @@ func TestVpcApp(t *testing.T) {
 	vpc_id := terraform.Output(t, terraformOptions, "vpc_id")
 	assert.Regexp(t, "^vpc-.*", vpc_id)
 
-	public_subnet_ids := terraform.Output(t, terraformOptions, "public_subnet_ids")
-	assert.Regexp(t, ".*subnet-.*", public_subnet_ids)
+	public_subnet_ids := terraform.OutputList(t, terraformOptions, "public_subnet_ids")
+	assert.Regexp(t, "^subnet-.*", public_subnet_ids[0])
 }
 

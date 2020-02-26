@@ -21,7 +21,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "vpc" {
-  source = "git::git@github.com:gruntwork-io/module-vpc.git//modules/vpc-app?ref=v0.8.1"
+  source = "git::git@github.com:gruntwork-io/module-vpc.git//modules/vpc-app?ref=v0.8.2"
 
   vpc_name   = var.vpc_name
   aws_region = var.aws_region
@@ -96,7 +96,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "vpc_network_acls" {
-  source = "git::git@github.com:gruntwork-io/module-vpc.git//modules/vpc-app-network-acls?ref=v0.8.1"
+  source = "git::git@github.com:gruntwork-io/module-vpc.git//modules/vpc-app-network-acls?ref=v0.8.2"
 
   vpc_id      = module.vpc.vpc_id
   vpc_name    = module.vpc.vpc_name
