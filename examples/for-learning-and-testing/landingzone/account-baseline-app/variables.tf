@@ -20,7 +20,7 @@ variable "aws_account_id" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-#  Modify the following variables to allow users from the security account to assume IAM roles in this account
+# Modify the following variables to allow users from the security account to assume IAM roles in this account
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "allow_read_only_access_from_other_account_arns" {
@@ -32,7 +32,6 @@ variable "allow_read_only_access_from_other_account_arns" {
   #   "arn:aws:iam::123445678910:root"
   # ]
 }
-
 
 variable "allow_billing_access_from_other_account_arns" {
   description = "A list of IAM ARNs from other AWS accounts that will be allowed full (read and write) access to the billing info for this account."
@@ -94,4 +93,20 @@ variable "dev_permitted_services" {
   description = "A list of AWS services for which the developers from the accounts in var.allow_dev_access_from_other_account_arns will receive full permissions. See https://goo.gl/ZyoHlz to find the IAM Service name. For example, to grant developers access only to EC2 and Amazon Machine Learning, use the value [\"ec2\",\"machinelearning\"]. Do NOT add iam to the list of services, or that will grant Developers de facto admin access."
   type        = list(string)
   default     = []
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Modify the following variables to configure the CloudTrail logs.
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "cloudtrail_s3_bucket_name" {
+  description = "The name of the S3 Bucket where CloudTrail logs will be stored. If value is `null`, defaults to `var.name_prefix`-cloudtrail"
+  type        = string
+  default     = "cloudtrail-bucket-in-security-account"
+}
+
+variable "cloudtrail_kms_key_administrator_iam_arns" {
+  description = "All CloudTrail Logs will be encrypted with a KMS Key (a Customer Master Key) that governs access to write API calls older than 7 days and all read API calls. The IAM Users specified in this list will have rights to change who can access this extended log data."
+  type        = list(string)
+  default     = ["arn:aws:iam::123456789012:user/acme-admin"]
 }

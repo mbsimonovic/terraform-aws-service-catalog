@@ -34,6 +34,6 @@ module "security_baseline" {
   auto_deploy_permissions = var.auto_deploy_permissions
   dev_permitted_services  = var.dev_permitted_services
 
-  cloudtrail_kms_key_administrator_iam_arns = ["arn:aws:iam::123456789012:user/acme-admin"]
-  cloudtrail_s3_bucket_name                 = "cloudtrail-bucket-in-security-account"
+  cloudtrail_kms_key_administrator_iam_arns = var.cloudtrail_kms_key_administrator_iam_arns
+  cloudtrail_s3_bucket_name                 = var.cloudtrail_s3_bucket_name
 }
