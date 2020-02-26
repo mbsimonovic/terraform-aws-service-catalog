@@ -2,7 +2,7 @@
 :type: service
 :name: AWS App Account baseline wrapper
 :description: A security baseline for AWS Landing Zone for configuring app accounts (dev, stage, prod, and other similar child accounts), including setting up AWS Config, AWS CloudTrail, Amazon Guard Duty, IAM users, IAM groups, IAM password policy, and more.
-:icon: ../../_docs/aws-organizations-icon.png
+:icon: ../../../_docs/aws-organizations-icon.png
 :category: Landing Zone
 :cloud: aws
 :tags: aws-landing-zone, logging, security

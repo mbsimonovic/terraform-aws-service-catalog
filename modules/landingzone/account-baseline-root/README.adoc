@@ -2,7 +2,7 @@
 :type: service
 :name: AWS Root Account baseline wrapper
 :description: A security baseline for AWS Landing Zone for configuring the root account (AKA master account) of an AWS Organization, including setting up child accounts, AWS Config, AWS CloudTrail, Amazon Guard Duty, IAM users, IAM groups, IAM password policy, and more.
-:icon: ../../_docs/aws-organizations-icon.png
+:icon: ../../../_docs/aws-organizations-icon.png
 :category: Landing Zone
 :cloud: aws
 :tags: aws-landing-zone, logging, security
