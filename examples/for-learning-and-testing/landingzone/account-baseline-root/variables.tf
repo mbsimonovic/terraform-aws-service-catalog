@@ -7,17 +7,21 @@
 variable "name_prefix" {
   description = "The name used to prefix AWS Config and Cloudtrail resources, including the S3 bucket names and SNS topics used for each."
   type        = string
+  default     = "account-baseline-app"
 }
 
 variable "aws_region" {
   description = "The AWS Region to use as the global config recorder and seed region for AWS Guardduty."
   type        = string
+  default     = "us-east-1"
 }
 
 variable "aws_account_id" {
   description = "The AWS Account ID the template should be operated on. This avoids misconfiguration errors caused by environment variables."
   type        = string
+  default     = "966198709205"
 }
+
 
 variable "create_organization" {
   description = "Flag indicating whether the organization should be created."
