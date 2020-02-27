@@ -16,12 +16,6 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
-variable "aws_account_id" {
-  description = "The AWS Account ID the template should be operated on. This avoids misconfiguration errors caused by environment variables."
-  type        = string
-  default     = "966198709205"
-}
-
 # ---------------------------------------------------------------------------------------------------------------------
 # Modify the following variables to allow users from the security account to assume IAM roles in this account
 # ---------------------------------------------------------------------------------------------------------------------

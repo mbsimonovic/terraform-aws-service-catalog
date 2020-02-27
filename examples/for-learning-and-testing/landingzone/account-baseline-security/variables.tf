@@ -15,9 +15,3 @@ variable "aws_region" {
   type        = string
   default     = "us-east-1"
 }
-
-variable "aws_account_id" {
-  description = "The AWS Account ID the template should be operated on. This avoids misconfiguration errors caused by environment variables."
-  type        = string
-  default     = "966198709205"
-}

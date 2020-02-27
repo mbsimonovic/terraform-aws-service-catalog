@@ -20,7 +20,7 @@ module "security_baseline" {
   # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/landingzone/account-baseline-app?ref=v1.0.0"
   source = "../../../../modules/landingzone/account-baseline-app"
 
-  aws_account_id = var.aws_account_id
+  aws_account_id = data.aws_caller_identity.current.id
   aws_region     = var.aws_region
   name_prefix    = var.name_prefix
 
@@ -37,3 +37,5 @@ module "security_baseline" {
   cloudtrail_kms_key_administrator_iam_arns = var.cloudtrail_kms_key_administrator_iam_arns
   cloudtrail_s3_bucket_name                 = var.cloudtrail_s3_bucket_name
 }
+
+data "aws_caller_identity" "current" {}

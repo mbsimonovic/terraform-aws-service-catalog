@@ -20,7 +20,9 @@ module "security_baseline" {
   # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/landingzone/account-baseline-security?ref=v1.0.0"
   source = "../../../../modules/landingzone/account-baseline-security"
 
-  aws_account_id = var.aws_account_id
+  aws_account_id = data.aws_caller_identity.current.id
   aws_region     = var.aws_region
   name_prefix    = var.name_prefix
 }
+
+data "aws_caller_identity" "current" {}

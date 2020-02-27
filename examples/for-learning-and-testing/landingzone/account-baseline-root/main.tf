@@ -20,7 +20,7 @@ module "root_baseline" {
   # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/landingzone/account-baseline-root?ref=v1.0.0"
   source = "../../../../modules/landingzone/account-baseline-root"
 
-  aws_account_id = var.aws_account_id
+  aws_account_id = data.aws_caller_identity.current.id
   aws_region     = var.aws_region
   name_prefix    = var.name_prefix
 
@@ -29,3 +29,5 @@ module "root_baseline" {
 
   child_accounts = var.child_accounts
 }
+
+data "aws_caller_identity" "current" {}

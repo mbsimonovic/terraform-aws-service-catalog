@@ -13,9 +13,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// This is the Org Test Account
-const AWSAccountId = "966198709205"
-
 func TestAccountBaselines(t *testing.T) {
 	t.Parallel()
 
@@ -79,7 +76,6 @@ func TestAccountBaselines(t *testing.T) {
 				if testCase.isOrg {
 					terraformOptions.Vars["create_organization"] = testCase.createOrg
 				}
-				terraformOptions.Vars["aws_account_id"] = AWSAccountId
 				terraformOptions.Vars["name_prefix"] = strings.ToLower(testCase.exampleDir)
 
 				if testCase.isApp {
