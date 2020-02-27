@@ -60,20 +60,12 @@ reusable, battle-tested, production ready infrastructure code. If you've never u
 sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catallog/[How to use the Gruntwork
 Service Catalog]!
 
-=== Core concepts
-
 // TODO: update this URL when https://github.com/gruntwork-io/gruntwork-io.github.io/pull/265 is merged!
 * https://gruntwork.io/guides/automation-and-workflows/how-to-configure-a-production-grade-ci-cd-setup-for-apps-and-infrastructure-code/#core_concepts[CI
   / CD Core Concepts]: An overview of the core concepts you need to understand what a typical CI/CD pipeline entails
   for application and infrastructure code, including a sample workflow, infrastructure to support CI/CD, and threat
   models to consider to protect your infrastructure.
 * https://jenkins.io/doc/[Jenkins Documentation]: The official documentation for Jenkins.
-
-=== Repo organization
-
-* link:/modules[modules]: The main implementation code for this repo, broken down into multiple standalone, orthogonal submodules.
-* link:/examples[examples]: This folder contains working examples of how to use the submodules.
-* link:/test[test]: Automated tests for the modules and examples.
 
 
 
@@ -103,7 +95,7 @@ If you want to deploy this repo in production, check out the following resources
 
 
 
-== Manage
+== Operate
 
 === Day-to-day operations
 
