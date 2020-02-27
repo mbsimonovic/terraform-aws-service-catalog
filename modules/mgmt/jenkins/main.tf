@@ -11,11 +11,9 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This code requires Terraform 0.12 or above
   required_version = ">= 0.12"
 
   required_providers {
-    # Provider version 2.X series is the latest, but has breaking changes with 1.X series.
     aws = "~> 2.6"
   }
 }
