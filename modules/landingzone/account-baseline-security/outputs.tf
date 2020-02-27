@@ -76,103 +76,128 @@ output "cloudtrail_iam_role_arn" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 output "allow_read_only_access_from_other_accounts_iam_role_arn" {
-  value = module.iam_cross_account_roles.allow_read_only_access_from_other_accounts_iam_role_arn
+  description = "TODO - add description."
+  value       = module.iam_cross_account_roles.allow_read_only_access_from_other_accounts_iam_role_arn
 }
 
 output "allow_billing_access_from_other_accounts_iam_role_arn" {
-  value = module.iam_cross_account_roles.allow_billing_access_from_other_accounts_iam_role_arn
+  description = "TODO - add description."
+  value       = module.iam_cross_account_roles.allow_billing_access_from_other_accounts_iam_role_arn
 }
 
 output "allow_ssh_grunt_access_from_other_accounts_iam_role_arn" {
-  value = module.iam_cross_account_roles.allow_ssh_grunt_access_from_other_accounts_iam_role_arn
+  description = "TODO - add description."
+  value       = module.iam_cross_account_roles.allow_ssh_grunt_access_from_other_accounts_iam_role_arn
 }
 
 output "allow_ssh_grunt_houston_access_from_other_accounts_iam_role_arn" {
-  value = module.iam_cross_account_roles.allow_ssh_grunt_houston_access_from_other_accounts_iam_role_arn
+  description = "TODO - add description."
+  value       = module.iam_cross_account_roles.allow_ssh_grunt_houston_access_from_other_accounts_iam_role_arn
 }
 
 output "allow_houston_cli_access_from_other_accounts_iam_role_arn" {
-  value = module.iam_cross_account_roles.allow_houston_cli_access_from_other_accounts_iam_role_arn
+  description = "TODO - add description."
+  value       = module.iam_cross_account_roles.allow_houston_cli_access_from_other_accounts_iam_role_arn
 }
 
 output "allow_dev_access_from_other_accounts_iam_role_arn" {
-  value = module.iam_cross_account_roles.allow_dev_access_from_other_accounts_iam_role_arn
+  description = "TODO - add description."
+  value       = module.iam_cross_account_roles.allow_dev_access_from_other_accounts_iam_role_arn
 }
 
 output "allow_full_access_from_other_accounts_iam_role_arn" {
-  value = module.iam_cross_account_roles.allow_full_access_from_other_accounts_iam_role_arn
+  description = "TODO - add description."
+  value       = module.iam_cross_account_roles.allow_full_access_from_other_accounts_iam_role_arn
 }
 
 output "allow_iam_admin_access_from_other_accounts_iam_role_arn" {
-  value = module.iam_cross_account_roles.allow_iam_admin_access_from_other_accounts_iam_role_arn
+  description = "TODO - add description."
+  value       = module.iam_cross_account_roles.allow_iam_admin_access_from_other_accounts_iam_role_arn
 }
 
 output "allow_auto_deploy_access_from_other_accounts_iam_role_arn" {
-  value = module.iam_cross_account_roles.allow_auto_deploy_access_from_other_accounts_iam_role_arn
+  description = "TODO - add description."
+  value       = module.iam_cross_account_roles.allow_auto_deploy_access_from_other_accounts_iam_role_arn
 }
 
 output "allow_read_only_access_from_other_accounts_iam_role_id" {
-  value = module.iam_cross_account_roles.allow_read_only_access_from_other_accounts_iam_role_id
+  description = "TODO - add description."
+  value       = module.iam_cross_account_roles.allow_read_only_access_from_other_accounts_iam_role_id
 }
 
 output "allow_billing_access_from_other_accounts_iam_role_id" {
-  value = module.iam_cross_account_roles.allow_billing_access_from_other_accounts_iam_role_id
+  description = "TODO - add description."
+  value       = module.iam_cross_account_roles.allow_billing_access_from_other_accounts_iam_role_id
 }
 
 output "allow_ssh_grunt_access_from_other_accounts_iam_role_id" {
-  value = module.iam_cross_account_roles.allow_ssh_grunt_access_from_other_accounts_iam_role_id
+  description = "TODO - add description."
+  value       = module.iam_cross_account_roles.allow_ssh_grunt_access_from_other_accounts_iam_role_id
 }
 
 output "allow_ssh_grunt_houston_access_from_other_accounts_iam_role_id" {
-  value = module.iam_cross_account_roles.allow_ssh_grunt_houston_access_from_other_accounts_iam_role_id
+  description = "TODO - add description."
+  value       = module.iam_cross_account_roles.allow_ssh_grunt_houston_access_from_other_accounts_iam_role_id
 }
 
 output "allow_houston_cli_access_from_other_accounts_iam_role_id" {
-  value = module.iam_cross_account_roles.allow_houston_cli_access_from_other_accounts_iam_role_id
+  description = "TODO - add description."
+  value       = module.iam_cross_account_roles.allow_houston_cli_access_from_other_accounts_iam_role_id
 }
 
 output "allow_dev_access_from_other_accounts_iam_role_id" {
-  value = module.iam_cross_account_roles.allow_dev_access_from_other_accounts_iam_role_id
+  description = "TODO - add description."
+  value       = module.iam_cross_account_roles.allow_dev_access_from_other_accounts_iam_role_id
 }
 
 output "allow_full_access_from_other_accounts_iam_role_id" {
-  value = module.iam_cross_account_roles.allow_full_access_from_other_accounts_iam_role_id
+  description = "TODO - add description."
+  value       = module.iam_cross_account_roles.allow_full_access_from_other_accounts_iam_role_id
 }
 
 output "allow_iam_admin_access_from_other_accounts_iam_role_id" {
-  value = module.iam_cross_account_roles.allow_iam_admin_access_from_other_accounts_iam_role_id
+  description = "TODO - add description."
+  value       = module.iam_cross_account_roles.allow_iam_admin_access_from_other_accounts_iam_role_id
 }
 
 output "allow_auto_deploy_access_from_other_accounts_iam_role_id" {
-  value = module.iam_cross_account_roles.allow_auto_deploy_access_from_other_accounts_iam_role_id
+  description = "TODO - add description."
+  value       = module.iam_cross_account_roles.allow_auto_deploy_access_from_other_accounts_iam_role_id
 }
 
 output "allow_read_only_access_sign_in_url" {
-  value = module.iam_cross_account_roles.allow_read_only_access_sign_in_url
+  description = "TODO - add description."
+  value       = module.iam_cross_account_roles.allow_read_only_access_sign_in_url
 }
 
 output "allow_billing_access_sign_in_url" {
-  value = module.iam_cross_account_roles.allow_billing_access_sign_in_url
+  description = "TODO - add description."
+  value       = module.iam_cross_account_roles.allow_billing_access_sign_in_url
 }
 
 output "allow_ssh_grunt_access_sign_in_url" {
-  value = module.iam_cross_account_roles.allow_read_only_access_from_other_accounts_iam_role_arn
+  description = "TODO - add description."
+  value       = module.iam_cross_account_roles.allow_read_only_access_from_other_accounts_iam_role_arn
 }
 
 output "allow_ssh_grunt_houston_access_sign_in_url" {
-  value = module.iam_cross_account_roles.allow_ssh_grunt_access_sign_in_url
+  description = "TODO - add description."
+  value       = module.iam_cross_account_roles.allow_ssh_grunt_access_sign_in_url
 }
 
 output "allow_dev_access_sign_in_url" {
-  value = module.iam_cross_account_roles.allow_dev_access_sign_in_url
+  description = "TODO - add description."
+  value       = module.iam_cross_account_roles.allow_dev_access_sign_in_url
 }
 
 output "allow_full_access_sign_in_url" {
-  value = module.iam_cross_account_roles.allow_full_access_sign_in_url
+  description = "TODO - add description."
+  value       = module.iam_cross_account_roles.allow_full_access_sign_in_url
 }
 
 output "allow_iam_admin_access_sign_in_url" {
-  value = module.iam_cross_account_roles.allow_iam_admin_access_sign_in_url
+  description = "TODO - add description."
+  value       = module.iam_cross_account_roles.allow_iam_admin_access_sign_in_url
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -210,119 +235,148 @@ output "guardduty_findings_sns_topic_names" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 output "billing_iam_group_name" {
-  value = module.iam_groups.billing_iam_group_name
+  description = "TODO - add description."
+  value       = module.iam_groups.billing_iam_group_name
 }
 
 output "billing_iam_group_arn" {
-  value = module.iam_groups.billing_iam_group_arn
+  description = "TODO - add description."
+  value       = module.iam_groups.billing_iam_group_arn
 }
 
 output "developers_iam_group_name" {
-  value = module.iam_groups.developers_iam_group_name
+  description = "TODO - add description."
+  value       = module.iam_groups.developers_iam_group_name
 }
 
 output "developers_iam_group_arn" {
-  value = module.iam_groups.developers_iam_group_arn
+  description = "TODO - add description."
+  value       = module.iam_groups.developers_iam_group_arn
 }
 
 output "full_access_iam_group_name" {
-  value = module.iam_groups.full_access_iam_group_name
+  description = "TODO - add description."
+  value       = module.iam_groups.full_access_iam_group_name
 }
 
 output "full_access_iam_group_arn" {
-  value = module.iam_groups.full_access_iam_group_arn
+  description = "TODO - add description."
+  value       = module.iam_groups.full_access_iam_group_arn
 }
 
 output "ssh_grunt_users_group_names" {
-  value = module.iam_groups.ssh_grunt_users_group_names
+  description = "TODO - add description."
+  value       = module.iam_groups.ssh_grunt_users_group_names
 }
 
 output "ssh_grunt_users_group_arns" {
-  value = module.iam_groups.ssh_grunt_users_group_arns
+  description = "TODO - add description."
+  value       = module.iam_groups.ssh_grunt_users_group_arns
 }
 
 output "ssh_grunt_sudo_users_group_names" {
-  value = module.iam_groups.ssh_grunt_sudo_users_group_names
+  description = "TODO - add description."
+  value       = module.iam_groups.ssh_grunt_sudo_users_group_names
 }
 
 output "ssh_grunt_sudo_users_group_arns" {
-  value = module.iam_groups.ssh_grunt_sudo_users_group_arns
+  description = "TODO - add description."
+  value       = module.iam_groups.ssh_grunt_sudo_users_group_arns
 }
 
 output "read_only_iam_group_name" {
-  value = module.iam_groups.read_only_iam_group_name
+  description = "TODO - add description."
+  value       = module.iam_groups.read_only_iam_group_name
 }
 
 output "read_only_iam_group_arn" {
-  value = module.iam_groups.read_only_iam_group_arn
+  description = "TODO - add description."
+  value       = module.iam_groups.read_only_iam_group_arn
 }
 
 output "support_iam_group_name" {
-  value = module.iam_groups.support_iam_group_name
+  description = "TODO - add description."
+  value       = module.iam_groups.support_iam_group_name
 }
 
 output "support_iam_group_arn" {
-  value = module.iam_groups.support_iam_group_arn
+  description = "TODO - add description."
+  value       = module.iam_groups.support_iam_group_arn
 }
 
 output "houston_cli_users_iam_group_name" {
-  value = module.iam_groups.houston_cli_users_iam_group_name
+  description = "TODO - add description."
+  value       = module.iam_groups.houston_cli_users_iam_group_name
 }
 
 output "houston_cli_users_iam_group_arn" {
-  value = module.iam_groups.houston_cli_users_iam_group_arn
+  description = "TODO - add description."
+  value       = module.iam_groups.houston_cli_users_iam_group_arn
 }
 
 output "use_existing_iam_roles_iam_group_name" {
-  value = module.iam_groups.use_existing_iam_roles_iam_group_name
+  description = "TODO - add description."
+  value       = module.iam_groups.use_existing_iam_roles_iam_group_name
 }
 
 output "use_existing_iam_roles_iam_group_arn" {
-  value = module.iam_groups.use_existing_iam_roles_iam_group_arn
+  description = "TODO - add description."
+  value       = module.iam_groups.use_existing_iam_roles_iam_group_arn
 }
 
 output "iam_self_mgmt_iam_group_name" {
-  value = module.iam_groups.iam_self_mgmt_iam_group_name
+  description = "TODO - add description."
+  value       = module.iam_groups.iam_self_mgmt_iam_group_name
 }
 
 output "iam_self_mgmt_iam_group_arn" {
-  value = module.iam_groups.iam_self_mgmt_iam_group_arn
+  description = "TODO - add description."
+  value       = module.iam_groups.iam_self_mgmt_iam_group_arn
 }
 
 output "iam_self_mgmt_iam_policy_arn" {
-  value = module.iam_groups.iam_self_mgmt_iam_policy_arn
+  description = "TODO - add description."
+  value       = module.iam_groups.iam_self_mgmt_iam_policy_arn
 }
 
 output "iam_admin_iam_group_name" {
-  value = module.iam_groups.iam_admin_iam_group_name
+  description = "TODO - add description."
+  value       = module.iam_groups.iam_admin_iam_group_name
 }
 
 output "iam_admin_iam_group_arn" {
-  value = module.iam_groups.iam_admin_iam_group_arn
+  description = "TODO - add description."
+  value       = module.iam_groups.iam_admin_iam_group_arn
 }
 
 output "iam_admin_iam_policy_arn" {
-  value = module.iam_groups.iam_admin_iam_policy_arn
+  description = "TODO - add description."
+  value       = module.iam_groups.iam_admin_iam_policy_arn
 }
 
 output "require_mfa_policy" {
-  value = module.iam_groups.require_mfa_policy
+  description = "TODO - add description."
+  value       = module.iam_groups.require_mfa_policy
 }
 
 output "cross_account_access_group_arns" {
-  value = module.iam_groups.cross_account_access_group_arns
+  description = "TODO - add description."
+  value       = module.iam_groups.cross_account_access_group_arns
 }
 
 output "cross_account_access_group_names" {
-  value = module.iam_groups.cross_account_access_group_names
+  description = "TODO - add description."
+  value       = module.iam_groups.cross_account_access_group_names
 }
 
 output "cross_account_access_all_group_arn" {
-  value = module.iam_groups.cross_account_access_all_group_arn
+  description = "TODO - add description."
+  value       = module.iam_groups.cross_account_access_all_group_arn
 }
 
 output "cross_account_access_all_group_name" {
-  value = module.iam_groups.cross_account_access_all_group_name
+  description = "TODO - add description."
+  value       = module.iam_groups.cross_account_access_all_group_name
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
