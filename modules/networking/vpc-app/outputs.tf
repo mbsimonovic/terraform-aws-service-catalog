@@ -1,75 +1,94 @@
 output "vpc_name" {
-  value = module.vpc.vpc_name
+  description = "The name configured for VPC."
+  value       = module.vpc.vpc_name
 }
 
 output "vpc_id" {
-  value = module.vpc.vpc_id
+  description = "The ID of the VPC."
+  value       = module.vpc.vpc_id
 }
 
 output "vpc_cidr_block" {
-  value = module.vpc.vpc_cidr_block
+  description = "The IP address range of the VPC in CIDR notation."
+  value       = module.vpc.vpc_cidr_block
 }
 
 output "public_subnet_cidr_blocks" {
-  value = module.vpc.public_subnet_cidr_blocks
+  description = "The public IP address range of the VPC in CIDR notation."
+  value       = module.vpc.public_subnet_cidr_blocks
 }
 
 output "private_app_subnet_cidr_blocks" {
-  value = module.vpc.private_app_subnet_cidr_blocks
+  description = "The private IP address range of the VPC in CIDR notation."
+  value       = module.vpc.private_app_subnet_cidr_blocks
 }
 
 output "private_persistence_subnet_cidr_blocks" {
-  value = module.vpc.private_persistence_subnet_cidr_blocks
+  description = "The private IP address range of the VPC Persistence tier in CIDR notation."
+  value       = module.vpc.private_persistence_subnet_cidr_blocks
 }
 
 output "public_subnet_ids" {
-  value = module.vpc.public_subnet_ids
+  description = "A list of IDs of the public subnets of the VPC."
+  value       = module.vpc.public_subnet_ids
 }
 
 output "private_app_subnet_ids" {
-  value = module.vpc.private_app_subnet_ids
+  description = "A list of IDs of the private app subnets in the VPC"
+  value       = module.vpc.private_app_subnet_ids
 }
 
 output "private_persistence_subnet_ids" {
-  value = module.vpc.private_persistence_subnet_ids
+  description = "The IDs of the private persistence tier subnets of the VPC."
+  value       = module.vpc.private_persistence_subnet_ids
 }
 
 output "public_subnet_route_table_id" {
-  value = module.vpc.public_subnet_route_table_id
+  description = "The ID of the public routing table."
+  value       = module.vpc.public_subnet_route_table_id
 }
 
 output "private_app_subnet_route_table_ids" {
-  value = module.vpc.private_app_subnet_route_table_ids
+  description = "A list of IDs of the private app subnet routing table."
+  value       = module.vpc.private_app_subnet_route_table_ids
 }
 
 output "private_persistence_route_table_ids" {
-  value = module.vpc.private_persistence_route_table_ids
+  description = "A list of IDs of the private persistence subnet routing table."
+  value       = module.vpc.private_persistence_route_table_ids
 }
 
 output "nat_gateway_public_ips" {
-  value = module.vpc.nat_gateway_public_ips
+  description = "A list of public IPs from the NAT Gateway"
+  value       = module.vpc.nat_gateway_public_ips
 }
 
 output "nat_gateway_public_ip_count" {
-  value = length(module.vpc.nat_gateway_public_ips)
+  description = "Count of public IPs from the NAT Gateway"
+  value       = length(module.vpc.nat_gateway_public_ips)
 }
 
 output "public_subnets_network_acl_id" {
-  value = module.vpc_network_acls.public_subnets_network_acl_id
+  description = "The ID of the public subnet's ACL"
+  value       = module.vpc_network_acls.public_subnets_network_acl_id
 }
 
 output "private_app_subnets_network_acl_id" {
-  value = module.vpc_network_acls.private_app_subnets_network_acl_id
+  description = "The ID of the private subnet's ACL"
+  value       = module.vpc_network_acls.private_app_subnets_network_acl_id
 }
 
 output "private_persistence_subnets_network_acl_id" {
-  value = module.vpc_network_acls.private_persistence_subnets_network_acl_id
+  description = "The ID of the private persistence subnet's ACL"
+  value       = module.vpc_network_acls.private_persistence_subnets_network_acl_id
 }
 
 output "num_availability_zones" {
-  value = module.vpc.num_availability_zones
+  description = "The number of availability zones of the VPC"
+  value       = module.vpc.num_availability_zones
 }
 
 output "availability_zones" {
-  value = module.vpc.availability_zones
+  description = "The availability zones of the VPC"
+  value       = module.vpc.availability_zones
 }

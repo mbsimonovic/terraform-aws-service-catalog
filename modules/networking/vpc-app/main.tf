@@ -8,12 +8,12 @@
 
 terraform {
   required_providers {
-    aws = ">= 2.7.0"
+    aws = "~> 2.6"
   }
 
-  # Only allow this Terraform version. Note that if you upgrade to a newer version, Terraform won't allow you to use an
-  # older version, so when you upgrade, you should upgrade everyone on your team and your CI servers all at once.
-  required_version = ">= 0.12.20"
+  # Require at least 0.12.6, which added for_each support; make sure we don't accidentally pull in 0.13.x, as that may
+  # have backwards incompatible changes when it comes out.
+  required_version = "~> 0.12.6"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
