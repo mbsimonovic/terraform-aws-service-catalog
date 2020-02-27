@@ -25,7 +25,7 @@ To deploy Jenkins, you need to:
    with `repo` permissions and set it as the environment variable `GITHUB_OAUTH_TOKEN`: e.g., 
    `export GITHUB_OAUTH_TOKEN=xxx`.   
 1. Find the version of the Gruntwork AWS Service Catalog you want to use by looking at the [releases 
-   page](/releases). 
+   page](/../../releases). 
 1. Run the build:
 
     ```bash
