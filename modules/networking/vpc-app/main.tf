@@ -112,6 +112,7 @@ module "vpc_network_acls" {
   private_persistence_subnet_cidr_blocks = module.vpc.private_persistence_subnet_cidr_blocks
   allow_access_from_mgmt_vpc             = false
 }
+
 # ---------------------------------------------------------------------------------------------------------------------
 # ENABLE VPC FLOW LOGS
 # VPC Flow Logs captures information about the IP traffic going to and from network interfaces in your VPC

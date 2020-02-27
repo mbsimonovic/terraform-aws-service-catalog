@@ -1,3 +1,8 @@
+# ----------------------------------------------------------------------------------------------------------------------
+# MODULE PARAMETERS
+# There are no required variables, all of them are optional.
+# ----------------------------------------------------------------------------------------------------------------------
+
 variable "aws_region" {
   description = "The AWS region to deploy into"
   type        = string
