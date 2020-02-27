@@ -1,6 +1,13 @@
+# ---------------------------------------------------------------------------------------------------------------------
+# A MOCK VERSION OF AN ASG MODULE
+# ---------------------------------------------------------------------------------------------------------------------
+
 terraform {
+  # Require at least 0.12.6, which added for_each support; make sure we don't accidentally pull in 0.13.x, as that may
+  # have backwards incompatible changes when it comes out.
+  required_version = ">= 0.12"
+
   required_providers {
-    # Provider version 2.X series is the latest, but has breaking changes with 1.X series.
     aws = "~> 2.6"
   }
 }

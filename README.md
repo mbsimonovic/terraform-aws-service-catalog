@@ -24,7 +24,7 @@ networking, databases, caches, monitoring, alerting, CI/CD, secrets management, 
 
 ### Core concepts
 
-* https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catallog/[How to use the Gruntwork Service Catalog]
+* [How to use the Gruntwork Service Catalog](https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catallog/)
 
 ### Repo organization
 

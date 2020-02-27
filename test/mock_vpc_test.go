@@ -8,6 +8,8 @@ import (
 )
 
 func TestMockVpc(t *testing.T) {
+	t.Parallel()
+
 	terraformOptions := &terraform.Options{
 		TerraformDir: "../modules/mock-vpc",
 		Vars: map[string]interface{}{
