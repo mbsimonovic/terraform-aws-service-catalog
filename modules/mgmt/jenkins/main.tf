@@ -191,16 +191,20 @@ resource "aws_iam_role_policy" "deploy_other_account_permissions" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "cloudwatch_metrics" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-custom-metrics-iam-policy?ref=v0.18.2"
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-custom-metrics-iam-policy?ref=v0.18.3"
 
-  name_prefix = var.name
+  name_prefix      = var.name
+
+  # We set this to false so that the cloudwatch-custom-metrics-iam-policy generates the JSON for the policy, but does
+  # not create a standalone IAM policy with that JSON. We'll instead add that JSON to the Jenkins IAM role.
+  create_resources = false
 }
 
-resource "aws_iam_policy_attachment" "attach_cloudwatch_metrics_policy" {
-  count      = var.enable_cloudwatch_metrics ? 1 : 0
-  name       = "attach-cloudwatch-metrics-policy"
-  roles      = [module.jenkins.jenkins_iam_role_id]
-  policy_arn = module.cloudwatch_metrics.cloudwatch_metrics_policy_arn
+resource "aws_iam_role_policy" "custom_cloudwatch_metrics" {
+  count  = var.enable_cloudwatch_metrics ? 1 : 0
+  name   = "custom-cloudwatch-metrics"
+  role   = module.jenkins.jenkins_iam_role_id
+  policy = module.cloudwatch_metrics.cloudwatch_metrics_read_write_permissions_json
 }
 
 # ------------------------------------------------------------------------------
@@ -208,16 +212,20 @@ resource "aws_iam_policy_attachment" "attach_cloudwatch_metrics_policy" {
 # ------------------------------------------------------------------------------
 
 module "cloudwatch_log_aggregation" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/logs/cloudwatch-log-aggregation-iam-policy?ref=v0.18.2"
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/logs/cloudwatch-log-aggregation-iam-policy?ref=v0.18.3"
 
   name_prefix = var.name
+
+  # We set this to false so that the cloudwatch-log-aggregation-iam-policy generates the JSON for the policy, but does
+  # not create a standalone IAM policy with that JSON. We'll instead add that JSON to the Jenkins IAM role.
+  create_resources = false
 }
 
-resource "aws_iam_policy_attachment" "attach_cloudwatch_log_aggregation_policy" {
-  count      = var.enable_cloudwatch_log_aggregation ? 1 : 0
-  name       = "attach-cloudwatch-log-aggregation-policy"
-  roles      = [module.jenkins.jenkins_iam_role_id]
-  policy_arn = module.cloudwatch_log_aggregation.cloudwatch_log_aggregation_policy_arn
+resource "aws_iam_role_policy" "custom_cloudwatch_metrics" {
+  count  = var.enable_cloudwatch_log_aggregation ? 1 : 0
+  name   = "cloudwatch-log-aggregation"
+  role   = module.jenkins.jenkins_iam_role_id
+  policy = module.cloudwatch_metrics.cloudwatch_logs_permissions_json
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -225,7 +233,7 @@ resource "aws_iam_policy_attachment" "attach_cloudwatch_log_aggregation_policy" 
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "high_cpu_usage_alarms" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/asg-cpu-alarms?ref=v0.18.2"
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/asg-cpu-alarms?ref=v0.18.3"
 
   asg_names            = [module.jenkins.jenkins_asg_name]
   num_asg_names        = 1
@@ -234,7 +242,7 @@ module "high_cpu_usage_alarms" {
 }
 
 module "high_memory_usage_alarms" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/asg-memory-alarms?ref=v0.18.2"
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/asg-memory-alarms?ref=v0.18.3"
 
   asg_names            = [module.jenkins.jenkins_asg_name]
   num_asg_names        = 1
@@ -243,7 +251,7 @@ module "high_memory_usage_alarms" {
 }
 
 module "high_disk_usage_jenkins_volume_alarms" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/asg-disk-alarms?ref=v0.18.2"
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/asg-disk-alarms?ref=v0.18.3"
 
   asg_names            = [module.jenkins.jenkins_asg_name]
   num_asg_names        = 1
@@ -254,7 +262,7 @@ module "high_disk_usage_jenkins_volume_alarms" {
 }
 
 module "high_disk_usage_root_volume_alarms" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/asg-disk-alarms?ref=v0.18.2"
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/asg-disk-alarms?ref=v0.18.3"
 
   asg_names            = [module.jenkins.jenkins_asg_name]
   num_asg_names        = 1
