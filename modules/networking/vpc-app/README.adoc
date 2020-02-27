@@ -29,7 +29,7 @@ image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
 
 This folder contains code to deploy a [Virtual Private Cloud (VPC)](https://aws.amazon.com/vpc/) on AWS that can be used for either production or non-production workloads.
 
-image::../../../_docs/vpc-no-subnets-diagram.png?raw=true[VPC architecture]
+image::../../../_docs/vpc-subnets-diagram.png?raw=true[VPC architecture]
 
 
 toc::[]
