@@ -1,7 +1,7 @@
 # We should either source this directly from module-security... or move these account-baseline-xxx modules directly
 # into this aws-service-catalog repo.
 terraform {
-  source = "git::git@github.com:gruntwork-io/module-security//modules/account-baseline-security?ref=v0.24.2"
+  source = "git::git@github.com:gruntwork-io/module-security//modules/account-baseline-security?ref=v0.25.1"
 }
 
 inputs = {
