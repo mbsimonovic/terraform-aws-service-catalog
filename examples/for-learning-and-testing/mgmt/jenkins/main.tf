@@ -1,8 +1,15 @@
+# ----------------------------------------------------------------------------------------------------------------------
+# DEPLOY JENKINS IN AN ASG, WITH AN ALB, ROUTE 53 DNS ENTRY, ACM TLS CERT, AND CLOUDWATCH METRICS, LOGGING, AND ALERTS
+# ----------------------------------------------------------------------------------------------------------------------
+
 provider "aws" {
   region = var.aws_region
 }
 
 module "jenkins" {
+  # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
+  # to a specific version of the modules, such as the following example:
+  # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/mgmt/jenkins?ref=v1.0.8"
   source = "../../../../modules/mgmt/jenkins"
 
   name          = var.name
