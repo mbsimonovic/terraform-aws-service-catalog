@@ -27,7 +27,7 @@ endif::[]
 image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
 image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
 
-This folder contains code to deploy [Jenkins CI Server](https://jenkins.io/) on AWS.
+This folder contains code to deploy https://jenkins.io/[Jenkins CI Server] on AWS.
 
 image::../../../_docs/jenkins-architecture.png?raw=true[Jenkins architecture]
 
@@ -67,7 +67,7 @@ Service Catalog]!
   / CD Core Concepts]: An overview of the core concepts you need to understand what a typical CI/CD pipeline entails
   for application and infrastructure code, including a sample workflow, infrastructure to support CI/CD, and threat
   models to consider to protect your infrastructure.
-* https://jenkins.io/doc/[Jenkins Documentation]
+* https://jenkins.io/doc/[Jenkins Documentation]: The official documentation for Jenkins.
 
 === Repo organization
 
