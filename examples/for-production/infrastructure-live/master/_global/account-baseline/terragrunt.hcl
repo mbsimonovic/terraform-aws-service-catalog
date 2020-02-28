@@ -13,19 +13,19 @@ inputs = {
   # The child AWS accounts to create in this AWS organization
   child_accounts = {
     security = {
-      email = "root-acconts+security@acme.com",
+      email = "root-accounts+security@acme.com",
     },
     shared-services = {
-      email = "root-acconts+shared-services@acme.com"
+      email = "root-accounts+shared-services@acme.com"
     },
     dev = {
-      email = "root-acconts+dev@acme.com"
+      email = "root-accounts+dev@acme.com"
     },
     stage = {
-      email = "root-acconts+stage@acme.com"
+      email = "root-accounts+stage@acme.com"
     },
     prod = {
-      email = "root-acconts+prod@acme.com"
+      email = "root-accounts+prod@acme.com"
     }
   }
 
