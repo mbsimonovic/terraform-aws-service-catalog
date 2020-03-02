@@ -11,6 +11,10 @@ dependency "vpc" {
   config_path = "../../networking/mock-vpc"
 }
 
+dependencies {
+  paths = ["../../../../_global/account-baseline"]
+}
+
 inputs = {
   name          = "ref-arch-lite-jenkins"
   ami           = "ami-abcd1234"
