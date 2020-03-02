@@ -30,8 +30,6 @@ variable "aws_region" {
   default     = "eu-west-1"
 }
 
-
-
 variable "base_domain_name_tags" {
   description = "Tags to use to filter the Route 53 Hosted Zones that might match var.base_domain_name."
   type        = map(string)

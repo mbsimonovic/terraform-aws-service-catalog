@@ -47,3 +47,7 @@ nohup busybox httpd -f -p "8080" 2>&1 | logger &
 EOF
 
 }
+
+locals {
+  default_http_port = 8080
+}
