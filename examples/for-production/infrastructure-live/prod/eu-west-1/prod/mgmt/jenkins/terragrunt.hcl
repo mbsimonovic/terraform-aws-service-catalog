@@ -8,7 +8,7 @@ include {
 }
 
 dependency "vpc" {
-  config_path = "../../networking/mock-vpc"
+  config_path = "../../networking/vpc"
 }
 
 dependencies {
