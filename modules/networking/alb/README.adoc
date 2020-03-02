@@ -39,7 +39,8 @@ toc::[]
 == Features
 
 * Deploy public or internal Application Load Balancers
-* Configure DNS in Route 53 and TLS in AWS Certificate Manager (ACM)
+* Configure DNS in Route 53
+* Configure TLS in AWS Certificate Manager (ACM)
 * Send access logs into S3
 * Manage access with security groups or CIDR blocks
 
