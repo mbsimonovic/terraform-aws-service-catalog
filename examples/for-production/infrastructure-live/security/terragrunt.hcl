@@ -7,7 +7,7 @@ locals {
 
   # Common variables used across this AWS account
   common_inputs = {
-    aws_account_id = local.account_vars.inputs.prod_account_id
+    aws_account_id = local.account_vars.inputs.security_account_id
     aws_region     = local.region_vars.inputs.aws_region
   }
 }
@@ -31,7 +31,7 @@ remote_state {
   backend = "s3"
   config = {
     encrypt        = true
-    bucket         = "gruntwork-ref-arch-lite-prod-terraform-state"
+    bucket         = "gruntwork-ref-arch-lite-security-terraform-state"
     key            = "${path_relative_to_include()}/terraform.tfstate"
     region         = local.account_vars.inputs.default_region
     dynamodb_table = "terraform-locks"
