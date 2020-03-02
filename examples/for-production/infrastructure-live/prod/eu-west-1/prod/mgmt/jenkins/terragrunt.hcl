@@ -32,7 +32,9 @@ inputs = {
   is_internal_alb                      = false
   allow_incoming_http_from_cidr_blocks = ["0.0.0.0/0"]
 
-  hosted_zone_id             = "Z2VWPXQ2IDW13E"
-  domain_name                = "ref-arch-lite-jenkins-prod.gruntwork-sandbox.com"
-  acm_ssl_certificate_domain = "*.gruntwork-sandbox.com"
+  # We'd normally use a dependency block to pull in the hosted zone ID, but we haven't converted the route 53 modules
+  # to the new service catalog format yet, so for now, we just hard-code the ID.
+  hosted_zone_id             = "Z2AJ7S3R6G9UYJ"
+  domain_name                = "ref-arch-lite-jenkins-prod.gruntwork.in"
+  acm_ssl_certificate_domain = "*.gruntwork.in"
 }
