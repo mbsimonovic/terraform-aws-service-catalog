@@ -18,7 +18,7 @@ generate "provider" {
   if_exists = "overwrite"
   contents  = <<EOF
 provider "aws" {
-  region = ${local.region_vars.inputs.aws_region}
+  region = "${local.region_vars.inputs.aws_region}"
 
   # Only these AWS Account IDs may be operated on by this template
   allowed_account_ids = ["${local.common_inputs.aws_account_id}"]
