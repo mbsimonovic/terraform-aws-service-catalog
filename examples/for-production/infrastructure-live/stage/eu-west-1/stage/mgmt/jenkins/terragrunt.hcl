@@ -33,6 +33,6 @@ inputs = {
   allow_incoming_http_from_cidr_blocks = ["0.0.0.0/0"]
 
   hosted_zone_id             = "Z2VWPXQ2IDW13E"
-  domain_name                = "ref-arch-lite-jenkins-prod.gruntwork-sandbox.com"
+  domain_name                = "ref-arch-lite-jenkins-stage.gruntwork-sandbox.com"
   acm_ssl_certificate_domain = "*.gruntwork-sandbox.com"
 }

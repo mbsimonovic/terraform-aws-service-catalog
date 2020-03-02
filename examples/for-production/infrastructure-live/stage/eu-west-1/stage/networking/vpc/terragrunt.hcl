@@ -16,7 +16,7 @@ dependencies {
 }
 
 inputs = {
-  vpc_name         = "prod-vpc"
-  cidr_block       = local.account_vars.inputs.prod_cidr_block
-  num_nat_gateways = 3
+  vpc_name         = "stage-vpc"
+  cidr_block       = local.account_vars.inputs.stage_cidr_block
+  num_nat_gateways = 1
 }
