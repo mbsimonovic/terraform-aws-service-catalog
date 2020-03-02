@@ -41,6 +41,8 @@ module "alb" {
 
 # ---------------------------------------------------------------------------------------------------------------------
 # LAUNCH SAMPLE EC2 INSTANCE AS WEBSERVER
+# This is used as (a) an example of how to route traffic to servers 
+# using the ALB and (b) for automated testing.
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_instance" "webserver" {
