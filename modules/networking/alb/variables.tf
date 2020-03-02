@@ -4,7 +4,7 @@
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "alb_name" {
-  description = "The name of the ALB. Do not include the environment name since this module will automatically append it to the value of this variable."
+  description = "The name of the ALB."
   type        = string
 }
 
