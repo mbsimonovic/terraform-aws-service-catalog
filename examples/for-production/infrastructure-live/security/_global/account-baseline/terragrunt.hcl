@@ -23,6 +23,9 @@ inputs = {
   # Prefix all resources with this name
   name_prefix = "ref-arch-lite"
 
+  # Send CloudTrail logs to this bucket
+  cloudtrail_s3_bucket_name = local.account_vars.inputs.cloudtrail_s3_bucket_name
+
   # This IAM group gives access to other AWS accounts
   iam_groups_for_cross_account_access = [
     {

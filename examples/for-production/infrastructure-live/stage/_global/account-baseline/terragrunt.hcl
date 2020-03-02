@@ -17,6 +17,10 @@ inputs = {
   # Prefix all resources with this name
   name_prefix = "ref-arch-lite"
 
+  # Send CloudTrail logs to this bucket in the security account
+  cloudtrail_s3_bucket_name                 = local.account_vars.inputs.cloudtrail_s3_bucket_name
+  cloudtrail_kms_key_administrator_iam_arns = []
+
   # Allow access from other AWS accounts
   allow_read_only_access_from_other_account_arns = [local.security_account_arn]
   allow_full_access_from_other_account_arns      = [local.security_account_arn]

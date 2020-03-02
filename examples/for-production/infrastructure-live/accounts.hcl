@@ -8,6 +8,9 @@ inputs = {
   stage_account_id    = "087285199408"
   prod_account_id     = "087285199408"
 
+  # Send all CloudTrail logs from all child accounts to this S3 bucket
+  cloudtrail_s3_bucket_name = "ref-arch-lite-security-logs"
+
   # Centrally manage all the VPC CIDR blocks
   stage_cidr_block = "10.0.0.0/16"
   prod_cidr_block  = "10.0.10.0/16"
