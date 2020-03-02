@@ -49,7 +49,7 @@ resource "aws_instance" "webserver" {
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = "t2.nano"
   vpc_security_group_ids      = [aws_security_group.webserver.id]
-  subnet_id                   = tolist(data.aws_subnet_ids.default.ids)[0]
+  subnet_id                   = sort(tolist(data.aws_subnet_ids.default.ids))[0]
   associate_public_ip_address = false
   user_data                   = data.template_file.user_data.rendered
 
