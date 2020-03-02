@@ -1,5 +1,5 @@
 terraform {
-  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/landingzone/account-baseline-app?ref=v0.0.1"
+  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/landingzone/account-baseline-app?ref=landing-zone-v1"
 }
 
 include {

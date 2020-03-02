@@ -1,5 +1,5 @@
 terraform {
-  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc-app?ref=v0.0.1"
+  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc-app?ref=ref-arch-lite"
 }
 
 include {
