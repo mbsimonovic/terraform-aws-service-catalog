@@ -1,5 +1,5 @@
 # Common variables for all AWS accounts
-inputs {
+inputs = {
   # Centrally define all our AWS account IDs
   master_account_id   = "111111111111"
   security_account_id = "222222222222"
