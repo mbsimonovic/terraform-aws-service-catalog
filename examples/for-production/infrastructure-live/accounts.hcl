@@ -1,10 +1,12 @@
 # Common variables for all AWS accounts
 inputs = {
   # Centrally define all our AWS account IDs
-  master_account_id   = "111111111111"
-  security_account_id = "222222222222"
-  stage_account_id    = "333333333333"
-  prod_account_id     = "444444444444"
+  # NOTE: these are currently all set to the same account ID (for Gruntworks Phx DevOps AWS account) for easy testing,
+  # but in real usage, each of these would be set to a different value!
+  master_account_id   = "087285199408"
+  security_account_id = "087285199408"
+  stage_account_id    = "087285199408"
+  prod_account_id     = "087285199408"
 
   # Centrally manage all the VPC CIDR blocks
   stage_cidr_block = "10.0.0.0/16"
