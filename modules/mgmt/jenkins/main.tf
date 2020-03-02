@@ -221,7 +221,7 @@ module "cloudwatch_log_aggregation" {
   create_resources = false
 }
 
-resource "aws_iam_role_policy" "custom_cloudwatch_metrics" {
+resource "aws_iam_role_policy" "cloudwatch_log_aggregation" {
   count  = var.enable_cloudwatch_log_aggregation ? 1 : 0
   name   = "cloudwatch-log-aggregation"
   role   = module.jenkins.jenkins_iam_role_id
