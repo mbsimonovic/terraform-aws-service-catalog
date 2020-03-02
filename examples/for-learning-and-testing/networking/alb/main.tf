@@ -24,9 +24,6 @@ module "alb" {
   num_days_after_which_archive_log_data = 7
   num_days_after_which_delete_log_data  = 30
 
-  # To keep this example simple, we make the ALB public and allow incoming HTTP connections from anywhere. In
-  # production, you'll want to use an internal ALB and limit access to trusted servers only (e.g., solely a bastion
-  # host or VPN server).
   is_internal_alb                = false
   http_listener_ports            = ["8080"]
   allow_inbound_from_cidr_blocks = ["0.0.0.0/0"]
