@@ -7,8 +7,8 @@ include {
 }
 
 locals {
-  # Automatically load account-level variables
-  account_vars = read_terragrunt_config(find_in_parent_folders("accounts.hcl"))
+  # Automatically load common variables shared across all accounts
+  common_vars = read_terragrunt_config(find_in_parent_folders("common.hcl"))
 
   security_full_access_group_name = "full-access"
   access_all_accounts_group_name  = "access-all-external-accounts"
@@ -24,25 +24,25 @@ inputs = {
   name_prefix = "ref-arch-lite"
 
   # Send CloudTrail logs to this bucket
-  cloudtrail_s3_bucket_name = local.account_vars.locals.cloudtrail_s3_bucket_name
+  cloudtrail_s3_bucket_name = local.common_vars.locals.cloudtrail_s3_bucket_name
 
   # This IAM group gives access to other AWS accounts
   iam_groups_for_cross_account_access = [
     {
       group_name   = local.stage_full_access_group_name
-      iam_role_arn = "arn:aws:iam::${local.account_vars.locals.stage_account_id}:role/allow-full-access-from-other-accounts"
+      iam_role_arn = "arn:aws:iam::${local.common_vars.locals.account_ids["stage"]}:role/allow-full-access-from-other-accounts"
     },
     {
       group_name   = local.stage_read_only_group_name
-      iam_role_arn = "arn:aws:iam::${local.account_vars.locals.stage_account_id}:role/allow-read-only-access-from-other-accounts"
+      iam_role_arn = "arn:aws:iam::${local.common_vars.locals.account_ids["stage"]}:role/allow-read-only-access-from-other-accounts"
     },
     {
       group_name   = local.prod_full_access_group_name
-      iam_role_arn = "arn:aws:iam::${local.account_vars.locals.prod_account_id}:role/allow-full-access-from-other-accounts"
+      iam_role_arn = "arn:aws:iam::${local.common_vars.locals.account_ids["prod"]}:role/allow-full-access-from-other-accounts"
     },
     {
       group_name   = local.prod_read_only_group_name
-      iam_role_arn = "arn:aws:iam::${local.account_vars.locals.prod_account_id}:role/allow-read-only-access-from-other-accounts"
+      iam_role_arn = "arn:aws:iam::${local.common_vars.locals.account_ids["prod"]}:role/allow-read-only-access-from-other-accounts"
     },
   ]
 
