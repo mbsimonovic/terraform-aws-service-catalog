@@ -10,7 +10,7 @@ locals {
   # Automatically load account-level variables
   account_vars = read_terragrunt_config(find_in_parent_folders("accounts.hcl"))
 
-  security_account_arn = "arn:aws:iam::${local.account_vars.inputs.security_account_id}:root"
+  security_account_arn = "arn:aws:iam::${local.account_vars.locals.security_account_id}:root"
 }
 
 inputs = {
@@ -18,7 +18,7 @@ inputs = {
   name_prefix = "ref-arch-lite"
 
   # Send CloudTrail logs to this bucket in the security account
-  cloudtrail_s3_bucket_name                 = local.account_vars.inputs.cloudtrail_s3_bucket_name
+  cloudtrail_s3_bucket_name                 = local.account_vars.locals.cloudtrail_s3_bucket_name
   cloudtrail_kms_key_administrator_iam_arns = []
 
   # Allow access from other AWS accounts

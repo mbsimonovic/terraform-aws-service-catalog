@@ -24,25 +24,25 @@ inputs = {
   name_prefix = "ref-arch-lite"
 
   # Send CloudTrail logs to this bucket
-  cloudtrail_s3_bucket_name = local.account_vars.inputs.cloudtrail_s3_bucket_name
+  cloudtrail_s3_bucket_name = local.account_vars.locals.cloudtrail_s3_bucket_name
 
   # This IAM group gives access to other AWS accounts
   iam_groups_for_cross_account_access = [
     {
       group_name   = local.stage_full_access_group_name
-      iam_role_arn = "arn:aws:iam::${local.account_vars.inputs.stage_account_id}:role/allow-full-access-from-other-accounts"
+      iam_role_arn = "arn:aws:iam::${local.account_vars.locals.stage_account_id}:role/allow-full-access-from-other-accounts"
     },
     {
       group_name   = local.stage_read_only_group_name
-      iam_role_arn = "arn:aws:iam::${local.account_vars.inputs.stage_account_id}:role/allow-read-only-access-from-other-accounts"
+      iam_role_arn = "arn:aws:iam::${local.account_vars.locals.stage_account_id}:role/allow-read-only-access-from-other-accounts"
     },
     {
       group_name   = local.prod_full_access_group_name
-      iam_role_arn = "arn:aws:iam::${local.account_vars.inputs.prod_account_id}:role/allow-full-access-from-other-accounts"
+      iam_role_arn = "arn:aws:iam::${local.account_vars.locals.prod_account_id}:role/allow-full-access-from-other-accounts"
     },
     {
       group_name   = local.prod_read_only_group_name
-      iam_role_arn = "arn:aws:iam::${local.account_vars.inputs.prod_account_id}:role/allow-read-only-access-from-other-accounts"
+      iam_role_arn = "arn:aws:iam::${local.account_vars.locals.prod_account_id}:role/allow-read-only-access-from-other-accounts"
     },
   ]
 

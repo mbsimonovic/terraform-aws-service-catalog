@@ -1,5 +1,5 @@
 terraform {
-  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc-app?ref=ref-arch-lite"
+  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc-app?ref=master"
 }
 
 include {
@@ -17,7 +17,7 @@ dependencies {
 
 inputs = {
   vpc_name         = "stage-vpc"
-  cidr_block       = local.account_vars.inputs.stage_cidr_block
+  cidr_block       = local.account_vars.locals.stage_cidr_block
   num_nat_gateways = 1
   create_flow_logs = false
 }

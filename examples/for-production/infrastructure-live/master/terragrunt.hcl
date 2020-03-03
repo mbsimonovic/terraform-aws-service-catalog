@@ -7,8 +7,8 @@ locals {
 
   # Common variables used across this AWS account
   common_inputs = {
-    aws_account_id = local.account_vars.inputs.master_account_id
-    aws_region     = local.region_vars.inputs.aws_region
+    aws_account_id = local.account_vars.locals.master_account_id
+    aws_region     = local.region_vars.locals.aws_region
   }
 }
 
@@ -18,7 +18,7 @@ generate "provider" {
   if_exists = "overwrite"
   contents  = <<EOF
 provider "aws" {
-  region = "${local.region_vars.inputs.aws_region}"
+  region = "${local.region_vars.locals.aws_region}"
 
   # Only these AWS Account IDs may be operated on by this template
   allowed_account_ids = ["${local.common_inputs.aws_account_id}"]
@@ -33,7 +33,7 @@ remote_state {
     encrypt        = true
     bucket         = "gruntwork-ref-arch-lite-master-terraform-state"
     key            = "${path_relative_to_include()}/terraform.tfstate"
-    region         = local.account_vars.inputs.default_region
+    region         = local.account_vars.locals.default_region
     dynamodb_table = "terraform-locks"
   }
   generate = {
@@ -43,4 +43,4 @@ remote_state {
 }
 
 # The default set of inputs for all child accounts
-inputs = merge(local.region_vars.inputs, local.common_inputs)
+inputs = merge(local.region_vars.locals, local.common_inputs)

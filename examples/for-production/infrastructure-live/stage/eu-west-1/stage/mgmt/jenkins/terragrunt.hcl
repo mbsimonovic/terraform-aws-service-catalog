@@ -1,6 +1,6 @@
 # It's a bit silly to deploy Jenkins in all these accounts, but we're just using this as a dummy test case for now
 terraform {
-  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/mgmt/jenkins?ref=ref-arch-lite"
+  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/mgmt/jenkins?ref=master"
 }
 
 include {
