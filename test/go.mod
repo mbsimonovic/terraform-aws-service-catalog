@@ -1,4 +1,4 @@
-module github.com/gruntwork-io/aws-service-catalog
+module github.com/gruntwork-io/aws-service-catalog/test
 
 go 1.13
 

@@ -1,0 +1,71 @@
+defaults: &defaults
+  machine: true
+  environment:
+    GRUNTWORK_INSTALLER_VERSION: v0.0.21
+    TERRATEST_LOG_PARSER_VERSION: v0.13.24
+    MODULE_CI_VERSION: v0.16.1
+    TERRAFORM_VERSION: 0.12.21
+    PACKER_VERSION: 1.5.4
+    GOLANG_VERSION: 1.13.3
+
+install_gruntwork_utils: &install_gruntwork_utils
+  name: install gruntwork utils
+  command: |
+    curl -Ls https://raw.githubusercontent.com/gruntwork-io/gruntwork-installer/master/bootstrap-gruntwork-installer.sh | bash /dev/stdin --version "${GRUNTWORK_INSTALLER_VERSION}"
+    gruntwork-install --module-name "gruntwork-module-circleci-helpers" --repo "https://github.com/gruntwork-io/module-ci" --tag "${MODULE_CI_VERSION}"
+    gruntwork-install --binary-name "terratest_log_parser" --repo "https://github.com/gruntwork-io/terratest" --tag "${TERRATEST_LOG_PARSER_VERSION}"
+    configure-environment-for-gruntwork-module \
+      --terraform-version ${TERRAFORM_VERSION} \
+      --packer-version ${PACKER_VERSION} \
+      --go-version ${GOLANG_VERSION}
+
+version: 2.0
+jobs:
+  test:
+    <<: *defaults
+    steps:
+      - checkout
+
+      # Install gruntwork utilities
+      - run:
+          <<: *install_gruntwork_utils
+
+      - run:
+          name: run tests
+          command: |
+            mkdir -p /tmp/logs
+            run-go-tests --path ./test --timeout 1h --parallelism 64 | tee /tmp/logs/all.log
+          no_output_timeout: 3600s
+
+      - run:
+          command: terratest_log_parser --testlog /tmp/logs/all.log --outputdir /tmp/logs
+          when: always
+      - store_artifacts:
+          path: /tmp/logs
+      - store_test_results:
+          path: /tmp/logs
+
+  deploy:
+    <<: *defaults
+    steps:
+      - checkout
+
+      - run:
+          <<: *install_gruntwork_utils
+
+workflows:
+  version: 2
+  build-and-test:
+    jobs:
+      - test:
+          filters:
+            tags:
+              only: /^v.*/
+      - deploy:
+          requires:
+            - test
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
