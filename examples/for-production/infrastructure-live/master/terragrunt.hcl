@@ -1,4 +1,7 @@
 locals {
+  # Name of this account. Mainly used to namespace resources.
+  account_name = "master"
+
   # Automatically load account-level variables
   account_vars = read_terragrunt_config(find_in_parent_folders("accounts.hcl"))
 
@@ -31,9 +34,9 @@ remote_state {
   backend = "s3"
   config = {
     encrypt        = true
-    bucket         = "gruntwork-ref-arch-lite-master-terraform-state"
+    bucket         = "gruntwork-ref-arch-lite-${local.account_name}-${local.region_vars.locals.aws_region}-terraform-state"
     key            = "${path_relative_to_include()}/terraform.tfstate"
-    region         = local.account_vars.locals.default_region
+    region         = local.region_vars.locals.aws_region
     dynamodb_table = "terraform-locks"
   }
   generate = {
@@ -43,4 +46,4 @@ remote_state {
 }
 
 # The default set of inputs for all child accounts
-inputs = merge(local.region_vars.locals, local.common_inputs)
+inputs = local.common_inputs
