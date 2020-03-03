@@ -3,6 +3,7 @@
 terraform.tfvars
 *.tfstate
 *.tfstate.backup
+*.tfstate.lock.*
 
 # OS X
 .history
@@ -20,3 +21,6 @@ out/
 
 # Terragrunt
 .terragrunt-cache
+
+# Terratest
+.test-data
