@@ -1,4 +1,4 @@
 # Common variables for this region
-inputs = {
+locals {
   aws_region = "eu-west-1"
 }

@@ -1,6 +1,6 @@
 # It's a bit silly to deploy Jenkins in all these accounts, but we're just using this as a dummy test case for now
 terraform {
-  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/mgmt/jenkins?ref=ref-arch-lite"
+  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/mgmt/jenkins?ref=master"
 }
 
 include {
@@ -15,8 +15,16 @@ dependencies {
   paths = ["../../../../_global/account-baseline"]
 }
 
+locals {
+  # Automatically load common variables shared across all accounts
+  common_vars = read_terragrunt_config(find_in_parent_folders("common.hcl"))
+
+  # Automatically load account-level variables
+  account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
+}
+
 inputs = {
-  name          = "ref-arch-lite-jenkins"
+  name          = "ref-arch-lite-${local.account_vars.locals.account_name}-jenkins"
   ami           = "ami-abcd1234"
   instance_type = "t2.micro"
   memory        = "512m"
@@ -35,6 +43,6 @@ inputs = {
   # TODO: We'd normally use a dependency block to pull in the hosted zone ID, but we haven't converted the route 53
   # modules to the new service catalog format yet, so for now, we just hard-code the ID.
   hosted_zone_id             = "Z2AJ7S3R6G9UYJ"
-  domain_name                = "ref-arch-lite-jenkins-stage.gruntwork.in"
+  domain_name                = "ref-arch-lite-${local.account_vars.locals.account_name}-jenkins.gruntwork.in"
   acm_ssl_certificate_domain = "*.gruntwork.in"
 }
