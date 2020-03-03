@@ -15,7 +15,7 @@ locals {
 # Generate an AWS provider block
 generate "provider" {
   path      = "provider.tf"
-  if_exists = "overwrite"
+  if_exists = "overwrite_terragrunt"
   contents  = <<EOF
 provider "aws" {
   region = "${local.region_vars.locals.aws_region}"
@@ -38,7 +38,7 @@ remote_state {
   }
   generate = {
     path      = "backend.tf"
-    if_exists = "overwrite"
+    if_exists = "overwrite_terragrunt"
   }
 }
 
