@@ -22,12 +22,12 @@ module "bastion" {
 
   # To keep this example simple, we run it in the default VPC and put everything in the same subnets.
   vpc_id    = data.aws_vpc.default.id
-  subnet_id = locals.bastion_subnet
+  subnet_id = local.bastion_subnet
 
   # Configure a host name for the bastion
   create_dns_record = true
-  hosted_zone_id    = var.hosted_zone_id
-  domain_name       = var.domain_name
+  hosted_zone_id    = data.aws_route53_zone.zone.id
+  domain_name       = "${var.name}.${var.domain_name}"
 
   # To keep this example simple, we allow incoming SSH connections from anywhere. In production, you should limit
   # access to a specific set of source CIDR ranges, like the addresses of your offices.

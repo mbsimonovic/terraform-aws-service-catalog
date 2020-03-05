@@ -69,6 +69,24 @@ variable "enable_fail2ban" {
   default     = true
 }
 
+variable "enable_ssh_grunt" {
+  description = "Set to true to add IAM permissions for ssh-grunt (https://github.com/gruntwork-io/module-security/tree/master/modules/ssh-grunt), which will allow you to manage SSH access via IAM groups."
+  type        = bool
+  default     = true
+}
+
+variable "ssh_grunt_iam_group" {
+  description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to this Jenkins server. To omit this variable, set it to an empty string (do NOT use null, or Terraform will complain)."
+  type        = string
+  default     = ""
+}
+
+variable "ssh_grunt_iam_group_sudo" {
+  description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to this Jenkins server with sudo permissions. To omit this variable, set it to an empty string (do NOT use null, or Terraform will complain)."
+  type        = string
+  default     = ""
+}
+
 variable "tenancy" {
   description = "The tenancy of this server. Must be one of: default, dedicated, or host."
   type        = string

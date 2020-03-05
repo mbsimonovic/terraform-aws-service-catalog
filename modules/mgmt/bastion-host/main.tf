@@ -19,7 +19,8 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "bastion" {
-  source = "git::git@github.com:gruntwork-io/module-server.git//modules/single-server?ref=0.8.0"
+  #source = "git::git@github.com:gruntwork-io/module-server.git//modules/single-server?ref=v0.8.1"
+  source = "../../../../module-server/modules/single-server"
 
   name             = var.name
   instance_type    = var.instance_type
@@ -27,8 +28,8 @@ module "bastion" {
   user_data_base64 = data.template_cloudinit_config.cloud_init.rendered
   tenancy          = var.tenancy
 
-  vpc_id = var.vpc_id
-  subnet = var.subnet_id
+  vpc_id    = var.vpc_id
+  subnet_id = var.subnet_id
 
   keypair_name             = var.keypair_name
   allow_ssh_from_cidr_list = var.allow_ssh_from_cidr_list
@@ -112,7 +113,7 @@ resource "aws_iam_role_policy" "ssh_grunt_permissions" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "cloudwatch_metrics" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-custom-metrics-iam-policy?ref=v0.18.3"
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-custom-metrics-iam-policy?ref=v0.19.0"
 
   name_prefix = var.name
 
@@ -133,7 +134,7 @@ resource "aws_iam_role_policy" "custom_cloudwatch_metrics" {
 # ------------------------------------------------------------------------------
 
 module "cloudwatch_log_aggregation" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/logs/cloudwatch-log-aggregation-iam-policy?ref=v0.18.3"
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/logs/cloudwatch-log-aggregation-iam-policy?ref=v0.19.0"
 
   name_prefix = var.name
 
@@ -154,31 +155,31 @@ resource "aws_iam_role_policy" "cloudwatch_log_aggregation" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "high_cpu_usage_alarms" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/ec2-cpu-alarms?v0.18.3"
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/ec2-cpu-alarms?ref=v0.19.0"
 
   instance_ids         = [module.bastion.id]
   instance_count       = 1
-  alarm_sns_topic_arns = [var.alarms_sns_topic_arn]
+  alarm_sns_topic_arns = var.alarms_sns_topic_arn
   create_resources     = var.enable_cloudwatch_alarms
 }
 
 module "high_memory_usage_alarms" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/ec2-memory-alarms?v0.18.3"
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/ec2-memory-alarms?ref=v0.19.0"
 
   instance_ids         = [module.bastion.id]
   instance_count       = 1
-  alarm_sns_topic_arns = [var.alarms_sns_topic_arn]
+  alarm_sns_topic_arns = var.alarms_sns_topic_arn
   create_resources     = var.enable_cloudwatch_alarms
 }
 
 module "high_disk_usage_alarms" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/ec2-disk-alarms?v0.18.3"
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/ec2-disk-alarms?ref=v0.19.0"
 
   instance_ids         = [module.bastion.id]
   instance_count       = 1
   file_system          = "/dev/xvda1"
   mount_path           = "/"
-  alarm_sns_topic_arns = [var.alarms_sns_topic_arn]
+  alarm_sns_topic_arns = var.alarms_sns_topic_arn
   create_resources     = var.enable_cloudwatch_alarms
 }
 

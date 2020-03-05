@@ -1,6 +1,6 @@
 output "dns_name" {
   description = "The fully qualified name of the bastion host."
-  value       = aws_route53_record.bastion_host.fqdn
+  value       = aws_route53_record.bastion_host[0].fqdn
 }
 
 output "bastion_host_public_ip" {

@@ -13,7 +13,7 @@
     "module_security_version": "",
     "module_aws_monitoring_version": "",
     "enable_cloudwatch_metrics": "true",
-    "enable_cloudwatch_log_aggregation": "true",
+    "enable_cloudwatch_log_aggregation": "true"
   },
   "sensitive-variables": ["github_auth_token"],
   "builders": [{
