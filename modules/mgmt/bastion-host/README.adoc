@@ -1,53 +1,129 @@
-# Bastion Host
+:type: service
+:name: Bastion
+:description: Deploy a Bastion host for remote access to an AWS VPC.
+:icon: /_docs/bastion-icon.png
+:category: ssh-access
+:cloud: aws
+:tags: bastion, ec2, ssh, security
+:license: gruntwork
+:built-with: terraform, bash, packer
 
-This Terraform Module creates a single EC2 instance that is meant to serve as a bastion host. A bastion host is a security best
-practice where it is the *only* server exposed to the public. You must connect to it (e.g. via SSH) before you can
-connect to any of your other servers, which are in private subnets. This way, you minimize the surface area you expose
-to attackers, and can focus all your efforts on locking down just a single server.
+// AsciiDoc TOC settings
+:toc:
+:toc-placement!:
+:toc-title:
 
-The resources that are created by these templates include:
+// GitHub specific settings. See https://gist.github.com/dcode/0cfbf2699a1fe9b46ff04c41721dda74 for details.
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
 
-1. An AMI to run on the bastion host
-1. The EC2 instance
-1. An Elastic IP Address (EIP).
-1. IAM Role and IAM instance profile.
-1. Security group.
+= Bastion Host
 
-Under the hood, this is all implemented using Terraform modules from the Gruntwork
-[module-server](https://github.com/gruntwork-io/module-server) repo. If you don't have access to this repo, email
-support@gruntwork.io.
+image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
+image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
 
-## The bastion host AMI
+This Terraform Module creates a single EC2 instance that is meant to serve as a https://en.wikipedia.org/wiki/Bastion_host[bastion host].
 
-The bastion host AMI is defined using the [Packer](https://www.packer.io/) template under `packer/bastion-host.json`.
-This template configures the AMI to:
+image::../../../_docs/bastion-architecture.png?raw=true[Bastion architecture]
+A bastion host is a security practice where it is the *only* server exposed to the public. You must connect to it (e.g.
+via SSH) before you can connect to any of your other servers, which are in private subnets. This way, you minimize the
+surface area you expose to attackers, and can focus all your efforts on locking down just a single server.
 
-1. Run the [ssh-grunt module](https://github.com/gruntwork-io/module-security/tree/master/modules/ssh-grunt) so that
-   developers can upload their public SSH keys to IAM and use those SSH keys, along with their IAM user names, to SSH
-   to the bastion host.
-1. Run the [auto-update module](https://github.com/gruntwork-io/module-security/tree/master/modules/auto-update) so
-   that the bastion host installs security updates automatically.
-{{- if .InstallCloudWatchMonitoring }}
-1. Run the [syslog module](https://github.com/gruntwork-io/module-aws-monitoring/tree/master/modules/logs/syslog) to
-   automatically rotate and rate limit syslog so that the bastion host doesn't run out of disk space from large volumes
-   of logs.
-{{- end }}
+toc::[]
 
-## Known errors
+== Features
 
-When you run `terraform apply` on these templates the first time, you may see the following error:
+* An AMI to run on the bastion host
+* An EC2 instance for the host
+* An Elastic IP Address (EIP) with a DNS record
+* IAM Role and IAM instance profile.
+* A security group allowing access to the host
+* OS hardening, including `fail2ban`, `ntp`, `auto-update`, `ip-lockdown`, and more
+* Send all logs and metrics to CloudWatch
+* Configure alerts in CloudWatch for CPU, memory, and disk space usage
+* Manage SSH access with IAM groups using `ssh-grunt`
 
-```
-* aws_iam_instance_profile.bastion: diffs didn't match during apply. This is a bug with Terraform and should be reported as a GitHub Issue.
-```
+== Learn
 
-As the error implies, this is a Terraform bug, but fortunately, it's a harmless one related to the fact that AWS is
-eventually consistent, and Terraform occasionally tries to use a recently-created resource that isn't yet available.
-Just re-run `terraform apply` and the error should go away.
+NOTE: This repo is a part of the https://gruntwork.io/service-catalog/[Gruntwork Service Catalog], a collection of
+reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
+sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catallog/[How to use the Gruntwork
+Service Catalog]!
 
-## Core concepts
+=== Core concepts
 
 To understand core concepts like why you should use a bastion host, how to connect to the bastion host, how to use the
-bastion host as a "jump host" to connect to other instances, port forwarding, and more, see the [bastion-host
-documentation](https://github.com/gruntwork-io/module-server/tree/master/examples/bastion-host) documentation in the
-[module-server](https://github.com/gruntwork-io/module-server) repo.
+bastion host as a "jump host" to connect to other instances, port forwarding, and more, see the https://github.com/gruntwork-io/module-server/tree/master/examples/bastion-host[bastion-host
+documentation] documentation in the https://github.com/gruntwork-io/module-server[module-server] repo.
+
+
+=== The bastion host AMI
+
+The bastion host AMI is defined using the https://www.packer.io/[Packer] template at `bastion-host.json`.
+This template configures the AMI to:
+
+1. Run the https://github.com/gruntwork-io/module-security/tree/master/modules/ssh-grunt[ssh-grunt module] so that
+   developers can upload their public SSH keys to IAM and use those SSH keys, along with their IAM user names, to SSH
+   to the bastion host.
+1. Run the https://github.com/gruntwork-io/module-security/tree/master/modules/auto-update[auto-update module] so
+   that the bastion host installs security updates automatically.
+1. Optionally run the https://github.com/gruntwork-io/module-aws-monitoring/tree/master/modules/logs/syslog[syslog module] to automatically rotate and rate limit syslog so that the bastion host doesn't run out of disk space from large volumes of logs.
+
+
+
+== Deploy
+
+=== Non-production deployment (quick start for learning)
+
+If you just want to try this repo out for experimenting and learning, check out the following resources:
+
+* link:/examples/for-learning-and-testing[examples/for-learning-and-testing folder]: The
+  `examples/for-learning-and-testing` folder contains standalone sample code optimized for learning, experimenting, and
+  testing (but not direct production usage).
+
+=== Production deployment
+
+If you want to deploy this repo in production, check out the following resources:
+
+* link:/examples/for-production[examples/for-production folder]: The `examples/for-production` folder contains sample
+  code optimized for direct usage in production. This is code from the
+  https://gruntwork.io/reference-architecture/:[Gruntwork Reference Architecture], and it shows you how we build an
+  end-to-end, integrated tech stack on top of the Gruntwork Service Catalog.
+  configure CI / CD for your apps and infrastructure.
+
+
+== Operate
+
+=== Day-to-day operations
+
+* https://github.com/gruntwork-io/module-security/tree/master/modules/fail2ban[Information on fail2ban]
+
+
+
+== Support
+
+If you need help with this repo or anything else related to infrastructure or DevOps, Gruntwork offers
+https://gruntwork.io/support/[Commercial Support] via Slack, email, and phone/video. If you're already a Gruntwork
+customer, hop on Slack and ask away! If not, https://www.gruntwork.io/pricing/[subscribe now]. If you're not sure,
+feel free to email us at link:mailto:support@gruntwork.io[support@gruntwork.io].
+
+
+== Contributions
+
+Contributions to this repo are very welcome and appreciated! If you find a bug or want to add a new feature or even
+contribute an entirely new module, we are very happy to accept pull requests, provide feedback, and run your changes
+through our automated test suite.
+
+Please see
+https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/#contributing-to-the-gruntwork-service-catalog[Contributing to the Gruntwork Service Catalog]
+for instructions.
+
+
+== License
+
+Please see link:LICENSE.txt[LICENSE.txt] for details on how the code in this repo is licensed.
