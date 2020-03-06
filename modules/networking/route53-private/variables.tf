@@ -18,8 +18,13 @@ variable "internal_services_domain_name" {
   type        = string
 }
 
+variable "vpc_id" {
+  description = "The ID of the VPC to associate with the Route 53 Private Hosted Zones"
+  type        = string
+}
+
 variable "vpc_name" {
-  description = "The name of the VPC in which to create the Route 53 Private Hosted Zones."
+  description = "The name of the VPC in which to create the Route 53 Private Hosted Zones"
   type        = string
 }
 
