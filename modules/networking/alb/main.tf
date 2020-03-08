@@ -56,7 +56,7 @@ module "alb" {
 # Create an S3 Bucket to store ALB access logs.
 module "alb_access_logs_bucket" {
   # TODO: Replace with correct module ref after testing!
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/logs/load-balancer-access-logs?ref=remove-region-and-account-id"
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/logs/load-balancer-access-logs?ref=v0.19.0"
 
   # Try to do some basic cleanup to get a valid S3 bucket name: the name must be lower case and can only contain
   # lowercase letters, numbers, and hyphens. For the full rules, see:
