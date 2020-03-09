@@ -30,20 +30,18 @@ image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
 This Terraform Module creates a single EC2 instance that is meant to serve as a https://en.wikipedia.org/wiki/Bastion_host[bastion host].
 
 image::../../../_docs/bastion-architecture.png?raw=true[Bastion architecture]
-A bastion host is a security practice where it is the *only* server exposed to the public. You must connect to it (e.g.
-via SSH) before you can connect to any of your other servers, which are in private subnets. This way, you minimize the
-surface area you expose to attackers, and can focus all your efforts on locking down just a single server.
+A bastion host is a security practice where it is the *only* server exposed to the public. You must connect to it ) before you can connect to any of the other servers on your network. This way, you minimize the surface area you expose to attackers, and can focus all your efforts on locking down just a single server.
 
 toc::[]
 
 == Features
 
-* An AMI to run on the bastion host
-* An EC2 instance for the host
-* An Elastic IP Address (EIP) with a DNS record
-* IAM Role and IAM instance profile.
-* A security group allowing access to the host
-* OS hardening, including `fail2ban`, `ntp`, `auto-update`, `ip-lockdown`, and more
+* Build an AMI to run on the bastion host
+* Create EC2 instance for the host
+* Allocate an Elastic IP Address (EIP) and an associated DNS record
+* Create an IAM Role and IAM instance profile
+* Create a security group allowing access to the host
+* Harden the OS by installing `fail2ban`, `ntp`, `auto-update`, `ip-lockdown`, and more
 * Send all logs and metrics to CloudWatch
 * Configure alerts in CloudWatch for CPU, memory, and disk space usage
 * Manage SSH access with IAM groups using `ssh-grunt`
@@ -101,7 +99,7 @@ If you want to deploy this repo in production, check out the following resources
 
 === Day-to-day operations
 
-* https://github.com/gruntwork-io/module-security/tree/master/modules/fail2ban[Information on fail2ban]
+* https://github.com/fail2ban/fail2ban[`fail2ban`] bans IP addresses that cause too many failed login attempts. The bastion host is configured with `fail2ban` as a security measure. See the  https://github.com/gruntwork-io/module-security/tree/master/modules/fail2ban[`fail2ban` module] for more information.
 
 
 

@@ -2,20 +2,20 @@ package test
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/git"
-	http_helper "github.com/gruntwork-io/terratest/modules/http-helper"
 	"github.com/gruntwork-io/terratest/modules/packer"
 	"github.com/gruntwork-io/terratest/modules/random"
+	"github.com/gruntwork-io/terratest/modules/retry"
+	"github.com/gruntwork-io/terratest/modules/ssh"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 )
 
-func TestJenkins(t *testing.T) {
+func TestBastionHost(t *testing.T) {
 	t.Parallel()
 
 	// Uncomment the items below to skip certain parts of the test
@@ -25,7 +25,11 @@ func TestJenkins(t *testing.T) {
 	//os.Setenv("SKIP_deploy_terraform", "true")
 	//os.Setenv("SKIP_vaildate", "true")
 
-	testFolder := "../examples/for-learning-and-testing/mgmt/jenkins"
+	testFolder := "../examples/for-learning-and-testing/mgmt/bastion-host"
+	awsRegion := aws.GetRandomRegion(t, acmRegionsForTest, nil)
+	uniqueId := random.UniqueId()
+	awsKeyPair := aws.CreateAndImportEC2KeyPair(t, awsRegion, uniqueId)
+	defer aws.DeleteEC2KeyPair(t, awsKeyPair)
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
@@ -33,18 +37,14 @@ func TestJenkins(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "build_ami", func() {
-		awsRegion := aws.GetRandomRegion(t, acmRegionsForTest, nil)
 		branchName := git.GetCurrentBranchName(t)
 
 		packerOptions := &packer.Options{
-			Template: "../modules/mgmt/jenkins/jenkins-ubuntu.json",
+			Template: "../modules/mgmt/bastion-host/bastion-host.json",
 			Vars: map[string]string{
 				"aws_region":          awsRegion,
 				"service_catalog_ref": branchName,
 				"version_tag":         branchName,
-			},
-			RetryableErrors: map[string]string{
-				"Could not connect to pkg.jenkins.io": "The Jenkins Debian repo sometimes has connectivity issues",
 			},
 			MaxRetries:         3,
 			TimeBetweenRetries: 5 * time.Second,
@@ -59,20 +59,18 @@ func TestJenkins(t *testing.T) {
 	test_structure.RunTestStage(t, "deploy_terraform", func() {
 		amiId := test_structure.LoadArtifactID(t, testFolder)
 		awsRegion := test_structure.LoadString(t, testFolder, "region")
-
-		name := fmt.Sprintf("jenkins-%s", random.UniqueId())
+		name := fmt.Sprintf("bastion-host-%s", random.UniqueId())
 
 		terraformOptions := &terraform.Options{
 			TerraformDir: testFolder,
 
 			Vars: map[string]interface{}{
-				"aws_region":                 awsRegion,
-				"name":                       name,
-				"ami_id":                     amiId,
-				"base_domain_name":           baseDomainForTest,
-				"jenkins_subdomain":          name,
-				"acm_ssl_certificate_domain": acmDomainForTest,
-				"base_domain_name_tags":      domainNameTagsForTest,
+				"aws_region":            awsRegion,
+				"name":                  name,
+				"ami_id":                amiId,
+				"domain_name":           baseDomainForTest,
+				"base_domain_name_tags": domainNameTagsForTest,
+				"keypair_name":          awsKeyPair.Name,
 			},
 		}
 
@@ -82,14 +80,27 @@ func TestJenkins(t *testing.T) {
 
 	test_structure.RunTestStage(t, "validate", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
-		jenkinsDomainName := terraform.OutputRequired(t, terraformOptions, "jenkins_domain_name")
-
-		url := fmt.Sprintf("https://%s/login", jenkinsDomainName)
-		retries := 60
-		timeBetweenRetries := 5 * time.Second
-
-		http_helper.HttpGetWithRetryWithCustomValidation(t, url, nil, retries, timeBetweenRetries, func(status int, body string) bool {
-			return status == 200 && strings.Contains(body, "Unlock Jenkins")
-		})
+		testSSH(t, terraformOptions, awsKeyPair)
 	})
+
+}
+
+func testSSH(t *testing.T, terraformOptions *terraform.Options, keyPair *aws.Ec2Keypair) {
+	ip := terraform.OutputRequired(t, terraformOptions, "bastion_host_public_ip")
+
+	publicHost := ssh.Host{
+		Hostname:    ip,
+		SshUserName: "ubuntu",
+		SshKeyPair:  keyPair.KeyPair,
+	}
+
+	retry.DoWithRetry(
+		t,
+		fmt.Sprintf("SSH to public host %s", ip),
+		10,
+		30*time.Second,
+		func() (string, error) {
+			return "", ssh.CheckSshConnectionE(t, publicHost)
+		},
+	)
 }
