@@ -14,6 +14,6 @@ module "route53-private" {
 
   internal_services_domain_name = var.internal_services_domain_name
 
-  vpc_id = var.vpc_id
+  vpc_id = local.default_vpc_id
 
 }
