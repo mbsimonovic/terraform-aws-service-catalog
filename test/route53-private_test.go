@@ -47,8 +47,6 @@ func TestRoute53Private(t *testing.T) {
 
 			Vars: map[string]interface{}{
 				"internal_services_domain_name": zoneName,
-				"aws_region":                    testRegion,
-				"vpc_name":                      aws.GetDefaultVpc(t, testRegion).Name,
 				"vpc_id":                        aws.GetDefaultVpc(t, testRegion).Id,
 			},
 		}

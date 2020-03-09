@@ -12,10 +12,8 @@ module "route53-private" {
   # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/mgmt/jenkins?ref=v1.0.8"
   source = "../../../../modules/networking/route53-private"
 
-  aws_region = var.aws_region
-
-  vpc_name = var.vpc_name
-  vpc_id   = var.vpc_id
-
   internal_services_domain_name = var.internal_services_domain_name
+
+  vpc_id = var.vpc_id
+
 }
