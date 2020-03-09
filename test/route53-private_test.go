@@ -12,44 +12,30 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Regions in Gruntwork Phx DevOps account that have ACM certs
-/*var regionsForTest = []string{
-	"us-east-1",
-	"us-east-2",
-	"us-west-1",
-	"us-west-2",
-	"eu-west-1",
-	"eu-central-1",
-	"ap-northeast-1",
-	"ap-southeast-2",
-	"ca-central-1",
-} */
-
 func TestRoute53Private(t *testing.T) {
 	t.Parallel()
 
-	//os.Setenv("TERRATEST_REGION", "eu-west-1")
 	//os.Setenv("SKIP_cleanup", "true")
 	//os.Setenv("SKIP_setup", "true")
 	//os.Setenv("SKIP_deploy_terraform", "true")
-	//os.Setenv("SKIP_vaildate", "true")
+	//os.Setenv("SKIP_validate", "true")
 
-	uniqueId := random.UniqueId()
+	uniqueID := random.UniqueId()
 	testFolder := "../examples/for-learning-and-testing/networking/route53-private"
 	testRegion := "us-west-1"
-	testBucket := fmt.Sprintf("route53-private-%s", uniqueId)
+	testBucket := fmt.Sprintf("route53-private-%s", uniqueID)
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
 		terraform.Destroy(t, terraformOptions)
 	})
 
+	// Generate and save a test region and a unique zone name
 	test_structure.RunTestStage(t, "setup", func() {
 		awsRegion := aws.GetRandomRegion(t, regionsForTest, nil)
 		test_structure.SaveString(t, testFolder, "region", awsRegion)
 
 		zoneName := fmt.Sprintf("route53-private-%s.xyz", random.UniqueId())
-
 		test_structure.SaveString(t, testFolder, "zonename", zoneName)
 	})
 
