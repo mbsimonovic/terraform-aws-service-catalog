@@ -6,6 +6,7 @@
 variable "internal_services_domain_name" {
   description = "The domain name to use for internal services (e.g., acme.aws)"
   type        = string
+  default     = "acme.aws"
 }
 
 variable "vpc_id" {
