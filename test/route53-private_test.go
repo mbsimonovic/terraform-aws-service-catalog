@@ -23,7 +23,6 @@ func TestRoute53Private(t *testing.T) {
 	uniqueID := random.UniqueId()
 	testFolder := "../examples/for-learning-and-testing/networking/route53-private"
 	testRegion := "us-west-1"
-	testBucket := fmt.Sprintf("route53-private-%s", uniqueID)
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
@@ -35,7 +34,7 @@ func TestRoute53Private(t *testing.T) {
 		awsRegion := aws.GetRandomRegion(t, regionsForTest, nil)
 		test_structure.SaveString(t, testFolder, "region", awsRegion)
 
-		zoneName := fmt.Sprintf("route53-private-%s.xyz", random.UniqueId())
+		zoneName := fmt.Sprintf("route53-private-%s.xyz", uniqueID)
 		test_structure.SaveString(t, testFolder, "zonename", zoneName)
 	})
 
@@ -49,11 +48,8 @@ func TestRoute53Private(t *testing.T) {
 			Vars: map[string]interface{}{
 				"internal_services_domain_name": zoneName,
 				"aws_region":                    testRegion,
-				"aws_account_id":                aws.GetAccountId(t),
 				"vpc_name":                      aws.GetDefaultVpc(t, testRegion).Name,
 				"vpc_id":                        aws.GetDefaultVpc(t, testRegion).Id,
-				"terraform_state_aws_region":    testRegion,
-				"terraform_state_s3_bucket":     testBucket,
 			},
 		}
 
