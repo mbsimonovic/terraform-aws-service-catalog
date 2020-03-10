@@ -1,6 +1,6 @@
 :type: service
 :name: Bastion
-:description: Deploy a Bastion host for remote access to an AWS VPC.
+:description: Deploy a Bastion host as the sole public entrypoint into your AWS VPC network.
 :icon: /_docs/bastion-icon.png
 :category: ssh-access
 :cloud: aws
@@ -30,7 +30,7 @@ image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
 This Terraform Module creates a single EC2 instance that is meant to serve as a https://en.wikipedia.org/wiki/Bastion_host[bastion host].
 
 image::../../../_docs/bastion-architecture.png?raw=true[Bastion architecture]
-A bastion host is a security practice where it is the *only* server exposed to the public. You must connect to it ) before you can connect to any of the other servers on your network. This way, you minimize the surface area you expose to attackers, and can focus all your efforts on locking down just a single server.
+A bastion host is a security practice where it is the *only* server exposed to the public. You must connect to it before you can connect to any of the other servers on your network. This way, you minimize the surface area you expose to attackers, and can focus all your efforts on locking down just a single server.
 
 toc::[]
 

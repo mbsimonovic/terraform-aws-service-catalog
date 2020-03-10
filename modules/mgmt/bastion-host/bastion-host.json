@@ -9,11 +9,11 @@
     "encrypt_boot": "false",
     "ami_users": "",
     "bash_commons_version": "",
-    "enable_ssh_grunt": "true",
     "module_security_version": "",
     "module_aws_monitoring_version": "",
     "enable_cloudwatch_metrics": "true",
     "enable_cloudwatch_log_aggregation": "true"
+    "enable_ssh_grunt": "true",
   },
   "sensitive-variables": ["github_auth_token"],
   "builders": [{
