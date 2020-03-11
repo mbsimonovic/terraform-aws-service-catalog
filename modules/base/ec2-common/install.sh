@@ -108,6 +108,8 @@ function install_aws_cli {
 
 function install_user_data {
   echo "Installing common user-data script"
-  mkdir /etc/user-data
+  # This directory should have already been created by the gruntwork-installer,
+  # but we create it here as a failsafe measure
+  mkdir -p /etc/user-data
   cp user-data-common.sh /etc/user-data
 }
