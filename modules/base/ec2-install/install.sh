@@ -1,19 +1,42 @@
-#!/usr/bin/env bash
-# Install Gruntwork dependencies on a Linux server
-
-set -e
+# This script contains defaults values and utility functions for install common Gruntwork modules and tools
 
 # Gruntwork module versions
 readonly DEFAULT_BASH_COMMONS_VERSION="v0.1.2"
 readonly DEFAULT_MODULE_SECURITY_VERSION="v0.25.1"
 readonly DEFAULT_MODULE_AWS_MONITORING_VERSION="v0.18.3"
 readonly DEFAULT_MODULE_STATEFUL_SERVER_VERSION="v0.7.7"
-readonly DEFAULT_MODULE_CI_VERSION="v0.18.1"
 
 # Enable / disable features
 readonly DEFAULT_ENABLE_SSH_GRUNT="true"
 readonly DEFAULT_ENABLE_CLOUDWATCH_METRICS="true"
 readonly DEFAULT_ENABLE_CLOUDWATCH_LOG_AGGREGATION="true"
+
+function assert_not_empty {
+  local -r arg_name="$1"
+  local -r arg_value="$2"
+
+  if [[ -z "$arg_value" ]]; then
+    log_error "The value for '$arg_name' cannot be empty."
+    exit 1
+  fi
+}
+
+function assert_env_var_not_empty {
+  local -r var_name="$1"
+  local -r var_value="${!var_name}"
+
+  if [[ -z "$var_value" ]]; then
+    echo "ERROR: Required environment variable $var_name not set."
+    exit 1
+  fi
+}
+
+function install_bash_commons {
+  local -r bash_commons_version="$1"
+
+  echo "Installing bash-commons"
+  gruntwork-install --module-name 'bash-commons' --repo https://github.com/gruntwork-io/bash-commons --tag "$bash_commons_version"
+}
 
 function install_security_packages {
   local -r module_security_version="$1"
@@ -57,43 +80,28 @@ function install_monitoring_packages {
   gruntwork-install --module-name 'logs/syslog' --repo https://github.com/gruntwork-io/module-aws-monitoring --tag "$module_aws_monitoring_version"
 }
 
-function assert_not_empty {
-  local -r arg_name="$1"
-  local -r arg_value="$2"
-
-  if [[ -z "$arg_value" ]]; then
-    log_error "The value for '$arg_name' cannot be empty."
-    exit 1
-  fi
-}
-
-function assert_env_var_not_empty {
-  local -r var_name="$1"
-  local -r var_value="${!var_name}"
-
-  if [[ -z "$var_value" ]]; then
-    echo "ERROR: Required environment variable $var_name not set."
-    exit 1
-  fi
-}
-
-function install_bash_commons {
-  local -r bash_commons_version="$1"
-
-  echo "Installing bash-commons"
-  gruntwork-install --module-name 'bash-commons' --repo https://github.com/gruntwork-io/bash-commons --tag "$bash_commons_version"
-}
-
 function install_gruntwork_modules {
+  local -r bash_commons_version="$1"
   local -r module_security_version="$2"
   local -r module_aws_monitoring_version="$3"
-  local -r bash_commons_version="$7"
-  local -r enable_ssh_grunt="$8"
-  local -r enable_cloudwatch_metrics="$9"
-  local -r enable_cloudwatch_log_aggregation="${10}"
+  local -r enable_ssh_grunt="$4"
+  local -r enable_cloudwatch_metrics="$5"
+  local -r enable_cloudwatch_log_aggregation="$6"
 
-  install_aws_cli
   install_bash_commons "$bash_commons_version"
   install_security_packages "$module_security_version" "$enable_ssh_grunt"
   install_monitoring_packages "$module_aws_monitoring_version" "$enable_cloudwatch_metrics" "$enable_cloudwatch_log_aggregation"
+}
+
+function install_stateful_server_packages {
+  local -r module_server_version="$1"
+
+  echo "Installing Gruntwork Stateful Server Modules"
+  gruntwork-install --module-name 'persistent-ebs-volume' --repo 'https://github.com/gruntwork-io/module-server' --tag "$module_server_version"
+}
+
+function install_aws_cli {
+  echo "Installing AWS CLI"
+  sudo apt-get install -y jq python-pip unzip
+  sudo pip install awscli
 }
