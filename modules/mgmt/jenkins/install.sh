@@ -322,7 +322,8 @@ function install_jenkins {
     "$packer_version" \
     "$docker_version"
 
-  install_user_data
+  install_user_data \
+    "$GRUNTWORK_INSTALLER_DOWNLOAD_DIR/base/ec2-common/user-data-common.sh"
 }
 
 install_jenkins "$@"

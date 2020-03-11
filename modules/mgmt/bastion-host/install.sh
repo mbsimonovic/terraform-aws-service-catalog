@@ -68,7 +68,8 @@ function install_bastion_host {
     "$enable_cloudwatch_metrics" \
     "$enable_cloudwatch_log_aggregation"
 
-  install_user_data
+  install_user_data \
+    "$GRUNTWORK_INSTALLER_DOWNLOAD_DIR/base/ec2-common/user-data-common.sh"
 }
 
 install_bastion_host "$@"
