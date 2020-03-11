@@ -20,24 +20,23 @@ func TestBastionHost(t *testing.T) {
 
 	// Uncomment the items below to skip certain parts of the test
 	//os.Setenv("TERRATEST_REGION", "eu-west-1")
-	//os.Setenv("SKIP_cleanup", "true")
-	//os.Setenv("SKIP_build_ami", "true")
+	// os.Setenv("SKIP_cleanup", "true")
+	// os.Setenv("SKIP_build_ami", "true")
 	//os.Setenv("SKIP_deploy_terraform", "true")
 	//os.Setenv("SKIP_vaildate", "true")
 
 	testFolder := "../examples/for-learning-and-testing/mgmt/bastion-host"
-	awsRegion := aws.GetRandomRegion(t, acmRegionsForTest, nil)
-	uniqueId := random.UniqueId()
-	awsKeyPair := aws.CreateAndImportEC2KeyPair(t, awsRegion, uniqueId)
-	defer aws.DeleteEC2KeyPair(t, awsKeyPair)
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
 		terraform.Destroy(t, terraformOptions)
+		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
+		aws.DeleteEC2KeyPair(t, awsKeyPair)
 	})
 
 	test_structure.RunTestStage(t, "build_ami", func() {
 		branchName := git.GetCurrentBranchName(t)
+		awsRegion := aws.GetRandomRegion(t, acmRegionsForTest, nil)
 
 		packerOptions := &packer.Options{
 			Template: "../modules/mgmt/bastion-host/bastion-host.json",
@@ -58,8 +57,10 @@ func TestBastionHost(t *testing.T) {
 
 	test_structure.RunTestStage(t, "deploy_terraform", func() {
 		amiId := test_structure.LoadArtifactID(t, testFolder)
-		awsRegion := test_structure.LoadString(t, testFolder, "region")
 		name := fmt.Sprintf("bastion-host-%s", random.UniqueId())
+		awsRegion := test_structure.LoadString(t, testFolder, "region")
+		uniqueId := random.UniqueId()
+		awsKeyPair := aws.CreateAndImportEC2KeyPair(t, awsRegion, uniqueId)
 
 		terraformOptions := &terraform.Options{
 			TerraformDir: testFolder,
@@ -75,11 +76,13 @@ func TestBastionHost(t *testing.T) {
 		}
 
 		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
+		test_structure.SaveEc2KeyPair(t, testFolder, awsKeyPair)
 		terraform.InitAndApply(t, terraformOptions)
 	})
 
 	test_structure.RunTestStage(t, "validate", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
+		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
 		testSSH(t, terraformOptions, awsKeyPair)
 	})
 
