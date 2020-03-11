@@ -3,10 +3,15 @@
 
 set -e
 
+#readonly GRUNTWORK_INSTALLER_DOWNLOAD_DIR="/tmp/gruntwork-script-modules"
+#source $GRUNTWORK_INSTALLER_DOWNLOAD_DIR/base/ec2-common/install.sh
+
 # Include common defaults and functions from the ec2-common install script
 # See: https://github.com/gruntwork-io/aws-service-catalog/blob/master/modules/base/ec2-common
-readonly GRUNTWORK_INSTALLER_DOWNLOAD_DIR="/tmp/gruntwork-script-modules"
-source $GRUNTWORK_INSTALLER_DOWNLOAD_DIR/base/ec2-common/install.sh
+# Rather than hard code this path, we can deduce it from the script as it executes
+SCRIPT_PATH=$(realpath $0)
+EC2_COMMON_PATH=$(dirname ${script_path})/../../base/ec2-common
+source $EC2_COMMON_PATH/install.sh
 
 function install_bastion_host {
   # Read from env vars to make it easy to set these in a Packer template (without super-wide --module-param foo=bar code).
@@ -69,7 +74,7 @@ function install_bastion_host {
     "$enable_cloudwatch_log_aggregation"
 
   install_user_data \
-    "$GRUNTWORK_INSTALLER_DOWNLOAD_DIR/base/ec2-common/user-data-common.sh"
+    "$EC2_COMMON_PATH/user-data-common.sh"
 }
 
 install_bastion_host "$@"

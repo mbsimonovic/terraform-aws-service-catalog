@@ -111,7 +111,7 @@ function install_user_data {
   local -r user_data_script="$1"
 
   echo "Installing common user-data script"
-
+  
   # This directory should have already been created by the gruntwork-installer,
   # but we create it here as a failsafe measure
   mkdir -p /etc/user-data
