@@ -1,6 +1,6 @@
 # ---------------------------------------------------------------------------------------------------------------------
-# MODULE PARAMETERS
-# These variables are expected to be passed in by the operator
+# REQUIRED PARAMETERS
+# These variables are expected to be passed in by the operator.
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "vpc_id" {
@@ -52,7 +52,7 @@ variable "vpc_name" {
 }
 
 variable "external_account_ssh_grunt_role_arn" {
-  description = "Since our IAM users are defined in a separate AWS account, this variable is used to specify the ARN of an IAM role that allows ssh-grunt to retrieve IAM group and public SSH key info from that account."
+  description = "If you are using ssh-grunt and your IAM users / groups are defined in a separate AWS account, you can use this variable to specify the ARN of an IAM role that ssh-grunt can assume to retrieve IAM group and public SSH key info from that account. To omit this variable, set it to an empty string (do NOT use null, or Terraform will complain)."
   type        = string
   default     = ""
 }
