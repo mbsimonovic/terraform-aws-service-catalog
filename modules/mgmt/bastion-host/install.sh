@@ -3,7 +3,8 @@
 
 set -e
 
-# Include common defaults and functions
+# Include common defaults and functions from the ec2-common install script
+# See: https://github.com/gruntwork-io/aws-service-catalog/blob/master/modules/base/ec2-common
 readonly GRUNTWORK_INSTALLER_DOWNLOAD_DIR="/tmp/gruntwork-script-modules"
 source $GRUNTWORK_INSTALLER_DOWNLOAD_DIR/base/ec2-common/install.sh
 

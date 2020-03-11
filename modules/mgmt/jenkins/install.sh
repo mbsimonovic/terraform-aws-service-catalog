@@ -23,8 +23,11 @@ readonly DEFAULT_DOCKER_VERSION="18.06.1~ce~3-0~ubuntu"
 # You can set the version of the build tooling to this value to skip installing it
 readonly SKIP_INSTALL_VERSION="NONE"
 
-# Include common defaults and functions
-source ../../base/ec2-common/install.sh
+# Include common defaults and functions from the ec2-common install script
+# See: https://github.com/gruntwork-io/aws-service-catalog/blob/master/modules/base/ec2-common
+readonly GRUNTWORK_INSTALLER_DOWNLOAD_DIR="/tmp/gruntwork-script-modules"
+source $GRUNTWORK_INSTALLER_DOWNLOAD_DIR/base/ec2-common/install.sh
+
 
 function install_ci_packages {
   local -r module_ci_version="$1"

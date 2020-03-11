@@ -111,6 +111,8 @@ function install_user_data {
   echo "Installing common user-data script"
   # This directory should have already been created by the gruntwork-installer,
   # but we create it here as a failsafe measure
+  script_path=$(realpath $0)
+  ec2_common_path=$(dirname ${script_path})
   mkdir -p /etc/user-data
-  cp user-data-common.sh /etc/user-data
+  cp $ec2_common_path/user-data-common.sh /etc/user-data
 }
