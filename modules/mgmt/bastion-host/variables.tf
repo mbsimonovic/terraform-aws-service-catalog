@@ -119,7 +119,7 @@ variable "hosted_zone_id" {
 }
 
 variable "domain_name" {
-  description = "The fully qualified host and domain name to use for the bastion server (e.g. bastion.foo.com)."
+  description = "The fully qualified host and domain name to use for the bastion server (e.g. bastion.foo.com). Only used if create_dns_record is true."
   type        = string
   default     = ""
 }
