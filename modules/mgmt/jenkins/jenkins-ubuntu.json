@@ -71,6 +71,7 @@
     "inline": [
       "sudo DEBIAN_FRONTEND=noninteractive apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get -y upgrade && sudo DEBIAN_FRONTEND=noninteractive apt-get -y install jq curl",
       "curl -Ls https://raw.githubusercontent.com/gruntwork-io/gruntwork-installer/master/bootstrap-gruntwork-installer.sh | bash /dev/stdin --version v0.0.22",
+      "gruntwork-install --module-name base/ec2-common --repo https://github.com/gruntwork-io/aws-service-catalog --tag {{user `service_catalog_ref`}}",
       "gruntwork-install --module-name mgmt/jenkins --repo https://github.com/gruntwork-io/aws-service-catalog --tag {{user `service_catalog_ref`}}"
     ],
     "environment_vars": [
