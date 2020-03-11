@@ -18,9 +18,28 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_route53_zone" "internal_services" {
-  name = var.internal_services_domain_name
+  for_each = var.private_zones
+
+  name    = each.value.name
+  comment = each.value.comment
 
   vpc {
-    vpc_id = var.vpc_id
+    vpc_id = each.value.vpc_id
+
   }
+  force_destroy = each.value.force_destroy
+}
+
+resource "aws_route53_zone" "public_zones" {
+  for_each = var.public_zones
+
+  name    = each.value.name
+  comment = each.value.comment
+
+  vpc {
+    vpc_id = each.value.vpc_id
+  }
+
+  force_destroy = each.value.force_destroy
+
 }
