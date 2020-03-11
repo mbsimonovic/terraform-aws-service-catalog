@@ -1,4 +1,5 @@
 # This script contains defaults values and utility functions for install common Gruntwork modules and tools
+# When executed by the gruntwork-installer, it's a NOP
 
 # Gruntwork module versions
 readonly DEFAULT_BASH_COMMONS_VERSION="v0.1.2"

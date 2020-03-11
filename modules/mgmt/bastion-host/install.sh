@@ -4,8 +4,8 @@
 set -e
 
 # Include common defaults and functions
-# This path is relative to the gruntwork installer's DEFAULT_MODULES_DOWNLOAD_DIR
-source base/ec2-common/install.sh
+readonly GRUNTWORK_INSTALLER_DOWNLOAD_DIR="/tmp/gruntwork-script-modules"
+source $GRUNTWORK_INSTALLER_DOWNLOAD_DIR/base/ec2-common/install.sh
 
 function install_bastion_host {
   # Read from env vars to make it easy to set these in a Packer template (without super-wide --module-param foo=bar code).
