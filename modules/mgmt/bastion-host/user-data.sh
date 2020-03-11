@@ -12,11 +12,10 @@ exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
 
 
 function start_cloudwatch_logs_agent {
-  local -r vpc_name="$1"
   local -r log_group_name="$2"
 
-  echo "Starting CloudWatch Logs Agent in VPC $vpc_name"
-  /etc/user-data/cloudwatch-log-aggregation/run-cloudwatch-logs-agent.sh --vpc-name "$vpc_name" --log-group-name "$log_group_name"
+  echo "Starting CloudWatch Logs Agent in VPC"
+  /etc/user-data/cloudwatch-log-aggregation/run-cloudwatch-logs-agent.sh --log-group-name "$log_group_name"
 }
 
 function start_ssh_grunt {
@@ -53,7 +52,7 @@ function start_fail2ban {
 }
 
 if [[ "$enable_cloudwatch_log_aggregation" == "true" ]]; then
-  start_cloudwatch_logs_agent "$vpc_name" "$log_group_name"
+  start_cloudwatch_logs_agent "$log_group_name"
 fi
 
 if [[ "$enable_ssh_grunt" == "true" ]]; then

@@ -18,11 +18,6 @@ variable "ami" {
   type        = string
 }
 
-variable "keypair_name" {
-  description = "The name of a Key Pair that can be used to SSH to this instance."
-  type        = string
-}
-
 variable "allow_ssh_from_cidr_list" {
   description = "A list of IP address ranges in CIDR format from which SSH access will be permitted. Attempts to access the bastion host from all other IP addresses will be blocked. This is only used if var.allow_ssh_from_cidr is true."
   type        = list(string)
@@ -45,10 +40,10 @@ variable "instance_type" {
   default     = "t3.micro"
 }
 
-variable "vpc_name" {
-  description = "The name of the VPC in which to deploy the bastion host"
+variable "keypair_name" {
+  description = "The name of a Key Pair that can be used to SSH to this instance."
   type        = string
-  default     = "mgmt"
+  default     = null
 }
 
 variable "external_account_ssh_grunt_role_arn" {
@@ -118,7 +113,7 @@ variable "create_dns_record" {
 }
 
 variable "hosted_zone_id" {
-  description = "The ID of the Route 53 Hosted Zone in which to create a DNS A record for the bastion host."
+  description = "The ID of the Route 53 Hosted Zone in which to create a DNS A record for the bastion host. Only used if create_dns_record is true."
   type        = string
   default     = ""
 }

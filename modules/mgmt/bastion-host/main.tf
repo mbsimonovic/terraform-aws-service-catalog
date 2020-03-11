@@ -69,7 +69,6 @@ data "template_file" "user_data" {
   template = file("${path.module}/user-data.sh")
 
   vars = {
-    vpc_name                            = var.vpc_name
     log_group_name                      = var.name
     enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
     enable_ssh_grunt                    = var.enable_ssh_grunt
