@@ -191,9 +191,9 @@ resource "aws_iam_role_policy" "deploy_other_account_permissions" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "cloudwatch_metrics" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-custom-metrics-iam-policy?ref=v0.18.3"
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-custom-metrics-iam-policy?ref=v0.19.0"
 
-  name_prefix      = var.name
+  name_prefix = var.name
 
   # We set this to false so that the cloudwatch-custom-metrics-iam-policy generates the JSON for the policy, but does
   # not create a standalone IAM policy with that JSON. We'll instead add that JSON to the Jenkins IAM role.
@@ -212,7 +212,7 @@ resource "aws_iam_role_policy" "custom_cloudwatch_metrics" {
 # ------------------------------------------------------------------------------
 
 module "cloudwatch_log_aggregation" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/logs/cloudwatch-log-aggregation-iam-policy?ref=v0.18.3"
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/logs/cloudwatch-log-aggregation-iam-policy?ref=v0.19.0"
 
   name_prefix = var.name
 

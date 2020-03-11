@@ -7,6 +7,10 @@
     "copy_to_regions": "",
     "github_auth_token": "{{env `GITHUB_OAUTH_TOKEN`}}",
     "encrypt_boot": "false",
+    "vpc_filter_key": "isDefault",
+    "vpc_filter_value": "true",
+    "vpc_subnet_filter_key": "default-for-az",
+    "vpc_subnet_filter_value": "true",
     "ami_users": "",
     "jenkins_version": "",
     "module_security_version": "",
@@ -42,6 +46,17 @@
       },
       "owners": ["099720109477"],
       "most_recent": true
+    },
+    "vpc_filter": {
+      "filters": {
+        "{{user `vpc_filter_key`}}": "{{user `vpc_filter_value`}}"
+      }
+    },
+    "subnet_filter": {
+      "filters": {
+        "{{user `vpc_subnet_filter_key`}}": "{{user `vpc_subnet_filter_value`}}"
+      },
+      "most_free": "true"
     },
     "ssh_username": "ubuntu",
     "encrypt_boot": "{{user `encrypt_boot`}}",
