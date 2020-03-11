@@ -14,31 +14,40 @@ terraform {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# CREATE A HOSTED ZONE
+# CREATE PRIVATE HOSTED ZONE(S)
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_route53_zone" "internal_services" {
   for_each = var.private_zones
 
-  name    = each.value.name
+  name    = each.key
   comment = each.value.comment
 
   vpc {
     vpc_id = each.value.vpc_id
 
   }
+
+  tags = each.value.tags
+
   force_destroy = each.value.force_destroy
 }
+
+# ---------------------------------------------------------------------------------------------------------------------
+# CREATE PUBLIC HOSTED ZONE(S)
+# ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_route53_zone" "public_zones" {
   for_each = var.public_zones
 
-  name    = each.value.name
+  name    = each.key
   comment = each.value.comment
 
   vpc {
     vpc_id = each.value.vpc_id
   }
+
+  tags = each.value.tags
 
   force_destroy = each.value.force_destroy
 
