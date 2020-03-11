@@ -2,6 +2,10 @@ package test
 
 import (
 	"fmt"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/git"
 	http_helper "github.com/gruntwork-io/terratest/modules/http-helper"
@@ -9,9 +13,6 @@ import (
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
-	"strings"
-	"testing"
-	"time"
 )
 
 // Test constants for the Gruntwork Phx DevOps account
@@ -39,12 +40,19 @@ func TestJenkins(t *testing.T) {
 
 	// Uncomment the items below to skip certain parts of the test
 	//os.Setenv("TERRATEST_REGION", "eu-west-1")
-	//os.Setenv("SKIP_cleanup", "true")
 	//os.Setenv("SKIP_build_ami", "true")
 	//os.Setenv("SKIP_deploy_terraform", "true")
 	//os.Setenv("SKIP_vaildate", "true")
+	//os.Setenv("SKIP_cleanup", "true")
+	//os.Setenv("SKIP_cleanup_ami", "true")
 
 	testFolder := "../examples/for-learning-and-testing/mgmt/jenkins"
+
+	defer test_structure.RunTestStage(t, "cleanup_ami", func() {
+		amiId := test_structure.LoadArtifactID(t, testFolder)
+		awsRegion := test_structure.LoadString(t, testFolder, "region")
+		aws.DeleteAmiAndAllSnapshots(t, awsRegion, amiId)
+	})
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
