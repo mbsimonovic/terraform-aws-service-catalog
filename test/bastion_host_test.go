@@ -20,12 +20,19 @@ func TestBastionHost(t *testing.T) {
 
 	// Uncomment the items below to skip certain parts of the test
 	//os.Setenv("TERRATEST_REGION", "eu-west-1")
-	//os.Setenv("SKIP_cleanup", "true")
 	//os.Setenv("SKIP_build_ami", "true")
 	//os.Setenv("SKIP_deploy_terraform", "true")
 	//os.Setenv("SKIP_validate", "true")
+	//os.Setenv("SKIP_cleanup", "true")
+	//os.Setenv("SKIP_cleanup_ami", "true")
 
 	testFolder := "../examples/for-learning-and-testing/mgmt/bastion-host"
+
+	defer test_structure.RunTestStage(t, "cleanup_ami", func() {
+		amiId := test_structure.LoadArtifactID(t, testFolder)
+		awsRegion := test_structure.LoadString(t, testFolder, "region")
+		aws.DeleteAmiAndAllSnapshots(t, awsRegion, amiId)
+	})
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
