@@ -11,11 +11,6 @@ readonly DEFAULT_JENKINS_VERSION="2.204.2"
 # Gruntwork module versions
 readonly DEFAULT_MODULE_CI_VERSION="v0.18.1"
 
-# Enable / disable features
-readonly DEFAULT_ENABLE_SSH_GRUNT="true"
-readonly DEFAULT_ENABLE_CLOUDWATCH_METRICS="true"
-readonly DEFAULT_ENABLE_CLOUDWATCH_LOG_AGGREGATION="true"
-
 # Build tooling
 readonly DEFAULT_KUBERGRUNT_VERSION="v0.5.1"
 readonly DEFAULT_TERRAFORM_VERSION="0.12.21"
@@ -29,7 +24,7 @@ readonly DEFAULT_DOCKER_VERSION="18.06.1~ce~3-0~ubuntu"
 readonly SKIP_INSTALL_VERSION="NONE"
 
 # Include common defaults and functions
-source ../../base/ec2-install/install.sh
+source ../../base/ec2-common/install.sh
 
 function install_ci_packages {
   local -r module_ci_version="$1"
@@ -323,6 +318,8 @@ function install_jenkins {
     "$helm_version" \
     "$packer_version" \
     "$docker_version"
+
+  install_user_data
 }
 
 install_jenkins "$@"

@@ -109,6 +109,7 @@ data "template_file" "user_data" {
     memory                              = var.memory
     log_group_name                      = var.name
     enable_ssh_grunt                    = var.enable_ssh_grunt
+    enable_ip_lockdown                  = var.enable_ip_lockdown
     enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
     ssh_grunt_iam_group                 = var.ssh_grunt_iam_group
     ssh_grunt_iam_group_sudo            = var.ssh_grunt_iam_group_sudo

@@ -13,7 +13,7 @@ module "bastion" {
   source = "../../../../modules/mgmt/bastion-host"
 
   name          = var.name
-  instance_type = "t3.micro"
+  instance_type = "t3.small"
   ami           = var.ami_id
 
   # For this simple example, use a regular key pair instead of ssh-grunt

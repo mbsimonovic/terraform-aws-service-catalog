@@ -11,57 +11,15 @@ set -e
 exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
 
 
-function start_cloudwatch_logs_agent {
-  local -r log_group_name="$2"
+# Include common functions
+source /etc/user-data/user-data-common.sh
 
-  echo "Starting CloudWatch Logs Agent in VPC"
-  /etc/user-data/cloudwatch-log-aggregation/run-cloudwatch-logs-agent.sh --log-group-name "$log_group_name"
-}
-
-function start_ssh_grunt {
-  local -r ssh_grunt_iam_group="$1"
-  local -r ssh_grunt_iam_group_sudo="$2"
-  local -r external_account_ssh_grunt_role_arn="$3"
-
-  echo "Starting ssh-grunt"
-
-  local args=()
-
-  if [[ -n "$ssh_grunt_iam_group" ]]; then
-    args+=("--iam-group" "$ssh_grunt_iam_group")
-  fi
-
-  if [[ -n "$ssh_grunt_iam_group_sudo" ]]; then
-    args+=("--iam-group-sudo" "$ssh_grunt_iam_group_sudo")
-  fi
-
-  if [[ -n "$$external_account_ssh_grunt_role_arn" ]]; then
-    args+=("--role-arn" "$$external_account_ssh_grunt_role_arn")
-  fi
-
-  # Call 'sync-users' to sync IAM users the first time during boot. Call 'install' to add a CRON job that will re-run
-  # 'sync-users' on a schedule. Note that we need double dollar signs as Terraform will try to interpolate a single
-  # dollar sign followed by curly braces
-  sudo /usr/local/bin/ssh-grunt iam sync-users "$${args[@]}"
-  sudo /usr/local/bin/ssh-grunt iam install "$${args[@]}"
-}
-
-function start_fail2ban {
-  echo "Starting fail2ban"
-  /etc/user-data/configure-fail2ban-cloudwatch/configure-fail2ban-cloudwatch.sh --cloudwatch-namespace Fail2Ban
-}
-
-if [[ "$enable_cloudwatch_log_aggregation" == "true" ]]; then
-  start_cloudwatch_logs_agent "$log_group_name"
-fi
-
-if [[ "$enable_ssh_grunt" == "true" ]]; then
-  start_ssh_grunt "$ssh_grunt_iam_group" "$ssh_grunt_iam_group_sudo" "$external_account_ssh_grunt_role_arn"
-fi
-
-if [[ "$enable_fail2ban" = "true" ]]; then
-  start_fail2ban
-fi
-
-# Lock down the EC2 metadata endpoint so only the root and default users can access it
-/usr/local/bin/ip-lockdown 169.254.169.254 root ubuntu
+start_instance_features \
+  "${enable_cloudwatch_log_aggregation}" \
+  "${enable_ssh_grunt}" \
+  "${enable_fail2ban}" \
+  "${enable_ip_lockdown}" \
+  "${ssh_grunt_iam_group}" \
+  "${ssh_grunt_iam_group_sudo}" \
+  "${log_group_name}" \
+  "${external_account_ssh_grunt_role_arn}"

@@ -3,18 +3,8 @@
 
 set -e
 
-# Gruntwork module versions
-readonly DEFAULT_BASH_COMMONS_VERSION="v0.1.2"
-readonly DEFAULT_MODULE_SECURITY_VERSION="v0.25.1"
-readonly DEFAULT_MODULE_AWS_MONITORING_VERSION="v0.19.0"
-
-# Enable / disable features
-readonly DEFAULT_ENABLE_SSH_GRUNT="true"
-readonly DEFAULT_ENABLE_CLOUDWATCH_METRICS="true"
-readonly DEFAULT_ENABLE_CLOUDWATCH_LOG_AGGREGATION="true"
-
 # Include common defaults and functions
-source ../../base/ec2-install/install.sh
+source ../../base/ec2-common/install.sh
 
 function install_bastion_host {
   # Read from env vars to make it easy to set these in a Packer template (without super-wide --module-param foo=bar code).
@@ -75,6 +65,8 @@ function install_bastion_host {
     "$enable_ssh_grunt" \
     "$enable_cloudwatch_metrics" \
     "$enable_cloudwatch_log_aggregation"
+
+  install_user_data
 }
 
 install_bastion_host "$@"

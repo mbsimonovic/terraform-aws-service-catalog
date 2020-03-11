@@ -68,7 +68,7 @@ variable "keypair_name" {
 variable "tenancy" {
   description = "The tenancy of this server. Must be one of: default, dedicated, or host."
   type        = string
-  default = "default"
+  default     = "default"
 }
 
 variable "jenkins_volume_encrypted" {
@@ -197,6 +197,12 @@ variable "enable_ssh_grunt" {
   default     = true
 }
 
+variable "enable_ip_lockdown" {
+  description = "Enable ip-lockdown to block access to the instance metadata. Defaults to true."
+  type        = bool
+  default     = true
+}
+
 variable "ssh_grunt_iam_group" {
   description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to this Jenkins server. To omit this variable, set it to an empty string (do NOT use null, or Terraform will complain)."
   type        = string
@@ -250,4 +256,3 @@ variable "external_account_auto_deploy_iam_role_arns" {
   type        = list(string)
   default     = []
 }
-

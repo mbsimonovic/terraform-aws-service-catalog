@@ -40,6 +40,8 @@ toc::[]
 * Creates and attaches an IAM policy that allows EC2 instances to publish https://github.com/gruntwork-io/module-aws-monitoring/blob/master/modules/metrics/cloudwatch-custom-metrics-iam-policy/README.md[custom cloudwatch metrics]
 * Creates and attaches an IAM policy that allows EC2 instances to publish to https://github.com/gruntwork-io/module-aws-monitoring/blob/master/modules/logs/cloudwatch-log-aggregation-iam-policy/README.md[CloudWatch logs]
 * Creates https://github.com/gruntwork-io/module-aws-monitoring/blob/master/modules/alarms/ec2-cpu-alarms/README.md[CPU], https://github.com/gruntwork-io/module-aws-monitoring/blob/master/modules/alarms/ec2-memory-alarms/README.md[memory], and https://github.com/gruntwork-io/module-aws-monitoring/blob/master/modules/alarms/ec2-disk-alarms/README.MD[disk usage] alarms in CloudWatch.
+* Includes an install script for building AMIs with commonly used modules and functions
+* Includes a user-data script with functions to enable commonly used features
 
 == Learn
 

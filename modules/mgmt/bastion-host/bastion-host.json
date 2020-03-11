@@ -24,7 +24,7 @@
     "ami_name": "{{user `ami_name`}}-{{isotime | clean_resource_name}}",
     "ami_description": "An Ubuntu AMI that is meant to be run as a bastion host.",
     "region": "{{user `aws_region`}}",
-    "instance_type": "t3.micro",
+    "instance_type": "t3.small",
     "type": "amazon-ebs",
     "source_ami_filter": {
       "filters": {

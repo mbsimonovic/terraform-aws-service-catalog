@@ -37,7 +37,7 @@ variable "name" {
 variable "instance_type" {
   description = "The type of instance to run for the bastion host"
   type        = string
-  default     = "t3.micro"
+  default     = "t3.small"
 }
 
 variable "keypair_name" {
@@ -60,6 +60,12 @@ variable "enable_cloudwatch_log_aggregation" {
 
 variable "enable_fail2ban" {
   description = "Enable fail2ban to block brute force log in attempts. Defaults to true."
+  type        = bool
+  default     = true
+}
+
+variable "enable_ip_lockdown" {
+  description = "Enable ip-lockdown to block access to the instance metadata. Defaults to true."
   type        = bool
   default     = true
 }

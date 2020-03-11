@@ -105,3 +105,9 @@ function install_aws_cli {
   sudo apt-get install -y jq python-pip unzip
   sudo pip install awscli
 }
+
+function install_user_data {
+  echo "Installing common user-data script"
+  mkdir /etc/user-data
+  cp user-data-common.sh /etc/user-data
+}
