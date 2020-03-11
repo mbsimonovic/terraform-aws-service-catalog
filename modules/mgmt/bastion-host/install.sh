@@ -9,7 +9,7 @@ set -e
 # Include common defaults and functions from the ec2-common install script
 # See: https://github.com/gruntwork-io/aws-service-catalog/blob/master/modules/base/ec2-common
 # Rather than hard code this path, we can deduce it from the script as it executes
-SCRIPT_PATH=$(realpath $0)
+script_path=$(realpath $0)
 EC2_COMMON_PATH=$(dirname ${script_path})/../../base/ec2-common
 source $EC2_COMMON_PATH/install.sh
 
