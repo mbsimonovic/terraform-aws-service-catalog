@@ -25,9 +25,10 @@ readonly SKIP_INSTALL_VERSION="NONE"
 
 # Include common defaults and functions from the ec2-common install script
 # See: https://github.com/gruntwork-io/aws-service-catalog/blob/master/modules/base/ec2-common
-readonly GRUNTWORK_INSTALLER_DOWNLOAD_DIR="/tmp/gruntwork-script-modules"
-source $GRUNTWORK_INSTALLER_DOWNLOAD_DIR/base/ec2-common/install.sh
-
+# Rather than hard code this path, we can deduce it from the script as it executes
+SCRIPT_PATH=$(realpath $0)
+EC2_COMMON_PATH=$(dirname ${SCRIPT_PATH})/../../base/ec2-common
+source $EC2_COMMON_PATH/install.sh
 
 function install_ci_packages {
   local -r module_ci_version="$1"
