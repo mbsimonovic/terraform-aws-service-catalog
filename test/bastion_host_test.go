@@ -20,10 +20,10 @@ func TestBastionHost(t *testing.T) {
 
 	// Uncomment the items below to skip certain parts of the test
 	//os.Setenv("TERRATEST_REGION", "eu-west-1")
-	// os.Setenv("SKIP_cleanup", "true")
-	// os.Setenv("SKIP_build_ami", "true")
+	//os.Setenv("SKIP_cleanup", "true")
+	//os.Setenv("SKIP_build_ami", "true")
 	//os.Setenv("SKIP_deploy_terraform", "true")
-	//os.Setenv("SKIP_vaildate", "true")
+	//os.Setenv("SKIP_validate", "true")
 
 	testFolder := "../examples/for-learning-and-testing/mgmt/bastion-host"
 

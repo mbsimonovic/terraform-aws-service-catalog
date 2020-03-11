@@ -23,7 +23,7 @@ func TestJenkins(t *testing.T) {
 	//os.Setenv("SKIP_cleanup", "true")
 	//os.Setenv("SKIP_build_ami", "true")
 	//os.Setenv("SKIP_deploy_terraform", "true")
-	//os.Setenv("SKIP_vaildate", "true")
+	//os.Setenv("SKIP_validate", "true")
 
 	testFolder := "../examples/for-learning-and-testing/mgmt/jenkins"
 
