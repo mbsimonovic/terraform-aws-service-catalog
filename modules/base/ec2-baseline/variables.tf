@@ -43,8 +43,14 @@ variable "enable_cloudwatch_metrics" {
   default     = true
 }
 
-variable "enable_cloudwatch_alarms" {
-  description = "Set to true to enable several basic CloudWatch alarms around CPU usage, memory usage, and disk space usage. If set to true, make sure to specify SNS topics to send notifications to using var.alarms_sns_topic_arn."
+variable "enable_instance_cloudwatch_alarms" {
+  description = "Set to true to enable basic CloudWatch alarms around CPU usage, memory usage, and disk space usage. Use this for an instance, and use enable_asg_cloudwatch_alarms for an ASG. If set to true, make sure to specify SNS topics to send notifications to using var.alarms_sns_topic_arn."
+  type        = bool
+  default     = true
+}
+
+variable "enable_asg_cloudwatch_alarms" {
+  description = "Set to true to enable basic CloudWatch alarms around CPU usage, memory usage, and disk space usage. Use this for an autoscaling group, and use enable_asg_cloudwatch_alarms for an instance. If set to true, make sure to specify SNS topics to send notifications to using var.alarms_sns_topic_arn."
   type        = bool
   default     = true
 }

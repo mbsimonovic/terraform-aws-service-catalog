@@ -24,7 +24,7 @@ module "bastion" {
   name             = var.name
   instance_type    = var.instance_type
   ami              = var.ami
-  user_data_base64 = data.template_cloudinit_config.cloud_init.rendered
+  user_data_base64 = module.ec2_baseline.cloud_init_rendered
   tenancy          = var.tenancy
 
   vpc_id    = var.vpc_id
@@ -80,7 +80,7 @@ module "ec2_baseline" {
   enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
   iam_role_arn                        = module.bastion.iam_role_id
   enable_cloudwatch_metrics           = var.enable_cloudwatch_metrics
-  enable_cloudwatch_alarms            = var.enable_cloudwatch_alarms
+  enable_instance_cloudwatch_alarms   = var.enable_cloudwatch_alarms
   instance_id                         = module.bastion.id
   alarms_sns_topic_arn                = var.alarms_sns_topic_arn
   cloud_init_parts                    = local.cloud_init_parts

@@ -69,7 +69,7 @@ resource "aws_iam_role_policy" "cloudwatch_log_aggregation" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# ADD CLOUDWATCH ALARMS THAT GO OFF IF THE BASTION HOST'S CPU, MEMORY, OR DISK USAGE GET TOO HIGH
+# ADD CLOUDWATCH ALARMS THAT GO OFF IF THE CPU, MEMORY, OR DISK USAGE ON AN INSTANCE GET TOO HIGH
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "high_cpu_usage_alarms" {
@@ -78,7 +78,7 @@ module "high_cpu_usage_alarms" {
   instance_ids         = [var.instance_id]
   instance_count       = 1
   alarm_sns_topic_arns = var.alarms_sns_topic_arn
-  create_resources     = var.enable_cloudwatch_alarms
+  create_resources     = var.enable_instance_cloudwatch_alarms
 }
 
 module "high_memory_usage_alarms" {
@@ -87,7 +87,7 @@ module "high_memory_usage_alarms" {
   instance_ids         = [var.instance_id]
   instance_count       = 1
   alarm_sns_topic_arns = var.alarms_sns_topic_arn
-  create_resources     = var.enable_cloudwatch_alarms
+  create_resources     = var.enable_instance_cloudwatch_alarms
 }
 
 module "high_disk_usage_alarms" {
@@ -98,9 +98,42 @@ module "high_disk_usage_alarms" {
   file_system          = "/dev/xvda1"
   mount_path           = "/"
   alarm_sns_topic_arns = var.alarms_sns_topic_arn
-  create_resources     = var.enable_cloudwatch_alarms
+  create_resources     = var.enable_instance_cloudwatch_alarms
 }
 
+
+# ---------------------------------------------------------------------------------------------------------------------
+# ADD CLOUDWATCH ALARMS THAT GO OFF IF THE CPU, MEMORY, OR DISK USAGE FOR INSTANCES IN AN ASG GET TOO HIGH
+# ---------------------------------------------------------------------------------------------------------------------
+
+module "high_cpu_usage_alarms" {
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/asg-cpu-alarms?ref=v0.18.3"
+
+  asg_names            = [var.asg_name]
+  num_asg_names        = 1
+  alarm_sns_topic_arns = var.alarms_sns_topic_arn
+  create_resources     = var.enable_asg_cloudwatch_alarms
+}
+
+module "high_memory_usage_alarms" {
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/asg-memory-alarms?ref=v0.18.3"
+
+  asg_names            = [var.asg_name]
+  num_asg_names        = 1
+  alarm_sns_topic_arns = var.alarms_sns_topic_arn
+  create_resources     = var.enable_asg_cloudwatch_alarms
+}
+
+module "high_disk_usage_root_volume_alarms" {
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/asg-disk-alarms?ref=v0.18.3"
+
+  asg_names            = [var.asg_name]
+  num_asg_names        = 1
+  file_system          = "/dev/xvda1"
+  mount_path           = "/"
+  alarm_sns_topic_arns = var.alarms_sns_topic_arn
+  create_resources     = var.enable_asg_cloudwatch_alarms
+}
 
 # ---------------------------------------------------------------------------------------------------------------------
 # COMBINE MULTIPLE CLOUD-INIT SCRIPTS

@@ -41,7 +41,7 @@ function start_server {
   start_jenkins "$mount_point" "$memory"
 }
 
-start_instance_features \
+start_ec2_baseline \
   "${enable_cloudwatch_log_aggregation}" \
   "${enable_ssh_grunt}" \
   "${enable_fail2ban}" \
@@ -57,4 +57,4 @@ start_server \
   "${device_name}" \
   "${mount_point}" \
   "${owner}" \
-  "${memory}" 
+  "${memory}"

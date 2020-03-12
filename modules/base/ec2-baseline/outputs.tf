@@ -42,3 +42,8 @@ output "cloudwatch_metrics_read_write_permissions_json" {
   description = "The CloudWatch Metrics IAM policy in JSON format."
   value       = module.cloudwatch_metrics.cloudwatch_metrics_read_write_permissions_json
 }
+
+output "cloud_init_rendered" {
+  description = "The final rendered cloud-init config used to initialize the instance."
+  value       = data.template_cloudinit_config.cloud_init.rendered
+}
