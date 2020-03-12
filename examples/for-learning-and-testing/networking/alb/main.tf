@@ -10,7 +10,7 @@ module "alb" {
   # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
   # to a specific version of the modules, such as the following example:
   # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/alb?ref=v1.0.8"
-  source = "../../../../modules/networking/alb?ref=v0.18.0"
+  source = "../../../../modules/networking/alb"
 
   alb_name = var.alb_name
 
@@ -28,20 +28,20 @@ module "alb" {
   http_listener_ports            = ["${local.default_http_port}"]
   allow_inbound_from_cidr_blocks = ["0.0.0.0/0"]
 
-  # Configure a domain name for the ALB 
+  # Configure a domain name for the ALB
   create_route53_entry = true
   hosted_zone_id       = data.aws_route53_zone.alb.zone_id
   domain_name          = "${var.alb_subdomain}.${data.aws_route53_zone.alb.name}"
 
   # To make it easier to test, we force destroy the access logs
-  # In production, you'll want to retain the access logs irrespective 
-  # of the ALB, for audit log purposes 
+  # In production, you'll want to retain the access logs irrespective
+  # of the ALB, for audit log purposes
   force_destroy = true
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
 # LAUNCH SAMPLE EC2 INSTANCE AS WEBSERVER
-# This is used as (a) an example of how to route traffic to servers 
+# This is used as (a) an example of how to route traffic to servers
 # using the ALB and (b) for automated testing.
 # ---------------------------------------------------------------------------------------------------------------------
 
