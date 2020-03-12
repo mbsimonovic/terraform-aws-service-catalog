@@ -338,7 +338,7 @@ function install_jenkins {
     "$docker_version"
 
   install_user_data \
-    "$EC2_COMMON_PATH/user-data-common.sh"
+    "${EC2_BASELINE_PATH}/user-data-common.sh"
 }
 
 include_ec2_baseline
