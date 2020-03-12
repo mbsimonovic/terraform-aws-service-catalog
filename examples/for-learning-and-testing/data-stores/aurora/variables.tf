@@ -44,12 +44,6 @@ variable "engine" {
   default     = "aurora"
 }
 
-variable "bastion_ec2_keypair_name" {
-  description = "The name of an EC2 keypair to use for the bastion EC2 host."
-  type        = string
-  default     = null
-}
-
 variable "aws_region" {
   description = "The AWS region to deploy into"
   type        = string

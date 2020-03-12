@@ -37,8 +37,3 @@ output "cleanup_snapshots_lambda_arn" {
   description = "The ARN of the AWS Lambda Function used for cleaning up manual snapshots taken for sharing with secondary accounts."
   value       = module.aurora.cleanup_snapshots_lambda_arn
 }
-
-output "bastion_host_public_ip" {
-  description = "The public IP of the bastion host."
-  value       = aws_instance.bastion.public_ip
-}

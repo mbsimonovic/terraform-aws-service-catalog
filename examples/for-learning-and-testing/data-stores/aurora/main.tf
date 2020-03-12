@@ -46,33 +46,3 @@ module "aurora" {
   # so that changes are rolled out during preselected maintenance windows.
   apply_immediately = true
 }
-
-# ----------------------------------------------------------------------------------------------------------------------
-# DEPLOY A EC2 INSTANCE TO USE AS A BASTION PROXY
-# The aurora database is not deployed to be publicly accessible, so we need a proxy instance that allows us to access it
-# from within the VPC.
-# ----------------------------------------------------------------------------------------------------------------------
-
-resource "aws_instance" "bastion" {
-  ami                         = data.aws_ami.ubuntu.id
-  instance_type               = "t2.micro"
-  subnet_id                   = local.subnet_for_bastion
-  vpc_security_group_ids      = [aws_security_group.bastion.id]
-  associate_public_ip_address = true
-  key_name                    = var.bastion_ec2_keypair_name
-
-  tags = {
-    Name = "${var.name}-aurora-bastion"
-  }
-}
-
-resource "aws_security_group" "bastion" {
-  vpc_id = data.aws_vpc.default.id
-
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
