@@ -1,6 +1,6 @@
 :type: service
-:name: Route53 Private Hosted Zones
-:description: Manage private DNS entries using https://aws.amazon.com/route53/:Amazon Route 53
+:name: Route 53 Hosted Zones
+:description: Manage DNS entries using https://aws.amazon.com/route53/:Amazon Route 53
 :icon: /_docs/route53-icon.png
 :category: networking
 :cloud: aws
@@ -22,14 +22,14 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
-= Route 53 Private Hosted Zones
+= Route 53 Hosted Zones
 
 image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
 image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
 
-This folder contains code to deploy https://aws.amazon.com/route53/[Route 53 Private Hosted Zones] on AWS.
+This folder contains code to deploy https://aws.amazon.com/route53/[Route 53 Hosted Zones] on AWS.
 
-image::../../../_docs/route53-private-architecture.png?raw=true[Route 53 private architecture]
+image::../../../_docs/route53-architecture.png?raw=true[Route 53 architecture]
 
 toc::[]
 
@@ -38,7 +38,9 @@ toc::[]
 
 == Features
 
-* Manage private DNS entries using AWS Route 53 
+* Manage DNS entries using AWS Route 53 
+* Automatic health checks to route traffic only to healthy endpoints
+* Automatic integration with other AWS services, such as ELBs
 
 == Learn
 

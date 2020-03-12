@@ -1,11 +1,23 @@
-output "internal_services_domain_name" {
-  value = module.route53.internal_services_domain_name
+output "private_domain_names" {
+  value = module.route53.private_domain_names
 }
 
-output "internal_services_hosted_zone_id" {
-  value = module.route53.internal_services_hosted_zone_id
+output "private_zones_ids" {
+  value = module.route53.private_zones_ids
 }
 
-output "internal_services_name_servers" {
-  value = module.route53.internal_services_name_servers
+output "private_zones_name_servers" {
+  value = module.route53.private_zones_name_servers
+}
+
+output "public_domain_names" {
+  value = module.route53.public_domain_names
+}
+
+output "public_hosted_zones_ids" {
+  value = module.route53.public_hosted_zones_ids
+}
+
+output "public_hosted_zones_name_servers" {
+  value = module.route53.public_hosted_zones_ids
 }

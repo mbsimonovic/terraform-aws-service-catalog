@@ -14,10 +14,10 @@ terraform {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# CREATE PRIVATE HOSTED ZONE(S)
+# CREATE PRIVATE HOSTED ZONE(S) 
 # ---------------------------------------------------------------------------------------------------------------------
 
-resource "aws_route53_zone" "internal_services" {
+resource "aws_route53_zone" "private_zones" {
   for_each = var.private_zones
 
   name    = each.key
