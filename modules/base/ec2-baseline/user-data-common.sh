@@ -94,7 +94,8 @@ function start_fail2ban {
   /etc/user-data/configure-fail2ban-cloudwatch/configure-fail2ban-cloudwatch.sh --cloudwatch-namespace Fail2Ban
 }
 
-function start_instance_features {
+# Starts baseline EC2 security features, including CloudWatch Log aggregation, ssh-grunt, fail2ban, and ip-lockdown
+function start_ec2_baseline {
   local -r enable_cloudwatch_log_aggregation="$1"
   local -r enable_ssh_grunt="$2"
   local -r enable_fail2ban="$3"

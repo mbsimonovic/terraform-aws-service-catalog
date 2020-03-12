@@ -50,21 +50,6 @@ locals {
   cloud_init_parts = merge({ default : local.cloud_init }, var.cloud_init_parts)
 }
 
-data "template_cloudinit_config" "cloud_init" {
-  gzip          = true
-  base64_encode = true
-
-  dynamic "part" {
-    for_each = local.cloud_init_parts
-
-    content {
-      filename     = part.value["filename"]
-      content_type = part.value["content_type"]
-      content      = part.value["content"]
-    }
-  }
-}
-
 data "template_file" "user_data" {
   template = file("${path.module}/user-data.sh")
 
@@ -86,10 +71,8 @@ data "template_file" "user_data" {
 # for ssh-grunt, CloudWatch Logs aggregation, CloudWatch metrics, and CloudWatch alarms
 # ---------------------------------------------------------------------------------------------------------------------
 
-module "ec2_common" {
-  #TODO: Update to released version
-  #source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/base/ec2-common?ref=v0.8.1"
-  source = "../../base/ec2-common"
+module "ec2_baseline" {
+  source = "../../base/ec2-baseline"
 
   name                                = var.name
   external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
@@ -100,6 +83,7 @@ module "ec2_common" {
   enable_cloudwatch_alarms            = var.enable_cloudwatch_alarms
   instance_id                         = module.bastion.id
   alarms_sns_topic_arn                = var.alarms_sns_topic_arn
+  cloud_init_parts                    = local.cloud_init_parts
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

@@ -103,6 +103,25 @@ module "high_disk_usage_alarms" {
 
 
 # ---------------------------------------------------------------------------------------------------------------------
+# COMBINE MULTIPLE CLOUD-INIT SCRIPTS
+# ---------------------------------------------------------------------------------------------------------------------
+
+data "template_cloudinit_config" "cloud_init" {
+  gzip          = true
+  base64_encode = true
+
+  dynamic "part" {
+    for_each = var.cloud_init_parts
+
+    content {
+      filename     = part.value["filename"]
+      content_type = part.value["content_type"]
+      content      = part.value["content"]
+    }
+  }
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
 # GET INFO ABOUT CURRENT ACCOUNT
 # ---------------------------------------------------------------------------------------------------------------------
 

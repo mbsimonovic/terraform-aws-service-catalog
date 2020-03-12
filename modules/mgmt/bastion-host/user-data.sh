@@ -14,7 +14,7 @@ exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
 # Include common functions
 source /etc/user-data/user-data-common.sh
 
-start_instance_features \
+start_ec2_baseline \
   "${enable_cloudwatch_log_aggregation}" \
   "${enable_ssh_grunt}" \
   "${enable_fail2ban}" \

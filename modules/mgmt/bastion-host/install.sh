@@ -3,12 +3,26 @@
 
 set -e
 
-# Include common defaults and functions from the ec2-common install script
-# See: https://github.com/gruntwork-io/aws-service-catalog/blob/master/modules/base/ec2-common
-# Rather than hard code this path, we can deduce it from the script as it executes
-SCRIPT_PATH=$(realpath $0)
-EC2_COMMON_PATH=$(dirname ${SCRIPT_PATH})/../../base/ec2-common
-source $EC2_COMMON_PATH/install.sh
+# TODO: Update ref when released
+readonly DEFAULT_EC2_BASELINE_REF="migrate-bastion"
+
+function include_ec2_baseline {
+  gruntwork-install \
+    --module-name base/ec2-baseline \
+    --repo https://github.com/gruntwork-io/aws-service-catalog \
+    --tag ${DEFAULT_EC2_BASELINE_REF}
+
+  # Include common defaults and functions from the ec2-baseline install script
+  # See: https://github.com/gruntwork-io/aws-service-catalog/blob/master/modules/base/ec2-baseline
+  readonly EC2_BASELINE_RELATIVE_PATH="../../base/ec2-baseline"
+  readonly EC2_BASELINE_PATH="$(dirname $(realpath $0))/${EC2_BASELINE_RELATIVE_PATH}"
+  if [[ ! -f "${EC2_BASELINE_PATH}/install.sh" ]]; then
+    echo "ERROR: $EC2_BASELINE_PATH/install.sh not found."
+    exit 1
+  fi
+
+  source $EC2_BASELINE_PATH/install.sh
+}
 
 function install_bastion_host {
   # Read from env vars to make it easy to set these in a Packer template (without super-wide --module-param foo=bar code).
@@ -71,7 +85,9 @@ function install_bastion_host {
     "$enable_cloudwatch_log_aggregation"
 
   install_user_data \
-    "$EC2_COMMON_PATH/user-data-common.sh"
+    "${EC2_BASELINE_PATH}/user-data-common.sh"
 }
+
+include_ec2_baseline
 
 install_bastion_host "$@"

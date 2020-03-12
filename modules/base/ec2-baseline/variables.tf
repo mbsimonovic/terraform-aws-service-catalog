@@ -60,3 +60,13 @@ variable "alarms_sns_topic_arn" {
   type        = list(string)
   default     = []
 }
+
+variable "cloud_init_parts" {
+  description = "Cloud init scripts to run on the bastion host while it boots. See the part blocks in https://www.terraform.io/docs/providers/template/d/cloudinit_config.html for syntax."
+  type = map(object({
+    filename     = string
+    content_type = string
+    content      = string
+  }))
+  default = {}
+}
