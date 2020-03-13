@@ -65,7 +65,7 @@ module "database" {
 
 module "rds_alarms" {
   source           = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/rds-alarms?ref=v0.19.0"
-  create_resources = var.enable_cloudwatch_alarms
+  create_resources = var.enable_cloudwatch_alarms && var.engine_mode == "provisioned"
 
   rds_instance_ids     = module.database.instance_ids
   num_rds_instance_ids = var.instance_count
