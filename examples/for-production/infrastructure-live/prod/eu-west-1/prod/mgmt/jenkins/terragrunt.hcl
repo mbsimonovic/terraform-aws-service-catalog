@@ -1,20 +1,35 @@
-# It's a bit silly to deploy Jenkins in all these accounts, but we're just using this as a dummy test case for now
+# ---------------------------------------------------------------------------------------------------------------------
+# TERRAGRUNT CONFIGURATION
+# This is the configuration for Terragrunt, a thin wrapper for Terraform that supports locking and enforces best
+# practices: https://github.com/gruntwork-io/terragrunt
+#
+# MAINTAINERS NOTE: It's a bit silly to deploy Jenkins in all these accounts, but we're just using this as a dummy test
+# case for now
+# ---------------------------------------------------------------------------------------------------------------------
+
+# Terragrunt will copy the Terraform configurations specified by the source parameter, along with any files in the
+# working directory, into a temporary folder, and execute your Terraform commands in that folder.
 terraform {
   source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/mgmt/jenkins?ref=master"
 }
 
+# Include all settings from the root terragrunt.hcl file
 include {
   path = find_in_parent_folders()
 }
 
-dependency "vpc" {
-  config_path = "../../networking/vpc"
-}
-
+# When using the terragrunt xxx-all commands (e.g., apply-all, plan-all), deploy these dependencies before this module
 dependencies {
   paths = ["../../../../_global/account-baseline"]
 }
 
+# Pull in outputs from these modules to compute inputs. These modules will also be added to the dependency list for
+# xxx-all commands.
+dependency "vpc" {
+  config_path = "../../networking/vpc"
+}
+
+# Locals are named constants that are reusable within the configuration.
 locals {
   # Automatically load common variables shared across all accounts
   common_vars = read_terragrunt_config(find_in_parent_folders("common.hcl"))
@@ -22,6 +37,11 @@ locals {
   # Automatically load account-level variables
   account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
 }
+
+# ---------------------------------------------------------------------------------------------------------------------
+# MODULE PARAMETERS
+# These are the variables we have to pass in to use the module specified in the terragrunt configuration above
+# ---------------------------------------------------------------------------------------------------------------------
 
 inputs = {
   name          = "ref-arch-lite-${local.account_vars.locals.account_name}-jenkins"
