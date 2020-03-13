@@ -22,8 +22,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "database" {
-  # TODO: update to released version when ready
-  source = "git::git@github.com:gruntwork-io/module-data-storage.git//modules/aurora?ref=yori-lambda-create-resources"
+  source = "git::git@github.com:gruntwork-io/module-data-storage.git//modules/aurora?ref=0.12.9"
 
   name        = var.name
   port        = var.port
@@ -97,8 +96,7 @@ module "rds_alarms" {
 
 # Lambda function that runs on a specified schedule to manually create the DB snapshot.
 module "create_snapshot" {
-  # TODO: update to released version when ready
-  source           = "git::git@github.com:gruntwork-io/module-data-storage.git//modules/lambda-create-snapshot?ref=yori-lambda-create-resources"
+  source           = "git::git@github.com:gruntwork-io/module-data-storage.git//modules/lambda-create-snapshot?ref=0.12.9"
   create_resources = var.share_snapshot_with_another_account
 
   rds_db_identifier        = module.database.cluster_id
@@ -121,8 +119,7 @@ module "create_snapshot" {
 
 # Lambda function that will share the snapshots made using `create_snapshot`.
 module "share_snapshot" {
-  # TODO: update to released version when ready
-  source           = "git::git@github.com:gruntwork-io/module-data-storage.git//modules/lambda-share-snapshot?ref=yori-lambda-create-resources"
+  source           = "git::git@github.com:gruntwork-io/module-data-storage.git//modules/lambda-share-snapshot?ref=0.12.9"
   create_resources = var.share_snapshot_with_another_account
 
   rds_db_arn = module.database.cluster_arn
@@ -131,8 +128,7 @@ module "share_snapshot" {
 
 # Lambda function that periodically culls old snapshots.
 module "cleanup_snapshots" {
-  # TODO: update to released version when ready
-  source           = "git::git@github.com:gruntwork-io/module-data-storage.git//modules/lambda-cleanup-snapshots?ref=yori-lambda-create-resources"
+  source           = "git::git@github.com:gruntwork-io/module-data-storage.git//modules/lambda-cleanup-snapshots?ref=0.12.9"
   create_resources = var.share_snapshot_with_another_account
 
   rds_db_identifier        = module.database.cluster_id
