@@ -10,19 +10,6 @@ variable "name" {
   type        = string
 }
 
-variable "instance_count" {
-  description = "The number of DB instances, including the primary, to run in the RDS cluster"
-  type        = number
-}
-
-# See https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Aurora.Managing.html for the instance types supported by
-# Aurora
-variable "instance_type" {
-  description = "The instance type to use for the db (e.g. db.r3.large)"
-  type        = string
-}
-
-
 # Database configuration
 
 variable "master_username" {
@@ -39,7 +26,6 @@ variable "port" {
   description = "The port the DB will listen on (e.g. 3306)"
   type        = number
 }
-
 
 # Network configuration
 
@@ -81,13 +67,63 @@ variable "engine" {
   default     = "aurora"
 }
 
-# Note: you cannot enable encryption on an existing DB, so you have to enable it for the very first deployment. If you
-# already created the DB unencrypted, you'll have to create a new one with encryption enabled and migrate your data to
-# it. For more info on RDS encryption, see: http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.Encryption.html
-variable "storage_encrypted" {
-  description = "Specifies whether the DB cluster uses encryption for data at rest in the underlying storage for the DB, its automated backups, Read Replicas, and snapshots. Uses the default aws/rds key in KMS."
+variable "engine_mode" {
+  description = "The version of aurora to run - provisioned or serverless."
+  type        = string
+  default     = "provisioned"
+}
+
+# Provisioned RDS cluster setting
+
+variable "instance_count" {
+  description = "The number of DB instances, including the primary, to run in the RDS cluster. Only used when var.engine_mode is set to provisioned."
+  type        = number
+  default     = 1
+}
+
+variable "instance_type" {
+  description = "The instance type to use for the db (e.g. db.r3.large). Only used when var.engine_mode is set to provisioned."
+  type        = string
+
+  # See https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Aurora.Managing.html for the instance types supported by
+  # Aurora
+  default = "db.t3.small"
+}
+
+
+# Serverless scaling configuration
+#
+# https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless.how-it-works.html#aurora-serverless.how-it-works.auto-scaling
+# You can specify the minimum and maximum ACU. The minimum Aurora capacity unit is the lowest ACU to which the DB
+# cluster can scale down. The maximum Aurora capacity unit is the highest ACU to which the DB cluster can scale up.
+# Based on your settings, Aurora Serverless automatically creates scaling rules for thresholds for CPU utilization,
+# connections, and available memory.
+#
+# The below max/min's are in the ACU's.  A good read on the impacts is available here:
+#    https://www.jeremydaly.com/aurora-serverless-the-good-the-bad-and-the-scalable/
+
+variable "scaling_configuration_auto_pause" {
+  description = "Whether to enable automatic pause. A DB cluster can be paused only when it's idle (it has no connections). If a DB cluster is paused for more than seven days, the DB cluster might be backed up with a snapshot. In this case, the DB cluster is restored when there is a request to connect to it. Only used when var.engine_mode is set to serverless."
   type        = bool
   default     = true
+}
+
+variable "scaling_configuration_max_capacity" {
+  description = "The maximum capacity. The maximum capacity must be greater than or equal to the minimum capacity. Valid capacity values are 2, 4, 8, 16, 32, 64, 128, and 256. Only used when var.engine_mode is set to serverless."
+  type        = number
+  default     = 256
+}
+
+variable "scaling_configuration_min_capacity" {
+  description = "The minimum capacity. The minimum capacity must be lesser than or equal to the maximum capacity. Valid capacity values are 2, 4, 8, 16, 32, 64, 128, and 256. Only used when var.engine_mode is set to serverless."
+  type        = number
+  default     = 2
+}
+
+variable "scaling_configuration_seconds_until_auto_pause" {
+  description = "The time, in seconds, before an Aurora DB cluster in serverless mode is paused. Valid values are 300 through 86400. Only used when var.engine_mode is set to serverless."
+  type        = number
+  default     = 300
 }
 
 variable "kms_key_arn" {
@@ -256,4 +292,21 @@ variable "backup_job_alarm_period" {
 
   # Default to hourly
   default = 3600
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# TEST PARAMETERS
+# These variables exist solely for testing purposes.
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "publicly_accessible" {
+  description = "If you wish to make your database accessible from the public Internet, set this flag to true (WARNING: NOT RECOMMENDED FOR REGULAR USAGE!!). The default is false, which means the database is only accessible from within the VPC, which is much more secure. This flag MUST be false for serverless mode."
+  type        = bool
+  default     = false
+}
+
+variable "skip_final_snapshot" {
+  description = "Determines whether a final DB snapshot is created before the DB instance is deleted. Be very careful setting this to true; if you do, and you delete this DB instance, you will not have any backups of the data! You almost never want to set this to true, unless you are doing automated or manual testing."
+  type        = bool
+  default     = false
 }

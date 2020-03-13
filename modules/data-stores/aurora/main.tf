@@ -25,12 +25,18 @@ module "database" {
   # TODO: update to released version when ready
   source = "git::git@github.com:gruntwork-io/module-data-storage.git//modules/aurora?ref=yori-lambda-create-resources"
 
-  name   = var.name
-  port   = var.port
-  engine = var.engine
+  name        = var.name
+  port        = var.port
+  engine      = var.engine
+  engine_mode = var.engine_mode
 
   instance_count = var.instance_count
   instance_type  = var.instance_type
+
+  scaling_configuration_auto_pause               = var.scaling_configuration_auto_pause
+  scaling_configuration_max_capacity             = var.scaling_configuration_max_capacity
+  scaling_configuration_min_capacity             = var.scaling_configuration_min_capacity
+  scaling_configuration_seconds_until_auto_pause = var.scaling_configuration_seconds_until_auto_pause
 
   db_name         = var.db_name
   master_username = var.master_username
@@ -41,11 +47,16 @@ module "database" {
   allow_connections_from_cidr_blocks     = var.allow_connections_from_cidr_blocks
   allow_connections_from_security_groups = var.allow_connections_from_security_groups
 
-  storage_encrypted = var.storage_encrypted
-  kms_key_arn       = var.kms_key_arn
-
   backup_retention_period = var.backup_retention_period
+  kms_key_arn             = var.kms_key_arn
   apply_immediately       = var.apply_immediately
+
+  # These values have the same defaults in the module, but we hard code the configuration here for documentation purposes.
+  storage_encrypted = true
+
+  # These are dangerous variables that exposed to make testing easier, but should be left untouch.
+  publicly_accessible = var.publicly_accessible
+  skip_final_snapshot = var.skip_final_snapshot
 }
 
 

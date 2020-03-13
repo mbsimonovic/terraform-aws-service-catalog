@@ -12,12 +12,9 @@ module "aurora" {
   # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/data-stores/aurora?ref=v1.0.8"
   source = "../../../../modules/data-stores/aurora"
 
-  name   = var.name
-  engine = var.engine
-
-  # Deploy a small cluster with one replica
-  instance_count = 2
-  instance_type  = "db.t3.small"
+  name        = var.name
+  engine      = var.engine
+  engine_mode = var.engine_mode
 
   # Database Configurations
   master_username = var.master_username
@@ -36,6 +33,15 @@ module "aurora" {
   aurora_subnet_ids                      = data.aws_subnet_ids.default.ids
   allow_connections_from_cidr_blocks     = ["0.0.0.0/0"]
   allow_connections_from_security_groups = []
+
+  # To make it easier to test this in CI, we expose the database publicly (if in provisioned mode). However, for regular
+  # deployments, you should insulate the database in a private subnet and avoid exposing it publicly outside the VPC.
+  publicly_accessible = var.engine_mode == "provisioned"
+
+  # We also make testing easier by disabling the final snapshot. This speeds up the destroy process, but at the expense
+  # of deleting all data in the Database with no backup of the state just before deletion. You should not touch this
+  # variable for regular deployments and use the default, which will always take the final snapshot.
+  skip_final_snapshot = true
 
   # Configure cross account nightly snapshot sharing.
   share_snapshot_with_another_account = true

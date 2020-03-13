@@ -45,6 +45,12 @@ variable "engine" {
   default     = "aurora"
 }
 
+variable "engine_mode" {
+  description = "The version of aurora to run - provisioned or serverless."
+  type        = string
+  default     = "provisioned"
+}
+
 variable "aws_region" {
   description = "The AWS region to deploy into"
   type        = string
