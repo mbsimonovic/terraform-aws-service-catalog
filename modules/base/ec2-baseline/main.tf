@@ -72,7 +72,7 @@ resource "aws_iam_role_policy" "cloudwatch_log_aggregation" {
 # ADD CLOUDWATCH ALARMS THAT GO OFF IF THE CPU, MEMORY, OR DISK USAGE ON AN INSTANCE GET TOO HIGH
 # ---------------------------------------------------------------------------------------------------------------------
 
-module "high_cpu_usage_alarms" {
+module "high_instance_cpu_usage_alarms" {
   source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/ec2-cpu-alarms?ref=v0.19.0"
 
   instance_ids         = [var.instance_id]
@@ -81,7 +81,7 @@ module "high_cpu_usage_alarms" {
   create_resources     = var.enable_instance_cloudwatch_alarms
 }
 
-module "high_memory_usage_alarms" {
+module "high_instance_memory_usage_alarms" {
   source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/ec2-memory-alarms?ref=v0.19.0"
 
   instance_ids         = [var.instance_id]
@@ -90,7 +90,7 @@ module "high_memory_usage_alarms" {
   create_resources     = var.enable_instance_cloudwatch_alarms
 }
 
-module "high_disk_usage_alarms" {
+module "high_instance_disk_usage_alarms" {
   source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/ec2-disk-alarms?ref=v0.19.0"
 
   instance_ids         = [var.instance_id]
@@ -106,7 +106,7 @@ module "high_disk_usage_alarms" {
 # ADD CLOUDWATCH ALARMS THAT GO OFF IF THE CPU, MEMORY, OR DISK USAGE FOR INSTANCES IN AN ASG GET TOO HIGH
 # ---------------------------------------------------------------------------------------------------------------------
 
-module "high_cpu_usage_alarms" {
+module "high_asg_cpu_usage_alarms" {
   source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/asg-cpu-alarms?ref=v0.18.3"
 
   asg_names            = [var.asg_name]
@@ -115,7 +115,7 @@ module "high_cpu_usage_alarms" {
   create_resources     = var.enable_asg_cloudwatch_alarms
 }
 
-module "high_memory_usage_alarms" {
+module "high_asg_memory_usage_alarms" {
   source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/asg-memory-alarms?ref=v0.18.3"
 
   asg_names            = [var.asg_name]
@@ -124,7 +124,7 @@ module "high_memory_usage_alarms" {
   create_resources     = var.enable_asg_cloudwatch_alarms
 }
 
-module "high_disk_usage_root_volume_alarms" {
+module "high_asg_disk_usage_root_volume_alarms" {
   source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/asg-disk-alarms?ref=v0.18.3"
 
   asg_names            = [var.asg_name]

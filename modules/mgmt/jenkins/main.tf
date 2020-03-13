@@ -34,7 +34,7 @@ module "jenkins" {
   ami_id        = var.ami
   instance_type = var.instance_type
 
-  user_data_base64  = data.template_cloudinit_config.cloud_init.rendered
+  user_data_base64  = module.ec2_baseline.cloud_init_rendered
   skip_health_check = var.skip_health_check
 
   vpc_id            = var.vpc_id
@@ -116,6 +116,7 @@ data "template_file" "user_data" {
     memory                              = var.memory
     log_group_name                      = var.name
     enable_ssh_grunt                    = var.enable_ssh_grunt
+    enable_fail2ban                     = false
     enable_ip_lockdown                  = var.enable_ip_lockdown
     enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
     ssh_grunt_iam_group                 = var.ssh_grunt_iam_group
