@@ -30,6 +30,11 @@ module "bastion" {
   vpc_id    = var.vpc_id
   subnet_id = var.subnet_id
 
+  dns_zone_id = var.hosted_zone_id
+  dns_name    = var.domain_name
+  dns_type    = "A"
+  dns_ttl     = "300"
+
   keypair_name             = var.keypair_name
   allow_ssh_from_cidr_list = var.allow_ssh_from_cidr_list
 }
@@ -84,19 +89,4 @@ module "ec2_baseline" {
   instance_id                         = module.bastion.id
   alarms_sns_topic_arn                = var.alarms_sns_topic_arn
   cloud_init_parts                    = local.cloud_init_parts
-}
-
-# ---------------------------------------------------------------------------------------------------------------------
-# CREATE A DNS A RECORD FOR THE SERVER
-# Create an A Record in Route 53 pointing to the IP of this server so you can connect to it using a nice domain name
-# like foo.your-company.com.
-# ---------------------------------------------------------------------------------------------------------------------
-
-resource "aws_route53_record" "bastion_host" {
-  count   = var.create_dns_record ? 1 : 0
-  zone_id = var.hosted_zone_id
-  name    = var.domain_name
-  type    = "A"
-  ttl     = "300"
-  records = [module.bastion.public_ip]
 }
