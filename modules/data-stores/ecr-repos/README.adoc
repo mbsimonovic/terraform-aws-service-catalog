@@ -1,7 +1,7 @@
 :type: service
 :name: Amazon ECR Repositories
 :description: Create and manage multiple Amazon Elastic Container Repository (ECR) Repositories.
-:icon: /_docs/ecr.png
+:icon: /_docs/ecr-icon.png
 :category: docker-orchestration
 :cloud: aws
 :tags: data, database, container
