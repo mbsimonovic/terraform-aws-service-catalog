@@ -11,6 +11,23 @@ import (
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 )
 
+var (
+	regionsThatSupportAuroraServerless = []string{
+		"us-east-1",
+		"us-east-2",
+		"us-west-1",
+		"us-west-2",
+		"ap-southeast-1",
+		"ap-southeast-2",
+		"ap-northeast-1",
+		"ca-central-1",
+		"eu-central-1",
+		"eu-west-1",
+		"eu-west-2",
+		"eu-west-3",
+	}
+)
+
 func TestAuroraServerless(t *testing.T) {
 	t.Parallel()
 
@@ -29,7 +46,7 @@ func TestAuroraServerless(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "setup", func() {
-		awsRegion := aws.GetRandomStableRegion(t, nil, nil)
+		awsRegion := aws.GetRandomStableRegion(t, regionsThatSupportAuroraServerless, nil)
 		test_structure.SaveString(t, testFolder, "region", awsRegion)
 
 		uniqueID := strings.ToLower(random.UniqueId())
