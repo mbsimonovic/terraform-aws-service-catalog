@@ -34,7 +34,7 @@ module "jenkins" {
   ami_id        = var.ami
   instance_type = var.instance_type
 
-  user_data_base64  = data.template_cloudinit_config.cloud_init.rendered
+  user_data_base64  = module.ec2_baseline.cloud_init_rendered
   skip_health_check = var.skip_health_check
 
   vpc_id            = var.vpc_id
@@ -64,6 +64,28 @@ module "jenkins" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
+# BASE RESOURCES
+# Includes resources common to all EC2 instances in the Service Catalog, including permissions
+# for ssh-grunt, CloudWatch Logs aggregation, CloudWatch metrics, and CloudWatch alarms
+# ---------------------------------------------------------------------------------------------------------------------
+
+module "ec2_baseline" {
+  source = "../../base/ec2-baseline"
+
+  name                                = var.name
+  external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
+  enable_ssh_grunt                    = var.enable_ssh_grunt
+  enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
+  iam_role_arn                        = module.jenkins.jenkins_iam_role_id
+  enable_cloudwatch_metrics           = var.enable_cloudwatch_metrics
+  enable_asg_cloudwatch_alarms        = var.enable_cloudwatch_alarms
+  asg_name                            = module.jenkins.jenkins_asg_name
+  alarms_sns_topic_arn                = var.alarms_sns_topic_arn
+  cloud_init_parts                    = local.cloud_init_parts
+}
+
+
+# ---------------------------------------------------------------------------------------------------------------------
 # CREATE THE USER DATA SCRIPT TO RUN ON JENKINS WHEN IT BOOTS
 # This script will attach and mount the EBS volume
 # ---------------------------------------------------------------------------------------------------------------------
@@ -80,21 +102,6 @@ locals {
   cloud_init_parts = merge({ default : local.cloud_init }, var.cloud_init_parts)
 }
 
-data "template_cloudinit_config" "cloud_init" {
-  gzip          = true
-  base64_encode = true
-
-  dynamic "part" {
-    for_each = local.cloud_init_parts
-
-    content {
-      filename     = part.value["filename"]
-      content_type = part.value["content_type"]
-      content      = part.value["content"]
-    }
-  }
-}
-
 data "template_file" "user_data" {
   template = file("${path.module}/user-data.sh")
 
@@ -109,37 +116,13 @@ data "template_file" "user_data" {
     memory                              = var.memory
     log_group_name                      = var.name
     enable_ssh_grunt                    = var.enable_ssh_grunt
+    enable_fail2ban                     = false
+    enable_ip_lockdown                  = var.enable_ip_lockdown
     enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
     ssh_grunt_iam_group                 = var.ssh_grunt_iam_group
     ssh_grunt_iam_group_sudo            = var.ssh_grunt_iam_group_sudo
     external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
   }
-}
-
-# ---------------------------------------------------------------------------------------------------------------------
-# GIVE SSH-GRUNT PERMISSIONS TO TALK TO IAM
-# We add an IAM policy to Jenkins that allows ssh-grunt to make API calls to IAM to fetch IAM user and group data.
-# ---------------------------------------------------------------------------------------------------------------------
-
-module "ssh_grunt_policies" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-policies?ref=v0.25.1"
-
-  aws_account_id = data.aws_caller_identity.current.account_id
-
-  # ssh-grunt is an automated app, so we can't use MFA with it
-  iam_policy_should_require_mfa   = false
-  trust_policy_should_require_mfa = false
-
-  # Since our IAM users are defined in a separate AWS account, we need to give ssh-grunt permission to make API calls to
-  # that account.
-  allow_access_to_other_account_arns = var.external_account_ssh_grunt_role_arn == "" ? [] : [var.external_account_ssh_grunt_role_arn]
-}
-
-resource "aws_iam_role_policy" "ssh_grunt_permissions" {
-  count  = var.enable_ssh_grunt ? 1 : 0
-  name   = "ssh-grunt-permissions"
-  role   = module.jenkins.jenkins_iam_role_id
-  policy = var.external_account_ssh_grunt_role_arn == "" ? module.ssh_grunt_policies.ssh_grunt_permissions : module.ssh_grunt_policies.allow_access_to_other_accounts[0]
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -186,69 +169,10 @@ resource "aws_iam_role_policy" "deploy_other_account_permissions" {
   policy = module.auto_deploy_iam_policies.allow_access_to_all_other_accounts
 }
 
-# ---------------------------------------------------------------------------------------------------------------------
-# ADD IAM POLICY THAT ALLOWS READING AND WRITING CLOUDWATCH METRICS
-# ---------------------------------------------------------------------------------------------------------------------
-
-module "cloudwatch_metrics" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-custom-metrics-iam-policy?ref=v0.19.0"
-
-  name_prefix = var.name
-
-  # We set this to false so that the cloudwatch-custom-metrics-iam-policy generates the JSON for the policy, but does
-  # not create a standalone IAM policy with that JSON. We'll instead add that JSON to the Jenkins IAM role.
-  create_resources = false
-}
-
-resource "aws_iam_role_policy" "custom_cloudwatch_metrics" {
-  count  = var.enable_cloudwatch_metrics ? 1 : 0
-  name   = "custom-cloudwatch-metrics"
-  role   = module.jenkins.jenkins_iam_role_id
-  policy = module.cloudwatch_metrics.cloudwatch_metrics_read_write_permissions_json
-}
-
-# ------------------------------------------------------------------------------
-# ADD IAM POLICY THAT ALLOWS CLOUDWATCH LOG AGGREGATION
-# ------------------------------------------------------------------------------
-
-module "cloudwatch_log_aggregation" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/logs/cloudwatch-log-aggregation-iam-policy?ref=v0.19.0"
-
-  name_prefix = var.name
-
-  # We set this to false so that the cloudwatch-log-aggregation-iam-policy generates the JSON for the policy, but does
-  # not create a standalone IAM policy with that JSON. We'll instead add that JSON to the Jenkins IAM role.
-  create_resources = false
-}
-
-resource "aws_iam_role_policy" "cloudwatch_log_aggregation" {
-  count  = var.enable_cloudwatch_log_aggregation ? 1 : 0
-  name   = "cloudwatch-log-aggregation"
-  role   = module.jenkins.jenkins_iam_role_id
-  policy = module.cloudwatch_log_aggregation.cloudwatch_logs_permissions_json
-}
 
 # ---------------------------------------------------------------------------------------------------------------------
-# ADD CLOUDWATCH ALARMS THAT GO OFF IF JENKIN'S CPU, MEMORY, OR DISK USAGE GET TOO HIGH
+# ADD CLOUDWATCH ALARMS THAT GO OFF IF the JENKINS DATA VOLUME DISK USAGE GET TOO HIGH
 # ---------------------------------------------------------------------------------------------------------------------
-
-module "high_cpu_usage_alarms" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/asg-cpu-alarms?ref=v0.18.3"
-
-  asg_names            = [module.jenkins.jenkins_asg_name]
-  num_asg_names        = 1
-  alarm_sns_topic_arns = var.alarms_sns_topic_arn
-  create_resources     = var.enable_cloudwatch_alarms
-}
-
-module "high_memory_usage_alarms" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/asg-memory-alarms?ref=v0.18.3"
-
-  asg_names            = [module.jenkins.jenkins_asg_name]
-  num_asg_names        = 1
-  alarm_sns_topic_arns = var.alarms_sns_topic_arn
-  create_resources     = var.enable_cloudwatch_alarms
-}
 
 module "high_disk_usage_jenkins_volume_alarms" {
   source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/asg-disk-alarms?ref=v0.18.3"
@@ -257,17 +181,6 @@ module "high_disk_usage_jenkins_volume_alarms" {
   num_asg_names        = 1
   file_system          = var.jenkins_device_name
   mount_path           = var.jenkins_mount_point
-  alarm_sns_topic_arns = var.alarms_sns_topic_arn
-  create_resources     = var.enable_cloudwatch_alarms
-}
-
-module "high_disk_usage_root_volume_alarms" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/asg-disk-alarms?ref=v0.18.3"
-
-  asg_names            = [module.jenkins.jenkins_asg_name]
-  num_asg_names        = 1
-  file_system          = "/dev/xvda1"
-  mount_path           = "/"
   alarm_sns_topic_arns = var.alarms_sns_topic_arn
   create_resources     = var.enable_cloudwatch_alarms
 }

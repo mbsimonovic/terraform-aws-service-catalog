@@ -1,0 +1,103 @@
+:type: service
+:name: ec2-baseline
+:description: A common baseline for all EC2-based modules that installs and configures common server hardening, SSH, CloudWatch, IAM, and other resources.
+:icon: /_docs/common-icon.png
+:category: ec2
+:cloud: aws
+:tags: ec2, iam, cloudwatch
+:license: gruntwork
+:built-with: terraform
+
+// AsciiDoc TOC settings
+:toc:
+:toc-placement!:
+:toc-title:
+
+// GitHub specific settings. See https://gist.github.com/dcode/0cfbf2699a1fe9b46ff04c41721dda74 for details.
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+
+= EC2 common resources
+
+image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
+image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
+
+This Terraform Module creates common CloudWatch and IAM resources for use with EC2 instances.
+
+image::../../../_docs/common-architecture.png?raw=true[EC2 common resources]
+
+
+toc::[]
+
+== Features
+
+* Creates and attaches an IAM policy that sets up permissions for https://github.com/gruntwork-io/module-security/blob/master/modules/ssh-grunt/README.adoc[`ssh-grunt`]
+* Creates and attaches an IAM policy that allows EC2 instances to publish https://github.com/gruntwork-io/module-aws-monitoring/blob/master/modules/metrics/cloudwatch-custom-metrics-iam-policy/README.md[custom cloudwatch metrics]
+* Creates and attaches an IAM policy that allows EC2 instances to publish to https://github.com/gruntwork-io/module-aws-monitoring/blob/master/modules/logs/cloudwatch-log-aggregation-iam-policy/README.md[CloudWatch logs]
+* Creates https://github.com/gruntwork-io/module-aws-monitoring/blob/master/modules/alarms/ec2-cpu-alarms/README.md[CPU], https://github.com/gruntwork-io/module-aws-monitoring/blob/master/modules/alarms/ec2-memory-alarms/README.md[memory], and https://github.com/gruntwork-io/module-aws-monitoring/blob/master/modules/alarms/ec2-disk-alarms/README.MD[disk usage] alarms in CloudWatch.
+* Includes an install script for building AMIs with commonly used modules and functions
+* Includes a user-data script with functions to enable commonly used features
+* Accepts cloud-init parts and assembles a https://www.terraform.io/docs/providers/template/d/cloudinit_config.html[full cloud-init configuration]
+
+== Learn
+
+NOTE: This repo is a part of the https://gruntwork.io/service-catalog/[Gruntwork Service Catalog], a collection of
+reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
+sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catallog/[How to use the Gruntwork
+Service Catalog]!
+
+
+== Deploy
+
+=== Non-production deployment (quick start for learning)
+
+If you just want to try this repo out for experimenting and learning, check out the following resources:
+
+* link:/examples/for-learning-and-testing[examples/for-learning-and-testing folder]: The `examples/for-learning-and-testing` folder contains standalone sample code optimized for learning, experimenting, and testing (but not direct production usage). For a demonstration of how to use this module, see the link:/examples/for-learning-and-testing/mgmt/bastion-host[bastion host example].
+
+=== Production deployment
+
+If you want to deploy this repo in production, check out the following resources:
+
+* link:/examples/for-production[examples/for-production folder]: The `examples/for-production` folder contains sample
+  code optimized for direct usage in production. This is code from the
+  https://gruntwork.io/reference-architecture/:[Gruntwork Reference Architecture], and it shows you how we build an
+  end-to-end, integrated tech stack on top of the Gruntwork Service Catalog.
+  configure CI / CD for your apps and infrastructure.
+
+
+== Operate
+
+=== Day-to-day operations
+
+* See the AWS documentation on https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/AlarmThatSendsEmail.html[Using Amazon CloudWatch Alarms]
+
+
+
+== Support
+
+If you need help with this repo or anything else related to infrastructure or DevOps, Gruntwork offers
+https://gruntwork.io/support/[Commercial Support] via Slack, email, and phone/video. If you're already a Gruntwork
+customer, hop on Slack and ask away! If not, https://www.gruntwork.io/pricing/[subscribe now]. If you're not sure,
+feel free to email us at link:mailto:support@gruntwork.io[support@gruntwork.io].
+
+
+== Contributions
+
+Contributions to this repo are very welcome and appreciated! If you find a bug or want to add a new feature or even
+contribute an entirely new module, we are very happy to accept pull requests, provide feedback, and run your changes
+through our automated test suite.
+
+Please see
+https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/#contributing-to-the-gruntwork-service-catalog[Contributing to the Gruntwork Service Catalog]
+for instructions.
+
+
+== License
+
+Please see link:LICENSE.txt[LICENSE.txt] for details on how the code in this repo is licensed.
