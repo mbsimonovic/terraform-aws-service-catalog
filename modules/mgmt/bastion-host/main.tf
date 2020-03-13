@@ -30,7 +30,7 @@ module "bastion" {
   vpc_id    = var.vpc_id
   subnet_id = var.subnet_id
 
-  dns_zone_id = var.hosted_zone_id
+  dns_zone_id = var.create_dns_record ? var.hosted_zone_id : ""
   dns_name    = var.domain_name
   dns_type    = "A"
   dns_ttl     = "300"
