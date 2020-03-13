@@ -37,7 +37,7 @@ variable "name" {
 variable "instance_type" {
   description = "The type of instance to run for the bastion host"
   type        = string
-  default     = "t3.small"
+  default     = "t2.micro"
 }
 
 variable "keypair_name" {
