@@ -1,4 +1,4 @@
-# Aurora Example
+# ECR Repositories Example
 
 This is an example of how to use the [ecr-repos module](/modules/data-stores/ecr-repos) to manage multiple ECR
 Repositories. This example is optimized for learning, experimenting, and testing (but not direct production usage).

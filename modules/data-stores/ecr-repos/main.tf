@@ -47,6 +47,29 @@ locals {
     for repo_name, repo in local.repositories_to_external_access :
     repo_name => repo if length(repo.external_account_ids_with_read_access) > 0 || length(repo.external_account_ids_with_write_access) > 0
   }
+
+  # The list of IAM policy actions for write access
+  iam_write_access_policies = [
+    "ecr:GetAuthorizationToken",
+    "ecr:BatchCheckLayerAvailability",
+    "ecr:GetDownloadUrlForLayer",
+    "ecr:GetRepositoryPolicy",
+    "ecr:DescribeRepositories",
+    "ecr:ListImages",
+    "ecr:DescribeImages",
+    "ecr:BatchGetImage",
+    "ecr:InitiateLayerUpload",
+    "ecr:UploadLayerPart",
+    "ecr:CompleteLayerUpload",
+    "ecr:PutImage",
+  ]
+
+  # The list of IAM policy actions for read access
+  iam_read_access_policies = [
+    "ecr:GetDownloadUrlForLayer",
+    "ecr:BatchGetImage",
+    "ecr:BatchCheckLayerAvailability",
+  ]
 }
 
 resource "aws_ecr_repository_policy" "external_account_access" {
@@ -66,11 +89,7 @@ data "aws_iam_policy_document" "external_account_access" {
       identifiers = formatlist("arn:aws:iam::%s:root", each.value.external_account_ids_with_read_access)
     }
 
-    actions = [
-      "ecr:GetDownloadUrlForLayer",
-      "ecr:BatchGetImage",
-      "ecr:BatchCheckLayerAvailability",
-    ]
+    actions = local.iam_read_access_policies
   }
 
   statement {
@@ -81,19 +100,6 @@ data "aws_iam_policy_document" "external_account_access" {
       identifiers = formatlist("arn:aws:iam::%s:root", each.value.external_account_ids_with_write_access)
     }
 
-    actions = [
-      "ecr:GetAuthorizationToken",
-      "ecr:BatchCheckLayerAvailability",
-      "ecr:GetDownloadUrlForLayer",
-      "ecr:GetRepositoryPolicy",
-      "ecr:DescribeRepositories",
-      "ecr:ListImages",
-      "ecr:DescribeImages",
-      "ecr:BatchGetImage",
-      "ecr:InitiateLayerUpload",
-      "ecr:UploadLayerPart",
-      "ecr:CompleteLayerUpload",
-      "ecr:PutImage",
-    ]
+    actions = local.iam_write_access_policies
   }
 }
