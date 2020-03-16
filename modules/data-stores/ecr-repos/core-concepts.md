@@ -2,7 +2,7 @@
 
 ## How do I configure automatic image scanning?
 
-Amazon supports manual and automatic image scanning for container images that are pushed to ECR. When you set the
+Amazon supports manually and automatically scanning Docker images that are pushed to ECR for security vulnerabilities. When you set the
 `enable_automatic_image_scanning` property to `true`, the ECR repository will be configured to automatically scan all
 images on every push.
 

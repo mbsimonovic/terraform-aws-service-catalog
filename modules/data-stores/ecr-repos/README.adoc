@@ -1,6 +1,6 @@
 :type: service
 :name: Amazon ECR Repositories
-:description: Create and manage multiple Amazon Elastic Container Repository (ECR) Repositories.
+:description: Create and manage multiple Amazon Elastic Container Repository (ECR) Repositories that can be used to store your Docker images.
 :icon: /_docs/ecr-icon.png
 :category: docker-orchestration
 :cloud: aws
@@ -43,7 +43,7 @@ toc::[]
 * Store private Docker images for use in any Docker Orchestration system (e.g., Kubernetes, ECS, etc)
 * Share repositories across accounts
 * Fine grained access control
-* Automatic image scanning
+* Automatically scan Docker images for security vulnerabilities
 
 
 == Learn

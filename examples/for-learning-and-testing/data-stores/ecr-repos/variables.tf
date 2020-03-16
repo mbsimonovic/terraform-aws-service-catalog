@@ -21,7 +21,7 @@ variable "repositories" {
     # repository. Merged with var.global_tags.
     tags = map(string)
 
-    # Whether or not to enable image scanning.
+    # Whether or not to enable scanning images for security vulnerabilities.
     enable_automatic_image_scanning = bool
   }))
   default = {
