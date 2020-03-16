@@ -100,4 +100,4 @@ for instructions.
 
 == License
 
-Please see link:LICENSE.txt[LICENSE.txt] for details on how the code in this repo is licensed.
+Please see link:/LICENSE.txt[LICENSE.txt] for details on how the code in this repo is licensed.
