@@ -57,9 +57,9 @@ module "eks_cluster" {
 
   cluster_name = var.cluster_name
 
-  vpc_id                       = var.vpc_id
-  vpc_master_subnet_ids        = var.control_plane_vpc_subnet_ids
-  endpoint_public_access_cidrs = var.allow_inbound_api_access_from_cidrs
+  vpc_id                             = var.vpc_id
+  vpc_master_subnet_ids              = var.control_plane_vpc_subnet_ids
+  endpoint_public_access_cidr_blocks = var.allow_inbound_api_access_from_cidr_blocks
 
   enabled_cluster_log_types = ["api", "audit", "authenticator"]
   kubernetes_version        = var.kubernetes_version
@@ -67,7 +67,8 @@ module "eks_cluster" {
 }
 
 module "eks_workers" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.15.4"
+  # TODO: update to released version
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=yori-userdatab64"
 
   cluster_name                     = var.cluster_name
   vpc_id                           = var.vpc_id

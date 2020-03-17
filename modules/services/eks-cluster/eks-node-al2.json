@@ -37,7 +37,6 @@
       "owners": ["602401143452"],
       "most_recent": true
     },
-    "ssh_username": "ec2-user",
     "vpc_filter": {
       "filters": {
         "{{user `vpc_filter_key`}}": "{{user `vpc_filter_value`}}"
@@ -49,7 +48,7 @@
       },
       "most_free": "true"
     },
-    "ssh_username": "ubuntu",
+    "ssh_username": "ec2-user",
     "encrypt_boot": "{{user `encrypt_boot`}}",
     "ami_users": "{{user `ami_users`}}",
     "ami_regions": "{{user `copy_to_regions`}}",

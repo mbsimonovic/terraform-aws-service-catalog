@@ -89,19 +89,26 @@ variable "cluster_instance_keypair_name" {
   type        = string
 }
 
-variable "allow_inbound_api_access_from_cidrs" {
+variable "allow_inbound_api_access_from_cidr_blocks" {
   description = "The list of CIDR blocks to allow inbound access to the Kubernetes API."
   type        = list(string)
 }
 
+# ---------------------------------------------------------------------------------------------------------------------
+# OPTIONAL PARAMETERS
+# Generally, these values won't need to be changed.
+# ---------------------------------------------------------------------------------------------------------------------
+
 variable "allow_inbound_ssh_from_security_groups" {
   description = "The list of security group IDs to allow inbound SSH access to the worker groups."
   type        = list(string)
+  default     = []
 }
 
 variable "iam_role_to_rbac_group_mapping" {
   description = "Mapping of IAM role ARNs to Kubernetes RBAC groups that grant permissions to the user."
   type        = map(list(string))
+  default     = {}
 
   # Example:
   # {
@@ -112,17 +119,13 @@ variable "iam_role_to_rbac_group_mapping" {
 variable "iam_user_to_rbac_group_mapping" {
   description = "Mapping of IAM user ARNs to Kubernetes RBAC groups that grant permissions to the user."
   type        = map(list(string))
+  default     = {}
 
   # Example:
   # {
   #    "arn:aws:iam::ACCOUNT_ID:user/admin-user" = ["system:masters"]
   # }
 }
-
-# ---------------------------------------------------------------------------------------------------------------------
-# OPTIONAL PARAMETERS
-# Generally, these values won't need to be changed.
-# ---------------------------------------------------------------------------------------------------------------------
 
 variable "tenancy" {
   description = "The tenancy of this server. Must be one of: default, dedicated, or host."
