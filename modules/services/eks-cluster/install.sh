@@ -4,10 +4,17 @@
 set -e
 
 readonly DEFAULT_TERRAFORM_AWS_EKS_VERSION="v0.15.4"
-readonly DEFAULT_BASH_COMMONS_VERSION="v0.1.2"
 
 # TODO: Update ref to a tag when released
 readonly DEFAULT_EC2_BASELINE_REF="master"
+
+# NOTE: A few variables will be imported from ec2-baseline
+# - DEFAULT_MODULE_SECURITY_VERSION
+# - DEFAULT_MODULE_AWS_MONITORING_VERSION
+# - DEFAULT_BASH_COMMONS_VERSION
+# - DEFAULT_ENABLE_SSH_GRUNT
+# - DEFAULT_ENABLE_CLOUDWATCH_LOG_AGGREGATION
+# - DEFAULT_ENABLE_CLOUDWATCH_METRICS
 
 function include_ec2_baseline {
   gruntwork-install \
@@ -33,7 +40,6 @@ function install_eks_scripts {
   local terraform_aws_eks_version="${terraform_aws_eks_version:-$DEFAULT_TERRAFORM_AWS_EKS_VERSION}"
   local module_security_version="${module_security_version:-$DEFAULT_MODULE_SECURITY_VERSION}"
   local module_aws_monitoring_version="${module_aws_monitoring_version:-$DEFAULT_MODULE_AWS_MONITORING_VERSION}"
-  local module_stateful_server_version="${module_stateful_server_version:-$DEFAULT_MODULE_STATEFUL_SERVER_VERSION}"
   local bash_commons_version="${bash_commons_version:-$DEFAULT_BASH_COMMONS_VERSION}"
 
   local enable_ssh_grunt="${enable_ssh_grunt:-$DEFAULT_ENABLE_SSH_GRUNT}"
