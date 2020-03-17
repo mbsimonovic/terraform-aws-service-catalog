@@ -109,8 +109,8 @@ module "high_instance_disk_usage_alarms" {
 module "high_asg_cpu_usage_alarms" {
   source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/asg-cpu-alarms?ref=v0.18.3"
 
-  asg_names            = [var.asg_name]
-  num_asg_names        = 1
+  asg_names            = var.asg_names
+  num_asg_names        = var.num_asg_names
   alarm_sns_topic_arns = var.alarms_sns_topic_arn
   create_resources     = var.enable_asg_cloudwatch_alarms
 }
@@ -118,8 +118,8 @@ module "high_asg_cpu_usage_alarms" {
 module "high_asg_memory_usage_alarms" {
   source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/asg-memory-alarms?ref=v0.18.3"
 
-  asg_names            = [var.asg_name]
-  num_asg_names        = 1
+  asg_names            = var.asg_names
+  num_asg_names        = var.num_asg_names
   alarm_sns_topic_arns = var.alarms_sns_topic_arn
   create_resources     = var.enable_asg_cloudwatch_alarms
 }
@@ -127,8 +127,8 @@ module "high_asg_memory_usage_alarms" {
 module "high_asg_disk_usage_root_volume_alarms" {
   source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/asg-disk-alarms?ref=v0.18.3"
 
-  asg_names            = [var.asg_name]
-  num_asg_names        = 1
+  asg_names            = var.asg_names
+  num_asg_names        = var.num_asg_names
   file_system          = "/dev/xvda1"
   mount_path           = "/"
   alarm_sns_topic_arns = var.alarms_sns_topic_arn

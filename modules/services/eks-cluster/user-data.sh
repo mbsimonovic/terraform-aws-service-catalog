@@ -7,7 +7,7 @@
 #
 # Note, this script:
 #
-# 1. Assumes it is running in the AMI built from the ../packer/eks-node.json Packer template.
+# 1. Assumes it is running in the AMI built from the eks-node-al2.json Packer template.
 # 2. Has a number of variables filled in using Terraform interpolation.
 
 set -e
@@ -16,10 +16,8 @@ set -e
 # From: https://alestic.com/2010/12/ec2-user-data-output/
 exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
 
-function start_fail2ban {
-  echo "Starting fail2ban"
-  /etc/user-data/configure-fail2ban-cloudwatch/configure-fail2ban-cloudwatch.sh --cloudwatch-namespace Fail2Ban
-}
+# Include common functions
+source /etc/user-data/user-data-common.sh
 
 function configure_eks_instance {
   local -r aws_region="$1"
@@ -39,5 +37,18 @@ function configure_eks_instance {
     "$eks_cluster_name"
 }
 
-# These variables are set by Terraform interpolation
-configure_eks_instance "${aws_region}" "${eks_cluster_name}" "${eks_endpoint}" "${eks_certificate_authority}"
+start_ec2_baseline \
+  "${enable_cloudwatch_log_aggregation}" \
+  "${enable_ssh_grunt}" \
+  "${enable_fail2ban}" \
+  "${enable_ip_lockdown}" \
+  "${ssh_grunt_iam_group}" \
+  "${ssh_grunt_iam_group_sudo}" \
+  "${log_group_name}" \
+  "${external_account_ssh_grunt_role_arn}"
+
+configure_eks_instance \
+  "${aws_region}" \
+  "${eks_cluster_name}" \
+  "${eks_endpoint}" \
+  "${eks_certificate_authority}"

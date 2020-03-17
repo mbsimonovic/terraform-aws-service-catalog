@@ -69,20 +69,16 @@ module "eks_cluster" {
 module "eks_workers" {
   source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.15.4"
 
-  cluster_name = var.cluster_name
-
-  vpc_id                = var.vpc_id
-  vpc_worker_subnet_ids = var.worker_vpc_subnet_ids
+  cluster_name                     = var.cluster_name
+  vpc_id                           = var.vpc_id
+  autoscaling_group_configurations = var.autoscaling_group_configurations
 
   eks_master_security_group_id = module.eks_cluster.eks_master_security_group_id
 
-  cluster_min_size = var.cluster_min_size
-  cluster_max_size = var.cluster_max_size
-
-  cluster_instance_ami          = var.cluster_instance_ami
-  cluster_instance_type         = var.cluster_instance_type
-  cluster_instance_keypair_name = var.cluster_instance_keypair_name
-  cluster_instance_user_data    = data.template_file.user_data.rendered
+  cluster_instance_ami              = var.cluster_instance_ami
+  cluster_instance_type             = var.cluster_instance_type
+  cluster_instance_keypair_name     = var.cluster_instance_keypair_name
+  cluster_instance_user_data_base64 = module.ec2_baseline.cloud_init_rendered
 
   tenancy = var.tenancy
 }
@@ -96,22 +92,6 @@ resource "aws_security_group_rule" "allow_inbound_ssh_from_security_groups" {
   protocol                 = "tcp"
   security_group_id        = module.eks_workers.eks_worker_security_group_id
   source_security_group_id = each.key
-}
-
-# ---------------------------------------------------------------------------------------------------------------------
-# CREATE THE USER DATA SCRIPT THAT WILL RUN ON EACH INSTANCE IN THE EKS CLUSTER
-# This script will configure each instance so it registers in the right EKS cluster.
-# ---------------------------------------------------------------------------------------------------------------------
-
-data "template_file" "user_data" {
-  template = file("${path.module}/user-data/user-data.sh")
-
-  vars = {
-    aws_region                = var.aws_region
-    eks_cluster_name          = var.cluster_name
-    eks_endpoint              = module.eks_cluster.eks_cluster_endpoint
-    eks_certificate_authority = module.eks_cluster.eks_cluster_certificate_authority
-  }
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -136,3 +116,73 @@ module "eks_k8s_role_mapping" {
     eks-cluster = module.eks_cluster.eks_cluster_name
   }
 }
+
+# ---------------------------------------------------------------------------------------------------------------------
+# BASE RESOURCES
+# Includes resources common to all EC2 instances in the Service Catalog, including permissions
+# for ssh-grunt, CloudWatch Logs aggregation, CloudWatch metrics, and CloudWatch alarms
+# ---------------------------------------------------------------------------------------------------------------------
+
+module "ec2_baseline" {
+  source = "../../base/ec2-baseline"
+
+  name                                = var.cluster_name
+  external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
+  enable_ssh_grunt                    = var.enable_ssh_grunt
+  iam_role_arn                        = module.eks_workers.eks_worker_iam_role_id
+  enable_cloudwatch_metrics           = var.enable_cloudwatch_metrics
+  enable_asg_cloudwatch_alarms        = var.enable_cloudwatch_alarms
+  asg_names                           = module.eks_workers.eks_worker_asg_names
+  num_asg_names                       = length(var.autoscaling_group_configurations)
+  alarms_sns_topic_arn                = var.alarms_sns_topic_arn
+  cloud_init_parts                    = local.cloud_init_parts
+
+  // CloudWatch log aggregation is handled separately in EKS
+  enable_cloudwatch_log_aggregation = false
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# CREATE THE USER DATA SCRIPT TO RUN ON EKS WORKERS WHEN IT BOOTS
+# ---------------------------------------------------------------------------------------------------------------------
+
+locals {
+  # Default cloud init script for this module
+  cloud_init = {
+    filename     = "eks-worker-default-cloud-init"
+    content_type = "text/x-shellscript"
+    content      = data.template_file.user_data.rendered
+  }
+
+  # Merge in all the cloud init scripts the user has passed in
+  cloud_init_parts = merge({ default : local.cloud_init }, var.cloud_init_parts)
+}
+
+data "template_file" "user_data" {
+  template = file("${path.module}/user-data.sh")
+
+  vars = {
+    aws_region                = data.aws_region.current.name
+    eks_cluster_name          = var.cluster_name
+    eks_endpoint              = module.eks_cluster.eks_cluster_endpoint
+    eks_certificate_authority = module.eks_cluster.eks_cluster_certificate_authority
+
+    enable_ssh_grunt                    = var.enable_ssh_grunt
+    enable_fail2ban                     = var.enable_fail2ban
+    ssh_grunt_iam_group                 = var.ssh_grunt_iam_group
+    ssh_grunt_iam_group_sudo            = var.ssh_grunt_iam_group_sudo
+    external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
+
+    # We disable CloudWatch logs at the VM level as this is handled internally in k8s.
+    enable_cloudwatch_log_aggregation = false
+    log_group_name                    = ""
+
+    # TODO: investigate if IP lockdown can now be enabled due to IRSA
+    enable_ip_lockdown = false
+  }
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# GET INFO ABOUT CURRENT USER/ACCOUNT
+# ---------------------------------------------------------------------------------------------------------------------
+
+data "aws_region" "current" {}

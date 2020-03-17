@@ -18,19 +18,60 @@ variable "control_plane_vpc_subnet_ids" {
   type        = list(string)
 }
 
-variable "worker_vpc_subnet_ids" {
-  description = "List of IDs of the subnets that can be used for the EKS workers."
-  type        = list(string)
-}
+variable "autoscaling_group_configurations" {
+  description = "Configure one or more Auto Scaling Groups (ASGs) to manage the EC2 instances in this cluster."
 
-variable "cluster_min_size" {
-  description = "The minimum number of instances to run in the EKS cluster"
-  type        = number
-}
+  # Each configuration must be keyed by a unique string that will be used as a suffix for the ASG name.
+  #
+  # Example:
+  # autoscaling_group_configurations = {
+  #   "asg1" = {
+  #     min_size   = 1
+  #     max_size   = 3
+  #     subnet_ids = [data.terraform_remote_state.vpc.outputs.private_app_subnet_ids[0]]
+  #     tags       = []
+  #   },
+  #   "asg2" = {
+  #     min_size   = 1
+  #     max_size   = 3
+  #     subnet_ids = [data.terraform_remote_state.vpc.outputs.private_app_subnet_ids[1]]
+  #     tags       = []
+  #   }
+  # }
+  type = map(object({
+    # The minimum number of EC2 Instances representing workers launchable for this EKS Cluster. Useful for auto-scaling limits.
+    min_size = number
+    # The maximum number of EC2 Instances representing workers that must be running for this EKS Cluster.
+    # We recommend making this at least twice the min_size, even if you don't plan on scaling the cluster up and down, as the extra capacity will be used to deploy udpates to the cluster.
+    max_size = number
 
-variable "cluster_max_size" {
-  description = "The maxiumum number of instances to run in the EKS cluster"
-  type        = number
+    # A list of the subnets into which the EKS Cluster's worker nodes will be launched.
+    # These should usually be all private subnets and include one in each AWS Availability Zone.
+    # NOTE: If using a cluster autoscaler, each ASG may only belong to a single availability zone.
+    subnet_ids = list(string)
+
+    # Custom tags to apply to the EC2 Instances in this ASG.
+    # Each item in this list should be a map with the parameters key, value, and propagate_at_launch.
+    #
+    # Example:
+    # [
+    #   {
+    #     key = "foo"
+    #     value = "bar"
+    #     propagate_at_launch = true
+    #   },
+    #   {
+    #     key = "baz"
+    #     value = "blah"
+    #     propagate_at_launch = true
+    #   }
+    # ]
+    tags = list(object({
+      key                 = string
+      value               = string
+      propagate_at_launch = bool
+    }))
+  }))
 }
 
 variable "cluster_instance_type" {
@@ -99,4 +140,52 @@ variable "endpoint_public_access" {
   description = "Whether or not to enable public API endpoints which allow access to the Kubernetes API from outside of the VPC."
   type        = bool
   default     = true
+}
+
+variable "external_account_ssh_grunt_role_arn" {
+  description = "If you are using ssh-grunt and your IAM users / groups are defined in a separate AWS account, you can use this variable to specify the ARN of an IAM role that ssh-grunt can assume to retrieve IAM group and public SSH key info from that account. To omit this variable, set it to an empty string (do NOT use null, or Terraform will complain)."
+  type        = string
+  default     = ""
+}
+
+variable "enable_ssh_grunt" {
+  description = "Set to true to add IAM permissions for ssh-grunt (https://github.com/gruntwork-io/module-security/tree/master/modules/ssh-grunt), which will allow you to manage SSH access via IAM groups."
+  type        = bool
+  default     = true
+}
+
+variable "ssh_grunt_iam_group" {
+  description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to the EKS workers. To omit this variable, set it to an empty string (do NOT use null, or Terraform will complain)."
+  type        = string
+  default     = ""
+}
+
+variable "ssh_grunt_iam_group_sudo" {
+  description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to the EKS workers with sudo permissions. To omit this variable, set it to an empty string (do NOT use null, or Terraform will complain)."
+  type        = string
+  default     = ""
+}
+
+variable "enable_fail2ban" {
+  description = "Enable fail2ban to block brute force log in attempts. Defaults to true."
+  type        = bool
+  default     = true
+}
+
+variable "enable_cloudwatch_metrics" {
+  description = "Set to true to add IAM permissions to send custom metrics to CloudWatch. This is useful in combination with https://github.com/gruntwork-io/module-aws-monitoring/tree/master/modules/metrics/cloudwatch-memory-disk-metrics-scripts to get memory and disk metrics in CloudWatch for your Bastion host."
+  type        = bool
+  default     = true
+}
+
+variable "enable_cloudwatch_alarms" {
+  description = "Set to true to enable several basic CloudWatch alarms around CPU usage, memory usage, and disk space usage. If set to true, make sure to specify SNS topics to send notifications to using var.alarms_sns_topic_arn."
+  type        = bool
+  default     = true
+}
+
+variable "alarms_sns_topic_arn" {
+  description = "The ARNs of SNS topics where CloudWatch alarms (e.g., for CPU, memory, and disk space usage) should send notifications."
+  type        = list(string)
+  default     = []
 }
