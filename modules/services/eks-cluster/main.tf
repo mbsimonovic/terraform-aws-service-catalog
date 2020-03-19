@@ -1,5 +1,11 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # DEPLOY AN EKS CLUSTER TO RUN DOCKER CONTAINERS
+# This module can be used to deploy an EKS cluster with either self-managed workers or Fargate workers. It creates the
+# following resources:
+#
+# - An EKS Control Plane
+# - Optionally ASGs of self-managed workers
+# - IAM role to RBAC group mappings for authentication
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
@@ -53,13 +59,13 @@ data "aws_eks_cluster_auth" "kubernetes_token" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "eks_cluster" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.15.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=yori-update-to-k8s115"
 
   cluster_name = var.cluster_name
 
-  vpc_id                             = var.vpc_id
-  vpc_master_subnet_ids              = var.control_plane_vpc_subnet_ids
-  endpoint_public_access_cidr_blocks = var.allow_inbound_api_access_from_cidr_blocks
+  vpc_id                       = var.vpc_id
+  vpc_master_subnet_ids        = var.control_plane_vpc_subnet_ids
+  endpoint_public_access_cidrs = var.allow_inbound_api_access_from_cidr_blocks
 
   enabled_cluster_log_types = ["api", "audit", "authenticator"]
   kubernetes_version        = var.kubernetes_version
@@ -67,8 +73,7 @@ module "eks_cluster" {
 }
 
 module "eks_workers" {
-  # TODO: update to released version
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=yori-userdatab64"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.16.0"
 
   cluster_name                     = var.cluster_name
   vpc_id                           = var.vpc_id
@@ -85,7 +90,11 @@ module "eks_workers" {
 }
 
 resource "aws_security_group_rule" "allow_inbound_ssh_from_security_groups" {
-  for_each = length(var.allow_inbound_ssh_from_security_groups) > 0 ? toset(var.allow_inbound_ssh_from_security_groups) : {}
+  for_each = (
+    length(var.allow_inbound_ssh_from_security_groups) > 0
+    ? { for group_id in var.allow_inbound_ssh_from_security_groups : group_id => group_id }
+    : {}
+  )
 
   type                     = "ingress"
   from_port                = 22
@@ -93,6 +102,17 @@ resource "aws_security_group_rule" "allow_inbound_ssh_from_security_groups" {
   protocol                 = "tcp"
   security_group_id        = module.eks_workers.eks_worker_security_group_id
   source_security_group_id = each.key
+}
+
+resource "aws_security_group_rule" "allow_inbound_ssh_from_cidr_blocks" {
+  count = length(var.allow_inbound_ssh_from_cidr_blocks) > 0 ? 1 : 0
+
+  type              = "ingress"
+  from_port         = 22
+  to_port           = 22
+  protocol          = "tcp"
+  security_group_id = module.eks_workers.eks_worker_security_group_id
+  cidr_blocks       = var.allow_inbound_ssh_from_cidr_blocks
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -108,7 +128,11 @@ resource "aws_security_group_rule" "allow_inbound_ssh_from_security_groups" {
 module "eks_k8s_role_mapping" {
   source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.15.4"
 
-  eks_worker_iam_role_arns = [module.eks_workers.eks_worker_iam_role_arn]
+  eks_worker_iam_role_arns = (
+    length(var.autoscaling_group_configurations) > 0
+    ? [module.eks_workers.eks_worker_iam_role_arn]
+    : []
+  )
 
   iam_role_to_rbac_group_mappings = var.iam_role_to_rbac_group_mapping
   iam_user_to_rbac_group_mappings = var.iam_user_to_rbac_group_mapping
@@ -130,7 +154,7 @@ module "ec2_baseline" {
   name                                = var.cluster_name
   external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
   enable_ssh_grunt                    = var.enable_ssh_grunt
-  iam_role_arn                        = module.eks_workers.eks_worker_iam_role_id
+  iam_role_arn                        = module.eks_workers.eks_worker_iam_role_name
   enable_cloudwatch_metrics           = var.enable_cloudwatch_metrics
   enable_asg_cloudwatch_alarms        = var.enable_cloudwatch_alarms
   asg_names                           = module.eks_workers.eks_worker_asg_names
