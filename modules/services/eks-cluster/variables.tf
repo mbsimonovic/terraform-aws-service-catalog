@@ -84,11 +84,6 @@ variable "cluster_instance_ami" {
   type        = string
 }
 
-variable "cluster_instance_keypair_name" {
-  description = "The name of the Key Pair that can be used to SSH to each instance in the EKS cluster"
-  type        = string
-}
-
 variable "allow_inbound_api_access_from_cidr_blocks" {
   description = "The list of CIDR blocks to allow inbound access to the Kubernetes API."
   type        = list(string)
@@ -98,6 +93,12 @@ variable "allow_inbound_api_access_from_cidr_blocks" {
 # OPTIONAL PARAMETERS
 # Generally, these values won't need to be changed.
 # ---------------------------------------------------------------------------------------------------------------------
+
+variable "cluster_instance_keypair_name" {
+  description = "The name of the Key Pair that can be used to SSH to each instance in the EKS cluster"
+  type        = string
+  default     = null
+}
 
 variable "allow_inbound_ssh_from_security_groups" {
   description = "The list of security group IDs to allow inbound SSH access to the worker groups."
