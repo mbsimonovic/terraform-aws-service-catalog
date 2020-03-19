@@ -193,13 +193,6 @@ github.com/gruntwork-io/gruntwork-cli v0.5.1 h1:mVmVsFubUSLSCO8bGigI63HXzvzkC0uW
 github.com/gruntwork-io/gruntwork-cli v0.5.1/go.mod h1:IBX21bESC1/LGoV7jhXKUnTQTZgQ6dYRsoj/VqxUSZQ=
 github.com/gruntwork-io/gruntwork-cli v0.6.1 h1:sPeSdsn3TU1PJMPUHJRFfrxTBHNF0Y0O33zfen9QeN8=
 github.com/gruntwork-io/gruntwork-cli v0.6.1/go.mod h1:jp6Z7NcLF2avpY8v71fBx6hds9eOFPELSuD/VPv7w00=
-github.com/gruntwork-io/kubergrunt v0.5.11 h1:4gMg+lRHgf1fuQNdB1KmAUCWQqzH4FD3NKU7TfGfMHQ=
-github.com/gruntwork-io/kubergrunt v0.5.11/go.mod h1:zKrtMjcxQz8Qnz2RDUlN6c/9eJi8jCE3q6D7Z4sA6EA=
-github.com/gruntwork-io/module-ci v0.18.4 h1:lZJt1ARh6kF5W9jPzFHS7PFVm7wqf/CJR8sD/aXWiqo=
-github.com/gruntwork-io/module-ci/modules/infrastructure-deployer v0.0.0-20200311174355-ac6d93f22e4a h1:bv3qGwXlIgku3x97J2Wwij4/+arttWgkuzoTKygK/Rk=
-github.com/gruntwork-io/module-ci/modules/infrastructure-deployer v0.0.0-20200311174355-ac6d93f22e4a/go.mod h1:sMZCVnuS+EYN+YoxL+khVuUimYkpS+pNfwoyQw2UKcQ=
-github.com/gruntwork-io/terragrunt v0.19.27 h1:2VjFjhJn6/0ntN6Ou/3F2ygcV6NhAXm4/jrnet22V8M=
-github.com/gruntwork-io/terragrunt v0.19.27/go.mod h1:SVtVlzW6IomArG5OJo0TDZZJ1MYcsTzc2AmgqNfAR+E=
 github.com/gruntwork-io/terratest v0.26.0 h1:RFDr6nh/zn3rN1bZjZ9kYrEXIKof5T0AMEjgn+tXETw=
 github.com/gruntwork-io/terratest v0.26.0/go.mod h1:ONEOU6Fv3a1rN16Z5t5yWbV57DkVC7665yRyvu3aWnk=
 github.com/hashicorp/golang-lru v0.5.0/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
