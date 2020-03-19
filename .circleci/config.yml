@@ -1,5 +1,7 @@
 defaults: &defaults
-  machine: true
+  machine:
+    enabled: true
+    image: "ubuntu-1604:201903-01"
   environment:
     GRUNTWORK_INSTALLER_VERSION: v0.0.21
     TERRATEST_LOG_PARSER_VERSION: v0.13.24
@@ -54,7 +56,7 @@ jobs:
           name: run tests
           command: |
             mkdir -p /tmp/logs
-            run-go-tests --path ./test --timeout 1h --parallelism 64 | tee /tmp/logs/all.log
+            run-go-tests --path ./test --timeout 1h | tee /tmp/logs/all.log
           no_output_timeout: 3600s
 
       - run:
