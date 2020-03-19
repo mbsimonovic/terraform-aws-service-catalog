@@ -18,6 +18,11 @@ variable "control_plane_vpc_subnet_ids" {
   type        = list(string)
 }
 
+variable "control_plane_services_vpc_subnet_ids" {
+  description = "List of IDs of the subnets that can be used for EKS Control Plane services (e.g., core-dns for cluster internal DNS)."
+  type        = list(string)
+}
+
 variable "autoscaling_group_configurations" {
   description = "Configure one or more Auto Scaling Groups (ASGs) to manage the EC2 instances in this cluster."
 
@@ -105,6 +110,12 @@ variable "allow_inbound_ssh_from_security_groups" {
   default     = []
 }
 
+variable "allow_inbound_ssh_from_cidr_blocks" {
+  description = "The list of CIDR blocks to allow inbound SSH access to the worker groups."
+  type        = list(string)
+  default     = []
+}
+
 variable "iam_role_to_rbac_group_mapping" {
   description = "Mapping of IAM role ARNs to Kubernetes RBAC groups that grant permissions to the user."
   type        = map(list(string))
@@ -127,6 +138,22 @@ variable "iam_user_to_rbac_group_mapping" {
   # }
 }
 
+variable "cloud_init_parts" {
+  description = "Cloud init scripts to run on the EKS worker nodes when it is booting. See the part blocks in https://www.terraform.io/docs/providers/template/d/cloudinit_config.html for syntax. To override the default boot script installed as part of the module, use the key `default`."
+  type = map(object({
+    # A filename to report in the header for the part. Should be unique across all cloud-init parts.
+    filename = string
+
+    # A MIME-style content type to report in the header for the part. For example, use "text/x-shellscript" for a shell
+    # script.
+    content_type = string
+
+    # The contents of the boot script to be called. This should be the full text of the script as a raw string.
+    content = string
+  }))
+  default = {}
+}
+
 variable "tenancy" {
   description = "The tenancy of this server. Must be one of: default, dedicated, or host."
   type        = string
@@ -136,7 +163,7 @@ variable "tenancy" {
 variable "kubernetes_version" {
   description = "Version of Kubernetes to use. Refer to EKS docs for list of available versions (https://docs.aws.amazon.com/eks/latest/userguide/platform-versions.html)."
   type        = string
-  default     = "1.14"
+  default     = "1.15"
 }
 
 variable "endpoint_public_access" {

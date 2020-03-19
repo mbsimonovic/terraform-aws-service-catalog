@@ -2,27 +2,36 @@ package test
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/git"
+	"github.com/gruntwork-io/terratest/modules/k8s"
+	"github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/packer"
 	"github.com/gruntwork-io/terratest/modules/random"
+	"github.com/gruntwork-io/terratest/modules/retry"
+	"github.com/gruntwork-io/terratest/modules/shell"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestEKSCluster(t *testing.T) {
 	t.Parallel()
 
 	// Uncomment the items below to skip certain parts of the test
-	// os.Setenv("TERRATEST_REGION", "eu-west-1")
-	// os.Setenv("SKIP_build_ami", "true")
-	// os.Setenv("SKIP_deploy_terraform", "true")
-	os.Setenv("SKIP_cleanup", "true")
-	os.Setenv("SKIP_cleanup_ami", "true")
+	//os.Setenv("TERRATEST_REGION", "eu-west-1")
+	//os.Setenv("SKIP_build_ami", "true")
+	//os.Setenv("SKIP_deploy_terraform", "true")
+	//os.Setenv("SKIP_validate", "true")
+	//os.Setenv("SKIP_cleanup", "true")
+	//os.Setenv("SKIP_cleanup_ami", "true")
 
 	testFolder := "../examples/for-learning-and-testing/services/eks-cluster"
 
@@ -56,7 +65,7 @@ func TestEKSCluster(t *testing.T) {
 		amiId := packer.BuildArtifact(t, packerOptions)
 		test_structure.SaveArtifactID(t, testFolder, amiId)
 
-		clusterName := fmt.Sprintf("eks-service-catalog-%s", random.UniqueId())
+		clusterName := fmt.Sprintf("eks-service-catalog-%s", strings.ToLower(random.UniqueId()))
 		test_structure.SaveString(t, testFolder, "clusterName", clusterName)
 	})
 
@@ -78,4 +87,64 @@ func TestEKSCluster(t *testing.T) {
 		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
 		terraform.InitAndApply(t, terraformOptions)
 	})
+
+	test_structure.RunTestStage(t, "validate", func() {
+		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
+		eksClusterArn := terraform.OutputRequired(t, terraformOptions, "eks_cluster_arn")
+
+		tmpKubeConfigPath := configureKubectlForEKSCluster(t, eksClusterArn)
+		defer os.Remove(tmpKubeConfigPath)
+		kubectlOptions := k8s.NewKubectlOptions("", tmpKubeConfigPath, "")
+
+		kubeWaitUntilNumNodes(t, kubectlOptions, 3, 30, 10*time.Second)
+		k8s.WaitUntilAllNodesReady(t, kubectlOptions, 30, 10*time.Second)
+		readyNodes := k8s.GetReadyNodes(t, kubectlOptions)
+		assert.Equal(t, len(readyNodes), 3)
+	})
+}
+
+func configureKubectlForEKSCluster(t *testing.T, eksClusterArn string) string {
+	tmpKubeConfigFile, err := ioutil.TempFile("", "")
+	require.NoError(t, err)
+	tmpKubeConfigFile.Close()
+	tmpKubeConfigPath := tmpKubeConfigFile.Name()
+
+	command := shell.Command{
+		Command: "kubergrunt",
+		Args: []string{
+			"eks",
+			"configure",
+			"--eks-cluster-arn", eksClusterArn,
+			"--kubeconfig", tmpKubeConfigPath,
+		},
+	}
+	shell.RunCommand(t, command)
+	return tmpKubeConfigPath
+}
+
+// kubeWaitUntilNumNodes continuously polls the Kubernetes cluster until there are the expected number of nodes
+// registered (regardless of readiness).
+func kubeWaitUntilNumNodes(t *testing.T, kubectlOptions *k8s.KubectlOptions, numNodes int, retries int, sleepBetweenRetries time.Duration) {
+	statusMsg := fmt.Sprintf("Wait for %d Kube Nodes to be registered.", numNodes)
+	message, err := retry.DoWithRetryE(
+		t,
+		statusMsg,
+		retries,
+		sleepBetweenRetries,
+		func() (string, error) {
+			nodes, err := k8s.GetNodesE(t, kubectlOptions)
+			if err != nil {
+				return "", err
+			}
+			if len(nodes) != numNodes {
+				return "", fmt.Errorf("Not enough nodes")
+			}
+			return "All nodes registered", nil
+		},
+	)
+	if err != nil {
+		logger.Logf(t, "Error waiting for expected number of nodes: %s", err)
+		t.Fatal(err)
+	}
+	logger.Logf(t, message)
 }
