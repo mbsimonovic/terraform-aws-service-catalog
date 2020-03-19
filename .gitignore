@@ -24,3 +24,8 @@ out/
 
 # Terratest
 .test-data
+
+# python
+__pycache__
+*.pyc
+.mypy_cache

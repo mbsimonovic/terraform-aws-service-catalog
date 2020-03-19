@@ -56,7 +56,8 @@ jobs:
           name: run tests
           command: |
             mkdir -p /tmp/logs
-            run-go-tests --path ./test --timeout 1h | tee /tmp/logs/all.log
+            pyenv global 3.5.2
+            python ./.circleci/run-tests.py | tee /tmp/logs/all.log
           no_output_timeout: 3600s
 
       - run:
