@@ -61,7 +61,7 @@ jobs:
             if [[ "$CIRCLE_BRANCH" == "master" ]]; then
               run-go-tests --path ./test --timeout 1h --parallelism 64 | tee /tmp/logs/all.log
             else
-              python ./.circleci/run-tests.py | tee /tmp/logs/all.log
+              python ./.circleci/run_tests.py | tee /tmp/logs/all.log
             fi
           no_output_timeout: 3600s
 
