@@ -28,7 +28,7 @@ TEST_MAP = {
 
 def get_modules_updated():
     resp = subprocess.run(
-        ['git-updated-folders', '--source-ref', 'master', '--terraform'],
+        ['git-updated-folders', '--source-ref', 'origin/master', '--terraform'],
         stdout=subprocess.PIPE, check=True,
     )
     module_list = [module.decode('utf-8').strip() for module in resp.stdout.splitlines()]
