@@ -18,11 +18,6 @@ variable "control_plane_vpc_subnet_ids" {
   type        = list(string)
 }
 
-variable "control_plane_services_vpc_subnet_ids" {
-  description = "List of IDs of the subnets that can be used for EKS Control Plane services (e.g., core-dns for cluster internal DNS)."
-  type        = list(string)
-}
-
 variable "autoscaling_group_configurations" {
   description = "Configure one or more Auto Scaling Groups (ASGs) to manage the EC2 instances in this cluster."
 

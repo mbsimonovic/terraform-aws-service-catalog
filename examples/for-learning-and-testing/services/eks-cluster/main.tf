@@ -1,3 +1,7 @@
+# ----------------------------------------------------------------------------------------------------------------------
+# DEPLOY AN EKS CLUSTER WITH SELF MANAGED WORKERS
+# ----------------------------------------------------------------------------------------------------------------------
+
 provider "aws" {
   region = var.aws_region
 }
@@ -18,9 +22,8 @@ module "eks_cluster" {
 
   # To keep this example simple, we run it in the default VPC and put everything in the same subnets. In production,
   # you'll want to use a custom VPC, with both the workers and control plane in a private subnet.
-  vpc_id                                = data.aws_vpc.default.id
-  control_plane_vpc_subnet_ids          = data.aws_subnet_ids.default.ids
-  control_plane_services_vpc_subnet_ids = data.aws_subnet_ids.default.ids
+  vpc_id                       = data.aws_vpc.default.id
+  control_plane_vpc_subnet_ids = data.aws_subnet_ids.default.ids
 
   # Due to localization limitations for EKS, it is recommended to have separate ASGs per availability zones. Here we
   # deploy one ASG per subnet.
