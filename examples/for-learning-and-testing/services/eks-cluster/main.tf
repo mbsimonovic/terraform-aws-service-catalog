@@ -14,7 +14,7 @@ module "eks_cluster" {
 
   cluster_name          = var.cluster_name
   cluster_instance_ami  = var.cluster_instance_ami_id
-  cluster_instance_type = "t2.small"
+  cluster_instance_type = "t2.micro"
 
   # For this simple example, use a regular key pair instead of ssh-grunt
   cluster_instance_keypair_name = var.keypair_name
@@ -26,13 +26,12 @@ module "eks_cluster" {
   control_plane_vpc_subnet_ids = data.aws_subnet_ids.default.ids
 
   # Due to localization limitations for EKS, it is recommended to have separate ASGs per availability zones. Here we
-  # deploy one ASG per subnet.
+  # deploy one ASG in one subnet.
   autoscaling_group_configurations = {
-    for subnet_id in local.sorted_subnets :
-    subnet_id => {
+    asg = {
       min_size   = 1
       max_size   = 2
-      subnet_ids = [subnet_id]
+      subnet_ids = [local.sorted_subnets[0]]
       tags       = []
     }
   }
