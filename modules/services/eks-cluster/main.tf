@@ -4,7 +4,7 @@
 # following resources:
 #
 # - An EKS Control Plane
-# - Optionally ASGs of self-managed workers
+# - ASGs of self-managed workers
 # - IAM role to RBAC group mappings for authentication
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
