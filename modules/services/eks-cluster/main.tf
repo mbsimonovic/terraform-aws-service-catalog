@@ -73,7 +73,7 @@ module "eks_cluster" {
 }
 
 module "eks_workers" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.16.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.16.1"
 
   cluster_name                     = var.cluster_name
   vpc_id                           = var.vpc_id
@@ -126,7 +126,7 @@ resource "aws_security_group_rule" "allow_inbound_ssh_from_cidr_blocks" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "eks_k8s_role_mapping" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.15.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.16.1"
 
   eks_worker_iam_role_arns = (
     length(var.autoscaling_group_configurations) > 0
