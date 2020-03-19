@@ -57,7 +57,12 @@ jobs:
           command: |
             mkdir -p /tmp/logs
             pyenv global 3.5.2
-            python ./.circleci/run-tests.py | tee /tmp/logs/all.log
+            # On master, run all tests. Otherwise, only run tests on those that changed.
+            if [[ "$CIRCLE_BRANCH" == "master" ]]; then
+              run-go-tests --path ./test --timeout 1h --parallelism 64 | tee /tmp/logs/all.log
+            else
+              python ./.circleci/run-tests.py | tee /tmp/logs/all.log
+            fi
           no_output_timeout: 3600s
 
       - run:
