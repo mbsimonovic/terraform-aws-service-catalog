@@ -43,7 +43,7 @@ func TestBastionHost(t *testing.T) {
 
 	test_structure.RunTestStage(t, "build_ami", func() {
 		branchName := git.GetCurrentBranchName(t)
-		awsRegion := aws.GetRandomRegion(t, acmRegionsForTest, nil)
+		awsRegion := aws.GetRandomStableRegion(t, acmRegionsForTest, nil)
 
 		packerOptions := &packer.Options{
 			Template: "../modules/mgmt/bastion-host/bastion-host.json",
