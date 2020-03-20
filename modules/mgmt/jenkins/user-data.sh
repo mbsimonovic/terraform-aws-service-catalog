@@ -49,7 +49,9 @@ start_ec2_baseline \
   "${ssh_grunt_iam_group}" \
   "${ssh_grunt_iam_group_sudo}" \
   "${log_group_name}" \
-  "${external_account_ssh_grunt_role_arn}"
+  "${external_account_ssh_grunt_role_arn}" \
+  "${default_user}" \
+  "${owner}"
 
 start_server \
   "${aws_region}" \

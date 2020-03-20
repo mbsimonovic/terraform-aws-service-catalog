@@ -35,7 +35,7 @@ func TestALB(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "setup", func() {
-		awsRegion := aws.GetRandomRegion(t, acmRegionsForTest, nil)
+		awsRegion := aws.GetRandomRegion(t, regionsForEc2Tests, nil)
 
 		test_structure.SaveString(t, testFolder, "region", awsRegion)
 

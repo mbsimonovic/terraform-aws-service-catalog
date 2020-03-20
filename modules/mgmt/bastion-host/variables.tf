@@ -139,3 +139,9 @@ variable "cloud_init_parts" {
   }))
   default = {}
 }
+
+variable "default_user" {
+  description = "The default OS user for the Bastion Host AMI. For AWS Ubuntu AMIs, which is what the Packer template in bastion-host.json uses, the default OS user is 'ubuntu'."
+  type        = string
+  default     = "ubuntu"
+}

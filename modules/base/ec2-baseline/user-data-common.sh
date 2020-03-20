@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # This script contains common utility functions for initializing EC2 instances at boot time
 
 function file_contains_text {
@@ -55,7 +56,7 @@ function attach_volume {
 }
 
 function start_cloudwatch_logs_agent {
-  local -r log_group_name="$2"
+  local -r log_group_name="$1"
 
   echo "Starting CloudWatch Logs Agent in VPC"
   /etc/user-data/cloudwatch-log-aggregation/run-cloudwatch-logs-agent.sh --log-group-name "$log_group_name"
@@ -104,6 +105,8 @@ function start_ec2_baseline {
   local -r ssh_grunt_iam_group_sudo="$6"
   local -r log_group_name="$7"
   local -r external_account_ssh_grunt_role_arn="$8"
+  shift 8
+  local -r ip_lockdown_users=("$@")
 
   if [[ "$enable_cloudwatch_log_aggregation" == "true" ]]; then
     start_cloudwatch_logs_agent "$log_group_name"
@@ -118,7 +121,7 @@ function start_ec2_baseline {
   fi
 
   if [[ "$enable_ip_lockdown" = "true" ]]; then
-    # Lock down the EC2 metadata endpoint so only the root and default users can access it
-    /usr/local/bin/ip-lockdown 169.254.169.254 root ubuntu
+    # Lock down the EC2 metadata endpoint so only the root and specified users can access it
+    /usr/local/bin/ip-lockdown 169.254.169.254 root "${ip_lockdown_users[@]}"
   fi
 }
