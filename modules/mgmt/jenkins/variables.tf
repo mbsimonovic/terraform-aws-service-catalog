@@ -256,3 +256,9 @@ variable "external_account_auto_deploy_iam_role_arns" {
   type        = list(string)
   default     = []
 }
+
+variable "default_user" {
+  description = "The default OS user for the Jenkins AMI. For AWS Ubuntu AMIs, which is what the Packer template in jenkins-ubunutu.json uses, the default OS user is 'ubuntu'."
+  type        = string
+  default     = "ubuntu"
+}
