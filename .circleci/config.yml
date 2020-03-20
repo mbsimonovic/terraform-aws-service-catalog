@@ -66,9 +66,10 @@ jobs:
             pyenv global 3.5.2
             # On master, run all tests. Otherwise, only run tests on those that changed.
             if [[ "$CIRCLE_BRANCH" == "master" ]]; then
-              run-go-tests --path ./test --timeout 1h --parallelism 64 | tee /tmp/logs/all.log
+              run-go-tests --path ./test --timeout 1h | tee /tmp/logs/all.log
             else
-              python ./.circleci/run_tests.py | tee /tmp/logs/all.log
+              test_regex="$(python ./.circleci/run_tests.py)"
+              run-go-tests --path ./test --timeout 1h --packages "-run \"$test_regex\"" | tee /tmp/logs/all.log
             fi
           no_output_timeout: 3600s
 
