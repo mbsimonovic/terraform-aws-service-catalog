@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	testcommon "github.com/gruntwork-io/aws-service-catalog/test/common"
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/docker"
 	"github.com/gruntwork-io/terratest/modules/random"
@@ -52,7 +51,7 @@ func TestECRRepositories(t *testing.T) {
 		name := fmt.Sprintf("sample-app-%s", strings.ToLower(uniqueID))
 		test_structure.SaveString(t, testFolder, "repoName", name)
 
-		terraformOptions := testcommon.CreateBaseTerraformOptions(t, testFolder, awsRegion)
+		terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
 		terraformOptions.Vars["repositories"] = map[string]interface{}{
 			name: map[string]interface{}{
 				"external_account_ids_with_read_access":  []string{},
@@ -267,7 +266,7 @@ func constructTerraformOptionsWithVarFiles(t *testing.T, terraformDir string, va
 		require.NoError(t, writeErr)
 		return f.Name()
 	}()
-	terraformOptions := testcommon.CreateBaseTerraformOptions(t, terraformDir, "")
+	terraformOptions := createBaseTerraformOptions(t, terraformDir, "")
 	delete(terraformOptions.Vars, "aws_region")
 	terraformOptions.VarFiles = []string{fname}
 	return terraformOptions, fname

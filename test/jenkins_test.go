@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	testcommon "github.com/gruntwork-io/aws-service-catalog/test/common"
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/git"
 	http_helper "github.com/gruntwork-io/terratest/modules/http-helper"
@@ -71,7 +70,7 @@ func TestJenkins(t *testing.T) {
 
 		name := fmt.Sprintf("jenkins-%s", random.UniqueId())
 
-		terraformOptions := testcommon.CreateBaseTerraformOptions(t, testFolder, awsRegion)
+		terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
 		terraformOptions.Vars["name"] = name
 		terraformOptions.Vars["ami_id"] = amiId
 		terraformOptions.Vars["base_domain_name"] = baseDomainForTest

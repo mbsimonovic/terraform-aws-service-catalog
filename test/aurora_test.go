@@ -5,7 +5,6 @@ import (
 	"strings"
 	"testing"
 
-	testcommon "github.com/gruntwork-io/aws-service-catalog/test/common"
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/terraform"
@@ -139,7 +138,7 @@ func createAuroraTerraformOptions(
 	password string,
 ) *terraform.Options {
 	name := fmt.Sprintf("test-aurora-%s", uniqueID)
-	terraformOptions := testcommon.CreateBaseTerraformOptions(t, terraformDir, awsRegion)
+	terraformOptions := createBaseTerraformOptions(t, terraformDir, awsRegion)
 	terraformOptions.Vars["name"] = name
 	terraformOptions.Vars["db_name"] = "aurora"
 	terraformOptions.Vars["master_username"] = "aurora"

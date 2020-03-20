@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	testcommon "github.com/gruntwork-io/aws-service-catalog/test/common"
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/git"
 	"github.com/gruntwork-io/terratest/modules/packer"
@@ -70,7 +69,7 @@ func TestBastionHost(t *testing.T) {
 		uniqueId := random.UniqueId()
 		awsKeyPair := aws.CreateAndImportEC2KeyPair(t, awsRegion, uniqueId)
 
-		terraformOptions := testcommon.CreateBaseTerraformOptions(t, testFolder, awsRegion)
+		terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
 		terraformOptions.Vars["aws_region"] = awsRegion
 		terraformOptions.Vars["name"] = name
 		terraformOptions.Vars["ami_id"] = amiId
