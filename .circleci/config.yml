@@ -54,6 +54,12 @@ jobs:
           <<: *install_kube_utils
 
       - run:
+          name: run circleci script unit tests
+          command: |
+            pyenv global 3.5.2
+            python ./.circleci/run_tests_unit_tests.py
+
+      - run:
           name: run tests
           command: |
             mkdir -p /tmp/logs

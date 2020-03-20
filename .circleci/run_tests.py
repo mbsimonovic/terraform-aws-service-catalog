@@ -25,12 +25,18 @@ UNCONVENTIONAL_NAMES = {
 
 
 def kebab_case_to_camel_case(kebab_case_str):
+    """ Converts a kebab cased string (e.g., vpc-app) into camel case (e.g., VpcApp). """
     parts = kebab_case_str.split('-')
     parts_titled = [part.title() for part in parts]
     return ''.join(parts_titled)
 
 
 def get_modules_updated():
+    """
+    Calls out to the script git-updated-folders to find all the terraform modules that have been updated since master.
+    Returns a list of strings representing all the updated modules, with each being the relative path to the module from
+    the git project root.
+    """
     resp = subprocess.run(
         ['git-updated-folders', '--source-ref', 'origin/master', '--terraform'],
         stdout=subprocess.PIPE, check=True,
@@ -40,6 +46,15 @@ def get_modules_updated():
 
 
 def get_tests_to_run(module_list):
+    """
+    Given a list of strings representing module paths (as returned by get_modules_updated), return all the tests that
+    should be run. Tests to run are determined by convention based on the module base name.
+
+    For example, if the module `vpc-app` was updated, the folder will be `modules/networking/vpc-app`, and the test will
+    be TestVpcApp.
+
+    Returns a set of strings where each item is a test prefix to run.
+    """
     tests_to_run = set()
     for module in module_list:
         module_base = os.path.basename(module)
@@ -53,6 +68,9 @@ def get_tests_to_run(module_list):
 
 
 def run_tests(tests_to_run):
+    """
+    Given a collection of test prefixes, construct the regex that matches all the tests and run using run-go-tests.
+    """
     tests_to_run_regex = '^({})'.format('|'.join(tests_to_run))
     subprocess.run(
         [
