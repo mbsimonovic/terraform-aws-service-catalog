@@ -15,6 +15,23 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	maxTerraformRetries          = 3
+	sleepBetweenTerraformRetries = 5 * time.Second
+)
+
+var (
+	// Set up terratest to retry on known failures
+	retryableTerraformErrors = map[string]string{
+		// `terraform init` frequently fails in CI due to network issues accessing plugins. The reason is unknown, but
+		// eventually these succeed after a few retries.
+		".*unable to verify signature.*":             "Failed to retrieve plugin due to transient network error.",
+		".*unable to verify checksum.*":              "Failed to retrieve plugin due to transient network error.",
+		".*no provider exists with the given name.*": "Failed to retrieve plugin due to transient network error.",
+		".*registry service is unreachable.*":        "Failed to retrieve plugin due to transient network error.",
+	}
+)
+
 // Test constants for the Gruntwork Phx DevOps account
 const (
 	baseDomainForTest = "gruntwork.in"
@@ -85,6 +102,24 @@ func pickNRegions(t *testing.T, count int) []string {
 // read the externalAccountId to use for saving RDS snapshots from the environment
 func getExternalAccountId() string {
 	return os.Getenv("TEST_EXTERNAL_ACCOUNT_ID")
+}
+
+func pickAwsRegion(t *testing.T) string {
+	// At least one zone in us-west-2, sa-east-1, eu-north-1, ap-northeast-2 do not have t2.micro
+	// ap-south-1 doesn't have ECS optimized Linux
+	return aws.GetRandomStableRegion(t, []string{}, []string{"sa-east-1", "ap-south-1", "ap-northeast-2", "us-west-2", "eu-north-1"})
+}
+
+func createBaseTerraformOptions(t *testing.T, terraformDir string, awsRegion string) *terraform.Options {
+	return &terraform.Options{
+		TerraformDir: terraformDir,
+		Vars: map[string]interface{}{
+			"aws_region": awsRegion,
+		},
+		RetryableTerraformErrors: retryableTerraformErrors,
+		MaxRetries:               maxTerraformRetries,
+		TimeBetweenRetries:       sleepBetweenTerraformRetries,
+	}
 }
 
 func testSSH(t *testing.T, ip string, sshUsername string, keyPair *aws.Ec2Keypair) {

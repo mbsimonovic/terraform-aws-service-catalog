@@ -14,8 +14,6 @@ import (
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	testcommon "github.com/gruntwork-io/aws-service-catalog/test/common"
 )
 
 func TestALB(t *testing.T) {
@@ -43,7 +41,7 @@ func TestALB(t *testing.T) {
 
 		name := fmt.Sprintf("alb-%s", random.UniqueId())
 
-		terraformOptions := testcommon.CreateBaseTerraformOptions(t, testFolder, awsRegion)
+		terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
 		terraformOptions.Vars["alb_name"] = name
 		terraformOptions.Vars["base_domain_name"] = baseDomainForTest
 		terraformOptions.Vars["alb_subdomain"] = name
