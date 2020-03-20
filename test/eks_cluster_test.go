@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	testcommon "github.com/gruntwork-io/aws-service-catalog/test/common"
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/git"
 	"github.com/gruntwork-io/terratest/modules/k8s"
@@ -74,15 +75,9 @@ func TestEKSCluster(t *testing.T) {
 		awsRegion := test_structure.LoadString(t, testFolder, "region")
 		clusterName := test_structure.LoadString(t, testFolder, "clusterName")
 
-		terraformOptions := &terraform.Options{
-			TerraformDir: testFolder,
-
-			Vars: map[string]interface{}{
-				"aws_region":              awsRegion,
-				"cluster_name":            clusterName,
-				"cluster_instance_ami_id": amiId,
-			},
-		}
+		terraformOptions := testcommon.CreateBaseTerraformOptions(t, testFolder, awsRegion)
+		terraformOptions.Vars["cluster_name"] = clusterName
+		terraformOptions.Vars["cluster_instance_ami_id"] = amiId
 
 		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
 		terraform.InitAndApply(t, terraformOptions)
