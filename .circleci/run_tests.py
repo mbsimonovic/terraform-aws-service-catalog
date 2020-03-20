@@ -3,7 +3,7 @@ Script to run tests only on the modules that changed. This allows for more effic
 to wait on tests for modules that we have not touched.
 
 This relies on the following convention:
-- Both modules and examples use the same name for the leaf directory.
+- Both modules and examples use the same name for the leaf directory. E.g., modules/foo and examples/for-learning-and-testing/foo.
 - Tests for the modules are named with the prefix `TestCamelCaseModuleName`. For example, for the module `vpc-app`, the
   corresponding tests should all begin with `TestVpcApp`. Note that there can be multiple tests, as long as they all
   begin with TestVpcApp.
