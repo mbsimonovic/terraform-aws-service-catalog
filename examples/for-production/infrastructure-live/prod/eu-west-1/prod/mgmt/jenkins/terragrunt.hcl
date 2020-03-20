@@ -48,7 +48,7 @@ locals {
 inputs = {
   name          = "ref-arch-lite-${local.account_vars.locals.account_name}-jenkins"
   ami           = "ami-abcd1234"
-  instance_type = "t2.micro"
+  instance_type = "t3.micro"
   memory        = "512m"
 
   vpc_id            = dependency.vpc.outputs.vpc_id
