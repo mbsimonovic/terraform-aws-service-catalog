@@ -12,8 +12,7 @@ import (
 func TestVpcApp(t *testing.T) {
 	t.Parallel()
 
-	whitelistedRegionsForTest := []string{"us-east-1", "us-east-1", "us-west-1", "us-west-2", "eu-central-1"}
-	awsRegion := aws.GetRandomRegion(t, whitelistedRegionsForTest, nil)
+	awsRegion := aws.GetRandomRegion(t, regionsForEc2Tests, nil)
 
 	terraformOptions := &terraform.Options{
 		TerraformDir: "../examples/for-learning-and-testing/networking/vpc-app",
