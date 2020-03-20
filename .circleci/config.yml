@@ -64,13 +64,38 @@ jobs:
           command: |
             mkdir -p /tmp/logs
             pyenv global 3.5.2
-            # On master, run all tests. Otherwise, only run tests on those that changed.
+            test_regex=""
             if [[ "$CIRCLE_BRANCH" == "master" ]]; then
-              run-go-tests --path ./test --timeout 1h | tee /tmp/logs/all.log
+              # On master, the last commit is the merge commit which contains all the changes
+              test_regex="$(python ./.circleci/run_tests.py --source-ref 'HEAD^')"
             else
               test_regex="$(python ./.circleci/run_tests.py)"
-              run-go-tests --path ./test --timeout 1h --packages "-run \"$test_regex\"" | tee /tmp/logs/all.log
             fi
+            run-go-tests --path ./test --timeout 1h --packages "-run \"$test_regex\"" | tee /tmp/logs/all.log
+          no_output_timeout: 3600s
+
+      - run:
+          command: terratest_log_parser --testlog /tmp/logs/all.log --outputdir /tmp/logs
+          when: always
+      - store_artifacts:
+          path: /tmp/logs
+      - store_test_results:
+          path: /tmp/logs
+
+  run_all_tests:
+    <<: *defaults
+    steps:
+      - checkout
+
+      # Install gruntwork utilities
+      - run:
+          <<: *install_gruntwork_utils
+
+      - run:
+          name: run tests
+          command: |
+            mkdir -p /tmp/logs
+            run-go-tests --path ./test --timeout 1h | tee /tmp/logs/all.log
           no_output_timeout: 3600s
 
       - run:
@@ -105,3 +130,13 @@ workflows:
               only: /^v.*/
             branches:
               ignore: /.*/
+
+  nightly:
+    triggers:
+      - schedule:
+          cron: "0 3 * * *"
+          filters:
+            branches:
+              only: master
+    jobs:
+      - run_all_tests

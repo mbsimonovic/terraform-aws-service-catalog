@@ -16,6 +16,7 @@ import subprocess
 import logging
 import os
 import re
+import argparse
 
 logging.basicConfig(format='%(asctime)s [%(levelname)s] %(message)s', level=logging.INFO)
 
@@ -66,7 +67,7 @@ def get_terraform_modules():
     return module_list
 
 
-def get_modules_updated():
+def get_modules_updated(source_ref):
     """
     Calls out to the script git-updated-folders to find all the terraform modules that have been updated since master.
     Returns a list of strings representing all the updated modules, with each being the relative path to the module from
@@ -80,7 +81,7 @@ def get_modules_updated():
     result = subprocess.run(
         [
             'git-updated-folders',
-            '--source-ref', DEFAULT_SOURCE_REF,
+            '--source-ref', source_ref,
             '--target-ref', DEFAULT_TARGET_REF,
             '--terraform',
             '--ext', '.sh',
@@ -104,11 +105,11 @@ def get_modules_updated():
     return list(updated_modules)
 
 
-def get_test_files_updated():
+def get_test_files_updated(source_ref):
     """ Returns a list of test files that were updated. """
     git_root = get_git_root()
     result = subprocess.run(
-        ['git', '-C', git_root, 'diff', '--name-only', DEFAULT_SOURCE_REF, DEFAULT_TARGET_REF],
+        ['git', '-C', git_root, 'diff', '--name-only', source_ref, DEFAULT_TARGET_REF],
         stdout=subprocess.PIPE,
         check=True,
     )
@@ -179,17 +180,39 @@ def get_tests_to_run_regex(tests_to_run):
     return tests_to_run_regex
 
 
+def parse_args():
+    """Parse command line args"""
+    parser = argparse.ArgumentParser(
+        description=(
+            'Script to run tests only on the modules that changed. This allows for more efficient test cycles so that '
+            'we don\'t have to wait on tests for modules that we have not touched.'
+        ),
+    )
+
+    parser.add_argument(
+        '--source-ref',
+        default=DEFAULT_SOURCE_REF,
+        help='The git ref to use for updated files and folders.',
+    )
+
+    args = parser.parse_args()
+    return args
+
+
 def main():
+    args = parse_args()
+    source_ref = args.source_ref
+
     # 1. Get all the modules that were updated
     logging.info('Generating list of all modules that have been updated')
-    module_list = get_modules_updated()
+    module_list = get_modules_updated(source_ref)
     logging.info('The following modules have been detected to be updated:')
     for module in module_list:
         logging.info('\t- {}'.format(module))
 
     # 2. Get all the tests that were updated
     logging.info('Generating list of all test files that have been updated')
-    updated_test_files = get_test_files_updated()
+    updated_test_files = get_test_files_updated(source_ref)
     logging.info('The following test files have been detected to be updated:')
     for tfile in updated_test_files:
         logging.info('\t- {}'.format(tfile))
