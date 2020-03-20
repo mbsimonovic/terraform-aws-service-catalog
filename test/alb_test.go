@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestALB(t *testing.T) {
+func TestAlb(t *testing.T) {
 	t.Parallel()
 
 	// Uncomment the items below to skip certain parts of the test
