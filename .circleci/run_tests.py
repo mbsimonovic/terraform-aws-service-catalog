@@ -48,7 +48,7 @@ def get_tests_to_run(module_list):
 
         # Convert to camel case
         test_name = kebab_case_to_camel_case(module_base)
-        tests_to_run.add(test_name)
+        tests_to_run.add('Test{}'.format(test_name))
     return tests_to_run
 
 
