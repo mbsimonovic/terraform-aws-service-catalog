@@ -33,14 +33,14 @@
   "builders": [{
     "ami_name": "{{user `ami_name`}}-{{isotime | clean_resource_name}}",
     "ami_description": "An Ubuntu AMI that runs Jenkins.",
-    "instance_type": "t2.micro",
+    "instance_type": "t3.micro",
     "region": "{{user `aws_region`}}",
     "type": "amazon-ebs",
     "source_ami_filter": {
       "filters": {
         "virtualization-type": "hvm",
         "architecture": "x86_64",
-        "name": "*ubuntu-bionic-18.04-amd64-server-*",
+        "name": "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*",
         "block-device-mapping.volume-type": "gp2",
         "root-device-type": "ebs"
       },

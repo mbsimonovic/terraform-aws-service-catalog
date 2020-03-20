@@ -25,5 +25,5 @@ output "public_hosted_zones_ids" {
 
 output "public_hosted_zones_name_servers" {
   description = "The name servers associated with the public Route 53 Hosted Zones"
-  value       = module.route53.public_zones_name_servers
+  value       = module.route53.public_hosted_zones_name_servers
 }
