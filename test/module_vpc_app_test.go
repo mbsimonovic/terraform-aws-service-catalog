@@ -1,11 +1,13 @@
 package test
 
 import (
-	"github.com/gruntwork-io/terratest/modules/aws"
 	"testing"
 
-	"github.com/gruntwork-io/terratest/modules/terraform"
+	testcommon "github.com/gruntwork-io/aws-service-catalog/test/common"
+	"github.com/gruntwork-io/terratest/modules/aws"
+
 	"github.com/gruntwork-io/terratest/modules/random"
+	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -14,15 +16,11 @@ func TestVpcApp(t *testing.T) {
 
 	awsRegion := aws.GetRandomRegion(t, regionsForEc2Tests, nil)
 
-	terraformOptions := &terraform.Options{
-		TerraformDir: "../examples/for-learning-and-testing/networking/vpc-app",
-		Vars: map[string]interface{}{
-			"vpc_name": "vpc-test-" + random.UniqueId(),
-			"aws_region": awsRegion,
-			"cidr_block": "10.100.0.0/18",
-			"num_nat_gateways": "1",
-		},
-	}
+	testFolder := "../examples/for-learning-and-testing/networking/vpc-app"
+	terraformOptions := testcommon.CreateBaseTerraformOptions(t, testFolder, awsRegion)
+	terraformOptions.Vars["vpc_name"] = "vpc-test-" + random.UniqueId()
+	terraformOptions.Vars["cidr_block"] = "10.100.0.0/18"
+	terraformOptions.Vars["num_nat_gateways"] = "1"
 
 	defer terraform.Destroy(t, terraformOptions)
 
@@ -34,4 +32,3 @@ func TestVpcApp(t *testing.T) {
 	public_subnet_ids := terraform.OutputList(t, terraformOptions, "public_subnet_ids")
 	assert.Regexp(t, "^subnet-.*", public_subnet_ids[0])
 }
-

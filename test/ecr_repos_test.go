@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	testcommon "github.com/gruntwork-io/aws-service-catalog/test/common"
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/docker"
 	"github.com/gruntwork-io/terratest/modules/random"
@@ -51,21 +52,16 @@ func TestECRRepositories(t *testing.T) {
 		name := fmt.Sprintf("sample-app-%s", strings.ToLower(uniqueID))
 		test_structure.SaveString(t, testFolder, "repoName", name)
 
-		terraformOptions := &terraform.Options{
-			TerraformDir: testFolder,
-
-			Vars: map[string]interface{}{
-				"aws_region": awsRegion,
-				"repositories": map[string]interface{}{
-					name: map[string]interface{}{
-						"external_account_ids_with_read_access":  []string{},
-						"external_account_ids_with_write_access": []string{},
-						"tags":                                   map[string]string{"Organization": "Gruntwork"},
-						"enable_automatic_image_scanning":        true,
-					},
-				},
+		terraformOptions := testcommon.CreateBaseTerraformOptions(t, testFolder, awsRegion)
+		terraformOptions.Vars["repositories"] = map[string]interface{}{
+			name: map[string]interface{}{
+				"external_account_ids_with_read_access":  []string{},
+				"external_account_ids_with_write_access": []string{},
+				"tags":                                   map[string]string{"Organization": "Gruntwork"},
+				"enable_automatic_image_scanning":        true,
 			},
 		}
+
 		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
 
 		terraform.InitAndApply(t, terraformOptions)
@@ -271,9 +267,8 @@ func constructTerraformOptionsWithVarFiles(t *testing.T, terraformDir string, va
 		require.NoError(t, writeErr)
 		return f.Name()
 	}()
-	terraformOptions := &terraform.Options{
-		TerraformDir: terraformDir,
-		VarFiles:     []string{fname},
-	}
+	terraformOptions := testcommon.CreateBaseTerraformOptions(t, terraformDir, "")
+	delete(terraformOptions.Vars, "aws_region")
+	terraformOptions.VarFiles = []string{fname}
 	return terraformOptions, fname
 }

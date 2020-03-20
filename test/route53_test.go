@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	testcommon "github.com/gruntwork-io/aws-service-catalog/test/common"
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/terraform"
@@ -59,14 +60,10 @@ func TestRoute53(t *testing.T) {
 			},
 		}
 
-		terraformOptions := &terraform.Options{
-			TerraformDir: testFolder,
-
-			Vars: map[string]interface{}{
-				"private_zones": privateZones,
-				"public_zones":  publicZones,
-			},
-		}
+		terraformOptions := testcommon.CreateBaseTerraformOptions(t, testFolder, "")
+		delete(terraformOptions.Vars, "aws_region")
+		terraformOptions.Vars["private_zones"] = privateZones
+		terraformOptions.Vars["public_zones"] = publicZones
 
 		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
 	})
