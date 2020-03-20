@@ -28,7 +28,7 @@ class TestRunTestsHelperFunctions(unittest.TestCase):
                 camel_case,
             )
 
-    def test_get_tests_to_run(self):
+    def test_get_tests_to_run_from_tfmodule(self):
         test_cases = [
             (
                 ['modules/networking/alb', 'examples/for-learning-and-testing/networking/alb'],
@@ -54,9 +54,25 @@ class TestRunTestsHelperFunctions(unittest.TestCase):
                 ['modules/data-stores/aurora', 'examples/for-learning-and-testing/data-stores/ecr-repos'],
                 set(['TestAurora', 'TestEcrRepos']),
             ),
+            ([], set([])),
         ]
         for module_list, expected_tests in test_cases:
-            self.assertEqual(run_tests.get_tests_to_run(module_list), expected_tests)
+            self.assertEqual(run_tests.get_tests_to_run_from_tfmodule(module_list), expected_tests)
+
+    def test_get_tests_to_run_from_test_file(self):
+        test_cases = [
+            (
+                ['test/account_baseline_test.go', 'test/ecr_repos_test.go'],
+                set(['TestAccountBaseline', 'TestEcrRepos']),
+            ),
+            (
+                ['test/route53_test.go'],
+                set(['TestRoute53']),
+            ),
+            ([], set([])),
+        ]
+        for updated_test_files, expected_tests in test_cases:
+            self.assertEqual(run_tests.get_tests_to_run_from_test_file(updated_test_files), expected_tests)
 
 
 if __name__ == '__main__':
