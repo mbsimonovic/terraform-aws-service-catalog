@@ -41,7 +41,7 @@ func TestJenkins(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "build_ami", func() {
-		awsRegion := aws.GetRandomRegion(t, acmRegionsForTest, nil)
+		awsRegion := aws.GetRandomRegion(t, regionsForEc2Tests, nil)
 		branchName := git.GetCurrentBranchName(t)
 
 		packerOptions := &packer.Options{
