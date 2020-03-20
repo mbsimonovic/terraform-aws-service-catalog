@@ -13,7 +13,7 @@ module "jenkins" {
   source = "../../../../modules/mgmt/jenkins"
 
   name          = var.name
-  instance_type = "t2.micro"
+  instance_type = "t3.micro"
   ami           = var.ami_id
   memory        = "512m"
 
