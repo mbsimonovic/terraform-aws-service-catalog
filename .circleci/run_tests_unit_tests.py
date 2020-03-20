@@ -16,6 +16,18 @@ class TestRunTestsHelperFunctions(unittest.TestCase):
                 camel_case,
             )
 
+    def test_snake_case_to_camel_case(self):
+        test_cases = [
+            ('alb', 'Alb'),
+            ('vpc_app', 'VpcApp'),
+            ('account_baseline_app', 'AccountBaselineApp'),
+        ]
+        for snake_case, camel_case in test_cases:
+            self.assertEqual(
+                run_tests.snake_case_to_camel_case(snake_case),
+                camel_case,
+            )
+
     def test_get_tests_to_run(self):
         test_cases = [
             (
