@@ -27,9 +27,8 @@ endif::[]
 image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
 image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
 
-This folder contains code to deploy a Kubernetes clusters on https://aws.amazon.com[AWS] using
-https://docs.aws.amazon.com/eks/latest/userguide/clusters.html[Elastic Kubernetes Service (EKS)] with
-https://www.terraform.io[Terraform] that can be used for either production or non-production workloads.
+This folder contains https://www.terraform.io[Terraform] and https://www.packer.io[Packer] code to deploy a production-grade Kubernetes cluster on https://aws.amazon.com[AWS] using
+https://docs.aws.amazon.com/eks/latest/userguide/clusters.html[Elastic Kubernetes Service (EKS)].
 
 image::/_docs/eks-architecture.png?raw=true[EKS architecture]
 
@@ -42,7 +41,7 @@ toc::[]
 
 * Deploy a fully-managed control plane
 * Deploy worker nodes in an Auto Scaling Group
-* Deploy Pods using Fargate instead of managing worker groups
+* Deploy Pods using Fargate instead of managing worker nodes
 * Zero-downtime, rolling deployment for updating worker nodes
 * IAM to RBAC mapping
 * Auto scaling and auto healing
