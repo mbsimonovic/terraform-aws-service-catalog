@@ -59,14 +59,10 @@ func TestRoute53(t *testing.T) {
 			},
 		}
 
-		terraformOptions := &terraform.Options{
-			TerraformDir: testFolder,
-
-			Vars: map[string]interface{}{
-				"private_zones": privateZones,
-				"public_zones":  publicZones,
-			},
-		}
+		terraformOptions := createBaseTerraformOptions(t, testFolder, "")
+		delete(terraformOptions.Vars, "aws_region")
+		terraformOptions.Vars["private_zones"] = privateZones
+		terraformOptions.Vars["public_zones"] = publicZones
 
 		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
 	})

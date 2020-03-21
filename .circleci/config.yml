@@ -1,12 +1,17 @@
 defaults: &defaults
-  machine: true
+  machine:
+    enabled: true
+    image: "ubuntu-1604:201903-01"
   environment:
     GRUNTWORK_INSTALLER_VERSION: v0.0.21
     TERRATEST_LOG_PARSER_VERSION: v0.13.24
+    KUBERGRUNT_VERSION: v0.5.11
+    K8S_VERSION: v1.15.0
     MODULE_CI_VERSION: v0.16.1
     TERRAFORM_VERSION: 0.12.21
     PACKER_VERSION: 1.5.4
-    GOLANG_VERSION: 1.13.3
+    GOLANG_VERSION: 1.13.8
+    KUBECONFIG: /home/circleci/.kube/config
 
 install_gruntwork_utils: &install_gruntwork_utils
   name: install gruntwork utils
@@ -14,10 +19,23 @@ install_gruntwork_utils: &install_gruntwork_utils
     curl -Ls https://raw.githubusercontent.com/gruntwork-io/gruntwork-installer/master/bootstrap-gruntwork-installer.sh | bash /dev/stdin --version "${GRUNTWORK_INSTALLER_VERSION}"
     gruntwork-install --module-name "gruntwork-module-circleci-helpers" --repo "https://github.com/gruntwork-io/module-ci" --tag "${MODULE_CI_VERSION}"
     gruntwork-install --binary-name "terratest_log_parser" --repo "https://github.com/gruntwork-io/terratest" --tag "${TERRATEST_LOG_PARSER_VERSION}"
+    gruntwork-install --binary-name "kubergrunt" --repo "https://github.com/gruntwork-io/kubergrunt" --tag "${KUBERGRUNT_VERSION}"
     configure-environment-for-gruntwork-module \
       --terraform-version ${TERRAFORM_VERSION} \
       --packer-version ${PACKER_VERSION} \
       --go-version ${GOLANG_VERSION}
+
+install_kube_utils: &install_kube_utils
+  name: install kubernetes utilities
+  command: |
+    # Install kubectl
+    curl -Lo kubectl "https://storage.googleapis.com/kubernetes-release/release/${K8S_VERSION}/bin/linux/amd64/kubectl"
+    chmod +x kubectl
+    sudo mv kubectl /usr/local/bin/
+
+    # Make sure the kube config directory and file exists
+    mkdir -p "$(dirname ${KUBECONFIG})"
+    touch "${KUBECONFIG}"
 
 version: 2.0
 jobs:
@@ -30,11 +48,15 @@ jobs:
       - run:
           <<: *install_gruntwork_utils
 
+      # Install kubernetes utilities
+      - run:
+          <<: *install_kube_utils
+
       - run:
           name: run tests
           command: |
             mkdir -p /tmp/logs
-            run-go-tests --path ./test --timeout 1h --parallelism 64 | tee /tmp/logs/all.log
+            run-go-tests --path ./test --timeout 1h | tee /tmp/logs/all.log
           no_output_timeout: 3600s
 
       - run:

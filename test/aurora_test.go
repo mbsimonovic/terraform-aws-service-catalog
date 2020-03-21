@@ -138,17 +138,11 @@ func createAuroraTerraformOptions(
 	password string,
 ) *terraform.Options {
 	name := fmt.Sprintf("test-aurora-%s", uniqueID)
-	terraformOptions := &terraform.Options{
-		TerraformDir: terraformDir,
-
-		Vars: map[string]interface{}{
-			"aws_region":                     awsRegion,
-			"name":                           name,
-			"db_name":                        "aurora",
-			"master_username":                "aurora",
-			"master_password":                password,
-			"share_snapshot_with_account_id": getExternalAccountId(),
-		},
-	}
+	terraformOptions := createBaseTerraformOptions(t, terraformDir, awsRegion)
+	terraformOptions.Vars["name"] = name
+	terraformOptions.Vars["db_name"] = "aurora"
+	terraformOptions.Vars["master_username"] = "aurora"
+	terraformOptions.Vars["master_password"] = password
+	terraformOptions.Vars["share_snapshot_with_account_id"] = getExternalAccountId()
 	return terraformOptions
 }

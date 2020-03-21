@@ -1,0 +1,77 @@
+{
+  "variables": {
+    "service_catalog_ref": null,
+    "version_tag": null,
+    "aws_region": "us-east-1",
+    "ami_name": "eks-workers",
+    "copy_to_regions": "",
+    "github_auth_token": "{{env `GITHUB_OAUTH_TOKEN`}}",
+    "encrypt_boot": "false",
+    "vpc_filter_key": "isDefault",
+    "vpc_filter_value": "true",
+    "vpc_subnet_filter_key": "default-for-az",
+    "vpc_subnet_filter_value": "true",
+    "ami_users": "",
+    "kubernetes_version": "1.14",
+    "terraform_aws_eks_version": "",
+    "module_security_version": "",
+    "module_aws_monitoring_version": "",
+    "enable_ssh_grunt": "true",
+    "enable_cloudwatch_metrics": "true",
+    "enable_cloudwatch_log_aggregation": "true"
+  },
+  "sensitive-variables": ["github_auth_token"],
+  "builders": [{
+    "ami_name": "{{user `ami_name`}}-{{isotime | clean_resource_name}}",
+    "ami_description": "An Amazon EKS-optimized AMI that is meant to be run as part of an EKS cluster.",
+    "instance_type": "t2.micro",
+    "region": "{{user `aws_region`}}",
+    "type": "amazon-ebs",
+    "source_ami_filter": {
+      "filters": {
+        "virtualization-type": "hvm",
+        "architecture": "x86_64",
+        "name": "amazon-eks-node-{{ user `kubernetes_version` }}-v*",
+        "root-device-type": "ebs"
+      },
+      "owners": ["602401143452"],
+      "most_recent": true
+    },
+    "vpc_filter": {
+      "filters": {
+        "{{user `vpc_filter_key`}}": "{{user `vpc_filter_value`}}"
+      }
+    },
+    "subnet_filter": {
+      "filters": {
+        "{{user `vpc_subnet_filter_key`}}": "{{user `vpc_subnet_filter_value`}}"
+      },
+      "most_free": "true"
+    },
+    "ssh_username": "ec2-user",
+    "encrypt_boot": "{{user `encrypt_boot`}}",
+    "ami_users": "{{user `ami_users`}}",
+    "ami_regions": "{{user `copy_to_regions`}}",
+    "tags": {
+      "version": "{{user `version_tag`}}"
+    }
+  }],
+  "provisioners": [{
+    "type": "shell",
+    "inline": [
+      "sudo yum update -y && sudo yum install -y aws-cli unzip perl-Digest-SHA jq",
+      "curl -Ls https://raw.githubusercontent.com/gruntwork-io/gruntwork-installer/master/bootstrap-gruntwork-installer.sh | bash /dev/stdin --version v0.0.24",
+      "gruntwork-install --module-name services/eks-cluster --repo https://github.com/gruntwork-io/aws-service-catalog --tag {{user `service_catalog_ref`}}"
+    ],
+    "environment_vars": [
+      "GITHUB_OAUTH_TOKEN={{user `github_auth_token`}}",
+      "terraform_aws_eks_version={{user `terraform_aws_eks_version`}}",
+      "module_security_version={{user `module_security_version`}}",
+      "module_aws_monitoring_version={{user `module_aws_monitoring_version`}}",
+      "enable_ssh_grunt={{user `enable_ssh_grunt`}}",
+      "enable_cloudwatch_metrics={{user `enable_cloudwatch_metrics`}}",
+      "enable_cloudwatch_log_aggregation={{user `enable_cloudwatch_log_aggregation`}}"
+    ],
+    "pause_before": "30s"
+  }]
+}

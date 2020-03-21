@@ -6,7 +6,6 @@ import (
 	"strings"
 	"testing"
 
-	testcommon "github.com/gruntwork-io/aws-service-catalog/test/common"
 	"github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
@@ -69,9 +68,8 @@ func TestAccountBaselines(t *testing.T) {
 			test_structure.RunTestStage(t, "bootstrap", func() {
 				logger.Logf(t, "Bootstrapping variables")
 
-				awsRegion := testcommon.PickAwsRegion(t)
-
-				terraformOptions := testcommon.CreateBaseTerraformOptions(t, _examplesDir, awsRegion)
+				awsRegion := pickAwsRegion(t)
+				terraformOptions := createBaseTerraformOptions(t, _examplesDir, awsRegion)
 
 				if testCase.isOrg {
 					terraformOptions.Vars["create_organization"] = testCase.createOrg

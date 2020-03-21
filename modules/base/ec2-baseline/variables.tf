@@ -61,10 +61,16 @@ variable "instance_id" {
   default     = ""
 }
 
-variable "asg_name" {
-  description = "The name of the autoscaling group to use when setting up CloudWatch alarms. Required if enable_asg_cloudwatch_alarms is true."
-  type        = string
-  default     = ""
+variable "asg_names" {
+  description = "The list of names of the autoscaling group to use when setting up CloudWatch alarms. Required if enable_asg_cloudwatch_alarms is true."
+  type        = list(string)
+  default     = []
+}
+
+variable "num_asg_names" {
+  description = "The number of names in var.asg_names. We should be able to compute this automatically, but can't due to a Terraform limitation (https://github.com/hashicorp/terraform/issues/4149)."
+  type        = number
+  default     = 0
 }
 
 variable "alarms_sns_topic_arn" {

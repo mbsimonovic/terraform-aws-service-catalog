@@ -70,19 +70,13 @@ func TestJenkins(t *testing.T) {
 
 		name := fmt.Sprintf("jenkins-%s", random.UniqueId())
 
-		terraformOptions := &terraform.Options{
-			TerraformDir: testFolder,
-
-			Vars: map[string]interface{}{
-				"aws_region":                 awsRegion,
-				"name":                       name,
-				"ami_id":                     amiId,
-				"base_domain_name":           baseDomainForTest,
-				"jenkins_subdomain":          name,
-				"acm_ssl_certificate_domain": acmDomainForTest,
-				"base_domain_name_tags":      domainNameTagsForTest,
-			},
-		}
+		terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
+		terraformOptions.Vars["name"] = name
+		terraformOptions.Vars["ami_id"] = amiId
+		terraformOptions.Vars["base_domain_name"] = baseDomainForTest
+		terraformOptions.Vars["jenkins_subdomain"] = name
+		terraformOptions.Vars["acm_ssl_certificate_domain"] = acmDomainForTest
+		terraformOptions.Vars["base_domain_name_tags"] = domainNameTagsForTest
 
 		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
 		terraform.InitAndApply(t, terraformOptions)

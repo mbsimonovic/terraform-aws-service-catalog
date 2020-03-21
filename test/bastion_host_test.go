@@ -69,18 +69,13 @@ func TestBastionHost(t *testing.T) {
 		uniqueId := random.UniqueId()
 		awsKeyPair := aws.CreateAndImportEC2KeyPair(t, awsRegion, uniqueId)
 
-		terraformOptions := &terraform.Options{
-			TerraformDir: testFolder,
-
-			Vars: map[string]interface{}{
-				"aws_region":            awsRegion,
-				"name":                  name,
-				"ami_id":                amiId,
-				"domain_name":           baseDomainForTest,
-				"base_domain_name_tags": domainNameTagsForTest,
-				"keypair_name":          awsKeyPair.Name,
-			},
-		}
+		terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
+		terraformOptions.Vars["aws_region"] = awsRegion
+		terraformOptions.Vars["name"] = name
+		terraformOptions.Vars["ami_id"] = amiId
+		terraformOptions.Vars["domain_name"] = baseDomainForTest
+		terraformOptions.Vars["base_domain_name_tags"] = domainNameTagsForTest
+		terraformOptions.Vars["keypair_name"] = awsKeyPair.Name
 
 		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
 		test_structure.SaveEc2KeyPair(t, testFolder, awsKeyPair)

@@ -79,7 +79,8 @@ module "ec2_baseline" {
   iam_role_arn                        = module.jenkins.jenkins_iam_role_id
   enable_cloudwatch_metrics           = var.enable_cloudwatch_metrics
   enable_asg_cloudwatch_alarms        = var.enable_cloudwatch_alarms
-  asg_name                            = module.jenkins.jenkins_asg_name
+  asg_names                           = [module.jenkins.jenkins_asg_name]
+  num_asg_names                       = 1
   alarms_sns_topic_arn                = var.alarms_sns_topic_arn
   cloud_init_parts                    = local.cloud_init_parts
 }
