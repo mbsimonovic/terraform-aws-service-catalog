@@ -76,6 +76,9 @@ func TestEKSCluster(t *testing.T) {
 		uniqueID := random.UniqueId()
 		clusterName := fmt.Sprintf("eks-service-catalog-%s", strings.ToLower(uniqueID))
 		test_structure.SaveString(t, testFolder, "clusterName", clusterName)
+
+		awsKeyPair := aws.CreateAndImportEC2KeyPair(t, awsRegion, uniqueID)
+		test_structure.SaveEc2KeyPair(t, testFolder, awsKeyPair)
 	})
 
 	test_structure.RunTestStage(t, "deploy_terraform", func() {
