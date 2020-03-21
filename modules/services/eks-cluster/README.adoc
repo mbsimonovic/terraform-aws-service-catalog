@@ -45,6 +45,11 @@ toc::[]
 * Zero-downtime, rolling deployment for updating worker nodes
 * IAM to RBAC mapping
 * Auto scaling and auto healing
+* For Self Managed Workers:
+    - Server-hardening with fail2ban, ip-lockdown, auto-update, and more
+    - Manage SSH access via IAM groups via ssh-grunt
+    - CloudWatch log aggregation
+    - CloudWatch metrics and alerts
 
 
 
