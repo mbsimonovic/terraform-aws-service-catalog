@@ -14,7 +14,7 @@ module "eks_cluster" {
 
   cluster_name          = var.cluster_name
   cluster_instance_ami  = var.cluster_instance_ami_id
-  cluster_instance_type = "t2.micro"
+  cluster_instance_type = "t3.small"
 
   # For this simple example, use a regular key pair instead of ssh-grunt
   cluster_instance_keypair_name = var.keypair_name
@@ -41,4 +41,5 @@ module "eks_cluster" {
   # (e.g., solely a bastion host or VPN server).
   endpoint_public_access                    = true
   allow_inbound_api_access_from_cidr_blocks = ["0.0.0.0/0"]
+  allow_inbound_ssh_from_cidr_blocks        = ["0.0.0.0/0"]
 }

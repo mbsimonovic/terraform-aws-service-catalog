@@ -22,6 +22,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const expectedEksNodeCount = 1
+
 func TestEKSCluster(t *testing.T) {
 	t.Parallel()
 
@@ -31,6 +33,7 @@ func TestEKSCluster(t *testing.T) {
 	//os.Setenv("SKIP_deploy_terraform", "true")
 	//os.Setenv("SKIP_validate", "true")
 	//os.Setenv("SKIP_cleanup", "true")
+	//os.Setenv("SKIP_cleanup_keypair", "true")
 	//os.Setenv("SKIP_cleanup_ami", "true")
 
 	testFolder := "../examples/for-learning-and-testing/services/eks-cluster"
@@ -39,6 +42,11 @@ func TestEKSCluster(t *testing.T) {
 		amiId := test_structure.LoadArtifactID(t, testFolder)
 		awsRegion := test_structure.LoadString(t, testFolder, "region")
 		aws.DeleteAmiAndAllSnapshots(t, awsRegion, amiId)
+	})
+
+	defer test_structure.RunTestStage(t, "cleanup_ami", func() {
+		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
+		aws.DeleteEC2KeyPair(t, awsKeyPair)
 	})
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
@@ -65,7 +73,8 @@ func TestEKSCluster(t *testing.T) {
 		amiId := packer.BuildArtifact(t, packerOptions)
 		test_structure.SaveArtifactID(t, testFolder, amiId)
 
-		clusterName := fmt.Sprintf("eks-service-catalog-%s", strings.ToLower(random.UniqueId()))
+		uniqueID := random.UniqueId()
+		clusterName := fmt.Sprintf("eks-service-catalog-%s", strings.ToLower(uniqueID))
 		test_structure.SaveString(t, testFolder, "clusterName", clusterName)
 	})
 
@@ -73,10 +82,12 @@ func TestEKSCluster(t *testing.T) {
 		amiId := test_structure.LoadArtifactID(t, testFolder)
 		awsRegion := test_structure.LoadString(t, testFolder, "region")
 		clusterName := test_structure.LoadString(t, testFolder, "clusterName")
+		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
 
 		terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
 		terraformOptions.Vars["cluster_name"] = clusterName
 		terraformOptions.Vars["cluster_instance_ami_id"] = amiId
+		terraformOptions.Vars["keypair_name"] = awsKeyPair.Name
 
 		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
 		terraform.InitAndApply(t, terraformOptions)
@@ -90,10 +101,10 @@ func TestEKSCluster(t *testing.T) {
 		defer os.Remove(tmpKubeConfigPath)
 		kubectlOptions := k8s.NewKubectlOptions("", tmpKubeConfigPath, "")
 
-		kubeWaitUntilNumNodes(t, kubectlOptions, 3, 30, 10*time.Second)
+		kubeWaitUntilNumNodes(t, kubectlOptions, expectedEksNodeCount, 30, 10*time.Second)
 		k8s.WaitUntilAllNodesReady(t, kubectlOptions, 30, 10*time.Second)
 		readyNodes := k8s.GetReadyNodes(t, kubectlOptions)
-		assert.Equal(t, len(readyNodes), 3)
+		assert.Equal(t, len(readyNodes), expectedEksNodeCount)
 	})
 }
 
