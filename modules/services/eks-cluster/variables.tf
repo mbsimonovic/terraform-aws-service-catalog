@@ -215,3 +215,9 @@ variable "alarms_sns_topic_arn" {
   type        = list(string)
   default     = []
 }
+
+variable "enabled_control_plane_log_types" {
+  description = "A list of the desired control plane logging to enable. See https://docs.aws.amazon.com/eks/latest/userguide/control-plane-logs.html for the list of available logs."
+  type        = list(string)
+  default     = ["api", "audit", "authenticator"]
+}
