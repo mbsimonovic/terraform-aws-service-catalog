@@ -38,6 +38,41 @@ install_kube_utils: &install_kube_utils
     mkdir -p "$(dirname ${KUBECONFIG})"
     touch "${KUBECONFIG}"
 
+run_pre_commit: &run_pre_commit
+  # Fail the build if the pre-commit hooks don't pass. Note: if you run pre-commit install locally, these hooks will
+  # execute automatically every time before you commit, ensuring the build never fails at this step!
+  name: run pre-commit hooks
+  command: |
+    pip install pre-commit==1.11.2 cfgv==2.0.1
+    pre-commit install
+    pre-commit run --all-files
+
+run_circleci_unit_tests: &run_circleci_unit_tests
+  name: run circleci unit tests
+  command: |
+    pyenv global 3.5.2
+    python ./.circleci/run_tests_unit_tests.py
+
+prepare_environment_and_run_prechecks: &prepare_environment_and_run_prechecks
+  - run:
+      <<: *install_gruntwork_utils
+  - run:
+      <<: *install_kube_utils
+  - run:
+      <<: *run_pre_commit
+  - run:
+      <<: *run_circleci_unit_tests
+  - run: mkdir -p /tmp/logs
+
+store_results: &store_results
+  - run:
+      command: terratest_log_parser --testlog /tmp/logs/all.log --outputdir /tmp/logs
+      when: always
+  - store_artifacts:
+      path: /tmp/logs
+  - store_test_results:
+      path: /tmp/logs
+
 version: 2.0
 jobs:
   test:
@@ -45,24 +80,11 @@ jobs:
     steps:
       - checkout
 
-      # Install gruntwork utilities
-      - run:
-          <<: *install_gruntwork_utils
-
-      # Install kubernetes utilities
-      - run:
-          <<: *install_kube_utils
-
-      - run:
-          name: run circleci script unit tests
-          command: |
-            pyenv global 3.5.2
-            python ./.circleci/run_tests_unit_tests.py
+      <<: *prepare_environment_and_run_prechecks
 
       - run:
           name: run tests
           command: |
-            mkdir -p /tmp/logs
             pyenv global 3.5.2
             test_regex=""
             if [[ "$CIRCLE_BRANCH" == "master" ]]; then
@@ -74,47 +96,23 @@ jobs:
             run-go-tests --path ./test --timeout 1h --packages "-run \"$test_regex\"" | tee /tmp/logs/all.log
           no_output_timeout: 3600s
 
-      - run:
-          command: terratest_log_parser --testlog /tmp/logs/all.log --outputdir /tmp/logs
-          when: always
-      - store_artifacts:
-          path: /tmp/logs
-      - store_test_results:
-          path: /tmp/logs
+      <<: *store_results
+
 
   run_all_tests:
     <<: *defaults
     steps:
       - checkout
 
-      # Install gruntwork utilities
-      - run:
-          <<: *install_gruntwork_utils
-
-      # Install kubernetes utilities
-      - run:
-          <<: *install_kube_utils
-
-      - run:
-          name: run circleci script unit tests
-          command: |
-            pyenv global 3.5.2
-            python ./.circleci/run_tests_unit_tests.py
+      <<: *prepare_environment_and_run_prechecks
 
       - run:
           name: run tests
           command: |
-            mkdir -p /tmp/logs
             run-go-tests --path ./test --timeout 1h | tee /tmp/logs/all.log
           no_output_timeout: 3600s
 
-      - run:
-          command: terratest_log_parser --testlog /tmp/logs/all.log --outputdir /tmp/logs
-          when: always
-      - store_artifacts:
-          path: /tmp/logs
-      - store_test_results:
-          path: /tmp/logs
+      <<: *store_results
 
   deploy:
     <<: *defaults
