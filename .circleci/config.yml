@@ -1,30 +1,8 @@
 version: 2.1
 
-commands:
-  prepare_environment_and_run_prechecks:
-    description: "Prepare the environment by installing necessary tools, and run preflight checks before main tests"
-    steps:
-      - run:
-          <<: *install_gruntwork_utils
-      - run:
-          <<: *install_kube_utils
-      - run:
-          <<: *run_pre_commit
-      - run:
-          <<: *run_circleci_unit_tests
-      - run: mkdir -p /tmp/logs
-  store_results:
-    description: "Store test results for easy viewing."
-    steps:
-      - run:
-          command: terratest_log_parser --testlog /tmp/logs/all.log --outputdir /tmp/logs
-          when: always
-      - store_artifacts:
-          path: /tmp/logs
-      - store_test_results:
-          path: /tmp/logs
-
-
+# ---------------------------------------------------------------------------------------------------------------------
+# REUSABLE ALIASES
+# ---------------------------------------------------------------------------------------------------------------------
 
 defaults: &defaults
   machine:
@@ -81,6 +59,38 @@ run_circleci_unit_tests: &run_circleci_unit_tests
     pyenv global 3.5.2
     python ./.circleci/run_tests_unit_tests.py
 
+# ---------------------------------------------------------------------------------------------------------------------
+# REUSABLE STEPS
+# ---------------------------------------------------------------------------------------------------------------------
+
+commands:
+  prepare_environment_and_run_prechecks:
+    description: "Prepare the environment by installing necessary tools, and run preflight checks before main tests"
+    steps:
+      - run:
+          <<: *install_gruntwork_utils
+      - run:
+          <<: *install_kube_utils
+      - run:
+          <<: *run_pre_commit
+      - run:
+          <<: *run_circleci_unit_tests
+      - run: mkdir -p /tmp/logs
+  store_results:
+    description: "Store test results for easy viewing."
+    steps:
+      - run:
+          command: terratest_log_parser --testlog /tmp/logs/all.log --outputdir /tmp/logs
+          when: always
+      - store_artifacts:
+          path: /tmp/logs
+      - store_test_results:
+          path: /tmp/logs
+
+# ---------------------------------------------------------------------------------------------------------------------
+# BUILD JOBS
+# ---------------------------------------------------------------------------------------------------------------------
+
 jobs:
   test:
     <<: *defaults
@@ -128,6 +138,10 @@ jobs:
 
       - run:
           <<: *install_gruntwork_utils
+
+# ---------------------------------------------------------------------------------------------------------------------
+# WORKFLOWS
+# ---------------------------------------------------------------------------------------------------------------------
 
 workflows:
   version: 2
