@@ -1,3 +1,31 @@
+version: 2.1
+
+commands:
+  prepare_environment_and_run_prechecks:
+    description: "Prepare the environment by installing necessary tools, and run preflight checks before main tests"
+    steps:
+      - run:
+          <<: *install_gruntwork_utils
+      - run:
+          <<: *install_kube_utils
+      - run:
+          <<: *run_pre_commit
+      - run:
+          <<: *run_circleci_unit_tests
+      - run: mkdir -p /tmp/logs
+  store_results:
+    description: "Store test results for easy viewing."
+    steps:
+      - run:
+          command: terratest_log_parser --testlog /tmp/logs/all.log --outputdir /tmp/logs
+          when: always
+      - store_artifacts:
+          path: /tmp/logs
+      - store_test_results:
+          path: /tmp/logs
+
+
+
 defaults: &defaults
   machine:
     enabled: true
@@ -53,34 +81,13 @@ run_circleci_unit_tests: &run_circleci_unit_tests
     pyenv global 3.5.2
     python ./.circleci/run_tests_unit_tests.py
 
-prepare_environment_and_run_prechecks: &prepare_environment_and_run_prechecks
-  - run:
-      <<: *install_gruntwork_utils
-  - run:
-      <<: *install_kube_utils
-  - run:
-      <<: *run_pre_commit
-  - run:
-      <<: *run_circleci_unit_tests
-  - run: mkdir -p /tmp/logs
-
-store_results: &store_results
-  - run:
-      command: terratest_log_parser --testlog /tmp/logs/all.log --outputdir /tmp/logs
-      when: always
-  - store_artifacts:
-      path: /tmp/logs
-  - store_test_results:
-      path: /tmp/logs
-
-version: 2.0
 jobs:
   test:
     <<: *defaults
     steps:
       - checkout
 
-      <<: *prepare_environment_and_run_prechecks
+      - prepare_environment_and_run_prechecks
 
       - run:
           name: run tests
@@ -96,7 +103,7 @@ jobs:
             run-go-tests --path ./test --timeout 1h --packages "-run \"$test_regex\"" | tee /tmp/logs/all.log
           no_output_timeout: 3600s
 
-      <<: *store_results
+      - store_results
 
 
   run_all_tests:
@@ -104,7 +111,7 @@ jobs:
     steps:
       - checkout
 
-      <<: *prepare_environment_and_run_prechecks
+      - prepare_environment_and_run_prechecks
 
       - run:
           name: run tests
@@ -112,7 +119,7 @@ jobs:
             run-go-tests --path ./test --timeout 1h | tee /tmp/logs/all.log
           no_output_timeout: 3600s
 
-      <<: *store_results
+      - store_results
 
   deploy:
     <<: *defaults
