@@ -77,7 +77,7 @@ def get_modules_updated(source_ref):
     this function will look for all terraform modules and normalize the directories so that only the module root is
     returned.
     """
-    # First get the raw list of folders contianing updated files
+    # First get the raw list of folders containing updated files
     result = subprocess.run(
         [
             'git-updated-folders',
