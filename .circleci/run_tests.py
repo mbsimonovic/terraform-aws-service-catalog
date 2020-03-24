@@ -236,8 +236,9 @@ def main():
         logging.info('\t- {}'.format(test))
 
     # 4. Construct the regex and print it to stdout so it can be used in a script
-    logging.info('Running all the tests')
-    print(get_tests_to_run_regex(tests_to_run))
+    test_regex = get_tests_to_run_regex(tests_to_run)
+    logging.info('Running the tests with regex {}'.format(test_regex))
+    print(test_regex)
 
 
 if __name__ == '__main__':
