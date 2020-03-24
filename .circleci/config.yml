@@ -70,6 +70,12 @@ run_circleci_unit_tests: &run_circleci_unit_tests
     pyenv global 3.5.2
     python ./.circleci/run_tests_unit_tests.py
 
+# CIRCLE_PR_NUMBER is only available on forked repos, so we extract if from the PR URL.
+set_pr_number: &set_pr_number
+  name: Set PR number
+  command: |
+      echo 'export CIRCLE_PR_NUMBER="${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}"' >> $BASH_ENV
+
 # ---------------------------------------------------------------------------------------------------------------------
 # REUSABLE STEPS
 # ---------------------------------------------------------------------------------------------------------------------
@@ -78,6 +84,8 @@ commands:
   prepare_environment_and_run_prechecks:
     description: "Prepare the environment by installing necessary tools, and run preflight checks before main tests"
     steps:
+      - run:
+          <<: *set_pr_number
       - run:
           <<: *install_gruntwork_utils
       - run:
