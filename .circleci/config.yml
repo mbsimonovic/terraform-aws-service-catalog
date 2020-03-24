@@ -52,7 +52,7 @@ install_hub_cli: &install_hub_cli
     tar -xf hub.tgz
     sudo mv "hub-linux-amd64-${HUB_VERSION}/bin/hub" /usr/local/bin
     sudo chmod +x /usr/local/bin/hub
-    #echo 'export GITHUB_TOKEN="$GITHUB_OAUTH_TOKEN"' >> $BASH_ENV
+    echo 'export GITHUB_TOKEN="$GITHUB_OAUTH_TOKEN"' >> $BASH_ENV
 
 run_pre_commit: &run_pre_commit
   # Fail the build if the pre-commit hooks don't pass. Note: if you run pre-commit install locally, these hooks will
@@ -125,6 +125,11 @@ jobs:
             fi
             cat debug.log
             echo 'export TEST_REGEX="$test_regex"' >> $BASH_ENV
+
+            # Comment the debug log on GitHub if there is a PR number
+            if [[ -n "$CIRCLE_PR_NUMBER" ]]; then
+              echo "Tests run for build [$CIRCLE_BUILD_NUM]($CIRCLE_BUILD_URL)\n\`\`\`$(cat debug.log)\`\`\`" | hub api repos/{owner}/{repo}/issues/"$CIRCLE_PR_NUMBER"/comments --field body=@-
+            fi
 
       - run:
           name: run tests
