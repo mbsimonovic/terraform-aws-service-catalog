@@ -17,18 +17,22 @@ import logging
 import os
 import re
 import argparse
+import json
 
 logging.basicConfig(format='%(asctime)s [%(levelname)s] %(message)s', level=logging.INFO)
 
-# Special cases where the test name does not directly correspond to the module name.
-UNCONVENTIONAL_NAMES = {
-    'account-baseline-app': 'account-baseline',
-    'account-baseline-root': 'account-baseline',
-    'account-baseline-security': 'account-baseline',
-}
-
 DEFAULT_SOURCE_REF = 'origin/master'
 DEFAULT_TARGET_REF = 'HEAD'
+
+# A mapping of module or test file names to corresponding tests to run for the cases where the test name does not
+# directly correspond to the files.
+DIRECT_TEST_MAP = {
+    'account-baseline-app': ['TestAccountBaseline'],
+    'account-baseline-root': ['TestAccountBaseline'],
+    'account-baseline-security': ['TestAccountBaseline'],
+    'ec2-baseline': ['TestBastionHost', 'TestJenkins'],
+    'test_helpers.go': ['.*']
+}
 
 
 def kebab_case_to_camel_case(kebab_case_str):
@@ -144,12 +148,13 @@ def get_tests_to_run_from_tfmodule(module_list):
     tests_to_run = set()
     for module in module_list:
         module_base = os.path.basename(module)
-        if module_base in UNCONVENTIONAL_NAMES:
-            module_base = UNCONVENTIONAL_NAMES[module_base]
-
-        # Convert to camel case
-        test_name = kebab_case_to_camel_case(module_base)
-        tests_to_run.add('Test{}'.format(test_name))
+        if module_base in DIRECT_TEST_MAP:
+            # The direct test map will give a list of tests to run, so we add those to the set directly
+            tests_to_run = tests_to_run.union(set(DIRECT_TEST_MAP[module_base]))
+        else:
+            # Convert to camel case
+            test_name = kebab_case_to_camel_case(module_base)
+            tests_to_run.add('Test{}'.format(test_name))
     return tests_to_run
 
 
@@ -166,9 +171,13 @@ def get_tests_to_run_from_test_file(updated_test_files):
     tests_to_run = set()
     for tfile_path in updated_test_files:
         tfilename = os.path.basename(tfile_path)
-        name = re.sub(r'_test.go$', '', tfilename)
-        test_name = snake_case_to_camel_case(name)
-        tests_to_run.add('Test{}'.format(test_name))
+        if tfilename in DIRECT_TEST_MAP:
+            # The direct test map will give a list of tests to run, so we add those to the set directly
+            tests_to_run = tests_to_run.union(set(DIRECT_TEST_MAP[tfilename]))
+        else:
+            name = re.sub(r'_test.go$', '', tfilename)
+            test_name = snake_case_to_camel_case(name)
+            tests_to_run.add('Test{}'.format(test_name))
     return tests_to_run
 
 
