@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-# Set up an OpenVPN server
+# Install OpenVPN server and Gruntwork dependencies on a Linux server
 
 set -e
+
+readonly DEFAULT_PACKAGE_OPENVPN_VERSION="v0.9.11"
 
 # TODO: Update ref to a tag when released
 readonly DEFAULT_EC2_BASELINE_REF="master"
@@ -29,9 +31,11 @@ function install_openvpn_packages {
   local -r modules=(install-openvpn init-openvpn start-openvpn-admin backup-openvpn-pki openvpn-admin)
   local -r openvpn_repo="https://github.com/gruntwork-io/package-openvpn"
 
+  echo "Installing Gruntwork OpenVPN packages"
+
   for module in ${modules[*]}
   do
-    gruntwork-install --module-name $module --tag $package_openvpn_version --repo $openvpn_repo
+    gruntwork-install --module-name "$module" --repo "$openvpn_repo" --tag "$package_openvpn_version"
   done
 }
 
