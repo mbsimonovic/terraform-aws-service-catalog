@@ -2,6 +2,7 @@ package test
 
 import (
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -13,18 +14,18 @@ import (
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 )
 
-func TestBastionHost(t *testing.T) {
+func TestOpenVPNServer(t *testing.T) {
 	t.Parallel()
 
 	// Uncomment the items below to skip certain parts of the test
-	// os.Setenv("TERRATEST_REGION", "eu-west-1")
+	os.Setenv("TERRATEST_REGION", "eu-west-1")
 	// os.Setenv("SKIP_build_ami", "true")
 	// os.Setenv("SKIP_deploy_terraform", "true")
 	// os.Setenv("SKIP_validate", "true")
 	// os.Setenv("SKIP_cleanup", "true")
-	// os.Setenv("SKIP_cleanup_ami", "true")
+	os.Setenv("SKIP_cleanup_ami", "true")
 
-	testFolder := "../examples/for-learning-and-testing/mgmt/bastion-host"
+	testFolder := "../examples/for-learning-and-testing/mgmt/openvpn-server"
 
 	defer test_structure.RunTestStage(t, "cleanup_ami", func() {
 		amiId := test_structure.LoadArtifactID(t, testFolder)
@@ -44,7 +45,7 @@ func TestBastionHost(t *testing.T) {
 		awsRegion := aws.GetRandomStableRegion(t, regionsForEc2Tests, nil)
 
 		packerOptions := &packer.Options{
-			Template: "../modules/mgmt/bastion-host/bastion-host.json",
+			Template: "../modules/mgmt/openvpn-server/openvpn-server.json",
 			Vars: map[string]string{
 				"aws_region":          awsRegion,
 				"service_catalog_ref": branchName,
@@ -62,7 +63,7 @@ func TestBastionHost(t *testing.T) {
 
 	test_structure.RunTestStage(t, "deploy_terraform", func() {
 		amiId := test_structure.LoadArtifactID(t, testFolder)
-		name := fmt.Sprintf("bastion-host-%s", random.UniqueId())
+		name := fmt.Sprintf("openvpn-server%s", random.UniqueId())
 		awsRegion := test_structure.LoadString(t, testFolder, "region")
 		uniqueId := random.UniqueId()
 		awsKeyPair := aws.CreateAndImportEC2KeyPair(t, awsRegion, uniqueId)
@@ -87,8 +88,8 @@ func TestBastionHost(t *testing.T) {
 
 	test_structure.RunTestStage(t, "validate", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
-		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
 		ip := terraform.OutputRequired(t, terraformOptions, "openvpn_server_public_ip")
+		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
 		testSSH(t, ip, "ubuntu", awsKeyPair)
 	})
 

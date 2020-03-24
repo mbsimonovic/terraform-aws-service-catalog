@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gruntwork-io/terratest/modules/aws"
+	"github.com/gruntwork-io/terratest/modules/retry"
+	"github.com/gruntwork-io/terratest/modules/ssh"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/stretchr/testify/require"
 )
@@ -82,4 +85,22 @@ func pickNRegions(t *testing.T, count int) []string {
 // read the externalAccountId to use for saving RDS snapshots from the environment
 func getExternalAccountId() string {
 	return os.Getenv("TEST_EXTERNAL_ACCOUNT_ID")
+}
+
+func testSSH(t *testing.T, ip string, sshUsername string, keyPair *aws.Ec2Keypair) {
+	publicHost := ssh.Host{
+		Hostname:    ip,
+		SshUserName: sshUsername,
+		SshKeyPair:  keyPair.KeyPair,
+	}
+
+	retry.DoWithRetry(
+		t,
+		fmt.Sprintf("SSH to public host %s", ip),
+		10,
+		30*time.Second,
+		func() (string, error) {
+			return "", ssh.CheckSshConnectionE(t, publicHost)
+		},
+	)
 }

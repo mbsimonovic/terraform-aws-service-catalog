@@ -55,6 +55,25 @@ function attach_volume {
     --owner "$owner"
 }
 
+function get_instance_id {
+    curl --silent http://169.254.169.254/latest/meta-data/instance-id
+}
+
+function get_aws_region {
+    curl --silent http://169.254.169.254/latest/dynamic/instance-identity/document | grep region | awk -F\" '{print $4}'
+}
+
+function attach_eip {
+  local -r eip_id="$1"
+
+  echo 'Attaching EIP $eip_id...'
+  aws ec2 associate-address  \
+   --instance-id $(get_instance_id)  \
+   --allocation-id "$eip_id"  \
+   --region $(get_aws_region)  \
+   --allow-reassociation
+}
+
 function start_cloudwatch_logs_agent {
   local -r log_group_name="$1"
 

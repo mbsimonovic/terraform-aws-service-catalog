@@ -14,7 +14,7 @@ variable "subnet_id" {
 }
 
 variable "ami" {
-  description = "The AMI to run on the bastion host. This should be built from the Packer template under packer/bastion-host.json."
+  description = "The AMI to run on the bastion host. This should be built from the Packer template under bastion-host.json."
   type        = string
 }
 

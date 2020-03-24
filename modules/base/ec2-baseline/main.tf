@@ -35,8 +35,6 @@ module "cloudwatch_metrics" {
 
   name_prefix = var.name
 
-  # We set this to false so that the cloudwatch-custom-metrics-iam-policy generates the JSON for the policy, but does
-  # not create a standalone IAM policy with that JSON. We'll instead add that JSON to the Jenkins IAM role.
   create_resources = false
 }
 
@@ -56,8 +54,6 @@ module "cloudwatch_log_aggregation" {
 
   name_prefix = var.name
 
-  # We set this to false so that the cloudwatch-log-aggregation-iam-policy generates the JSON for the policy, but does
-  # not create a standalone IAM policy with that JSON. We'll instead add that JSON to the Jenkins IAM role.
   create_resources = false
 }
 
