@@ -136,7 +136,8 @@ jobs:
 
             # Comment the debug log on GitHub if there is a PR number
             if [[ -n "$CIRCLE_PR_NUMBER" ]]; then
-              echo -e "Tests run for build [$CIRCLE_BUILD_NUM]($CIRCLE_BUILD_URL)\n\`\`\`$(cat debug.log)\`\`\`" | hub api repos/{owner}/{repo}/issues/"$CIRCLE_PR_NUMBER"/comments --field body=@-
+              echo -e "Tests run for build [$CIRCLE_BUILD_NUM]($CIRCLE_BUILD_URL)\n\`\`\`\n$(cat debug.log)\n\`\`\`" \
+                | hub api repos/{owner}/{repo}/issues/"$CIRCLE_PR_NUMBER"/comments --field body=@-
             fi
 
       - run:
