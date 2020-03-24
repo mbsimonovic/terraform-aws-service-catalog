@@ -49,7 +49,8 @@ run_pre_commit: &run_pre_commit
   # execute automatically every time before you commit, ensuring the build never fails at this step!
   name: run pre-commit hooks
   command: |
-    pip install pre-commit==1.11.2 cfgv==2.0.1
+    pyenv global 3.5.2
+    pip install pre-commit==1.21.0 cfgv==2.0.1
     pre-commit install
     pre-commit run --all-files
 
