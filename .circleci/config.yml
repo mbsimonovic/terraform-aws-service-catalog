@@ -1,3 +1,9 @@
+version: 2.1
+
+# ---------------------------------------------------------------------------------------------------------------------
+# REUSABLE ALIASES
+# ---------------------------------------------------------------------------------------------------------------------
+
 defaults: &defaults
   machine:
     enabled: true
@@ -7,10 +13,11 @@ defaults: &defaults
     TERRATEST_LOG_PARSER_VERSION: v0.13.24
     KUBERGRUNT_VERSION: v0.5.11
     K8S_VERSION: v1.15.0
-    MODULE_CI_VERSION: v0.16.1
+    MODULE_CI_VERSION: v0.18.4
     TERRAFORM_VERSION: 0.12.21
     PACKER_VERSION: 1.5.4
     GOLANG_VERSION: 1.13.8
+    HUB_VERSION: 2.14.2
     KUBECONFIG: /home/circleci/.kube/config
 
 install_gruntwork_utils: &install_gruntwork_utils
@@ -18,6 +25,7 @@ install_gruntwork_utils: &install_gruntwork_utils
   command: |
     curl -Ls https://raw.githubusercontent.com/gruntwork-io/gruntwork-installer/master/bootstrap-gruntwork-installer.sh | bash /dev/stdin --version "${GRUNTWORK_INSTALLER_VERSION}"
     gruntwork-install --module-name "gruntwork-module-circleci-helpers" --repo "https://github.com/gruntwork-io/module-ci" --tag "${MODULE_CI_VERSION}"
+    gruntwork-install --module-name "terraform-helpers" --repo "https://github.com/gruntwork-io/module-ci" --tag "${MODULE_CI_VERSION}"
     gruntwork-install --binary-name "terratest_log_parser" --repo "https://github.com/gruntwork-io/terratest" --tag "${TERRATEST_LOG_PARSER_VERSION}"
     gruntwork-install --binary-name "kubergrunt" --repo "https://github.com/gruntwork-io/kubergrunt" --tag "${KUBERGRUNT_VERSION}"
     configure-environment-for-gruntwork-module \
@@ -37,28 +45,61 @@ install_kube_utils: &install_kube_utils
     mkdir -p "$(dirname ${KUBECONFIG})"
     touch "${KUBECONFIG}"
 
-version: 2.0
-jobs:
-  test:
-    <<: *defaults
-    steps:
-      - checkout
+install_hub_cli: &install_hub_cli
+  name: install hub CLI
+  command: |
+    curl -Lo hub.tgz "https://github.com/github/hub/releases/download/v${HUB_VERSION}/hub-linux-amd64-${HUB_VERSION}.tgz"
+    tar -xf hub.tgz
+    sudo mv "hub-linux-amd64-${HUB_VERSION}/bin/hub" /usr/local/bin
+    sudo chmod +x /usr/local/bin/hub
+    echo 'export GITHUB_TOKEN="$GITHUB_OAUTH_TOKEN"' >> $BASH_ENV
 
-      # Install gruntwork utilities
+run_pre_commit: &run_pre_commit
+  # Fail the build if the pre-commit hooks don't pass. Note: if you run pre-commit install locally, these hooks will
+  # execute automatically every time before you commit, ensuring the build never fails at this step!
+  name: run pre-commit hooks
+  command: |
+    pyenv global 3.5.2
+    pip install pre-commit==1.21.0 cfgv==2.0.1
+    pre-commit install
+    pre-commit run --all-files
+
+run_circleci_unit_tests: &run_circleci_unit_tests
+  name: run circleci unit tests
+  command: |
+    pyenv global 3.5.2
+    python ./.circleci/run_tests_unit_tests.py
+
+# CIRCLE_PR_NUMBER is only available on forked repos, so we extract if from the PR URL.
+set_pr_number: &set_pr_number
+  name: Set PR number
+  command: |
+      echo 'export CIRCLE_PR_NUMBER="${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}"' >> $BASH_ENV
+
+# ---------------------------------------------------------------------------------------------------------------------
+# REUSABLE STEPS
+# ---------------------------------------------------------------------------------------------------------------------
+
+commands:
+  prepare_environment_and_run_prechecks:
+    description: "Prepare the environment by installing necessary tools, and run preflight checks before main tests"
+    steps:
+      - run:
+          <<: *set_pr_number
       - run:
           <<: *install_gruntwork_utils
-
-      # Install kubernetes utilities
       - run:
           <<: *install_kube_utils
-
       - run:
-          name: run tests
-          command: |
-            mkdir -p /tmp/logs
-            run-go-tests --path ./test --timeout 1h | tee /tmp/logs/all.log
-          no_output_timeout: 3600s
-
+          <<: *install_hub_cli
+      - run:
+          <<: *run_pre_commit
+      - run:
+          <<: *run_circleci_unit_tests
+      - run: mkdir -p /tmp/logs
+  store_results:
+    description: "Store test results for easy viewing."
+    steps:
       - run:
           command: terratest_log_parser --testlog /tmp/logs/all.log --outputdir /tmp/logs
           when: always
@@ -67,6 +108,62 @@ jobs:
       - store_test_results:
           path: /tmp/logs
 
+# ---------------------------------------------------------------------------------------------------------------------
+# BUILD JOBS
+# ---------------------------------------------------------------------------------------------------------------------
+
+jobs:
+  test:
+    <<: *defaults
+    steps:
+      - checkout
+
+      - prepare_environment_and_run_prechecks
+
+      - run:
+          name: find all tests to run
+          command: |
+            pyenv global 3.5.2
+            test_regex=""
+            if [[ "$CIRCLE_BRANCH" == "master" ]]; then
+              # On master, the last commit is the merge commit which contains all the changes
+              test_regex="$(python ./.circleci/run_tests.py --source-ref 'HEAD^' 2> debug.log)"
+            else
+              test_regex="$(python ./.circleci/run_tests.py 2> debug.log)"
+            fi
+            cat debug.log
+            echo 'export TEST_REGEX="$test_regex"' >> $BASH_ENV
+
+            # Comment the debug log on GitHub if there is a PR number
+            if [[ -n "$CIRCLE_PR_NUMBER" ]]; then
+              echo -e "Tests run for build [$CIRCLE_BUILD_NUM]($CIRCLE_BUILD_URL)\n\`\`\`\n$(cat debug.log)\n\`\`\`" \
+                | hub api repos/{owner}/{repo}/issues/"$CIRCLE_PR_NUMBER"/comments --field body=@-
+            fi
+
+      - run:
+          name: run tests
+          command: |
+            run-go-tests --path ./test --timeout 1h --packages "-run \"$TEST_REGEX\"" | tee /tmp/logs/all.log
+          no_output_timeout: 3600s
+
+      - store_results
+
+
+  run_all_tests:
+    <<: *defaults
+    steps:
+      - checkout
+
+      - prepare_environment_and_run_prechecks
+
+      - run:
+          name: run tests
+          command: |
+            run-go-tests --path ./test --timeout 1h | tee /tmp/logs/all.log
+          no_output_timeout: 3600s
+
+      - store_results
+
   deploy:
     <<: *defaults
     steps:
@@ -74,6 +171,10 @@ jobs:
 
       - run:
           <<: *install_gruntwork_utils
+
+# ---------------------------------------------------------------------------------------------------------------------
+# WORKFLOWS
+# ---------------------------------------------------------------------------------------------------------------------
 
 workflows:
   version: 2
@@ -91,3 +192,13 @@ workflows:
               only: /^v.*/
             branches:
               ignore: /.*/
+
+  nightly:
+    triggers:
+      - schedule:
+          cron: "0 3 * * *"
+          filters:
+            branches:
+              only: master
+    jobs:
+      - run_all_tests

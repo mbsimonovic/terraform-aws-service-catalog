@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAccountBaselines(t *testing.T) {
+func TestAccountBaseline(t *testing.T) {
 	t.Parallel()
 
 	var testCases = []struct {

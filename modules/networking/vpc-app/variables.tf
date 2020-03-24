@@ -48,7 +48,7 @@ variable "kms_key_user_iam_arns" {
 }
 
 variable "kms_key_arn" {
-  description =  "The ARN of a KMS key to use for encrypting VPC the flow log. A new KMS key will be created if this is not supplied."
+  description = "The ARN of a KMS key to use for encrypting VPC the flow log. A new KMS key will be created if this is not supplied."
   type        = string
   default     = null
 }

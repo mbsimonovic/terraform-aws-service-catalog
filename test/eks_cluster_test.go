@@ -24,7 +24,7 @@ import (
 
 const expectedEksNodeCount = 1
 
-func TestEKSCluster(t *testing.T) {
+func TestEksCluster(t *testing.T) {
 	t.Parallel()
 
 	// Uncomment the items below to skip certain parts of the test
@@ -55,7 +55,8 @@ func TestEKSCluster(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "build_ami", func() {
-		awsRegion := aws.GetRandomStableRegion(t, nil, nil)
+		// us-west-1 does not support EKS
+		awsRegion := aws.GetRandomStableRegion(t, regionsForEc2Tests, []string{"us-west-1"})
 		test_structure.SaveString(t, testFolder, "region", awsRegion)
 
 		branchName := git.GetCurrentBranchName(t)

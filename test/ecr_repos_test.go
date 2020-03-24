@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestECRRepositories(t *testing.T) {
+func TestEcrRepos(t *testing.T) {
 	t.Parallel()
 
 	// Uncomment the items below to skip certain parts of the test
@@ -134,7 +134,7 @@ type IAMPoliciesTestCase struct {
 	overrideReadAccessAccountIDs  []string
 }
 
-func TestECRRepositoryIAMPoliciesLogic(t *testing.T) {
+func TestEcrReposIAMPoliciesLogic(t *testing.T) {
 	t.Parallel()
 
 	testCases := []IAMPoliciesTestCase{

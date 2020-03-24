@@ -1,0 +1,15 @@
+repos:
+  - repo: https://github.com/gruntwork-io/pre-commit
+    rev: v0.1.3
+    hooks:
+      - id: terraform-fmt
+
+  - repo: local
+    hooks:
+      - id: validate-test-mappings
+        name: validate-test-mappings
+        entry: ./hooks/run_validate_test_mappings.sh
+        language: script
+        files: "$^"
+        always_run: true
+        pass_filenames: false
