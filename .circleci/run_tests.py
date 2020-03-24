@@ -215,25 +215,34 @@ def main():
     # 1. Get all the modules that were updated
     logging.info('Generating list of all modules that have been updated')
     module_list = get_modules_updated(source_ref)
-    logging.info('The following modules have been detected to be updated:')
-    for module in module_list:
-        logging.info('\t- {}'.format(module))
+    if module_list:
+        logging.info('The following modules have been detected to be updated:')
+        for module in module_list:
+            logging.info('\t- {}'.format(module))
+    else:
+        logging.warn('Did not find any modules that were updated')
 
     # 2. Get all the tests that were updated
     logging.info('Generating list of all test files that have been updated')
     updated_test_files = get_test_files_updated(source_ref)
-    logging.info('The following test files have been detected to be updated:')
-    for tfile in updated_test_files:
-        logging.info('\t- {}'.format(tfile))
+    if updated_test_files:
+        logging.info('The following test files have been detected to be updated:')
+        for tfile in updated_test_files:
+            logging.info('\t- {}'.format(tfile))
+    else:
+        logging.warn('Did not find any test files that were updated')
 
     # 3. Find all the tests that need to run based on the updated modules and test files list
     logging.info('Generating list of tests to run based on the list of modules and test files that were updated')
     module_tests_to_run = get_tests_to_run_from_tfmodule(module_list)
     test_file_tests_to_run = get_tests_to_run_from_test_file(updated_test_files)
     tests_to_run = module_tests_to_run.union(test_file_tests_to_run)
-    logging.info('The following tests will be run:')
-    for test in tests_to_run:
-        logging.info('\t- {}'.format(test))
+    if tests_to_run:
+        logging.info('The following tests will be run:')
+        for test in tests_to_run:
+            logging.info('\t- {}'.format(test))
+    else:
+        logging.warn('Did not find any tests to run')
 
     # 4. Construct the regex and print it to stdout so it can be used in a script
     test_regex = get_tests_to_run_regex(tests_to_run)
