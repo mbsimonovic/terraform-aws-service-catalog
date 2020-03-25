@@ -28,7 +28,7 @@ function include_ec2_baseline {
 
 function install_openvpn_packages {
   local -r package_openvpn_version="$1"
-  local -r modules=(install-openvpn init-openvpn start-openvpn-admin backup-openvpn-pki openvpn-admin)
+  local -r modules=(install-openvpn init-openvpn start-openvpn-admin backup-openvpn-pki)
   local -r openvpn_repo="https://github.com/gruntwork-io/package-openvpn"
 
   echo "Installing Gruntwork OpenVPN packages"
@@ -37,6 +37,8 @@ function install_openvpn_packages {
   do
     gruntwork-install --module-name "$module" --repo "$openvpn_repo" --tag "$package_openvpn_version"
   done
+  
+  gruntwork-install --binary-name openvpn-admin --repo "$openvpn_repo" --tag "$package_openvpn_version"
 }
 
 function install_openvpn_server {
