@@ -20,7 +20,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestOpenVPNServer(t *testing.T) {
+func TestOpenvpnServer(t *testing.T) {
 	t.Parallel()
 
 	// Uncomment the items below to skip certain parts of the test
