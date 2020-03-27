@@ -31,7 +31,7 @@ module "openvpn" {
   name = var.name
 
   instance_type    = var.instance_type
-  ami              = var.ami
+  ami              = var.ami_id
   user_data_base64 = module.ec2_baseline.cloud_init_rendered
 
 
@@ -49,6 +49,7 @@ module "openvpn" {
 
   allow_vpn_from_cidr_list = var.allow_vpn_from_cidr_list
   allow_ssh_from_cidr_list = var.allow_ssh_from_cidr_list
+  allow_ssh_from_cidr      = true
 
   backup_bucket_force_destroy = var.force_destroy
 }
@@ -60,7 +61,7 @@ module "openvpn" {
 locals {
   user_data_vars = {
     backup_bucket_name = module.openvpn.backup_bucket_name
-    kms_key_id         = var.kms_key_id
+    kms_key_arn        = var.kms_key_arn
 
     key_size             = 4096
     ca_expiration_days   = 3650
@@ -80,7 +81,7 @@ locals {
     queue_region         = data.aws_region.current.name
 
     vpn_subnet = var.vpn_subnet
-    routes     = var.vpn_routes
+    routes     = join(" ", formatlist("\"%s\"", var.vpn_route_cidr_blocks))
 
     log_group_name = "${var.name}_log_group"
   }
@@ -89,7 +90,7 @@ locals {
   cloud_init = {
     filename     = "openvpn-default-cloud-init"
     content_type = "text/x-shellscript"
-    content      = templatefile("user-data.sh", local.user_data_vars)
+    content      = templatefile("${path.module}/user-data.sh", local.user_data_vars)
   }
 
   # Merge in all the cloud init scripts the user has passed in
@@ -125,7 +126,7 @@ module "ec2_baseline" {
 
 resource "aws_route53_record" "openvpn" {
   count   = var.domain_name == null ? 1 : 0
-  name    = var.domain_name
+  name    = "${var.name}.${var.domain_name}"
   zone_id = var.hosted_zone_id
   type    = "A"
   ttl     = "300"

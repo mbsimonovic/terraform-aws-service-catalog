@@ -22,7 +22,7 @@ function init_openvpn {
   local -r ca_org_unit="$5"
   local -r ca_email="$6"
   local -r backup_bucket_name="$7"
-  local -r kms_key_id="$8"
+  local -r kms_key_arn="$8"
   local -r key_size="$9"
   shift 9
   local -r ca_expiration_days="$1"
@@ -46,7 +46,7 @@ function init_openvpn {
    --org-unit "$ca_org_unit"  \
    --email "$ca_email"  \
    --s3-bucket-name "$backup_bucket_name"  \
-   --kms-key-id "$kms_key_id" \
+   --kms-key-id "$kms_key_arn" \
    --key-size "$key_size" \
    --ca-expiration-days "$ca_expiration_days" \
    --cert-expiration-days "$cert_expiration_days" \
@@ -68,5 +68,5 @@ function start_openvpn {
 }
 
 attach_eip "${eip_id}"
-init_openvpn "${ca_cert_fields.ca_country}" "${ca_cert_fields.ca_state}" "${ca_cert_fields.ca_locality}" "${ca_cert_fields.ca_org}" "${ca_cert_fields.ca_org_unit}" "${ca_cert_fields.ca_email}" "${backup_bucket_name}" "${kms_key_id}" "${key_size}" "${ca_expiration_days}" "${cert_expiration_days}" "${vpn_subnet}" ${routes}
+init_openvpn "${ca_country}" "${ca_state}" "${ca_locality}" "${ca_org}" "${ca_org_unit}" "${ca_email}" "${backup_bucket_name}" "${kms_key_arn}" "${key_size}" "${ca_expiration_days}" "${cert_expiration_days}" "${vpn_subnet}" ${routes}
 start_openvpn "${queue_region}"

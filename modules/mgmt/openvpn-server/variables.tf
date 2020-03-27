@@ -4,7 +4,7 @@
 # ---------------------------------------------------------------------------------------------------------------------
 
 
-variable "ami" {
+variable "ami_id" {
   description = "The AMI to run on the OpenVPN Server. This should be built from the Packer template under openvpn-server.json."
   type        = string
 }

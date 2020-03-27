@@ -3,6 +3,7 @@ package test
 import (
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -12,6 +13,12 @@ import (
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
+
+	awssdk "github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/kms"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestOpenVPNServer(t *testing.T) {
@@ -19,11 +26,11 @@ func TestOpenVPNServer(t *testing.T) {
 
 	// Uncomment the items below to skip certain parts of the test
 	os.Setenv("TERRATEST_REGION", "eu-west-1")
-	// os.Setenv("SKIP_build_ami", "true")
-	// os.Setenv("SKIP_deploy_terraform", "true")
-	// os.Setenv("SKIP_validate", "true")
+	os.Setenv("SKIP_build_ami", "true")
+	os.Setenv("SKIP_deploy_terraform", "true")
+	os.Setenv("SKIP_validate", "true")
 	// os.Setenv("SKIP_cleanup", "true")
-	os.Setenv("SKIP_cleanup_ami", "true")
+	// os.Setenv("SKIP_cleanup_ami", "true")
 
 	testFolder := "../examples/for-learning-and-testing/mgmt/openvpn-server"
 
@@ -38,6 +45,10 @@ func TestOpenVPNServer(t *testing.T) {
 		terraform.Destroy(t, terraformOptions)
 		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
 		aws.DeleteEC2KeyPair(t, awsKeyPair)
+
+		awsRegion := test_structure.LoadString(t, testFolder, "region")
+		kmsKeyArn := test_structure.LoadString(t, testFolder, "kmsKeyArn")
+		deleteKMSKey(t, awsRegion, kmsKeyArn)
 	})
 
 	test_structure.RunTestStage(t, "build_ami", func() {
@@ -63,10 +74,14 @@ func TestOpenVPNServer(t *testing.T) {
 
 	test_structure.RunTestStage(t, "deploy_terraform", func() {
 		amiId := test_structure.LoadArtifactID(t, testFolder)
-		name := fmt.Sprintf("openvpn-server%s", random.UniqueId())
+		name := fmt.Sprintf("openvpn-server-%s", random.UniqueId())
 		awsRegion := test_structure.LoadString(t, testFolder, "region")
 		uniqueId := random.UniqueId()
 		awsKeyPair := aws.CreateAndImportEC2KeyPair(t, awsRegion, uniqueId)
+
+		kmsKeyARN := createKMSKey(t, awsRegion, uniqueId)
+
+		s3BucketName := "openvpn-test-" + strings.ToLower(uniqueId)
 
 		terraformOptions := &terraform.Options{
 			TerraformDir: testFolder,
@@ -75,22 +90,57 @@ func TestOpenVPNServer(t *testing.T) {
 				"aws_region":            awsRegion,
 				"name":                  name,
 				"ami_id":                amiId,
-				"domain_name":           baseDomainForTest,
 				"base_domain_name_tags": domainNameTagsForTest,
 				"keypair_name":          awsKeyPair.Name,
+				"kms_key_arn":           kmsKeyARN,
+				"backup_bucket_name":    s3BucketName,
 			},
 		}
 
 		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
 		test_structure.SaveEc2KeyPair(t, testFolder, awsKeyPair)
+		test_structure.SaveString(t, testFolder, "kmsKeyArn", kmsKeyARN)
+		test_structure.SaveString(t, testFolder, "s3BucketName", s3BucketName)
 		terraform.InitAndApply(t, terraformOptions)
 	})
 
 	test_structure.RunTestStage(t, "validate", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
-		ip := terraform.OutputRequired(t, terraformOptions, "openvpn_server_public_ip")
+		ip := terraform.OutputRequired(t, terraformOptions, "public_ip")
 		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
 		testSSH(t, ip, "ubuntu", awsKeyPair)
 	})
 
+}
+
+func createKMSKey(t *testing.T, region, uniqueId string) string {
+	sess, err := session.NewSession(&awssdk.Config{
+		Region: awssdk.String(region)},
+	)
+	require.NoError(t, err)
+
+	svc := kms.New(sess)
+	description := fmt.Sprintf("openvpn-server-test-%s", uniqueId)
+	input := &kms.CreateKeyInput{
+		Description: awssdk.String(description),
+	}
+	result, err := svc.CreateKey(input)
+	require.NoError(t, err)
+
+	return awssdk.StringValue(result.KeyMetadata.Arn)
+}
+
+func deleteKMSKey(t *testing.T, region, keyArn string) {
+	sess, err := session.NewSession(&awssdk.Config{
+		Region: awssdk.String(region)},
+	)
+	require.NoError(t, err)
+
+	svc := kms.New(sess)
+	input := &kms.ScheduleKeyDeletionInput{
+		KeyId:               awssdk.String(keyArn),
+		PendingWindowInDays: awssdk.Int64(7), // 7 is the minimum
+	}
+	_, err = svc.ScheduleKeyDeletion(input)
+	require.NoError(t, err)
 }

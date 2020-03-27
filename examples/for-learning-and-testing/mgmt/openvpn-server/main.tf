@@ -6,14 +6,14 @@ provider "aws" {
   region = var.aws_region
 }
 
-module "openvpn_server" {
+module "openvpn" {
   # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
   # to a specific version of the modules, such as the following example:
   # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/mgmt/openvpn-server?ref=v1.0.8"
   source = "../../../../modules/mgmt/openvpn-server"
 
-  name = var.name
-  ami  = var.ami
+  name   = var.name
+  ami_id = var.ami_id
 
   # For this simple example, use a regular key pair instead of ssh-grunt
   keypair_name     = var.keypair_name
@@ -24,9 +24,9 @@ module "openvpn_server" {
   subnet_id = local.openvpn_subnet
 
   # Configure a host name for the openvpn server
-  create_dns_record = true
-  hosted_zone_id    = data.aws_route53_zone.zone.id
-  domain_name       = "${var.name}.${var.domain_name}"
+  create_route53_entry = true
+  hosted_zone_id       = data.aws_route53_zone.zone.id
+  domain_name          = "${var.name}.${var.domain_name}"
 
   backup_bucket_name = var.backup_bucket_name
   kms_key_arn        = var.kms_key_arn
@@ -40,7 +40,8 @@ module "openvpn_server" {
     ca_email    = "support@gruntwork.io"
   }
 
-  # To keep this example simple, we allow incoming SSH connections from anywhere. In production, you should limit
+  # To keep this example simple, we allow incoming connections from anywhere. In production, you should limit
   # access to a specific set of source CIDR ranges, like the addresses of your offices.
   allow_ssh_from_cidr_list = ["0.0.0.0/0"]
+  allow_vpn_from_cidr_list = ["0.0.0.0/0"]
 }
