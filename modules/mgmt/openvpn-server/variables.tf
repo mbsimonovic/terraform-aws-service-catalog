@@ -46,12 +46,12 @@ variable "ca_cert_fields" {
 }
 
 variable "vpc_id" {
-  description = "The ID of the VPC in which to deploy the bastion."
+  description = "The ID of the VPC in which to deploy the OpenVPN server."
   type        = string
 }
 
 variable "subnet_id" {
-  description = "The ID of the subnet in which to deploy the bastion. Must be a subnet in var.vpc_id."
+  description = "The ID of the subnet in which to deploy the OpenVPN server. Must be a subnet in var.vpc_id."
   type        = string
 }
 
@@ -97,7 +97,7 @@ variable "enable_ip_lockdown" {
 }
 
 variable "enable_cloudwatch_metrics" {
-  description = "Set to true to add IAM permissions to send custom metrics to CloudWatch. This is useful in combination with https://github.com/gruntwork-io/module-aws-monitoring/tree/master/modules/metrics/cloudwatch-memory-disk-metrics-scripts to get memory and disk metrics in CloudWatch for your Jenkins server."
+  description = "Set to true to add IAM permissions to send custom metrics to CloudWatch. This is useful in combination with https://github.com/gruntwork-io/module-aws-monitoring/tree/master/modules/metrics/cloudwatch-memory-disk-metrics-scripts to get memory and disk metrics in CloudWatch for your OpenVPN server."
   type        = bool
   default     = true
 }
@@ -121,13 +121,13 @@ variable "enable_ssh_grunt" {
 }
 
 variable "ssh_grunt_iam_group" {
-  description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to this Jenkins server. To omit this variable, set it to an empty string (do NOT use null, or Terraform will complain)."
+  description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to this OpenVPN server. To omit this variable, set it to an empty string (do NOT use null, or Terraform will complain)."
   type        = string
   default     = ""
 }
 
 variable "ssh_grunt_iam_group_sudo" {
-  description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to this Jenkins server with sudo permissions. To omit this variable, set it to an empty string (do NOT use null, or Terraform will complain)."
+  description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to this OpenVPN server with sudo permissions. To omit this variable, set it to an empty string (do NOT use null, or Terraform will complain)."
   type        = string
   default     = ""
 }
@@ -181,7 +181,7 @@ variable "hosted_zone_id" {
 }
 
 variable "alarms_sns_topic_arn" {
-  description = "The ARNs of SNS topics where CloudWatch alarms (e.g., for CPU, memory, and disk space usage) should send notifications. Also used for the alarms if the Jenkins backup job fails."
+  description = "The ARNs of SNS topics where CloudWatch alarms (e.g., for CPU, memory, and disk space usage) should send notifications."
   type        = list(string)
   default     = []
 }
@@ -205,7 +205,7 @@ variable "force_destroy" {
 }
 
 variable "cloud_init_parts" {
-  description = "Cloud init scripts to run on the bastion host while it boots. See the part blocks in https://www.terraform.io/docs/providers/template/d/cloudinit_config.html for syntax."
+  description = "Cloud init scripts to run on the OpenVPN server while it boots. See the part blocks in https://www.terraform.io/docs/providers/template/d/cloudinit_config.html for syntax."
   type = map(object({
     filename     = string
     content_type = string
