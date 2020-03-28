@@ -1,0 +1,132 @@
+:type: service
+:name: OpenVPN
+:description: Deploy an OpenVPNServer on AWS.
+:icon: /_docs/openvpn-icon.png
+:category: remote-access
+:cloud: aws
+:tags: vpn, ec2, ssh, security
+:license: gruntwork
+:built-with: terraform, bash, packer
+
+// AsciiDoc TOC settings
+:toc:
+:toc-placement!:
+:toc-title:
+
+// GitHub specific settings. See https://gist.github.com/dcode/0cfbf2699a1fe9b46ff04c41721dda74 for details.
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+
+= OpenVPN Server
+
+image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
+image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
+
+This Terraform Module deploys an https://openvpn.net/[OpenVPN Server].
+
+
+image::../../../_docs/openvpn-architecture.png?raw=true[OpenVPN server architecture]
+This server acts as the entrypoint to your AWS account. You must connect to it with an OpenVPN client before you can
+connect to any of your other servers, which are in private subnets. This way, you minimize the surface area you expose
+to attackers, and can focus all your efforts on locking down just a single server.
+
+
+toc::[]
+== Features
+
+* An AMI to run on the OpenVPN Server
+* An Auto Scaling Group of size 1 (for fault tolerance)
+* An Elastic IP Address (EIP)
+* IAM Role and IAM instance profile
+* Security group.
+* A DNS record
+
+Under the hood, this is all implemented using Terraform modules from the Gruntwork
+[package-openvpn](https://github.com/gruntwork-io/package-openvpn) repo.
+
+
+== Learn
+
+NOTE: This repo is a part of the https://gruntwork.io/service-catalog/[Gruntwork Service Catalog], a collection of
+reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
+sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catallog/[How to use the Gruntwork
+Service Catalog]!
+
+=== Core concepts
+
+To understand core concepts like why you should use a bastion host, how to connect to the bastion host, how to use the
+bastion host as a "jump host" to connect to other instances, port forwarding, and more, see the https://github.com/gruntwork-io/package-openvpn/blob/master/modules/openvpn-server/README.md[openvpn-server
+documentation] documentation in the https://github.com/gruntwork-io/package-openvpn[package-openvpn] repo.
+
+== The OpenVPN Server AMI
+
+The OpenVPN Server AMI is defined using the [Packer](https://www.packer.io/) template under `packer/openvpn-server.json`.
+This template configures the AMI to:
+
+1. Install OpenVPN server, all its dependencies, and the Gruntwork admin tools.
+1. Run the https://github.com/gruntwork-io/module-security/tree/master/modules/ssh-grunt[ssh-grunt module] so that
+   developers can upload their public SSH keys to IAM and use those SSH keys, along with their IAM user names, to SSH
+   to the OpenVPN Server (typically for troubleshooting only).
+1. Run the https://github.com/gruntwork-io/module-security/tree/master/modules/auto-update[auto-update module] so
+   that the OpenVPN Server installs security updates automatically.
+1. Optionally run the https://github.com/gruntwork-io/module-aws-monitoring/tree/master/modules/logs/syslog[syslog module] to
+   automatically rotate and rate limit syslog so that the server doesn't run out of disk space from large volumes
+   of logs.
+
+
+== Deploy
+
+=== Non-production deployment (quick start for learning)
+
+If you just want to try this repo out for experimenting and learning, check out the following resources:
+
+* link:/examples/for-learning-and-testing[examples/for-learning-and-testing folder]: The
+  `examples/for-learning-and-testing` folder contains standalone sample code optimized for learning, experimenting, and
+  testing (but not direct production usage).
+
+=== Production deployment
+
+If you want to deploy this repo in production, check out the following resources:
+
+* link:/examples/for-production[examples/for-production folder]: The `examples/for-production` folder contains sample
+  code optimized for direct usage in production. This is code from the
+  https://gruntwork.io/reference-architecture/:[Gruntwork Reference Architecture], and it shows you how we build an
+  end-to-end, integrated tech stack on top of the Gruntwork Service Catalog.
+  configure CI / CD for your apps and infrastructure.
+
+
+== Operate
+
+=== Day-to-day operations
+
+* https://github.com/fail2ban/fail2ban[`fail2ban`] bans IP addresses that cause too many failed login attempts. The bastion host is configured with `fail2ban` as a security measure. See the  https://github.com/gruntwork-io/module-security/tree/master/modules/fail2ban[`fail2ban` module] for more information.
+* Use the https://github.com/gruntwork-io/package-openvpn/blob/master/modules/openvpn-admin/README.md[openvpn-admin] utility to requests new certificates and, for administrators, to revoke existing certificates.
+
+
+== Support
+
+If you need help with this repo or anything else related to infrastructure or DevOps, Gruntwork offers
+https://gruntwork.io/support/[Commercial Support] via Slack, email, and phone/video. If you're already a Gruntwork
+customer, hop on Slack and ask away! If not, https://www.gruntwork.io/pricing/[subscribe now]. If you're not sure,
+feel free to email us at link:mailto:support@gruntwork.io[support@gruntwork.io].
+
+
+== Contributions
+
+Contributions to this repo are very welcome and appreciated! If you find a bug or want to add a new feature or even
+contribute an entirely new module, we are very happy to accept pull requests, provide feedback, and run your changes
+through our automated test suite.
+
+Please see
+https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/#contributing-to-the-gruntwork-service-catalog[Contributing to the Gruntwork Service Catalog]
+for instructions.
+
+
+== License
+
+Please see link:/LICENSE.txt[LICENSE.txt] for details on how the code in this repo is licensed.
