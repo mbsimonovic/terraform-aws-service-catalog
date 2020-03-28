@@ -143,7 +143,7 @@ jobs:
       - run:
           name: run tests
           command: |
-            run-go-tests --path ./test --timeout 1h --packages "-run \"$TEST_REGEX\"" | tee /tmp/logs/all.log
+            run-go-tests --path ./test --timeout 1h --packages "-run '$TEST_REGEX'" | tee /tmp/logs/all.log
           no_output_timeout: 3600s
 
       - store_results
