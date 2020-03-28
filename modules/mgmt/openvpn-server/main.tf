@@ -113,7 +113,8 @@ module "ec2_baseline" {
   iam_role_arn                        = module.openvpn.iam_role_id
   enable_cloudwatch_metrics           = var.enable_cloudwatch_metrics
   enable_asg_cloudwatch_alarms        = var.enable_cloudwatch_alarms
-  asg_name                            = module.openvpn.autoscaling_group_id
+  asg_names                           = [module.openvpn.autoscaling_group_id]
+  num_asg_names                       = 1
   alarms_sns_topic_arn                = var.alarms_sns_topic_arn
   cloud_init_parts                    = local.cloud_init_parts
 }
