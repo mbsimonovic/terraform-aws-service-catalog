@@ -19,7 +19,7 @@ variable "control_plane_vpc_subnet_ids" {
 }
 
 variable "autoscaling_group_configurations" {
-  description = "Configure one or more Auto Scaling Groups (ASGs) to manage the EC2 instances in this cluster."
+  description = "Configure one or more Auto Scaling Groups (ASGs) to manage the EC2 instances in this cluster. If you do not wish to use the default self managed ASG group, you can pass in an empty object (`{}`)."
 
   # Each configuration must be keyed by a unique string that will be used as a suffix for the ASG name.
   #
@@ -93,6 +93,18 @@ variable "allow_inbound_api_access_from_cidr_blocks" {
 # OPTIONAL PARAMETERS
 # Generally, these values won't need to be changed.
 # ---------------------------------------------------------------------------------------------------------------------
+
+variable "schedule_control_plane_services_on_fargate" {
+  description = "When true, configures control plane services to run on Fargate so that the cluster can run without worker nodes. When true, requires kubergrunt to be available on the system."
+  type        = bool
+  default     = false
+}
+
+variable "worker_vpc_subnet_ids" {
+  description = "A list of the subnets into which the EKS Cluster's administrative pods will be launched. These should usually be all private subnets and include one in each AWS Availability Zone. Required when var.schedule_control_plane_services_on_fargate is true."
+  type        = list(string)
+  default     = []
+}
 
 variable "cluster_instance_keypair_name" {
   description = "The name of the Key Pair that can be used to SSH to each instance in the EKS cluster"

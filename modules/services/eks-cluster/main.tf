@@ -59,7 +59,7 @@ data "aws_eks_cluster_auth" "kubernetes_token" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "eks_cluster" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.17.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.19.0"
 
   cluster_name = var.cluster_name
 
@@ -70,10 +70,15 @@ module "eks_cluster" {
   enabled_cluster_log_types = var.enabled_control_plane_log_types
   kubernetes_version        = var.kubernetes_version
   endpoint_public_access    = var.endpoint_public_access
+
+  # Options for configuring control plane services on Fargate
+  schedule_control_plane_services_on_fargate = var.schedule_control_plane_services_on_fargate
+  vpc_worker_subnet_ids                      = var.worker_vpc_subnet_ids
 }
 
 module "eks_workers" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.17.0"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.19.0"
+  create_resources = length(var.autoscaling_group_configurations) > 0
 
   cluster_name                     = var.cluster_name
   vpc_id                           = var.vpc_id
@@ -126,7 +131,7 @@ resource "aws_security_group_rule" "allow_inbound_ssh_from_cidr_blocks" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "eks_k8s_role_mapping" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.17.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.19.0"
 
   eks_worker_iam_role_arns = (
     length(var.autoscaling_group_configurations) > 0
