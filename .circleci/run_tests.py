@@ -68,6 +68,11 @@ def get_terraform_modules():
         # TODO: concrete exception
         raise Exception('Did not get any output from find: stderr is "{}"'.format(result.stderr))
     module_list = [os.path.dirname(module.decode('utf-8').strip()) for module in result.stdout.splitlines()]
+    # Convert the paths to relative paths if they are absolute paths
+    module_list = [
+        os.path.relpath(module, git_root) if os.path.isabs(module) else module
+        for module in module_list
+    ]
     return module_list
 
 
@@ -223,7 +228,7 @@ def main():
         for module in module_list:
             logging.info('\t- {}'.format(module))
     else:
-        logging.warn('Did not find any modules that were updated')
+        logging.warning('Did not find any modules that were updated')
 
     # 2. Get all the tests that were updated
     logging.info('Generating list of all test files that have been updated')
@@ -233,7 +238,7 @@ def main():
         for tfile in updated_test_files:
             logging.info('\t- {}'.format(tfile))
     else:
-        logging.warn('Did not find any test files that were updated')
+        logging.warning('Did not find any test files that were updated')
 
     # 3. Find all the tests that need to run based on the updated modules and test files list
     logging.info('Generating list of tests to run based on the list of modules and test files that were updated')
@@ -245,7 +250,7 @@ def main():
         for test in tests_to_run:
             logging.info('\t- {}'.format(test))
     else:
-        logging.warn('Did not find any tests to run')
+        logging.warning('Did not find any tests to run')
 
     # 4. Construct the regex and print it to stdout so it can be used in a script
     test_regex = get_tests_to_run_regex(tests_to_run)
