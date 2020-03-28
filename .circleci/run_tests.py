@@ -185,8 +185,11 @@ def get_tests_to_run_regex(tests_to_run):
     """
     Given a collection of test prefixes, construct the regex that matches all the tests.
     """
-    tests_to_run_regex = '^({})'.format('|'.join(tests_to_run))
-    return tests_to_run_regex
+    if tests_to_run:
+        tests_to_run_regex = '^({})'.format('|'.join(tests_to_run))
+        return tests_to_run_regex
+    # Regex that will match nothing
+    return '$^'
 
 
 def parse_args():
