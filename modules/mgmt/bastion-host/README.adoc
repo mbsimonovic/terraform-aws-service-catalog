@@ -1,8 +1,8 @@
 :type: service
 :name: Bastion
-:description: Deploy a Bastion host as the sole public entrypoint into your AWS VPC network.
+:description: Deploy a Bastion host on to your AWS VPC network.
 :icon: /_docs/bastion-icon.png
-:category: ssh-access
+:category: remote-access
 :cloud: aws
 :tags: bastion, ec2, ssh, security
 :license: gruntwork
@@ -100,7 +100,6 @@ If you want to deploy this repo in production, check out the following resources
 === Day-to-day operations
 
 * https://github.com/fail2ban/fail2ban[`fail2ban`] bans IP addresses that cause too many failed login attempts. The bastion host is configured with `fail2ban` as a security measure. See the  https://github.com/gruntwork-io/module-security/tree/master/modules/fail2ban[`fail2ban` module] for more information.
-
 
 
 == Support
