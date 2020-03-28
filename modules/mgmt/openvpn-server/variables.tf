@@ -63,7 +63,7 @@ variable "subnet_id" {
 variable "name" {
   description = "The name of the OpenVPN Server and the other resources created by these templates"
   type        = string
-  default     = "openvpn-server"
+  default     = "vpn"
 }
 
 variable "instance_type" {

@@ -83,8 +83,7 @@ func TestBastionHost(t *testing.T) {
 	test_structure.RunTestStage(t, "validate", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
 		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
-		ip := terraform.OutputRequired(t, terraformOptions, "openvpn_server_public_ip")
+		ip := terraform.OutputRequired(t, terraformOptions, "bastion_host_public_ip")
 		testSSH(t, ip, "ubuntu", awsKeyPair)
 	})
-
 }
