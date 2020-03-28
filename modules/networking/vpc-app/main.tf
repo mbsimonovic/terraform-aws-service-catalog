@@ -61,7 +61,7 @@ module "vpc" {
 module "vpc_tags" {
   source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-vpc-tags?ref=v0.19.0"
 
-  eks_cluster_name = var.eks_cluster_name
+  eks_cluster_names = var.eks_cluster_names
 }
 
 locals {

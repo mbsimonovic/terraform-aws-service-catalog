@@ -71,8 +71,8 @@ variable "tag_for_use_with_eks" {
   default     = false
 }
 
-variable "eks_cluster_name" {
-  description = "The EKS cluster that will be deployed into the VPC, if var.tag_for_use_with_eks is true."
-  type        = string
-  default     = ""
+variable "eks_cluster_names" {
+  description = "The names of EKS clusters that will be deployed into the VPC, if var.tag_for_use_with_eks is true."
+  type        = list(string)
+  default     = []
 }
