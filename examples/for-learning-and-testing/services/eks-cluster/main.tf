@@ -12,9 +12,10 @@ module "eks_cluster" {
   # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/services/eks-cluster?ref=v1.0.8"
   source = "../../../../modules/services/eks-cluster"
 
-  cluster_name          = var.cluster_name
-  cluster_instance_ami  = var.cluster_instance_ami_id
-  cluster_instance_type = "t3.small"
+  cluster_name                               = var.cluster_name
+  cluster_instance_ami                       = var.cluster_instance_ami_id
+  cluster_instance_type                      = "t3.small"
+  schedule_control_plane_services_on_fargate = true
 
   # For this simple example, use a regular key pair instead of ssh-grunt
   cluster_instance_keypair_name = var.keypair_name
@@ -24,6 +25,7 @@ module "eks_cluster" {
   # you'll want to use a custom VPC, with both the workers and control plane in a private subnet.
   vpc_id                       = data.aws_vpc.default.id
   control_plane_vpc_subnet_ids = data.aws_subnet_ids.default.ids
+  worker_vpc_subnet_ids        = data.aws_subnet_ids.default.ids
 
   # Due to localization limitations for EKS, it is recommended to have separate ASGs per availability zones. Here we
   # deploy one ASG in one subnet.
