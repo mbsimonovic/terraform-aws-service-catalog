@@ -1,6 +1,6 @@
 :type: service
 :name: OpenVPN
-:description: Deploy an OpenVPNServer on AWS.
+:description: Deploy an OpenVPN Server on AWS.
 :icon: /_docs/openvpn-icon.png
 :category: remote-access
 :cloud: aws
@@ -45,6 +45,13 @@ toc::[]
 * IAM Role and IAM instance profile
 * Security group.
 * A DNS record
+* Harden the OS by installing `fail2ban`, `ntp`, `auto-update`, `ip-lockdown`, and more
+* Send all logs and metrics to CloudWatch
+* Configure alerts in CloudWatch for CPU, memory, and disk space usage
+* Manage SSH access with IAM groups using `ssh-grunt`
+
+
+
 
 Under the hood, this is all implemented using Terraform modules from the Gruntwork
 [package-openvpn](https://github.com/gruntwork-io/package-openvpn) repo.
@@ -59,8 +66,8 @@ Service Catalog]!
 
 === Core concepts
 
-To understand core concepts like why you should use a bastion host, how to connect to the bastion host, how to use the
-bastion host as a "jump host" to connect to other instances, port forwarding, and more, see the https://github.com/gruntwork-io/package-openvpn/blob/master/modules/openvpn-server/README.md[openvpn-server
+To understand core concepts like why you should use an OpenVPN server, how to connect to the vpn, how to use the
+VPN server to connect to other systems on the AWS VPC, see the https://github.com/gruntwork-io/package-openvpn/blob/master/modules/openvpn-server/README.md[openvpn-server
 documentation] documentation in the https://github.com/gruntwork-io/package-openvpn[package-openvpn] repo.
 
 == The OpenVPN Server AMI
@@ -104,7 +111,7 @@ If you want to deploy this repo in production, check out the following resources
 
 === Day-to-day operations
 
-* https://github.com/fail2ban/fail2ban[`fail2ban`] bans IP addresses that cause too many failed login attempts. The bastion host is configured with `fail2ban` as a security measure. See the  https://github.com/gruntwork-io/module-security/tree/master/modules/fail2ban[`fail2ban` module] for more information.
+* https://github.com/fail2ban/fail2ban[`fail2ban`] bans IP addresses that cause too many failed login attempts. The OpenVPN server is configured with `fail2ban` as a security measure. See the  https://github.com/gruntwork-io/module-security/tree/master/modules/fail2ban[`fail2ban` module] for more information.
 * Use the https://github.com/gruntwork-io/package-openvpn/blob/master/modules/openvpn-admin/README.md[openvpn-admin] utility to requests new certificates and, for administrators, to revoke existing certificates.
 
 

@@ -1,12 +1,12 @@
 # OpenVPN Server Example
 
-This is an example of how to use the [OpenVPN server module](/modules/mgmt/openvpn-server) to AWS. This example is optimized for learning, experimenting, and testing, but not direct production usage. If you want to deploy this module directly in production, check out the [examples/for-production folder](/examples/for-production).
+This is an example of how to use the [OpenVPN server module](/modules/mgmt/openvpn-server) to deploy a VPN server on AWS. This example is optimized for learning, experimenting, and testing, but not direct production usage. If you want to deploy this module directly in production, check out the [examples/for-production folder](/examples/for-production).
 
 
 
 ## Deploy instructions
 
-To deploy an OpenVPN server , you need to:
+To deploy an OpenVPN server, you need to:
 
 1. [Build the AMI using Packer](#build-the-ami-using-packer)
 1. [Deploy the AMI using Terraform](#deploy-the-ami-using-terraform)
