@@ -12,9 +12,10 @@ module "eks_cluster" {
   # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/services/eks-cluster?ref=v1.0.8"
   source = "../../../../modules/services/eks-cluster"
 
-  cluster_name          = var.cluster_name
-  cluster_instance_ami  = var.cluster_instance_ami_id
-  cluster_instance_type = "t3.small"
+  cluster_name                               = var.cluster_name
+  cluster_instance_ami                       = var.cluster_instance_ami_id
+  cluster_instance_type                      = "t3.small"
+  schedule_control_plane_services_on_fargate = false
 
   # For this simple example, use a regular key pair instead of ssh-grunt
   cluster_instance_keypair_name = var.keypair_name
