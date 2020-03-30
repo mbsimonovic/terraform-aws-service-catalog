@@ -156,3 +156,13 @@ module "cloudtrail" {
 
   force_destroy = var.cloudtrail_force_destroy
 }
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ACCOUNT LEVEL KMS CMKS
+# ----------------------------------------------------------------------------------------------------------------------
+
+module "customer_master_keys" {
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-master-key?ref=v0.27.1"
+
+  customer_master_keys = var.customer_master_keys
+}
