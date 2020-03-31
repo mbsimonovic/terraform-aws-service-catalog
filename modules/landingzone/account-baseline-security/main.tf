@@ -162,7 +162,7 @@ module "cloudtrail" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "customer_master_keys" {
-  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-master-key-multi-region?ref=yori-multi-region-kms"
+  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-master-key-multi-region?ref=v0.27.2"
   aws_account_id = var.aws_account_id
   seed_region    = var.aws_region
 
