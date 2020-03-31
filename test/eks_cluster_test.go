@@ -29,6 +29,13 @@ var defaultDomainTagFilterForTest = []map[string]string{
 	},
 }
 
+// See https://docs.aws.amazon.com/eks/latest/userguide/fargate.html for list
+var eksFargateRegions = []string{
+	"us-east-2",
+	"eu-west-1",
+	"ap-northeast-1",
+}
+
 // 1 worker + 2 fargate pods
 const expectedEksNodeCount = 3
 
@@ -66,8 +73,7 @@ func TestEksCluster(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "build_ami", func() {
-		// us-west-1 does not support EKS
-		awsRegion := aws.GetRandomStableRegion(t, regionsForEc2Tests, []string{"us-west-1"})
+		awsRegion := aws.GetRandomStableRegion(t, eksFargateRegions, nil)
 		test_structure.SaveString(t, testFolder, "region", awsRegion)
 
 		branchName := git.GetCurrentBranchName(t)
