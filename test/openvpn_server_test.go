@@ -23,6 +23,7 @@ func TestOpenvpnServer(t *testing.T) {
 	// os.Setenv("SKIP_deploy_terraform", "true")
 	// os.Setenv("SKIP_validate", "true")
 	// os.Setenv("SKIP_cleanup", "true")
+	// os.Setenv("SKIP_cleanup_keypair", "true")
 	// os.Setenv("SKIP_cleanup_ami", "true")
 
 	testFolder := "../examples/for-learning-and-testing/mgmt/openvpn-server"
@@ -33,11 +34,14 @@ func TestOpenvpnServer(t *testing.T) {
 		aws.DeleteAmiAndAllSnapshots(t, awsRegion, amiId)
 	})
 
+	defer test_structure.RunTestStage(t, "cleanup_keypair", func() {
+		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
+		aws.DeleteEC2KeyPair(t, awsKeyPair)
+	})
+
 	defer test_structure.RunTestStage(t, "cleanup", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
 		terraform.Destroy(t, terraformOptions)
-		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
-		aws.DeleteEC2KeyPair(t, awsKeyPair)
 	})
 
 	test_structure.RunTestStage(t, "build_ami", func() {
@@ -99,5 +103,4 @@ func TestOpenvpnServer(t *testing.T) {
 		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
 		testSSH(t, ip, "ubuntu", awsKeyPair)
 	})
-
 }

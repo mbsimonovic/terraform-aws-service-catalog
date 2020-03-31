@@ -6,7 +6,7 @@ set -e
 readonly DEFAULT_PACKAGE_OPENVPN_VERSION="v0.9.11"
 
 # TODO: Update ref to a tag when released
-readonly DEFAULT_EC2_BASELINE_REF="master"
+readonly DEFAULT_EC2_BASELINE_REF="fix-attach-eip"
 
 function include_ec2_baseline {
   gruntwork-install \
@@ -37,7 +37,7 @@ function install_openvpn_packages {
   do
     gruntwork-install --module-name "$module" --repo "$openvpn_repo" --tag "$package_openvpn_version"
   done
-  
+
   gruntwork-install --binary-name openvpn-admin --repo "$openvpn_repo" --tag "$package_openvpn_version"
 }
 
