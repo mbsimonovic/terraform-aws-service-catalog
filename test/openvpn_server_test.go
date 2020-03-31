@@ -90,7 +90,6 @@ func TestOpenvpnServer(t *testing.T) {
 		}
 
 		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
-		test_structure.SaveString(t, testFolder, "s3BucketName", s3BucketName)
 		terraform.InitAndApply(t, terraformOptions)
 	})
 
