@@ -70,22 +70,6 @@ To understand core concepts like why you should use an OpenVPN server, how to co
 VPN server to connect to other systems on the AWS VPC, see the https://github.com/gruntwork-io/package-openvpn/blob/master/modules/openvpn-server/README.md[openvpn-server
 documentation] documentation in the https://github.com/gruntwork-io/package-openvpn[package-openvpn] repo.
 
-== The OpenVPN Server AMI
-
-The OpenVPN Server AMI is defined using the [Packer](https://www.packer.io/) template under `packer/openvpn-server.json`.
-This template configures the AMI to:
-
-1. Install OpenVPN server, all its dependencies, and the Gruntwork admin tools.
-1. Run the https://github.com/gruntwork-io/module-security/tree/master/modules/ssh-grunt[ssh-grunt module] so that
-   developers can upload their public SSH keys to IAM and use those SSH keys, along with their IAM user names, to SSH
-   to the OpenVPN Server (typically for troubleshooting only).
-1. Run the https://github.com/gruntwork-io/module-security/tree/master/modules/auto-update[auto-update module] so
-   that the OpenVPN Server installs security updates automatically.
-1. Optionally run the https://github.com/gruntwork-io/module-aws-monitoring/tree/master/modules/logs/syslog[syslog module] to
-   automatically rotate and rate limit syslog so that the server doesn't run out of disk space from large volumes
-   of logs.
-
-
 == Deploy
 
 === Non-production deployment (quick start for learning)
@@ -113,6 +97,8 @@ If you want to deploy this repo in production, check out the following resources
 
 * https://github.com/fail2ban/fail2ban[`fail2ban`] bans IP addresses that cause too many failed login attempts. The OpenVPN server is configured with `fail2ban` as a security measure. See the  https://github.com/gruntwork-io/module-security/tree/master/modules/fail2ban[`fail2ban` module] for more information.
 * Use the https://github.com/gruntwork-io/package-openvpn/blob/master/modules/openvpn-admin/README.md[openvpn-admin] utility to requests new certificates and, for administrators, to revoke existing certificates.
+* The https://github.com/gruntwork-io/package-openvpn/blob/master/modules/backup-openvpn-pki/README.md[`backup-openvpn-pki`] module is used to backup the OpenVPN server's PKI to an S3 bucket. See the module documentation for more information.
+* We recommend the https://tunnelblick.net/[Tunnelblick] (Mac) or https://www.sparklabs.com/viscosity/[Viscosity] (Mac and Windows) VPN clients
 
 
 == Support

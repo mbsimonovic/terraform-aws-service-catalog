@@ -55,14 +55,6 @@ function attach_volume {
     --owner "$owner"
 }
 
-function get_instance_id {
-    curl --silent http://169.254.169.254/latest/meta-data/instance-id
-}
-
-function get_aws_region {
-    curl --silent http://169.254.169.254/latest/dynamic/instance-identity/document | grep region | awk -F\" '{print $4}'
-}
-
 function attach_eip {
   local -r eip_id="$1"
 

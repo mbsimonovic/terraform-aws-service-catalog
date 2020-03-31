@@ -67,6 +67,8 @@ function start_openvpn {
   touch /etc/openvpn/openvpn-init-complete
 }
 
+# The variable below are interpolated from Terraform
+# See: https://www.terraform.io/docs/configuration/expressions.html#interpolation
 attach_eip "${eip_id}"
 init_openvpn "${ca_country}" "${ca_state}" "${ca_locality}" "${ca_org}" "${ca_org_unit}" "${ca_email}" "${backup_bucket_name}" "${kms_key_arn}" "${key_size}" "${ca_expiration_days}" "${cert_expiration_days}" "${vpn_subnet}" ${routes}
 start_openvpn "${queue_region}"

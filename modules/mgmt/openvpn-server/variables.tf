@@ -3,7 +3,6 @@
 # These variables are expected to be passed in by the operator.
 # ---------------------------------------------------------------------------------------------------------------------
 
-
 variable "ami_id" {
   description = "The AMI to run on the OpenVPN Server. This should be built from the Packer template under openvpn-server.json."
   type        = string
@@ -16,11 +15,6 @@ variable "allow_vpn_from_cidr_list" {
 
 variable "backup_bucket_name" {
   description = "The name of the S3 bucket that will be used to backup PKI secrets. This is a required variable because bucket names must be globally unique across all AWS customers."
-  type        = string
-}
-
-variable "kms_key_arn" {
-  description = "The Amazon Resource Name (ARN) of the KMS Key that will be used to encrypt/decrypt backup files."
   type        = string
 }
 
@@ -76,6 +70,36 @@ variable "keypair_name" {
   description = "The name of a Key Pair that can be used to SSH to this instance. Leave blank if you don't want to enable Key Pair auth."
   type        = string
   default     = null
+}
+
+variable "kms_key_arn" {
+  description = "The Amazon Resource Name (ARN) of an existing KMS customer master key (CMK) that will be used to encrypt/decrypt backup files. If null, a key will be created with permissions assigned by the following variables: cmk_administrator_iam_arns, cmk_user_iam_arns, cmk_external_user_iam_arns, allow_manage_key_permissions."
+  type        = string
+  default     = null
+}
+
+variable "cmk_administrator_iam_arns" {
+  description = "A list of IAM ARNs for users who should be given administrator access to this CMK (e.g. arn:aws:iam::<aws-account-id>:user/<iam-user-arn>). If this list is empty, and var.kms_key_arn is null, the ARN of the current user will be used."
+  type        = list(string)
+  default     = []
+}
+
+variable "cmk_user_iam_arns" {
+  description = "A list of IAM ARNs for users who should be given permissions to use this CMK (e.g.  arn:aws:iam::<aws-account-id>:user/<iam-user-arn>). If this list is empty, and var.kms_key_arn is null, the ARN of the current user will be used."
+  type        = list(string)
+  default     = []
+}
+
+variable "cmk_external_user_iam_arns" {
+  description = "A list of IAM ARNs for users from external AWS accounts who should be given permissions to use this CMK (e.g. arn:aws:iam::<aws-account-id>:root)."
+  type        = list(string)
+  default     = []
+}
+
+variable "allow_manage_key_permissions_with_iam" {
+  description = "If true, both the CMK's Key Policy and IAM Policies (permissions) can be used to grant permissions on the CMK. If false, only the CMK's Key Policy can be used to grant permissions on the CMK. False is more secure (and generally preferred), but true is more flexible and convenient."
+  type        = bool
+  default     = false
 }
 
 variable "allow_ssh_from_cidr_list" {
@@ -159,7 +183,7 @@ variable "revocation_queue_name" {
 variable "vpn_subnet" {
   description = "The subnet IP and mask vpn clients will be assigned addresses from. For example, 172.16.1.0 255.255.255.0. This is a non-routed network that only exists between the VPN server and the client. Therefore, it should NOT overlap with VPC addressing, or the client won't be able to access any of the VPC IPs. In general, we recommend using internal, non-RFC 1918 IP addresses, such as 172.16.xx.yy."
   type        = string
-  default     = "172.16.1.0/24"
+  default     = "172.16.1.0 255.255.255.0"
 }
 
 variable "create_route53_entry" {

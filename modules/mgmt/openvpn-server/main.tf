@@ -34,12 +34,11 @@ module "openvpn" {
   ami              = var.ami_id
   user_data_base64 = module.ec2_baseline.cloud_init_rendered
 
-
   request_queue_name    = var.request_queue_name
   revocation_queue_name = var.revocation_queue_name
 
   keypair_name       = var.keypair_name
-  kms_key_arn        = var.kms_key_arn
+  kms_key_arn        = local.kms_key_arn
   backup_bucket_name = var.backup_bucket_name
 
   vpc_id    = var.vpc_id
@@ -61,7 +60,7 @@ module "openvpn" {
 locals {
   user_data_vars = {
     backup_bucket_name = module.openvpn.backup_bucket_name
-    kms_key_arn        = var.kms_key_arn
+    kms_key_arn        = local.kms_key_arn
 
     key_size             = 4096
     ca_expiration_days   = 3650
@@ -95,6 +94,33 @@ locals {
 
   # Merge in all the cloud init scripts the user has passed in
   cloud_init_parts = merge({ default : local.cloud_init }, var.cloud_init_parts)
+
+  kms_key_arn                = var.kms_key_arn != null ? var.kms_key_arn : module.kms_cmk.key_arn[var.name]
+  cmk_administrator_iam_arns = length(var.cmk_administrator_iam_arns) == 0 ? [data.aws_caller_identity.current.arn] : var.cmk_administrator_iam_arns
+  cmk_user_iam_arns          = length(var.cmk_user_iam_arns) == 0 ? [data.aws_caller_identity.current.arn] : var.cmk_user_iam_arns
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# KMS Customer Master Key
+# Create a new KMS CMK if an existing KMS key has not been provided in var.kms_key_arn 
+# ---------------------------------------------------------------------------------------------------------------------
+
+module "kms_cmk" {
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-master-key?ref=v0.27.1"
+  customer_master_keys = (
+    var.kms_key_arn == null
+    ? {
+      (var.name) = {
+        cmk_administrator_iam_arns = local.cmk_administrator_iam_arns
+        cmk_user_iam_arns          = local.cmk_user_iam_arns
+        cmk_external_user_iam_arns = var.cmk_external_user_iam_arns
+
+        # The IAM role of the OpenVPN server needs access to use the KMS key, and those permissions are managed with IAM
+        allow_manage_key_permissions_with_iam = true
+      }
+    }
+    : {}
+  )
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -126,7 +152,7 @@ module "ec2_baseline" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_route53_record" "openvpn" {
-  count   = var.domain_name == null ? 1 : 0
+  count   = var.domain_name != null ? 1 : 0
   name    = "${var.name}.${var.domain_name}"
   zone_id = var.hosted_zone_id
   type    = "A"

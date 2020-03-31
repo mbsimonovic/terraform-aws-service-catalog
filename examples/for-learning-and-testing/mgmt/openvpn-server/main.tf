@@ -26,10 +26,18 @@ module "openvpn" {
   # Configure a host name for the openvpn server
   create_route53_entry = true
   hosted_zone_id       = data.aws_route53_zone.zone.id
-  domain_name          = "${var.name}.${var.domain_name}"
+  domain_name          = var.domain_name
 
+  # Back up the OpenVPN server PKI to an S3 bucket
   backup_bucket_name = var.backup_bucket_name
-  kms_key_arn        = var.kms_key_arn
+
+  # Encrypt the backed up PKI with an existing or new KMS Customer Master Key (CMK)
+  kms_key_arn                = var.kms_key_arn
+  cmk_administrator_iam_arns = var.cmk_administrator_iam_arns
+  cmk_user_iam_arns          = var.cmk_user_iam_arns
+  cmk_external_user_iam_arns = var.cmk_external_user_iam_arns
+
+  vpn_route_cidr_blocks = [data.aws_vpc.default.cidr_block]
 
   ca_cert_fields = {
     ca_country  = "US"
