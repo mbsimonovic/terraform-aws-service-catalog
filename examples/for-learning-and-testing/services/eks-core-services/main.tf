@@ -20,7 +20,7 @@ module "eks_core_services" {
   vpc_id                                   = var.vpc_id
   eks_cluster_name                         = var.eks_cluster_name
   eks_iam_role_for_service_accounts_config = var.eks_iam_role_for_service_accounts_config
-  worker_vpc_subnet_ids                    = local.sorted_subnets
+  worker_vpc_subnet_ids                    = var.worker_vpc_subnet_ids
   pod_execution_iam_role_arn               = var.pod_execution_iam_role_arn
 
   # To make testing easier, we will schedule everything we can on Fargate
@@ -39,13 +39,4 @@ module "eks_core_services" {
   # for more info on how to set these values.
   autoscaler_scale_down_unneeded_time = "2m"
   autoscaler_down_delay_after_add     = "2m"
-}
-
-data "aws_subnet_ids" "all" {
-  vpc_id = var.vpc_id
-}
-
-locals {
-  # The ids param is a set, so to consistently extract the same item, we convert to a list and sort first.
-  sorted_subnets = sort(tolist(data.aws_subnet_ids.all.ids))
 }

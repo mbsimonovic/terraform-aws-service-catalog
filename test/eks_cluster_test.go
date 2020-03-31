@@ -40,10 +40,10 @@ func TestEksCluster(t *testing.T) {
 	//os.Setenv("SKIP_deploy_terraform", "true")
 	//os.Setenv("SKIP_validate_cluster", "true")
 	//os.Setenv("SKIP_deploy_core_services", "true")
-	os.Setenv("SKIP_cleanup_core_services", "true")
-	os.Setenv("SKIP_cleanup", "true")
-	os.Setenv("SKIP_cleanup_keypair", "true")
-	os.Setenv("SKIP_cleanup_ami", "true")
+	//os.Setenv("SKIP_cleanup_core_services", "true")
+	//os.Setenv("SKIP_cleanup", "true")
+	//os.Setenv("SKIP_cleanup_keypair", "true")
+	//os.Setenv("SKIP_cleanup_ami", "true")
 
 	testFolder := "../examples/for-learning-and-testing/services/eks-cluster"
 	coreServicesTestFolder := "../examples/for-learning-and-testing/services/eks-core-services"
@@ -133,11 +133,13 @@ func TestEksCluster(t *testing.T) {
 
 		eksClusterIRSAConfig := terraform.OutputMap(t, terraformOptions, "eks_iam_role_for_service_accounts_config")
 		eksClusterVpcID := terraform.Output(t, terraformOptions, "eks_cluster_vpc_id")
+		eksPrivateSubnetID := terraform.Output(t, terraformOptions, "private_subnet_id")
 		eksClusterFargateRole := terraform.Output(t, terraformOptions, "eks_default_fargate_execution_role_arn")
 
 		coreServicesOptions := createBaseTerraformOptions(t, coreServicesTestFolder, awsRegion)
 		coreServicesOptions.Vars["eks_cluster_name"] = clusterName
 		coreServicesOptions.Vars["vpc_id"] = eksClusterVpcID
+		coreServicesOptions.Vars["worker_vpc_subnet_ids"] = []string{eksPrivateSubnetID}
 		coreServicesOptions.Vars["eks_iam_role_for_service_accounts_config"] = eksClusterIRSAConfig
 		coreServicesOptions.Vars["external_dns_route53_hosted_zone_tag_filters"] = defaultDomainTagFilterForTest
 		coreServicesOptions.Vars["pod_execution_iam_role_arn"] = eksClusterFargateRole

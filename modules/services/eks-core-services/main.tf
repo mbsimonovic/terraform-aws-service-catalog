@@ -67,10 +67,10 @@ resource "aws_cloudwatch_log_group" "eks_cluster" {
 
 module "alb_ingress_controller" {
   source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-alb-ingress-controller?ref=v0.19.1"
-  dependencies = [aws_eks_fargate_profile.core_services.id]
+  dependencies = aws_eks_fargate_profile.core_services.*.id
 
   aws_region                           = var.aws_region
-  resource_name_prefix                 = var.eks_cluster_name
+  eks_cluster_name                     = var.eks_cluster_name
   vpc_id                               = var.vpc_id
   iam_role_for_service_accounts_config = var.eks_iam_role_for_service_accounts_config
 }
@@ -83,7 +83,7 @@ module "alb_ingress_controller" {
 
 module "k8s_external_dns" {
   source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-external-dns?ref=v0.19.1"
-  dependencies = [aws_eks_fargate_profile.core_services.id]
+  dependencies = aws_eks_fargate_profile.core_services.*.id
 
   aws_region                           = var.aws_region
   eks_cluster_name                     = var.eks_cluster_name
@@ -105,11 +105,11 @@ module "k8s_external_dns" {
 
 module "k8s_cluster_autoscaler" {
   source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-cluster-autoscaler?ref=v0.19.1"
-  dependencies = [aws_eks_fargate_profile.core_services.id]
+  dependencies = aws_eks_fargate_profile.core_services.*.id
 
   aws_region                           = var.aws_region
   eks_cluster_name                     = var.eks_cluster_name
-  iam_role_for_service_accounts_config = var.iam_role_for_service_accounts_config
+  iam_role_for_service_accounts_config = var.eks_iam_role_for_service_accounts_config
 
   container_extra_args = {
     scale-down-unneeded-time   = var.autoscaler_scale_down_unneeded_time
@@ -128,7 +128,7 @@ module "k8s_cluster_autoscaler" {
 resource "aws_eks_fargate_profile" "core_services" {
   count                  = local.should_create_fargate_profile ? 1 : 0
   cluster_name           = var.eks_cluster_name
-  fargate_profile_name   = "eks-core-services"
+  fargate_profile_name   = "core-services"
   pod_execution_role_arn = var.pod_execution_iam_role_arn
   subnet_ids             = var.worker_vpc_subnet_ids
 
