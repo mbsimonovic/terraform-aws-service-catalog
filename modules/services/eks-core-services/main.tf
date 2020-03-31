@@ -52,6 +52,7 @@ module "fluentd_cloudwatch" {
   source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cloudwatch-container-logs?ref=v0.19.1"
 
   aws_region                           = var.aws_region
+  eks_cluster_name                     = var.eks_cluster_name
   log_group_name                       = aws_cloudwatch_log_group.eks_cluster.name
   iam_role_for_service_accounts_config = var.eks_iam_role_for_service_accounts_config
 }

@@ -12,7 +12,7 @@
     "vpc_subnet_filter_key": "default-for-az",
     "vpc_subnet_filter_value": "true",
     "ami_users": "",
-    "kubernetes_version": "1.14",
+    "kubernetes_version": "1.15",
     "terraform_aws_eks_version": "",
     "module_security_version": "",
     "module_aws_monitoring_version": "",

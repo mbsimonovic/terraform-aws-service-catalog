@@ -29,7 +29,8 @@ var defaultDomainTagFilterForTest = []map[string]string{
 	},
 }
 
-const expectedEksNodeCount = 1
+// 1 worker + 2 fargate pods
+const expectedEksNodeCount = 3
 
 func TestEksCluster(t *testing.T) {
 	t.Parallel()
