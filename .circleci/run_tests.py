@@ -30,7 +30,7 @@ DIRECT_TEST_MAP = {
     'account-baseline-app': ['TestAccountBaseline'],
     'account-baseline-root': ['TestAccountBaseline'],
     'account-baseline-security': ['TestAccountBaseline'],
-    'ec2-baseline': ['TestBastionHost', 'TestJenkins'],
+    'ec2-baseline': ['TestBastionHost', 'TestJenkins', 'TestOpenvpnServer'],
     'test_helpers.go': ['.*']
 }
 

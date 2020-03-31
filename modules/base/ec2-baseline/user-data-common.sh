@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 # This script contains common utility functions for initializing EC2 instances at boot time
 
+readonly BASH_COMMONS_DIR="/opt/gruntwork/bash-commons"
+
+if [[ ! -d "$BASH_COMMONS_DIR" ]]; then
+  echo "ERROR: this script requires that bash-commons is installed in $BASH_COMMONS_DIR. See https://github.com/gruntwork-io/bash-commons for more info."
+  exit 1
+fi
+
 function file_contains_text {
   local -r text="$1"
   local -r file="$2"
@@ -58,11 +65,13 @@ function attach_volume {
 function attach_eip {
   local -r eip_id="$1"
 
+  source "$BASH_COMMONS_DIR/aws.sh"
+
   echo 'Attaching EIP $eip_id...'
   aws ec2 associate-address  \
-   --instance-id $(get_instance_id)  \
+   --instance-id $(aws_get_instance_id)  \
    --allocation-id "$eip_id"  \
-   --region $(get_aws_region)  \
+   --region $(aws_get_instance_region)  \
    --allow-reassociation
 }
 
