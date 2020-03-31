@@ -53,4 +53,8 @@ module "openvpn" {
   # access to a specific set of source CIDR ranges, like the addresses of your offices.
   allow_ssh_from_cidr_list = ["0.0.0.0/0"]
   allow_vpn_from_cidr_list = ["0.0.0.0/0"]
+
+  # This will automatically delete the backups bucket when running terraform destroy
+  # In production, you may want to keep the backups, so you would set this to false. 
+  force_destroy = true
 }
