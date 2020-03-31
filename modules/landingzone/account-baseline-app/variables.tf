@@ -291,7 +291,7 @@ variable "cloudtrail_force_destroy" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "kms_customer_master_keys" {
-  description = "Map of KMS CMK names to spec for managing each key. Each entry in the map corresponds to a key that will be created by this template."
+  description = "You can use this variable to create account-level KMS Customer Master Keys (CMKs) for encrypting and decrypting data. This variable should be a map where the keys are the names of the CMK and the values are an object that defines the configuration for that CMK. See the comment below for the configuration options you can set for each key."
   # Ideally, we will use a more strict type here but since we want to support required and optional values, and since
   # Terraform's type system only supports maps that have the same type for all values, we have to use the less useful
   # `any` type.
@@ -359,7 +359,7 @@ variable "kms_customer_master_keys" {
 }
 
 variable "kms_cmk_global_tags" {
-  description = "A map of tags to apply to all KMS Keys to be created. In this map variable, the key is the tag name and the value  is the tag value."
+  description = "A map of tags to apply to all KMS Keys to be created. In this map variable, the key is the tag name and the value is the tag value."
   type        = map(string)
   default     = {}
 }

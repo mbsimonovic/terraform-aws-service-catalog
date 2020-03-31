@@ -495,7 +495,7 @@ variable "kms_customer_master_keys" {
 }
 
 variable "kms_cmk_global_tags" {
-  description = "A map of tags to apply to all KMS Keys to be created. In this map variable, the key is the tag name and the value  is the tag value."
+  description = "A map of tags to apply to all KMS Keys to be created. In this map variable, the key is the tag name and the value is the tag value."
   type        = map(string)
   default     = {}
 }
