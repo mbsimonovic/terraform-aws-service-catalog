@@ -6,7 +6,7 @@ set -e
 readonly DEFAULT_PACKAGE_OPENVPN_VERSION="v0.9.11"
 
 # TODO: Update ref to a tag when released
-readonly DEFAULT_EC2_BASELINE_REF="fix-attach-eip"
+readonly DEFAULT_EC2_BASELINE_REF="master"
 
 function include_ec2_baseline {
   gruntwork-install \
