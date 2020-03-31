@@ -283,3 +283,89 @@ variable "cloudtrail_force_destroy" {
   type        = bool
   default     = false
 }
+
+# ---------------------------------------------------------------------------------------------------------------------
+# OPTIONAL KMS PARAMETERS
+# These variables must be passed in by the operator. In a real-world usage, some of these variables might not be needed
+# and you can instead inline the values directly in main.tf.
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "kms_customer_master_keys" {
+  description = "You can use this variable to create account-level KMS Customer Master Keys (CMKs) for encrypting and decrypting data. This variable should be a map where the keys are the names of the CMK and the values are an object that defines the configuration for that CMK. See the comment below for the configuration options you can set for each key."
+  # Ideally, we will use a more strict type here but since we want to support required and optional values, and since
+  # Terraform's type system only supports maps that have the same type for all values, we have to use the less useful
+  # `any` type.
+  type    = any
+  default = {}
+
+  # Each entry in the map supports the following attributes:
+  #
+  # REQUIRED:
+  # - cmk_administrator_iam_arns            [list(string)] : A list of IAM ARNs for users who should be given
+  #                                                          administrator access to this CMK (e.g.
+  #                                                          arn:aws:iam::<aws-account-id>:user/<iam-user-arn>).
+  # - cmk_user_iam_arns                     [list(string)] : A list of IAM ARNs for users who should be given
+  #                                                          permissions to use this CMK (e.g.
+  #                                                          arn:aws:iam::<aws-account-id>:user/<iam-user-arn>).
+  # - cmk_external_user_iam_arns            [list(string)] : A list of IAM ARNs for users from external AWS accounts
+  #                                                          who should be given permissions to use this CMK (e.g.
+  #                                                          arn:aws:iam::<aws-account-id>:root).
+  # - allow_manage_key_permissions_with_iam [bool]         : If true, both the CMK's Key Policy and IAM Policies
+  #                                                          (permissions) can be used to grant permissions on the CMK.
+  #                                                          If false, only the CMK's Key Policy can be used to grant
+  #                                                          permissions on the CMK. False is more secure (and
+  #                                                          generally preferred), but true is more flexible and
+  #                                                          convenient.
+  # OPTIONAL (defaults to value of corresponding module input):
+  # - region                  [string]      : The region (e.g., us-west-2) where the key should be created. If null or
+  #                                           omitted, the key will be created in all enabled regions. Any keys
+  #                                           targeting an opted out region or invalid region string will show up in the
+  #                                           invalid_cmk_inputs output.
+  # - deletion_window_in_days [number]      : The number of days to keep this KMS Master Key around after it has been
+  #                                           marked for deletion.
+  # - tags                    [map(string)] : A map of tags to apply to the KMS Key to be created. In this map
+  #                                           variable, the key is the tag name and the value  is the tag value. Note
+  #                                           that this map is merged with var.kms_cmk_global_tags, and can be used to
+  #                                           override tags specified in that variable.
+  # - enable_key_rotation     [bool]        : Whether or not to enable automatic annual rotation of the KMS key.
+  # - spec                    [string]      : Specifies whether the key contains a symmetric key or an asymmetric key
+  #                                           pair and the encryption algorithms or signing algorithms that the key
+  #                                           supports. Valid values: SYMMETRIC_DEFAULT, RSA_2048, RSA_3072, RSA_4096,
+  #                                           ECC_NIST_P256, ECC_NIST_P384, ECC_NIST_P521, or ECC_SECG_P256K1.
+
+  # Example:
+  # customer_master_keys = {
+  #   cmk-stage = {
+  #     region                                = "us-west-2"
+  #     cmk_administrator_iam_arns            = ["arn:aws:iam::0000000000:user/admin"]
+  #     cmk_user_iam_arns                     = ["arn:aws:iam::0000000000:user/dev"]
+  #     cmk_external_user_iam_arns            = ["arn:aws:iam::1111111111:user/root"]
+  #     allow_manage_key_permissions_with_iam = false
+  #   }
+  #   cmk-prod = {
+  #     cmk_administrator_iam_arns            = ["arn:aws:iam::0000000000:user/admin"]
+  #     cmk_user_iam_arns                     = ["arn:aws:iam::0000000000:user/dev"]
+  #     cmk_external_user_iam_arns            = []
+  #     allow_manage_key_permissions_with_iam = false
+  #     # Override the default value for all keys configured with var.default_deletion_window_in_days
+  #     deletion_window_in_days = 7
+  #
+  #     # Set extra tags on the CMK for prod
+  #     tags = {
+  #       Environment = "prod"
+  #     }
+  #   }
+  # }
+}
+
+variable "kms_cmk_global_tags" {
+  description = "A map of tags to apply to all KMS Keys to be created. In this map variable, the key is the tag name and the value is the tag value."
+  type        = map(string)
+  default     = {}
+}
+
+variable "kms_cmk_opt_in_regions" {
+  description = "Creates KMS keys in the specified regions. Note that the region must be enabled on your AWS account. Regions that are not enabled are automatically filtered from this list. When null (default), KMS CMKs with region setting set to null will be created in all regions enabled on the account. Use this list to provide an alternate region list for testing purposes."
+  type        = list(string)
+  default     = null
+}

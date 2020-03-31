@@ -23,6 +23,17 @@ module "security_baseline" {
   aws_account_id = data.aws_caller_identity.current.account_id
   aws_region     = var.aws_region
   name_prefix    = var.name_prefix
+
+  # Create a single global CMK for general use in the account
+  kms_customer_master_keys = {
+    account-default-cmk = {
+      region                                = var.aws_region
+      cmk_administrator_iam_arns            = var.kms_cmk_administrator_iam_arns
+      cmk_user_iam_arns                     = []
+      cmk_external_user_iam_arns            = []
+      allow_manage_key_permissions_with_iam = false
+    }
+  }
 }
 
 data "aws_caller_identity" "current" {}

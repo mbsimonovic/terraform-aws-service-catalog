@@ -36,6 +36,17 @@ module "security_baseline" {
 
   cloudtrail_kms_key_administrator_iam_arns = var.cloudtrail_kms_key_administrator_iam_arns
   cloudtrail_s3_bucket_name                 = var.cloudtrail_s3_bucket_name
+
+  # Create a single global CMK for general use in the account
+  kms_customer_master_keys = {
+    account-default-cmk = {
+      region                                = var.aws_region
+      cmk_administrator_iam_arns            = var.kms_cmk_administrator_iam_arns
+      cmk_user_iam_arns                     = []
+      cmk_external_user_iam_arns            = []
+      allow_manage_key_permissions_with_iam = false
+    }
+  }
 }
 
 data "aws_caller_identity" "current" {}

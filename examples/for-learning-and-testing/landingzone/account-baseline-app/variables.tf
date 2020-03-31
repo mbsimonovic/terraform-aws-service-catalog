@@ -107,3 +107,13 @@ variable "cloudtrail_kms_key_administrator_iam_arns" {
   type        = list(string)
   default     = ["arn:aws:iam::123456789012:user/acme-admin"]
 }
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Modify the following variables to configure the administrator for the default KMS CMK in the account
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "kms_cmk_administrator_iam_arns" {
+  description = "The ARNs of IAM users who should have admin access to the account default KMS key that is created by this example module."
+  type        = list(string)
+  default     = ["arn:aws:iam::123456789012:user/acme-admin"]
+}
