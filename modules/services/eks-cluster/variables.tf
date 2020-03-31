@@ -112,6 +112,12 @@ variable "cluster_instance_keypair_name" {
   default     = null
 }
 
+variable "autoscaling_group_include_autoscaler_discovery_tags" {
+  description = "Adds additional tags to each ASG that allow a cluster autoscaler to auto-discover them."
+  type        = bool
+  default     = true
+}
+
 variable "allow_inbound_ssh_from_security_groups" {
   description = "The list of security group IDs to allow inbound SSH access to the worker groups."
   type        = list(string)

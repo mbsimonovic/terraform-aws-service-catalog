@@ -80,9 +80,10 @@ module "eks_workers" {
   source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.19.0"
   create_resources = length(var.autoscaling_group_configurations) > 0
 
-  cluster_name                     = var.cluster_name
-  vpc_id                           = var.vpc_id
-  autoscaling_group_configurations = var.autoscaling_group_configurations
+  cluster_name                      = var.cluster_name
+  vpc_id                            = var.vpc_id
+  autoscaling_group_configurations  = var.autoscaling_group_configurations
+  include_autoscaler_discovery_tags = var.autoscaling_group_include_autoscaler_discovery_tags
 
   eks_master_security_group_id = module.eks_cluster.eks_master_security_group_id
 
