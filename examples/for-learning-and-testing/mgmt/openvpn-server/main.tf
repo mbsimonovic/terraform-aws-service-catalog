@@ -16,6 +16,7 @@ module "openvpn" {
   ami_id = var.ami_id
 
   # For this simple example, use a regular key pair instead of ssh-grunt
+  # For details on ssh-grunt, see: https://github.com/gruntwork-io/module-security/blob/master/modules/ssh-grunt/README.adoc
   keypair_name     = var.keypair_name
   enable_ssh_grunt = false
 
