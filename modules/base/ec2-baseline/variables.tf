@@ -38,7 +38,7 @@ variable "iam_role_arn" {
 }
 
 variable "enable_cloudwatch_metrics" {
-  description = "Set to true to add IAM permissions to send custom metrics to CloudWatch. This is useful in combination with https://github.com/gruntwork-io/module-aws-monitoring/tree/master/modules/metrics/cloudwatch-memory-disk-metrics-scripts to get memory and disk metrics in CloudWatch for your Bastion host."
+  description = "Set to true to add IAM permissions to send custom metrics to CloudWatch. This is useful in combination with https://github.com/gruntwork-io/module-aws-monitoring/tree/master/modules/metrics/cloudwatch-memory-disk-metrics-scripts to get memory and disk metrics in CloudWatch for your host."
   type        = bool
   default     = true
 }
@@ -80,7 +80,7 @@ variable "alarms_sns_topic_arn" {
 }
 
 variable "cloud_init_parts" {
-  description = "Cloud init scripts to run on the bastion host while it boots. See the part blocks in https://www.terraform.io/docs/providers/template/d/cloudinit_config.html for syntax."
+  description = "Cloud init scripts to run on the host while it boots. See the part blocks in https://www.terraform.io/docs/providers/template/d/cloudinit_config.html for syntax."
   type = map(object({
     filename     = string
     content_type = string

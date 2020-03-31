@@ -1,4 +1,4 @@
-# ---------------------------------------------------------------------------------------------------------------------
+# ------------------- -------------------------------------------------------------------------------------------------
 # REQUIRED PARAMETERS
 # These variables are expected to be passed in by the operator.
 # ---------------------------------------------------------------------------------------------------------------------
@@ -14,7 +14,7 @@ variable "subnet_id" {
 }
 
 variable "ami" {
-  description = "The AMI to run on the bastion host. This should be built from the Packer template under packer/bastion-host.json."
+  description = "The AMI to run on the bastion host. This should be built from the Packer template under bastion-host.json."
   type        = string
 }
 
@@ -77,13 +77,13 @@ variable "enable_ssh_grunt" {
 }
 
 variable "ssh_grunt_iam_group" {
-  description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to this Jenkins server. To omit this variable, set it to an empty string (do NOT use null, or Terraform will complain)."
+  description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to this bastion host. To omit this variable, set it to an empty string (do NOT use null, or Terraform will complain)."
   type        = string
   default     = ""
 }
 
 variable "ssh_grunt_iam_group_sudo" {
-  description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to this Jenkins server with sudo permissions. To omit this variable, set it to an empty string (do NOT use null, or Terraform will complain)."
+  description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to this bastion host. To omit this variable, set it to an empty string (do NOT use null, or Terraform will complain)."
   type        = string
   default     = ""
 }

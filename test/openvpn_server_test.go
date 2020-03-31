@@ -2,6 +2,7 @@ package test
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -13,18 +14,18 @@ import (
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 )
 
-func TestBastionHost(t *testing.T) {
+func TestOpenvpnServer(t *testing.T) {
 	t.Parallel()
 
 	// Uncomment the items below to skip certain parts of the test
-	// os.Setenv("TERRATEST_REGION", "eu-west-1")
+	// os.Setenv("TERRATEST_REGION", "us-east-2")
 	// os.Setenv("SKIP_build_ami", "true")
 	// os.Setenv("SKIP_deploy_terraform", "true")
 	// os.Setenv("SKIP_validate", "true")
 	// os.Setenv("SKIP_cleanup", "true")
 	// os.Setenv("SKIP_cleanup_ami", "true")
 
-	testFolder := "../examples/for-learning-and-testing/mgmt/bastion-host"
+	testFolder := "../examples/for-learning-and-testing/mgmt/openvpn-server"
 
 	defer test_structure.RunTestStage(t, "cleanup_ami", func() {
 		amiId := test_structure.LoadArtifactID(t, testFolder)
@@ -42,9 +43,13 @@ func TestBastionHost(t *testing.T) {
 	test_structure.RunTestStage(t, "build_ami", func() {
 		branchName := git.GetCurrentBranchName(t)
 		awsRegion := aws.GetRandomStableRegion(t, regionsForEc2Tests, nil)
+		uniqueId := random.UniqueId()
+		name := fmt.Sprintf("openvpn-server-%s", uniqueId)
+		awsKeyPair := aws.CreateAndImportEC2KeyPair(t, awsRegion, uniqueId)
+		s3BucketName := "openvpn-test-" + strings.ToLower(uniqueId)
 
 		packerOptions := &packer.Options{
-			Template: "../modules/mgmt/bastion-host/bastion-host.json",
+			Template: "../modules/mgmt/openvpn-server/openvpn-server.json",
 			Vars: map[string]string{
 				"aws_region":          awsRegion,
 				"service_catalog_ref": branchName,
@@ -57,33 +62,42 @@ func TestBastionHost(t *testing.T) {
 		amiId := packer.BuildArtifact(t, packerOptions)
 
 		test_structure.SaveString(t, testFolder, "region", awsRegion)
+		test_structure.SaveString(t, testFolder, "name", name)
+		test_structure.SaveString(t, testFolder, "s3BucketName", s3BucketName)
 		test_structure.SaveArtifactID(t, testFolder, amiId)
+		test_structure.SaveEc2KeyPair(t, testFolder, awsKeyPair)
 	})
 
 	test_structure.RunTestStage(t, "deploy_terraform", func() {
 		amiId := test_structure.LoadArtifactID(t, testFolder)
-		name := fmt.Sprintf("bastion-host-%s", random.UniqueId())
 		awsRegion := test_structure.LoadString(t, testFolder, "region")
-		uniqueId := random.UniqueId()
-		awsKeyPair := aws.CreateAndImportEC2KeyPair(t, awsRegion, uniqueId)
+		s3BucketName := test_structure.LoadString(t, testFolder, "s3BucketName")
+		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
+		name := test_structure.LoadString(t, testFolder, "name")
 
-		terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
-		terraformOptions.Vars["aws_region"] = awsRegion
-		terraformOptions.Vars["name"] = name
-		terraformOptions.Vars["ami_id"] = amiId
-		terraformOptions.Vars["domain_name"] = baseDomainForTest
-		terraformOptions.Vars["base_domain_name_tags"] = domainNameTagsForTest
-		terraformOptions.Vars["keypair_name"] = awsKeyPair.Name
+		terraformOptions := &terraform.Options{
+			TerraformDir: testFolder,
+
+			Vars: map[string]interface{}{
+				"aws_region":            awsRegion,
+				"name":                  name,
+				"ami_id":                amiId,
+				"domain_name":           "gruntwork.in",
+				"base_domain_name_tags": domainNameTagsForTest,
+				"keypair_name":          awsKeyPair.Name,
+				"backup_bucket_name":    s3BucketName,
+			},
+		}
 
 		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
-		test_structure.SaveEc2KeyPair(t, testFolder, awsKeyPair)
 		terraform.InitAndApply(t, terraformOptions)
 	})
 
 	test_structure.RunTestStage(t, "validate", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
+		ip := terraform.OutputRequired(t, terraformOptions, "public_ip")
 		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
-		ip := terraform.OutputRequired(t, terraformOptions, "bastion_host_public_ip")
 		testSSH(t, ip, "ubuntu", awsKeyPair)
 	})
+
 }
