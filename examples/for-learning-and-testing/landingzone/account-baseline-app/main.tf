@@ -41,7 +41,7 @@ module "security_baseline" {
   kms_customer_master_keys = {
     account-default-cmk = {
       region                                = var.aws_region
-      cmk_administrator_iam_arns            = ["arn:aws:iam::123456789012:user/acme-admin"]
+      cmk_administrator_iam_arns            = var.kms_cmk_administrator_iam_arns
       cmk_user_iam_arns                     = []
       cmk_external_user_iam_arns            = []
       allow_manage_key_permissions_with_iam = false

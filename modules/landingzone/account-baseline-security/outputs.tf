@@ -349,21 +349,21 @@ output "user_access_keys" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 output "kms_key_arns" {
-  description = "The ARNs of the KMS CMKs that were created, broken up by region."
+  description = "A map from region to ARNs of the KMS CMKs that were created. The value will also be a map mapping the keys from the var.kms_customer_master_keys input variable to the corresponding ARN."
   value       = module.customer_master_keys.key_arns
 }
 
 output "kms_key_ids" {
-  description = "The IDs of the KMS CMKs that were created, broken up by region."
+  description = "A map from region to IDs of the KMS CMKs that were created. The value will also be a map mapping the keys from the var.kms_customer_master_keys input variable to the corresponding ID."
   value       = module.customer_master_keys.key_ids
 }
 
 output "kms_key_aliases" {
-  description = "The aliases of the KMS CMKs that were created, broken up by region."
+  description = "A map from region to aliases of the KMS CMKs that were created. The value will also be a map mapping the keys from the var.customer_master_keys input variable to the corresponding alias."
   value       = module.customer_master_keys.key_aliases
 }
 
 output "invalid_cmk_inputs" {
-  description = "Map of CMKs from the input var.customer_master_keys that had an invalid region, and thus was not created."
+  description = "Map of CMKs from the input var.customer_master_keys that had an invalid region, and thus were not created. The structure of the map is the same as the input. This will only include KMS key inputs that were not created because the region attribute was invalid (either not a valid region identifier, the region is not enabled on the account, or the region is not included in the var.opt_in_regions input)."
   value       = module.customer_master_keys.invalid_cmk_inputs
 }
