@@ -99,6 +99,7 @@ If you want to deploy this repo in production, check out the following resources
 * Use the https://github.com/gruntwork-io/package-openvpn/blob/master/modules/openvpn-admin/README.md[openvpn-admin] utility to requests new certificates and, for administrators, to revoke existing certificates.
 * The https://github.com/gruntwork-io/package-openvpn/blob/master/modules/backup-openvpn-pki/README.md[`backup-openvpn-pki`] module is used to backup the OpenVPN server's PKI to an S3 bucket. See the module documentation for more information.
 * We recommend the https://tunnelblick.net/[Tunnelblick] (Mac) or https://www.sparklabs.com/viscosity/[Viscosity] (Mac and Windows) VPN clients
+* For debugging, use the logs found in `/var/log/user-data.log` on the OpenVPN server instance (for problems with initializing new server instances), and examine CloudWatch Logs (for other issues).
 
 
 == Support
