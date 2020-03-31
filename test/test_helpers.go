@@ -46,7 +46,6 @@ var regionsForEc2Tests = []string{
 	"eu-west-1",
 	"ap-northeast-1",
 	"ap-southeast-2",
-	"ca-central-1",
 }
 
 // Tags in Gruntwork Phx DevOps account to uniquely find Hosted Zone for baseDomainForTest
