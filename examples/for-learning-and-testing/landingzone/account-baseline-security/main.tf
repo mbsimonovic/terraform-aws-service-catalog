@@ -25,7 +25,7 @@ module "security_baseline" {
   name_prefix    = var.name_prefix
 
   # Create a single global CMK for general use in the account
-  customer_master_keys = {
+  kms_customer_master_keys = {
     account-default-cmk = {
       region                                = var.aws_region
       cmk_administrator_iam_arns            = ["arn:aws:iam::123456789012:user/acme-admin"]
