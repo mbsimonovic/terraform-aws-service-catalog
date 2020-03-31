@@ -343,3 +343,27 @@ output "user_access_keys" {
   description = "A map of usernames to that user's access keys (a map with keys access_key_id and secret_access_key), with the secret_access_key encrypted with that user's PGP key (only shows up for users with create_access_keys = true). You can decrypt the secret_access_key on the CLI: echo <secret_access_key> | base64 --decode | keybase pgp decrypt"
   value       = module.iam_users.user_access_keys
 }
+
+# ---------------------------------------------------------------------------------------------------------------------
+# KMS CMK OUTPUTS
+# ---------------------------------------------------------------------------------------------------------------------
+
+output "kms_key_arns" {
+  description = "The ARNs of the KMS CMKs that were created, broken up by region."
+  value       = module.customer_master_keys.key_arns
+}
+
+output "kms_key_ids" {
+  description = "The IDs of the KMS CMKs that were created, broken up by region."
+  value       = module.customer_master_keys.key_ids
+}
+
+output "kms_key_aliases" {
+  description = "The aliases of the KMS CMKs that were created, broken up by region."
+  value       = module.customer_master_keys.key_aliases
+}
+
+output "invalid_cmk_inputs" {
+  description = "Map of CMKs from the input var.customer_master_keys that had an invalid region, and thus was not created."
+  value       = module.customer_master_keys.invalid_cmk_inputs
+}

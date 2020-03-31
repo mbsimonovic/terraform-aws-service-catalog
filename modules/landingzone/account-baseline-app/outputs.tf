@@ -203,3 +203,27 @@ output "guardduty_findings_sns_topic_names" {
   description = "The names of the SNS topic where findings are published if var.publish_findings_to_sns is set to true."
   value       = module.guardduty.findings_sns_topic_names
 }
+
+# ---------------------------------------------------------------------------------------------------------------------
+# KMS CMK OUTPUTS
+# ---------------------------------------------------------------------------------------------------------------------
+
+output "kms_key_arns" {
+  description = "The ARNs of the KMS CMKs that were created, broken up by region."
+  value       = module.customer_master_keys.key_arns
+}
+
+output "kms_key_ids" {
+  description = "The IDs of the KMS CMKs that were created, broken up by region."
+  value       = module.customer_master_keys.key_ids
+}
+
+output "kms_key_aliases" {
+  description = "The aliases of the KMS CMKs that were created, broken up by region."
+  value       = module.customer_master_keys.key_aliases
+}
+
+output "invalid_cmk_inputs" {
+  description = "Map of CMKs from the input var.customer_master_keys that had an invalid region, and thus was not created."
+  value       = module.customer_master_keys.invalid_cmk_inputs
+}
