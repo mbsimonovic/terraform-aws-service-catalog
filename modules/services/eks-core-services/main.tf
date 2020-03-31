@@ -55,6 +55,8 @@ module "fluentd_cloudwatch" {
   eks_cluster_name                     = var.eks_cluster_name
   log_group_name                       = aws_cloudwatch_log_group.eks_cluster.name
   iam_role_for_service_accounts_config = var.eks_iam_role_for_service_accounts_config
+  pod_tolerations                      = var.fluentd_cloudwatch_pod_tolerations
+  pod_node_affinity                    = var.fluentd_cloudwatch_pod_node_affinity
 }
 
 resource "aws_cloudwatch_log_group" "eks_cluster" {
@@ -74,6 +76,8 @@ module "alb_ingress_controller" {
   eks_cluster_name                     = var.eks_cluster_name
   vpc_id                               = var.vpc_id
   iam_role_for_service_accounts_config = var.eks_iam_role_for_service_accounts_config
+  pod_tolerations                      = var.alb_ingress_controller_pod_tolerations
+  pod_node_affinity                    = var.alb_ingress_controller_pod_node_affinity
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -90,6 +94,8 @@ module "k8s_external_dns" {
   eks_cluster_name                     = var.eks_cluster_name
   txt_owner_id                         = var.eks_cluster_name
   iam_role_for_service_accounts_config = var.eks_iam_role_for_service_accounts_config
+  pod_tolerations                      = var.external_dns_pod_tolerations
+  pod_node_affinity                    = var.external_dns_pod_node_affinity
 
   route53_record_update_policy       = var.route53_record_update_policy
   route53_hosted_zone_id_filters     = var.external_dns_route53_hosted_zone_id_filters
@@ -111,6 +117,8 @@ module "k8s_cluster_autoscaler" {
   aws_region                           = var.aws_region
   eks_cluster_name                     = var.eks_cluster_name
   iam_role_for_service_accounts_config = var.eks_iam_role_for_service_accounts_config
+  pod_tolerations                      = var.cluster_autoscaler_pod_tolerations
+  pod_node_affinity                    = var.cluster_autoscaler_pod_node_affinity
 
   container_extra_args = {
     scale-down-unneeded-time   = var.autoscaler_scale_down_unneeded_time

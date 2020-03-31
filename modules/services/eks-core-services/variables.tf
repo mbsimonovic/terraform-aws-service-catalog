@@ -43,6 +43,64 @@ variable "pod_execution_iam_role_arn" {
 # These variables have defaults and may be overwritten
 # ---------------------------------------------------------------------------------------------------------------------
 
+# Fluentd DaemonSet options
+
+variable "fluentd_cloudwatch_pod_tolerations" {
+  description = "Configure tolerations rules to allow the fluentd-cloudwatch Pods to schedule on nodes that have been tainted. Each item in the list specifies a toleration rule."
+  type        = list(map(any))
+  default     = []
+
+  # Each item in the list represents a particular toleration. See
+  # https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/ for the various rules you can specify.
+  #
+  # Example:
+  #
+  # [
+  #   {
+  #     key = "node.kubernetes.io/unreachable"
+  #     operator = "Exists"
+  #     effect = "NoExecute"
+  #     tolerationSeconds = 6000
+  #   }
+  # ]
+}
+
+variable "fluentd_cloudwatch_pod_node_affinity" {
+  description = "Configure affinity rules for the fluentd-cloudwatch Pods to control which nodes to schedule on. Each item in the list should be a map with the keys `key`, `values`, and `operator`, corresponding to the 3 properties of matchExpressions. Note that all expressions must be satisfied to schedule on the node."
+  type = list(object({
+    key      = string
+    values   = list(string)
+    operator = string
+  }))
+  default = []
+
+  # Each item in the list represents a matchExpression for requiredDuringSchedulingIgnoredDuringExecution.
+  # https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity for the various
+  # configuration option.
+  #
+  # Example:
+  #
+  # [
+  #   {
+  #     "key" = "node-label-key"
+  #     "values" = ["node-label-value", "another-node-label-value"]
+  #     "operator" = "In"
+  #   }
+  # ]
+  #
+  # Translates to:
+  #
+  # nodeAffinity:
+  #   requiredDuringSchedulingIgnoredDuringExecution:
+  #     nodeSelectorTerms:
+  #     - matchExpressions:
+  #       - key: node-label-key
+  #         operator: In
+  #         values:
+  #         - node-label-value
+  #         - another-node-label-value
+}
+
 # AWS ALB Ingress controller options
 
 variable "schedule_alb_ingress_controller_on_fargate" {
@@ -51,12 +109,124 @@ variable "schedule_alb_ingress_controller_on_fargate" {
   default     = false
 }
 
+variable "alb_ingress_controller_pod_tolerations" {
+  description = "Configure tolerations rules to allow the ALB Ingress Controller Pod to schedule on nodes that have been tainted. Each item in the list specifies a toleration rule."
+  type        = list(map(any))
+  default     = []
+
+  # Each item in the list represents a particular toleration. See
+  # https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/ for the various rules you can specify.
+  #
+  # Example:
+  #
+  # [
+  #   {
+  #     key = "node.kubernetes.io/unreachable"
+  #     operator = "Exists"
+  #     effect = "NoExecute"
+  #     tolerationSeconds = 6000
+  #   }
+  # ]
+}
+
+variable "alb_ingress_controller_pod_node_affinity" {
+  description = "Configure affinity rules for the ALB Ingress Controller Pod to control which nodes to schedule on. Each item in the list should be a map with the keys `key`, `values`, and `operator`, corresponding to the 3 properties of matchExpressions. Note that all expressions must be satisfied to schedule on the node."
+  type = list(object({
+    key      = string
+    values   = list(string)
+    operator = string
+  }))
+  default = []
+
+  # Each item in the list represents a matchExpression for requiredDuringSchedulingIgnoredDuringExecution.
+  # https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity for the various
+  # configuration option.
+  #
+  # Example:
+  #
+  # [
+  #   {
+  #     "key" = "node-label-key"
+  #     "values" = ["node-label-value", "another-node-label-value"]
+  #     "operator" = "In"
+  #   }
+  # ]
+  #
+  # Translates to:
+  #
+  # nodeAffinity:
+  #   requiredDuringSchedulingIgnoredDuringExecution:
+  #     nodeSelectorTerms:
+  #     - matchExpressions:
+  #       - key: node-label-key
+  #         operator: In
+  #         values:
+  #         - node-label-value
+  #         - another-node-label-value
+}
+
 # external-dns configuration options
 
 variable "schedule_external_dns_on_fargate" {
   description = "When true, the external-dns pods will be scheduled on Fargate."
   type        = bool
   default     = false
+}
+
+variable "external_dns_pod_tolerations" {
+  description = "Configure tolerations rules to allow the external-dns Pod to schedule on nodes that have been tainted. Each item in the list specifies a toleration rule."
+  type        = list(map(any))
+  default     = []
+
+  # Each item in the list represents a particular toleration. See
+  # https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/ for the various rules you can specify.
+  #
+  # Example:
+  #
+  # [
+  #   {
+  #     key = "node.kubernetes.io/unreachable"
+  #     operator = "Exists"
+  #     effect = "NoExecute"
+  #     tolerationSeconds = 6000
+  #   }
+  # ]
+}
+
+variable "external_dns_pod_node_affinity" {
+  description = "Configure affinity rules for the external-dns Pod to control which nodes to schedule on. Each item in the list should be a map with the keys `key`, `values`, and `operator`, corresponding to the 3 properties of matchExpressions. Note that all expressions must be satisfied to schedule on the node."
+  type = list(object({
+    key      = string
+    values   = list(string)
+    operator = string
+  }))
+  default = []
+
+  # Each item in the list represents a matchExpression for requiredDuringSchedulingIgnoredDuringExecution.
+  # https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity for the various
+  # configuration option.
+  #
+  # Example:
+  #
+  # [
+  #   {
+  #     "key" = "node-label-key"
+  #     "values" = ["node-label-value", "another-node-label-value"]
+  #     "operator" = "In"
+  #   }
+  # ]
+  #
+  # Translates to:
+  #
+  # nodeAffinity:
+  #   requiredDuringSchedulingIgnoredDuringExecution:
+  #     nodeSelectorTerms:
+  #     - matchExpressions:
+  #       - key: node-label-key
+  #         operator: In
+  #         values:
+  #         - node-label-value
+  #         - another-node-label-value
 }
 
 variable "route53_record_update_policy" {
@@ -99,9 +269,65 @@ variable "external_dns_route53_hosted_zone_domain_filters" {
 # Cluster Autoscaler settings
 
 variable "schedule_cluster_autoscaler_on_fargate" {
-  description = "When true, the cluster autoscaler pods will be scheduled on Fargate. It is recommended to run the cluster autoscaler on Fargate to avoid the autoscaler scaling down a node where it is running (and thus shutting itself down during a scale down event)."
+  description = "When true, the cluster autoscaler pods will be scheduled on Fargate. It is recommended to run the cluster autoscaler on Fargate to avoid the autoscaler scaling down a node where it is running (and thus shutting itself down during a scale down event). However, since Fargate is only supported on a handful of regions, we don't default to true here."
   type        = bool
-  default     = true
+  default     = false
+}
+
+variable "cluster_autoscaler_pod_tolerations" {
+  description = "Configure tolerations rules to allow the cluster-autoscaler Pod to schedule on nodes that have been tainted. Each item in the list specifies a toleration rule."
+  type        = list(map(any))
+  default     = []
+
+  # Each item in the list represents a particular toleration. See
+  # https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/ for the various rules you can specify.
+  #
+  # Example:
+  #
+  # [
+  #   {
+  #     key = "node.kubernetes.io/unreachable"
+  #     operator = "Exists"
+  #     effect = "NoExecute"
+  #     tolerationSeconds = 6000
+  #   }
+  # ]
+}
+
+variable "cluster_autoscaler_pod_node_affinity" {
+  description = "Configure affinity rules for the cluster-autoscaler Pod to control which nodes to schedule on. Each item in the list should be a map with the keys `key`, `values`, and `operator`, corresponding to the 3 properties of matchExpressions. Note that all expressions must be satisfied to schedule on the node."
+  type = list(object({
+    key      = string
+    values   = list(string)
+    operator = string
+  }))
+  default = []
+
+  # Each item in the list represents a matchExpression for requiredDuringSchedulingIgnoredDuringExecution.
+  # https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity for the various
+  # configuration option.
+  #
+  # Example:
+  #
+  # [
+  #   {
+  #     "key" = "node-label-key"
+  #     "values" = ["node-label-value", "another-node-label-value"]
+  #     "operator" = "In"
+  #   }
+  # ]
+  #
+  # Translates to:
+  #
+  # nodeAffinity:
+  #   requiredDuringSchedulingIgnoredDuringExecution:
+  #     nodeSelectorTerms:
+  #     - matchExpressions:
+  #       - key: node-label-key
+  #         operator: In
+  #         values:
+  #         - node-label-value
+  #         - another-node-label-value
 }
 
 # Scale down parameters for autoscaler. See
