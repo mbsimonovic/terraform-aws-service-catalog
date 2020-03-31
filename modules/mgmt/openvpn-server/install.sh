@@ -6,7 +6,7 @@ set -e
 readonly DEFAULT_PACKAGE_OPENVPN_VERSION="v0.9.11"
 
 # TODO: Update ref to a tag when released
-readonly DEFAULT_EC2_BASELINE_REF="openvpn"
+readonly DEFAULT_EC2_BASELINE_REF="master"
 
 function include_ec2_baseline {
   gruntwork-install \
@@ -97,9 +97,9 @@ function install_openvpn_server {
     shift
   done
 
-  assert_env_var_not_empty "GITHUB_OAUTH_TOKEN"
-
   include_ec2_baseline
+
+  assert_env_var_not_empty "GITHUB_OAUTH_TOKEN"
 
   install_gruntwork_modules \
     "$bash_commons_version" \
