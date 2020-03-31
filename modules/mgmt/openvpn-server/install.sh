@@ -33,7 +33,7 @@ function install_openvpn_packages {
 
   echo "Installing Gruntwork OpenVPN packages"
 
-  for module in "${modules[*]}"
+  for module in "${modules[@]}"
   do
     gruntwork-install --module-name "$module" --repo "$openvpn_repo" --tag "$package_openvpn_version"
   done
