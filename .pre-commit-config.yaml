@@ -16,6 +16,6 @@ repos:
         pass_filenames: false
       - id: check-skip-env
         name: check-skip-env
-        entry: go run ./hooks/check-skip-env
-        language: system
+        entry: ./hooks/run_check_skip_env.sh
+        language: script
         files: test/.*\.go$
