@@ -29,7 +29,7 @@ variable "eks_iam_role_for_service_accounts_config" {
 # Fargate configuration
 
 variable "worker_vpc_subnet_ids" {
-  description = "The subnet IDs to use for EKS worker nodes. Used when provisioning Pods on to Fargate. Required if any of the services are being scheduled on Fargate. Set to empty list of none of the Pods are being scheduled on Fargate."
+  description = "The subnet IDs to use for EKS worker nodes. Used when provisioning Pods on to Fargate. Required if any of the services are being scheduled on Fargate. Set to empty list if none of the Pods are being scheduled on Fargate."
   type        = list(string)
 }
 

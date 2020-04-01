@@ -1,12 +1,12 @@
 :type: service
-:name: Amazon EKS
-:description: Deploy Kubernetes on top of Amazon EC2 Kubernetes Service (EKS)
+:name: Amazon EKS Core Services
+:description: Deploy core administrative applications on top of Amazon EC2 Kubernetes Service (EKS)
 :icon: /_docs/eks-icon.png
 :category: docker-orchestration
 :cloud: aws
 :tags: docker, orchestration, kubernetes, containers
 :license: gruntwork
-:built-with: terraform, bash, python, go
+:built-with: terraform, helm
 
 // AsciiDoc TOC settings
 :toc:
@@ -22,17 +22,17 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
-= Amazon EKS
+= Amazon EKS Core Services
 
 image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
 image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
 image:https://img.shields.io/badge/helm-%3E%3D3.1.0-green[Helm version]
 image:https://img.shields.io/badge/k8s-1.13%20~%201.15-5dbcd2[K8s version]
 
-This folder contains https://www.terraform.io[Terraform] and https://www.packer.io[Packer] code to deploy a production-grade Kubernetes cluster on https://aws.amazon.com[AWS] using
-https://docs.aws.amazon.com/eks/latest/userguide/clusters.html[Elastic Kubernetes Service (EKS)].
+This folder contains https://www.terraform.io[Terraform] and https://helm.sh/[Helm] code to deploy core administrative
+services onto https://docs.aws.amazon.com/eks/latest/userguide/clusters.html[Elastic Kubernetes Service (EKS)].
 
-image::/_docs/eks-architecture.png?raw=true[EKS architecture]
+image::/_docs/eks-core-services-architecture.png?raw=true[EKS Core Services architecture]
 
 toc::[]
 
@@ -41,17 +41,10 @@ toc::[]
 
 == Features
 
-* Deploy a fully-managed control plane
-* Deploy worker nodes in an Auto Scaling Group
-* Deploy Pods using Fargate instead of managing worker nodes
-* Zero-downtime, rolling deployment for updating worker nodes
-* IAM to RBAC mapping
-* Auto scaling and auto healing
-* For Self Managed Workers:
-    - Server-hardening with fail2ban, ip-lockdown, auto-update, and more
-    - Manage SSH access via IAM groups via ssh-grunt
-    - CloudWatch log aggregation
-    - CloudWatch metrics and alerts
+* Deploy FluentD DaemonSet to ship container logs to CloudWatch Logs
+* Deploy ALB Ingress Controller to configure ALBs from within Kubernetes
+* Deploy external-dns to manage Route 53 DNS records from within Kubernetes
+* Deploy Kubernetes cluster-autoscaler to configure auto scaling of ASGs based on Pod demand
 
 
 
@@ -105,9 +98,14 @@ If you want to deploy this repo in production, check out the following resources
 
 == Manage
 
-For information on how to manage your EKS cluster, including how to deploy Pods on Fargate, how to associate IAM roles
-to Pod, how to upgrade your EKS cluster, and more, see the documentation in the
+For information on each of the core services deployed by this module, see the documenttion in the
 https://github.com/gruntwork-io/terraform-aws-eks[terraform-aws-eks] repo.
+
+* https://github.com/gruntwork-io/terraform-aws-eks/tree/master/modules/eks-cloudwatch-container-logs[FluentD DaemonSet]
+* https://github.com/gruntwork-io/terraform-aws-eks/blob/master/modules/eks-alb-ingress-controller[ALB Ingress Controller]
+* https://github.com/gruntwork-io/terraform-aws-eks/tree/master/modules/eks-k8s-external-dns[external-dns]
+* https://github.com/gruntwork-io/terraform-aws-eks/tree/master/modules/eks-k8s-cluster-autoscaler[cluster-autoscaler]
+
 
 
 

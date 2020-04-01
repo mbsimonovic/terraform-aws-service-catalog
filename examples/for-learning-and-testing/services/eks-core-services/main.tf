@@ -23,7 +23,8 @@ module "eks_core_services" {
   worker_vpc_subnet_ids                    = var.worker_vpc_subnet_ids
   pod_execution_iam_role_arn               = var.pod_execution_iam_role_arn
 
-  # To make testing easier, we will schedule everything we can on Fargate
+  # We will schedule everything we can on Fargate. Each of these pods use an IP address on the worker nodes, so it helps
+  # to schedule them off the worker nodes.
   schedule_alb_ingress_controller_on_fargate = true
   schedule_external_dns_on_fargate           = true
   schedule_cluster_autoscaler_on_fargate     = true
