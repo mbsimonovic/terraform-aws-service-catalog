@@ -30,7 +30,7 @@ image:https://img.shields.io/badge/helm-%3E%3D3.1.0-green[Helm version]
 image:https://img.shields.io/badge/k8s-1.13%20~%201.15-5dbcd2[K8s version]
 
 This folder contains https://www.terraform.io[Terraform] and https://helm.sh/[Helm] code to deploy core administrative
-services onto https://docs.aws.amazon.com/eks/latest/userguide/clusters.html[Elastic Kubernetes Service (EKS)].
+services, such as FluentD and the ALB Ingress Controller, onto https://docs.aws.amazon.com/eks/latest/userguide/clusters.html[Elastic Kubernetes Service (EKS)].
 
 image::/_docs/eks-core-services-architecture.png?raw=true[EKS Core Services architecture]
 
