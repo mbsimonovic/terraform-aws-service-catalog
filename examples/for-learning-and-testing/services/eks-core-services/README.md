@@ -8,7 +8,14 @@ This example is optimized for learning, experimenting, and testing (but not dire
 to deploy this module directly in production, check out the [examples/for-production folder](/examples/for-production).
 
 
-### Deploy the EKS Cluster using Terraform
+## Deploy the core services using Terraform
+
+### Pre-requisites
+
+This example assumes that you already have a running EKS cluster. Use the [eks-cluster example](../eks-cluster) to
+deploy one if you do not have one already.
+
+### Deploy
 
 1. Install [Terraform](https://www.terraform.io/).
 1. Configure your AWS credentials
