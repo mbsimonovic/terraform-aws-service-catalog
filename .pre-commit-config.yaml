@@ -1,9 +1,10 @@
 repos:
   - repo: https://github.com/gruntwork-io/pre-commit
-    rev: v0.1.4
+    rev: 9a91d3a
     hooks:
       - id: terraform-fmt
       - id: terragrunt-hclfmt
+      - id: check-terratest-skip-env
 
   - repo: local
     hooks:
@@ -14,8 +15,3 @@ repos:
         files: "$^"
         always_run: true
         pass_filenames: false
-      - id: check-skip-env
-        name: check-skip-env
-        entry: ./hooks/run_check_skip_env.sh
-        language: script
-        files: test/.*\.go$
