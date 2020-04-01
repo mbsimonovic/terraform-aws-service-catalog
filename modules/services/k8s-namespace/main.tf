@@ -17,20 +17,6 @@ terraform {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# CONFIGURE KUBERNETES CONNECTION
-# ---------------------------------------------------------------------------------------------------------------------
-
-provider "kubernetes" {
-  load_config_file = var.kubeconfig_auth_type == "context"
-  config_path      = var.kubeconfig_auth_type == "context" ? var.kubeconfig_path : null
-  config_context   = var.kubeconfig_auth_type == "context" ? var.kubeconfig_context : null
-
-  host                   = var.kubeconfig_auth_type == "eks" ? data.aws_eks_cluster.cluster[0].endpoint : null
-  cluster_ca_certificate = var.kubeconfig_auth_type == "eks" ? base64decode(data.aws_eks_cluster.cluster[0].certificate_authority.0.data) : null
-  token                  = var.kubeconfig_auth_type == "eks" ? data.aws_eks_cluster_auth.kubernetes_token[0].token : null
-}
-
-# ---------------------------------------------------------------------------------------------------------------------
 # SETUP NAMESPACE WITH DEFAULT ROLES AND ADD FARGATE PROFILE IF REQUESTED
 # ---------------------------------------------------------------------------------------------------------------------
 
@@ -41,9 +27,9 @@ module "namespace" {
 }
 
 resource "aws_eks_fargate_profile" "namespace" {
-  count = var.kubeconfig_auth_type == "eks" && var.schedule_pods_on_fargate ? 1 : 0
+  count = var.schedule_pods_on_fargate ? 1 : 0
 
-  cluster_name           = var.kubeconfig_eks_cluster_name
+  cluster_name           = var.eks_cluster_name
   fargate_profile_name   = "all-${var.name}-namespace"
   pod_execution_role_arn = var.pod_execution_iam_role_arn
   subnet_ids             = var.worker_vpc_subnet_ids
