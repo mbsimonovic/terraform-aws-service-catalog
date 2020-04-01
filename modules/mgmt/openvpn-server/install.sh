@@ -37,7 +37,7 @@ function install_openvpn_packages {
   do
     gruntwork-install --module-name "$module" --repo "$openvpn_repo" --tag "$package_openvpn_version"
   done
-  
+
   gruntwork-install --binary-name openvpn-admin --repo "$openvpn_repo" --tag "$package_openvpn_version"
 }
 

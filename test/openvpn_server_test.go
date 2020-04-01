@@ -10,8 +10,11 @@ import (
 	"github.com/gruntwork-io/terratest/modules/git"
 	"github.com/gruntwork-io/terratest/modules/packer"
 	"github.com/gruntwork-io/terratest/modules/random"
+	"github.com/gruntwork-io/terratest/modules/retry"
+	"github.com/gruntwork-io/terratest/modules/ssh"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
+	"github.com/stretchr/testify/require"
 )
 
 func TestOpenvpnServer(t *testing.T) {
@@ -23,6 +26,7 @@ func TestOpenvpnServer(t *testing.T) {
 	// os.Setenv("SKIP_deploy_terraform", "true")
 	// os.Setenv("SKIP_validate", "true")
 	// os.Setenv("SKIP_cleanup", "true")
+	// os.Setenv("SKIP_cleanup_keypair", "true")
 	// os.Setenv("SKIP_cleanup_ami", "true")
 
 	testFolder := "../examples/for-learning-and-testing/mgmt/openvpn-server"
@@ -33,11 +37,14 @@ func TestOpenvpnServer(t *testing.T) {
 		aws.DeleteAmiAndAllSnapshots(t, awsRegion, amiId)
 	})
 
+	defer test_structure.RunTestStage(t, "cleanup_keypair", func() {
+		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
+		aws.DeleteEC2KeyPair(t, awsKeyPair)
+	})
+
 	defer test_structure.RunTestStage(t, "cleanup", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
 		terraform.Destroy(t, terraformOptions)
-		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
-		aws.DeleteEC2KeyPair(t, awsKeyPair)
 	})
 
 	test_structure.RunTestStage(t, "build_ami", func() {
@@ -86,6 +93,7 @@ func TestOpenvpnServer(t *testing.T) {
 				"base_domain_name_tags": domainNameTagsForTest,
 				"keypair_name":          awsKeyPair.Name,
 				"backup_bucket_name":    s3BucketName,
+				"instance_type":         "t3.large",
 			},
 		}
 
@@ -97,7 +105,28 @@ func TestOpenvpnServer(t *testing.T) {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
 		ip := terraform.OutputRequired(t, terraformOptions, "public_ip")
 		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
-		testSSH(t, ip, "ubuntu", awsKeyPair)
+		checkOpenVPNServer(t, ip, "ubuntu", awsKeyPair)
 	})
+}
 
+func checkOpenVPNServer(t *testing.T, ip string, sshUsername string, keyPair *aws.Ec2Keypair) {
+	publicHost := ssh.Host{
+		Hostname:    ip,
+		SshUserName: sshUsername,
+		SshKeyPair:  keyPair.KeyPair,
+	}
+
+	// Wait up to 10 minutes to allow for generating certificates
+	output := retry.DoWithRetry(
+		t,
+		fmt.Sprintf("Check for openvpn-admin processes on %s", ip),
+		20,
+		30*time.Second,
+		func() (string, error) {
+			return ssh.CheckSshCommandE(t, publicHost, "/usr/bin/pgrep openvpn-admin")
+		},
+	)
+	numProcsExpected := 2
+	lines := strings.Split(strings.Trim(output, "\n"), "\n")
+	require.Lenf(t, lines, numProcsExpected, "Expected to find %d openvpn-admin processes but found %d\n", numProcsExpected, len(lines))
 }

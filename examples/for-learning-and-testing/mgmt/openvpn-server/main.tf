@@ -12,8 +12,9 @@ module "openvpn" {
   # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/mgmt/openvpn-server?ref=v1.0.8"
   source = "../../../../modules/mgmt/openvpn-server"
 
-  name   = var.name
-  ami_id = var.ami_id
+  name          = var.name
+  ami_id        = var.ami_id
+  instance_type = var.instance_type
 
   # For this simple example, use a regular key pair instead of ssh-grunt
   # For details on ssh-grunt, see: https://github.com/gruntwork-io/module-security/blob/master/modules/ssh-grunt/README.adoc
@@ -53,4 +54,8 @@ module "openvpn" {
   # access to a specific set of source CIDR ranges, like the addresses of your offices.
   allow_ssh_from_cidr_list = ["0.0.0.0/0"]
   allow_vpn_from_cidr_list = ["0.0.0.0/0"]
+
+  # This will automatically delete the backups bucket when running terraform destroy
+  # In production, you may want to keep the backups, so you would set this to false. 
+  force_destroy = true
 }
