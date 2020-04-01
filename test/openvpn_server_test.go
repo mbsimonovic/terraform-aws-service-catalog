@@ -116,11 +116,11 @@ func checkOpenVPNServer(t *testing.T, ip string, sshUsername string, keyPair *aw
 		SshKeyPair:  keyPair.KeyPair,
 	}
 
-	// Wait up to 10 minutes to allow for generating certificates
+	// Wait up to 20 minutes to allow for generating certificates
 	output := retry.DoWithRetry(
 		t,
 		fmt.Sprintf("Check for openvpn-admin processes on %s", ip),
-		20,
+		40,
 		30*time.Second,
 		func() (string, error) {
 			return ssh.CheckSshCommandE(t, publicHost, "/usr/bin/pgrep openvpn-admin")
