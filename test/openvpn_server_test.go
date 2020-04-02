@@ -93,7 +93,7 @@ func TestOpenvpnServer(t *testing.T) {
 				"base_domain_name_tags": domainNameTagsForTest,
 				"keypair_name":          awsKeyPair.Name,
 				"backup_bucket_name":    s3BucketName,
-				"instance_type":         "t3.large",
+				"instance_type":         "c5.large",
 			},
 		}
 
