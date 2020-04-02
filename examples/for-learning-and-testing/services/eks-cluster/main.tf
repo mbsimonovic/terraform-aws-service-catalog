@@ -26,7 +26,7 @@ module "eks_cluster" {
   worker_vpc_subnet_ids        = module.vpc_app.private_app_subnet_ids
 
   # Due to localization limitations for EKS, it is recommended to have separate ASGs per availability zones. Here we
-  # deploy one ASG in one subnet.
+  # deploy one ASG in one public subnet. We use public subnets so we can SSH into the node for testing.
   autoscaling_group_configurations = {
     asg = {
       min_size   = 1
@@ -39,9 +39,10 @@ module "eks_cluster" {
   # To keep this example simple, we make the Control Plane public and allow incoming API calls and SSH connections from
   # anywhere. In production, you'll want to make the Control Plane private and limit access to trusted servers only
   # (e.g., solely a bastion host or VPN server).
-  endpoint_public_access                    = true
-  allow_inbound_api_access_from_cidr_blocks = ["0.0.0.0/0"]
-  allow_inbound_ssh_from_cidr_blocks        = ["0.0.0.0/0"]
+  endpoint_public_access                       = true
+  cluster_instance_associate_public_ip_address = true
+  allow_inbound_api_access_from_cidr_blocks    = ["0.0.0.0/0"]
+  allow_inbound_ssh_from_cidr_blocks           = ["0.0.0.0/0"]
 }
 
 # ----------------------------------------------------------------------------------------------------------------------

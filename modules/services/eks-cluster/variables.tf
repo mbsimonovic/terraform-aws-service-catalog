@@ -239,3 +239,14 @@ variable "enabled_control_plane_log_types" {
   type        = list(string)
   default     = ["api", "audit", "authenticator"]
 }
+
+# ---------------------------------------------------------------------------------------------------------------------
+# TEST PARAMETERS
+# These variables exist solely for testing purposes.
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "cluster_instance_associate_public_ip_address" {
+  description = "Whether or not to associate a public IP address to the instances of the self managed ASGs. Will only work if the instances are launched in a public subnet."
+  type        = bool
+  default     = false
+}

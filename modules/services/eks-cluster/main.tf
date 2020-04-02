@@ -93,6 +93,9 @@ module "eks_workers" {
   cluster_instance_user_data_base64 = module.ec2_baseline.cloud_init_rendered
 
   tenancy = var.tenancy
+
+  # These are dangerous variables that exposed to make testing easier, but should be left untouch.
+  cluster_instance_associate_public_ip_address = var.cluster_instance_associate_public_ip_address
 }
 
 resource "aws_security_group_rule" "allow_inbound_ssh_from_security_groups" {
