@@ -53,7 +53,7 @@ module "database" {
   # These values have the same defaults in the module, but we hard code the configuration here for documentation purposes.
   storage_encrypted = true
 
-  # These are dangerous variables that exposed to make testing easier, but should be left untouch.
+  # These are dangerous variables that exposed to make testing easier, but should be left untouched.
   publicly_accessible = var.publicly_accessible
   skip_final_snapshot = var.skip_final_snapshot
 }

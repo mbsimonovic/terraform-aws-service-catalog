@@ -39,17 +39,6 @@ variable "aurora_subnet_ids" {
   type        = list(string)
 }
 
-variable "allow_connections_from_cidr_blocks" {
-  description = "The list of network CIDR blocks to allow network access to Aurora from. One of var.allow_connections_from_cidr_blocks or var.allow_connections_from_security_groups must be specified for the database to be reachable."
-  type        = list(string)
-}
-
-variable "allow_connections_from_security_groups" {
-  description = "The list of IDs or Security Groups to allow network access to Aurora from. All security groups must either be in the VPC specified by var.vpc_id, or a peered VPC with the VPC specified by var.vpc_id. One of var.allow_connections_from_cidr_blocks or var.allow_connections_from_security_groups must be specified for the database to be reachable."
-  type        = list(string)
-}
-
-
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL PARAMETERS
 # Generally, these values won't need to be changed.
@@ -71,6 +60,18 @@ variable "engine_mode" {
   description = "The version of aurora to run - provisioned or serverless."
   type        = string
   default     = "provisioned"
+}
+
+variable "allow_connections_from_cidr_blocks" {
+  description = "The list of network CIDR blocks to allow network access to Aurora from. One of var.allow_connections_from_cidr_blocks or var.allow_connections_from_security_groups must be specified for the database to be reachable."
+  type        = list(string)
+  default     = []
+}
+
+variable "allow_connections_from_security_groups" {
+  description = "The list of IDs or Security Groups to allow network access to Aurora from. All security groups must either be in the VPC specified by var.vpc_id, or a peered VPC with the VPC specified by var.vpc_id. One of var.allow_connections_from_cidr_blocks or var.allow_connections_from_security_groups must be specified for the database to be reachable."
+  type        = list(string)
+  default     = []
 }
 
 # Provisioned RDS cluster setting
