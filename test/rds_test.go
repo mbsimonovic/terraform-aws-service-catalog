@@ -15,7 +15,7 @@ func TestRds(t *testing.T) {
 	t.Parallel()
 
 	// Uncomment the items below to skip certain parts of the test
-	//os.Setenv("TERRATEST_REGION", "eu-west-1")
+	//os.Setenv("TERRATEST_REGION", "us-west-2")
 	//os.Setenv("SKIP_setup", "true")
 	//os.Setenv("SKIP_deploy_terraform", "true")
 	//os.Setenv("SKIP_validate", "true")
@@ -82,6 +82,5 @@ func createRDSTerraformOptions(
 	terraformOptions.Vars["db_name"] = "rds"
 	terraformOptions.Vars["master_username"] = "rds"
 	terraformOptions.Vars["master_password"] = password
-	terraformOptions.Vars["share_snapshot_with_account_id"] = getExternalAccountId()
 	return terraformOptions
 }

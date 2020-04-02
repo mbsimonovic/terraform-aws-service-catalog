@@ -33,12 +33,6 @@ variable "db_name" {
   default     = "rds"
 }
 
-variable "share_snapshot_with_account_id" {
-  description = "The ID of the AWS Account that the snapshot should be shared with."
-  type        = string
-  default     = null
-}
-
 variable "engine" {
   description = "The name of the database engine to be used for the RDS instance. For the complete list of possible values, see the engine request parameter here: https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_CreateDBInstance.html."
   type        = string

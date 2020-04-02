@@ -41,6 +41,7 @@ module "mysql_rds" {
   # and no automatic backups. You'll want to tweak all of these settings for production usage.
   instance_type = "db.t3.micro"
 
+  db_name                 = var.db_name
   allocated_storage       = 10
   multi_az                = false
   backup_retention_period = 0
