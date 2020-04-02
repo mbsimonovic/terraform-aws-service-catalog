@@ -1,7 +1,7 @@
 :type: service
 :name: Amazon RDS
 :description: Deploy and manage Amazon Relational Database Service (RDS)
-:icon: /_docs/rds.png
+:icon: /_docs/rds-icon.png
 :category: database
 :cloud: aws
 :tags: data, database, sql, rds, postgresql, mysql
@@ -44,6 +44,8 @@ toc::[]
 * Automatic nightly snapshots
 * Automatic cross account snapshots
 * Automatic scaling of storage
+* CloudWatch Alarms for alerting when CPU, memory, and disk metrics exceed certain thresholds
+* CloudWatch dashboard widgets for RDS statistics
 
 
 == Learn

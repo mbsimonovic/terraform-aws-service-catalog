@@ -13,12 +13,12 @@ provider "aws" {
 module "mysql_rds" {
   # When using these modules in your own templates, you will need to use a Git URL with a ref attribute that pins you
   # to a specific version of the modules, such as the following example:
-  # source = "git::git@github.com:gruntwork-io/module-data-storage.git//modules/rds?ref=v1.0.8"
+  # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/data-stores/rds?ref=v1.0.8"
   source = "../../../../modules/data-stores/rds"
 
   name           = "${var.name}-mysql"
   engine         = "mysql"
-  engine_version = var.engine_version
+  engine_version = "8.0.17"
   port           = 3306
 
   master_username = var.master_username

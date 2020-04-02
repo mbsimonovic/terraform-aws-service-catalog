@@ -33,18 +33,6 @@ variable "db_name" {
   default     = "rds"
 }
 
-variable "engine" {
-  description = "The name of the database engine to be used for the RDS instance. For the complete list of possible values, see the engine request parameter here: https://docs.aws.amazon.com/AmazonRDS/latest/APIReference/API_CreateDBInstance.html."
-  type        = string
-  default     = "mysql"
-}
-
-variable "engine_version" {
-  description = "The version of var.engine to use (e.g. 8.0.17 for mysql)."
-  type        = string
-  default     = "8.0.17"
-}
-
 variable "aws_region" {
   description = "The AWS region to deploy into"
   type        = string
