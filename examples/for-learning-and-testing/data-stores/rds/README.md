@@ -18,6 +18,5 @@ folder](/examples/for-production).
    the ways you can set Terraform variables).
 1. Run `terraform init`.
 1. Run `terraform apply`.
-1. The module will output the endpoint and port for your Aurora cluster. Connect a local database client to test the
-   cluster.
+1. The module will output the endpoint and port for your RDS instance. Connect a local database client to test it out.
 1. When you're done testing, to undeploy everything, run `terraform destroy`.

@@ -88,7 +88,6 @@ If you want to deploy this repo in production, check out the following resources
 
 === Day-to-day operations
 
-* link:core-concepts.md#how-do-i-deploy-aurora-serverless[How to deploy Aurora Serverless]
 * https://github.com/gruntwork-io/module-data-storage/blob/master/modules/rds/core-concepts.md#how-do-you-connect-to-the-database[How to connect to an RDS instance]
 * https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAM.html[How to authenticate to RDS with IAM]
 * https://github.com/gruntwork-io/module-data-storage/blob/master/modules/rds/core-concepts.md#how-do-you-scale-this-database[How to scale RDS]

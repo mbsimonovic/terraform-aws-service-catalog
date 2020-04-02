@@ -202,7 +202,7 @@ module "cleanup_snapshots" {
 
   rds_db_identifier        = module.database.primary_id
   rds_db_arn               = module.database.primary_arn
-  rds_db_is_aurora_cluster = true
+  rds_db_is_aurora_cluster = false
 
   schedule_expression = var.share_snapshot_schedule_expression
   max_snapshots       = var.share_snapshot_max_snapshots
