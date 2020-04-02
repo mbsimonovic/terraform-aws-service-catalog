@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/gruntwork-io/pre-commit
-    rev: "2520157"
+    rev: v0.1.5
     hooks:
       - id: terraform-fmt
       - id: terragrunt-hclfmt
