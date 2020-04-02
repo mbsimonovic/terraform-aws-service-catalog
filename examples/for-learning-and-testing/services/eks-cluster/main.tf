@@ -21,11 +21,9 @@ module "eks_cluster" {
   cluster_instance_keypair_name = var.keypair_name
   enable_ssh_grunt              = false
 
-  # To keep this example simple, we run it in the default VPC and put everything in the same subnets. In production,
-  # you'll want to use a custom VPC, with both the workers and control plane in a private subnet.
-  vpc_id                       = data.aws_vpc.default.id
-  control_plane_vpc_subnet_ids = local.sorted_subnets
-  worker_vpc_subnet_ids        = [aws_subnet.private.id]
+  vpc_id                       = module.vpc_app.vpc_id
+  control_plane_vpc_subnet_ids = module.vpc_app.private_subnet_ids
+  worker_vpc_subnet_ids        = module.vpc_app.private_subnet_ids
 
   # Due to localization limitations for EKS, it is recommended to have separate ASGs per availability zones. Here we
   # deploy one ASG in one subnet.
@@ -33,7 +31,7 @@ module "eks_cluster" {
     asg = {
       min_size   = 1
       max_size   = 2
-      subnet_ids = [local.sorted_subnets[0]]
+      subnet_ids = [module.vpc_app.public_subnet_ids[0]]
       tags       = []
     }
   }
@@ -47,66 +45,19 @@ module "eks_cluster" {
 }
 
 # ----------------------------------------------------------------------------------------------------------------------
-# CREATE NAT GATEWAY AND PRIVATE SUBNET FOR DEFAULT VPC
-# You can only run Fargate on private subnets. However, private subnets can not make outbound calls unless there is a
-# NAT gateway, so we need to create that too.
+# CREATE A VPC
+# You can only run Fargate on private subnets, and the default VPC does not come with private subnets with NAT gateways
+# for outbound calls, so we create a new VPC here to accommodate.
 # ----------------------------------------------------------------------------------------------------------------------
 
-# A NAT Gateway must be associated with an Elastic IP Address
-resource "aws_eip" "nat" {
-  vpc = true
-}
+module "vpc_app" {
+  source = "../../../../modules/networking/vpc-app"
 
-resource "aws_nat_gateway" "nat" {
-  allocation_id = aws_eip.nat.id
-  subnet_id     = local.sorted_subnets[0]
-
-  tags = {
-    Name = "default-vpc-nat-for-${var.cluster_name}"
-  }
-}
-
-resource "aws_subnet" "private" {
-  vpc_id            = data.aws_vpc.default.id
-  availability_zone = data.aws_availability_zones.all.names[0]
-  cidr_block        = "172.31.200.0/24"
-  tags = merge(
-    {
-      Name = "default-vpc-private"
-    },
-    module.vpc_tags.vpc_private_app_subnet_eks_tags
-  )
-}
-
-resource "aws_route_table" "private" {
-  vpc_id = data.aws_vpc.default.id
-  tags = {
-    Name = "default-vpc-private"
-  }
-}
-
-resource "aws_route" "nat" {
-  route_table_id         = aws_route_table.private.id
-  destination_cidr_block = "0.0.0.0/0"
-  nat_gateway_id         = aws_nat_gateway.nat.id
-
-  # Workaround for https://github.com/terraform-providers/terraform-provider-aws/issues/338
-  timeouts {
-    create = "5m"
-  }
-}
-
-resource "aws_route_table_association" "private" {
-  subnet_id      = aws_subnet.private.id
-  route_table_id = aws_route_table.private.id
-}
-
-data "aws_availability_zones" "all" {
-  state = "available"
-}
-
-module "vpc_tags" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-vpc-tags?ref=v0.19.1"
-
-  eks_cluster_names = [var.cluster_name]
+  aws_region           = var.aws_region
+  cidr_block           = "10.0.0.0/16"
+  num_nat_gateways     = 1
+  vpc_name             = var.cluster_name
+  create_flow_logs     = false
+  tag_for_use_with_eks = true
+  eks_cluster_names    = [var.cluster_name]
 }

@@ -1,11 +1,11 @@
-output "private_subnet_id" {
-  description = "The ID of a private subnet that can be used for Fargate."
-  value       = aws_subnet.private.id
+output "private_subnet_ids" {
+  description = "The list of IDs of private subnets that can be used for Fargate."
+  value       = module.vpc_app.private_subnet_ids
 }
 
 output "eks_cluster_vpc_id" {
   description = "The ID of the VPC where the EKS cluster is deployed."
-  value       = data.aws_vpc.default.id
+  value       = module.vpc_app.vpc_id
 }
 
 output "eks_cluster_arn" {

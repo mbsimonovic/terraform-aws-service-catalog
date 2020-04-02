@@ -140,13 +140,13 @@ func TestEksCluster(t *testing.T) {
 
 		eksClusterIRSAConfig := terraform.OutputMap(t, terraformOptions, "eks_iam_role_for_service_accounts_config")
 		eksClusterVpcID := terraform.Output(t, terraformOptions, "eks_cluster_vpc_id")
-		eksPrivateSubnetID := terraform.Output(t, terraformOptions, "private_subnet_id")
+		eksPrivateSubnetIDs := terraform.Output(t, terraformOptions, "private_subnet_ids")
 		eksClusterFargateRole := terraform.Output(t, terraformOptions, "eks_default_fargate_execution_role_arn")
 
 		coreServicesOptions := createBaseTerraformOptions(t, coreServicesTestFolder, awsRegion)
 		coreServicesOptions.Vars["eks_cluster_name"] = clusterName
 		coreServicesOptions.Vars["vpc_id"] = eksClusterVpcID
-		coreServicesOptions.Vars["worker_vpc_subnet_ids"] = []string{eksPrivateSubnetID}
+		coreServicesOptions.Vars["worker_vpc_subnet_ids"] = eksPrivateSubnetIDs
 		coreServicesOptions.Vars["eks_iam_role_for_service_accounts_config"] = eksClusterIRSAConfig
 		coreServicesOptions.Vars["external_dns_route53_hosted_zone_tag_filters"] = defaultDomainTagFilterForTest
 		coreServicesOptions.Vars["pod_execution_iam_role_arn"] = eksClusterFargateRole
