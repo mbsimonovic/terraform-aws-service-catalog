@@ -11,7 +11,7 @@ import (
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 )
 
-func TestRDS(t *testing.T) {
+func TestRds(t *testing.T) {
 	t.Parallel()
 
 	// Uncomment the items below to skip certain parts of the test
