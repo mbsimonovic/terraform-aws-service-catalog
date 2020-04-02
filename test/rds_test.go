@@ -55,7 +55,7 @@ func TestRds(t *testing.T) {
 		dbUsername := "rds"
 		dbPassword := test_structure.LoadString(t, testFolder, "password")
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
-		dbEndpoint := terraform.OutputRequired(t, terraformOptions, "primary_endpoint")
+		dbEndpoint := terraform.OutputRequired(t, terraformOptions, "primary_host")
 		dbPort := terraform.OutputRequired(t, terraformOptions, "port")
 
 		info := RDSInfo{
