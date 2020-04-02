@@ -22,8 +22,8 @@ module "eks_cluster" {
   enable_ssh_grunt              = false
 
   vpc_id                       = module.vpc_app.vpc_id
-  control_plane_vpc_subnet_ids = module.vpc_app.private_subnet_ids
-  worker_vpc_subnet_ids        = module.vpc_app.private_subnet_ids
+  control_plane_vpc_subnet_ids = module.vpc_app.private_app_subnet_ids
+  worker_vpc_subnet_ids        = module.vpc_app.private_app_subnet_ids
 
   # Due to localization limitations for EKS, it is recommended to have separate ASGs per availability zones. Here we
   # deploy one ASG in one subnet.
