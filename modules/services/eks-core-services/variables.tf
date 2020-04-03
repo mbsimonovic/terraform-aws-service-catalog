@@ -230,7 +230,7 @@ variable "external_dns_pod_node_affinity" {
 }
 
 variable "route53_record_update_policy" {
-  description = "Policy for how DNS records are sychronized between sources and providers (options: sync, upsert-only )."
+  description = "Policy for how DNS records are sychronized between sources and providers (options: sync, upsert-only)."
   type        = string
   default     = "sync"
   # NOTE: external-dns is designed not to touch any records that it has not created, even in sync mode.

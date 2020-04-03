@@ -94,7 +94,7 @@ module "eks_workers" {
 
   tenancy = var.tenancy
 
-  # These are dangerous variables that exposed to make testing easier, but should be left untouch.
+  # These are dangerous variables that are exposed to make testing easier, but should be left untouched.
   cluster_instance_associate_public_ip_address = var.cluster_instance_associate_public_ip_address
 }
 
