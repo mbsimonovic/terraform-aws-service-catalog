@@ -22,7 +22,22 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const expectedEksNodeCount = 1
+var defaultDomainTagFilterForTest = []map[string]string{
+	map[string]string{
+		"key":   "shared-management-with-kubernetes",
+		"value": "true",
+	},
+}
+
+// See https://docs.aws.amazon.com/eks/latest/userguide/fargate.html for list
+var eksFargateRegions = []string{
+	"us-east-2",
+	"eu-west-1",
+	"ap-northeast-1",
+}
+
+// 1 worker + 2 fargate pods
+const expectedEksNodeCount = 3
 
 func TestEksCluster(t *testing.T) {
 	t.Parallel()
@@ -31,12 +46,15 @@ func TestEksCluster(t *testing.T) {
 	//os.Setenv("TERRATEST_REGION", "eu-west-1")
 	//os.Setenv("SKIP_build_ami", "true")
 	//os.Setenv("SKIP_deploy_terraform", "true")
-	//os.Setenv("SKIP_validate", "true")
+	//os.Setenv("SKIP_validate_cluster", "true")
+	//os.Setenv("SKIP_deploy_core_services", "true")
+	//os.Setenv("SKIP_cleanup_core_services", "true")
 	//os.Setenv("SKIP_cleanup", "true")
 	//os.Setenv("SKIP_cleanup_keypair", "true")
 	//os.Setenv("SKIP_cleanup_ami", "true")
 
 	testFolder := "../examples/for-learning-and-testing/services/eks-cluster"
+	coreServicesTestFolder := "../examples/for-learning-and-testing/services/eks-core-services"
 
 	defer test_structure.RunTestStage(t, "cleanup_ami", func() {
 		amiId := test_structure.LoadArtifactID(t, testFolder)
@@ -55,8 +73,7 @@ func TestEksCluster(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "build_ami", func() {
-		// us-west-1 does not support EKS
-		awsRegion := aws.GetRandomStableRegion(t, regionsForEc2Tests, []string{"us-west-1"})
+		awsRegion := aws.GetRandomStableRegion(t, eksFargateRegions, nil)
 		test_structure.SaveString(t, testFolder, "region", awsRegion)
 
 		branchName := git.GetCurrentBranchName(t)
@@ -97,7 +114,7 @@ func TestEksCluster(t *testing.T) {
 		terraform.InitAndApply(t, terraformOptions)
 	})
 
-	test_structure.RunTestStage(t, "validate", func() {
+	test_structure.RunTestStage(t, "validate_cluster", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
 		eksClusterArn := terraform.OutputRequired(t, terraformOptions, "eks_cluster_arn")
 
@@ -110,6 +127,35 @@ func TestEksCluster(t *testing.T) {
 		readyNodes := k8s.GetReadyNodes(t, kubectlOptions)
 		assert.Equal(t, len(readyNodes), expectedEksNodeCount)
 	})
+
+	defer test_structure.RunTestStage(t, "cleanup_core_services", func() {
+		terraformOptions := test_structure.LoadTerraformOptions(t, coreServicesTestFolder)
+		terraform.Destroy(t, terraformOptions)
+	})
+
+	test_structure.RunTestStage(t, "deploy_core_services", func() {
+		awsRegion := test_structure.LoadString(t, testFolder, "region")
+		clusterName := test_structure.LoadString(t, testFolder, "clusterName")
+		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
+
+		eksClusterIRSAConfig := terraform.OutputMap(t, terraformOptions, "eks_iam_role_for_service_accounts_config")
+		eksClusterVpcID := terraform.Output(t, terraformOptions, "eks_cluster_vpc_id")
+		eksPrivateSubnetIDs := terraform.Output(t, terraformOptions, "private_subnet_ids")
+		eksClusterFargateRole := terraform.Output(t, terraformOptions, "eks_default_fargate_execution_role_arn")
+
+		coreServicesOptions := createBaseTerraformOptions(t, coreServicesTestFolder, awsRegion)
+		coreServicesOptions.Vars["eks_cluster_name"] = clusterName
+		coreServicesOptions.Vars["vpc_id"] = eksClusterVpcID
+		coreServicesOptions.Vars["worker_vpc_subnet_ids"] = eksPrivateSubnetIDs
+		coreServicesOptions.Vars["eks_iam_role_for_service_accounts_config"] = eksClusterIRSAConfig
+		coreServicesOptions.Vars["external_dns_route53_hosted_zone_tag_filters"] = defaultDomainTagFilterForTest
+		coreServicesOptions.Vars["pod_execution_iam_role_arn"] = eksClusterFargateRole
+		test_structure.SaveTerraformOptions(t, coreServicesTestFolder, coreServicesOptions)
+
+		terraform.InitAndApply(t, coreServicesOptions)
+	})
+
+	// TODO: All the core services will be tested when we introduce k8s-service
 }
 
 func configureKubectlForEKSCluster(t *testing.T, eksClusterArn string) string {

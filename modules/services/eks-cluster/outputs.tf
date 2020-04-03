@@ -27,3 +27,16 @@ output "eks_worker_iam_role_name" {
   description = "The name of the IAM role associated with the EKS workers."
   value       = module.eks_workers.eks_worker_iam_role_name
 }
+
+output "eks_iam_role_for_service_accounts_config" {
+  description = "Configuration for using the IAM role with Service Accounts feature to provide permissions to the applications. This outputs a map with two properties: `openid_connect_provider_arn` and `openid_connect_provider_url`. The `openid_connect_provider_arn` is the ARN of the OpenID Connect Provider for EKS to retrieve IAM credentials, while `openid_connect_provider_url` is the URL."
+  value = {
+    openid_connect_provider_arn = module.eks_cluster.eks_iam_openid_connect_provider_arn
+    openid_connect_provider_url = module.eks_cluster.eks_iam_openid_connect_provider_url
+  }
+}
+
+output "eks_default_fargate_execution_role_arn" {
+  description = "A basic IAM Role ARN that has the minimal permissions to pull images from ECR that can be used for most Pods as Fargate Execution Role that do not need to interact with AWS."
+  value       = module.eks_cluster.eks_default_fargate_execution_role_arn
+}

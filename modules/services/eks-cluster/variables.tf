@@ -112,6 +112,12 @@ variable "cluster_instance_keypair_name" {
   default     = null
 }
 
+variable "autoscaling_group_include_autoscaler_discovery_tags" {
+  description = "Adds additional tags to each ASG that allow a cluster autoscaler to auto-discover them."
+  type        = bool
+  default     = true
+}
+
 variable "allow_inbound_ssh_from_security_groups" {
   description = "The list of security group IDs to allow inbound SSH access to the worker groups."
   type        = list(string)
@@ -232,4 +238,15 @@ variable "enabled_control_plane_log_types" {
   description = "A list of the desired control plane logging to enable. See https://docs.aws.amazon.com/eks/latest/userguide/control-plane-logs.html for the list of available logs."
   type        = list(string)
   default     = ["api", "audit", "authenticator"]
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# TEST PARAMETERS
+# These variables exist solely for testing purposes.
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "cluster_instance_associate_public_ip_address" {
+  description = "Whether or not to associate a public IP address to the instances of the self managed ASGs. Will only work if the instances are launched in a public subnet."
+  type        = bool
+  default     = false
 }
