@@ -33,26 +33,15 @@ dependency "eks_cluster" {
 prevent_destroy = true
 
 # Generate a Kubernetes provider configuration for authenticating against the EKS cluster.
-generate "k8s_provider" {
-  path      = "k8s_provider.tf"
+generate "k8s_helm" {
+  path      = "k8s_helm_provider.tf"
   if_exists = "overwrite_terragrunt"
-  contents  = <<EOF
-data "aws_eks_cluster" "cluster" {
-  name  = "${dependency.eks_cluster.outputs.eks_cluster_name}"
+  contents = templatefile(
+    find_in_parent_folders("provider_k8s_helm_for_eks.template.hcl"),
+    { eks_cluster_name = dependency.eks.outputs.eks_cluster_name },
+  )
 }
 
-data "aws_eks_cluster_auth" "kubernetes_token" {
-  name  = "${dependency.eks_cluster.outputs.eks_cluster_name}"
-}
-
-provider "kubernetes" {
-  load_config_file       = false
-  host                   = data.aws_eks_cluster.cluster.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
-  token                  = data.aws_eks_cluster_auth.kubernetes_token.token
-}
-EOF
-}
 
 # ---------------------------------------------------------------------------------------------------------------------
 # MODULE PARAMETERS
