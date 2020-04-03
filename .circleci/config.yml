@@ -19,6 +19,8 @@ defaults: &defaults
     PACKER_VERSION: 1.5.4
     GOLANG_VERSION: 1.13.8
     HUB_VERSION: 2.14.2
+    MINIKUBE_VERSION: v1.7.3
+    KUBERNETES_VERSION: v1.15.0
     KUBECONFIG: /home/circleci/.kube/config
 
 install_gruntwork_utils: &install_gruntwork_utils
@@ -28,6 +30,7 @@ install_gruntwork_utils: &install_gruntwork_utils
     gruntwork-install --module-name "gruntwork-module-circleci-helpers" --repo "https://github.com/gruntwork-io/module-ci" --tag "${MODULE_CI_VERSION}"
     gruntwork-install --module-name "terraform-helpers" --repo "https://github.com/gruntwork-io/module-ci" --tag "${MODULE_CI_VERSION}"
     gruntwork-install --binary-name "terratest_log_parser" --repo "https://github.com/gruntwork-io/terratest" --tag "${TERRATEST_LOG_PARSER_VERSION}"
+    gruntwork-install --module-name "kubernetes-circleci-helpers" --repo "https://github.com/gruntwork-io/module-ci" --tag "${MODULE_CI_VERSION}"
     gruntwork-install --binary-name "kubergrunt" --repo "https://github.com/gruntwork-io/kubergrunt" --tag "${KUBERGRUNT_VERSION}"
     configure-environment-for-gruntwork-module \
       --terraform-version ${TERRAFORM_VERSION} \
@@ -46,6 +49,9 @@ install_kube_utils: &install_kube_utils
     # Make sure the kube config directory and file exists
     mkdir -p "$(dirname ${KUBECONFIG})"
     touch "${KUBECONFIG}"
+
+    # Install and boot up minikube
+    setup-minikube --minikube-version "${MINIKUBE_VERSION}" --k8s-version "${KUBERNETES_VERSION}"
 
 install_hub_cli: &install_hub_cli
   name: install hub CLI
