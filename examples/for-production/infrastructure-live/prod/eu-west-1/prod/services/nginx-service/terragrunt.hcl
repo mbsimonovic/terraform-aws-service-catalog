@@ -9,7 +9,7 @@
 # locally, you can use --terragrunt-source /path/to/local/checkout/of/module to override the source parameter to a
 # local check out of the module for faster iteration.
 terraform {
-  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/services/k8s-namespace?ref=master"
+  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/services/k8s-service?ref=master"
 }
 
 # Include all settings from the root terragrunt.hcl file
@@ -26,6 +26,10 @@ dependencies {
 # xxx-all commands.
 dependency "eks_cluster" {
   config_path = "../eks-cluster"
+}
+
+dependency "eks_applications_namespace" {
+  config_path = "../eks-applications-namespace"
 }
 
 # We set prevent destroy here to prevent accidentally deleting your company's data in case of overly ambitious use
@@ -49,5 +53,15 @@ generate "k8s_helm" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 inputs = {
-  name = "applications"
+  application_name = "nginx"
+  container_image = {
+    repository  = "nginx"
+    tag         = "1.17"
+    pull_policy = "IfNotPresent"
+  }
+  container_port       = 80
+  namespace            = dependency.eks_applications_namespace.outputs.namespace_name
+  expose_type          = "external"
+  create_route53_entry = true
+  domain_name          = "nginx.gruntwork.in"
 }

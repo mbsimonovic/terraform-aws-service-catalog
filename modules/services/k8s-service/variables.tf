@@ -79,6 +79,12 @@ variable "expose_type" {
   default     = "cluster-internal"
 }
 
+variable "ingress_configure_ssl_redirect" {
+  description = "When true, HTTP requests will automatically be redirected to use SSL (HTTPS). Used only when expose_type is either external or internal."
+  type        = bool
+  default     = true
+}
+
 variable "ingress_listener_protocol_ports" {
   description = "A list of maps of protocols and ports that the ALB should listen on."
   type = list(object({

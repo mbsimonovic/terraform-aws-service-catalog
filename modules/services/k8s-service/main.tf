@@ -158,15 +158,35 @@ locals {
       path        = "'${var.ingress_path}'"
       hosts       = var.create_route53_entry ? [var.domain_name] : []
       servicePort = "app"
-      annotations = {
-        "kubernetes.io/ingress.class"      = "alb"
-        "alb.ingress.kubernetes.io/scheme" = var.expose_type == "external" ? "internet-facing" : "internal"
-        # We manually construct the list as a string here to avoid the values being converted as string, as opposed to
-        # ints
-        "alb.ingress.kubernetes.io/listen-ports"             = "[${join(",", data.template_file.ingress_listener_protocol_ports.*.rendered)}]"
-        "alb.ingress.kubernetes.io/backend-protocol"         = var.ingress_backend_protocol
-        "alb.ingress.kubernetes.io/load-balancer-attributes" = "access_logs.s3.enabled=true,access_logs.s3.bucket=${module.alb_access_logs_bucket.s3_bucket_name},access_logs.s3.prefix=${var.application_name}"
-      }
+      annotations = merge(
+        {
+          "kubernetes.io/ingress.class"      = "alb"
+          "alb.ingress.kubernetes.io/scheme" = var.expose_type == "external" ? "internet-facing" : "internal"
+          # We manually construct the list as a string here to avoid the values being converted as string, as opposed to
+          # ints
+          "alb.ingress.kubernetes.io/listen-ports"             = "[${join(",", data.template_file.ingress_listener_protocol_ports.*.rendered)}]"
+          "alb.ingress.kubernetes.io/backend-protocol"         = var.ingress_backend_protocol
+          "alb.ingress.kubernetes.io/load-balancer-attributes" = "access_logs.s3.enabled=true,access_logs.s3.bucket=${module.alb_access_logs_bucket.s3_bucket_name},access_logs.s3.prefix=${var.application_name}"
+        },
+        try(
+          var.ingress_configure_ssl_redirect
+          ? {
+            "alb.ingress.kubernetes.io/actions.ssl-redirect" : "{\"Type\": \"redirect\", \"RedirectConfig\": { \"Protocol\": \"HTTPS\", \"Port\": \"443\", \"StatusCode\": \"HTTP_301\"}}",
+          }
+          : tomap(false),
+          {},
+        ),
+      )
+      # Only configure the redirect path if using ssl redirect
+      additionalPathsHigherPriority = (
+        var.ingress_configure_ssl_redirect
+        ? [{
+          path        = "/*"
+          serviceName = "ssl-redirect"
+          servicePort = "use-annotation"
+        }]
+        : []
+      )
     }
 
     envVars    = var.env_vars
