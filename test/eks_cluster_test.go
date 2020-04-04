@@ -196,9 +196,11 @@ func deployNginx(t *testing.T, eksClusterTestFolder string, k8sServiceTestFolder
 	uniqueID := test_structure.LoadString(t, eksClusterTestFolder, "uniqueID")
 	awsRegion := test_structure.LoadString(t, eksClusterTestFolder, "region")
 	clusterName := test_structure.LoadString(t, eksClusterTestFolder, "clusterName")
+	applicationName := fmt.Sprintf("nginx-%s", strings.ToLower(uniqueID))
+	test_structure.SaveString(t, k8sServiceTestFolder, "applicationName", applicationName)
 
 	k8sServiceOptions := createBaseTerraformOptions(t, k8sServiceTestFolder, awsRegion)
-	k8sServiceOptions.Vars["application_name"] = fmt.Sprintf("nginx-%s", uniqueID)
+	k8sServiceOptions.Vars["application_name"] = applicationName
 	k8sServiceOptions.Vars["image"] = "nginx"
 	k8sServiceOptions.Vars["image_version"] = "1.17"
 	k8sServiceOptions.Vars["container_port"] = 80
@@ -216,8 +218,7 @@ func validateNginx(t *testing.T, eksClusterTestFolder string, k8sServiceTestFold
 	terraformOptions := test_structure.LoadTerraformOptions(t, eksClusterTestFolder)
 	clusterName := test_structure.LoadString(t, eksClusterTestFolder, "clusterName")
 	eksClusterArn := terraform.OutputRequired(t, terraformOptions, "eks_cluster_arn")
-	uniqueID := test_structure.LoadString(t, eksClusterTestFolder, "uniqueID")
-	applicationName := fmt.Sprintf("nginx-%s", uniqueID)
+	applicationName := test_structure.LoadString(t, k8sServiceTestFolder, "applicationName")
 
 	tmpKubeConfigPath := configureKubectlForEKSCluster(t, eksClusterArn)
 	defer os.Remove(tmpKubeConfigPath)
