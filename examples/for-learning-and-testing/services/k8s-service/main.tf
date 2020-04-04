@@ -23,6 +23,18 @@ provider "kubernetes" {
   token                  = var.kubeconfig_auth_type == "eks" ? data.aws_eks_cluster_auth.kubernetes_token[0].token : null
 }
 
+provider "helm" {
+  kubernetes {
+    load_config_file = var.kubeconfig_auth_type == "context"
+    config_path      = var.kubeconfig_auth_type == "context" ? var.kubeconfig_path : null
+    config_context   = var.kubeconfig_auth_type == "context" ? var.kubeconfig_context : null
+
+    host                   = var.kubeconfig_auth_type == "eks" ? data.aws_eks_cluster.cluster[0].endpoint : null
+    cluster_ca_certificate = var.kubeconfig_auth_type == "eks" ? base64decode(data.aws_eks_cluster.cluster[0].certificate_authority.0.data) : null
+    token                  = var.kubeconfig_auth_type == "eks" ? data.aws_eks_cluster_auth.kubernetes_token[0].token : null
+  }
+}
+
 module "application" {
   # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
   # to a specific version of the modules, such as the following example:
@@ -37,4 +49,16 @@ module "application" {
   }
   container_port = var.container_port
   namespace      = var.namespace
+  expose_type    = var.expose_type
+
+  create_route53_entry = var.domain_name != null
+  domain_name          = var.domain_name != null ? var.domain_name : ""
+
+  # We emit the rendered helm chart values into the module path for debugging purposes.
+  values_file_path = "${path.module}/debug_values.yaml"
+
+  # To make it easier to test, we allow force destroying the ALB access logs but in production, you will want to set
+  # this to false so that the access logs are not accidentally destroyed permanently.
+  force_destroy_ingress_access_logs  = true
+  ingress_access_logs_s3_bucket_name = "gruntwork-service-catalog-test-${var.application_name}-alb-access-logs"
 }

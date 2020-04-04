@@ -155,7 +155,7 @@ locals {
 
     ingress = {
       enabled     = var.expose_type != "cluster-internal"
-      path        = var.ingress_path
+      path        = "'${var.ingress_path}'"
       hosts       = var.create_route53_entry ? [var.domain_name] : []
       servicePort = "app"
       annotations = {

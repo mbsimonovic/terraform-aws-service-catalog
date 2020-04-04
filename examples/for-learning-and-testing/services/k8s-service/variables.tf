@@ -32,6 +32,18 @@ variable "namespace" {
   default     = "default"
 }
 
+variable "expose_type" {
+  description = "How to expose the service? Must be one of `external` (publicly accessible outside of cluster), `internal` (internally accessible within VPC outside of cluster), `cluster-internal` (internally accessible only within Kubernetes)."
+  type        = string
+  default     = "cluster-internal"
+}
+
+variable "domain_name" {
+  description = "The domain name for the DNS A record to add for this service (e.g. service.foo.com). Set to null to avoid creating the domain entry."
+  type        = string
+  default     = null
+}
+
 variable "aws_region" {
   description = "The AWS region where the EKS cluster lives. Only used when deploying against EKS (var.kubeconfig_auth_type = eks)."
   type        = string

@@ -98,9 +98,9 @@ variable "ingress_listener_protocol_ports" {
 }
 
 variable "ingress_path" {
-  description = "Path prefix that should be matched to route to the service. Use * to match all paths."
+  description = "Path prefix that should be matched to route to the service. Use / to match all paths."
   type        = string
-  default     = "*"
+  default     = "/"
 }
 
 variable "ingress_backend_protocol" {
