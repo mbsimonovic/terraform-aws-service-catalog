@@ -132,6 +132,8 @@ func buildWorkerAmi(t *testing.T, testFolder string) {
 	test_structure.SaveArtifactID(t, testFolder, amiId)
 
 	uniqueID := random.UniqueId()
+	test_structure.SaveString(t, testFolder, "uniqueID", uniqueID)
+
 	clusterName := fmt.Sprintf("eks-service-catalog-%s", strings.ToLower(uniqueID))
 	test_structure.SaveString(t, testFolder, "clusterName", clusterName)
 
@@ -191,11 +193,12 @@ func deployCoreServices(t *testing.T, eksClusterTestFolder string, coreServicesT
 }
 
 func deployNginx(t *testing.T, eksClusterTestFolder string, k8sServiceTestFolder string) {
+	uniqueID := test_structure.LoadString(t, eksClusterTestFolder, "uniqueID")
 	awsRegion := test_structure.LoadString(t, eksClusterTestFolder, "region")
 	clusterName := test_structure.LoadString(t, eksClusterTestFolder, "clusterName")
 
 	k8sServiceOptions := createBaseTerraformOptions(t, k8sServiceTestFolder, awsRegion)
-	k8sServiceOptions.Vars["application_name"] = "nginx"
+	k8sServiceOptions.Vars["application_name"] = fmt.Sprintf("nginx-%s", uniqueID)
 	k8sServiceOptions.Vars["image"] = "nginx"
 	k8sServiceOptions.Vars["image_version"] = "1.17"
 	k8sServiceOptions.Vars["container_port"] = 80
@@ -213,12 +216,14 @@ func validateNginx(t *testing.T, eksClusterTestFolder string, k8sServiceTestFold
 	terraformOptions := test_structure.LoadTerraformOptions(t, eksClusterTestFolder)
 	clusterName := test_structure.LoadString(t, eksClusterTestFolder, "clusterName")
 	eksClusterArn := terraform.OutputRequired(t, terraformOptions, "eks_cluster_arn")
+	uniqueID := test_structure.LoadString(t, eksClusterTestFolder, "uniqueID")
+	applicationName := fmt.Sprintf("nginx-%s", uniqueID)
 
 	tmpKubeConfigPath := configureKubectlForEKSCluster(t, eksClusterArn)
 	defer os.Remove(tmpKubeConfigPath)
 	options := k8s.NewKubectlOptions("", tmpKubeConfigPath, "default")
-	verifyPodsCreatedSuccessfully(t, options, "nginx")
-	verifyAllPodsAvailable(t, options, "nginx", nginxValidationFunction)
+	verifyPodsCreatedSuccessfully(t, options, applicationName)
+	verifyAllPodsAvailable(t, options, applicationName, nginxValidationFunction)
 
 	ingressEndpoint := fmt.Sprintf("https://nginx-%s.%s", clusterName, baseDomainForTest)
 	http_helper.HttpGetWithRetryWithCustomValidation(
