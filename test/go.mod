@@ -8,4 +8,6 @@ require (
 	github.com/gruntwork-io/gruntwork-cli v0.6.1 // indirect
 	github.com/gruntwork-io/terratest v0.26.0
 	github.com/stretchr/testify v1.5.0
+	k8s.io/api v0.17.0
+	k8s.io/apimachinery v0.17.0
 )
