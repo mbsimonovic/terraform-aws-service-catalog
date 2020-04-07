@@ -17,11 +17,6 @@ include {
   path = find_in_parent_folders()
 }
 
-# When using the terragrunt xxx-all commands (e.g., apply-all, plan-all), deploy these dependencies before this module
-dependencies {
-  paths = ["../../../../_global/account-baseline"]
-}
-
 # Pull in outputs from these modules to compute inputs. These modules will also be added to the dependency list for
 # xxx-all commands.
 dependency "eks_cluster" {
@@ -31,10 +26,6 @@ dependency "eks_cluster" {
 dependency "eks_applications_namespace" {
   config_path = "../eks-applications-namespace"
 }
-
-# We set prevent destroy here to prevent accidentally deleting your company's data in case of overly ambitious use
-# of destroy or destroy-all. If you really want to run destroy on this module, remove this flag.
-prevent_destroy = true
 
 # Generate a Kubernetes provider configuration for authenticating against the EKS cluster.
 generate "k8s_helm" {
