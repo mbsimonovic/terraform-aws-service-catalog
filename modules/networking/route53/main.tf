@@ -59,6 +59,8 @@ resource "aws_route53_zone" "public_zones" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 locals {
+  # Create nested map of ACM certificates to request 
+  # in the formmat expected by the ACM module 
   acm_tls_certificates = {
     for domain, zone in local.public_zones_for_certs :
     "*.${domain}" => {
@@ -68,6 +70,7 @@ locals {
     }
   }
 
+  # Only order certificates for public zones 
   public_zones_for_certs = {
     for domain, zone in var.public_zones :
     domain => zone if lookup(var.public_zones[domain], "provision_wildcard_certificate", false)
