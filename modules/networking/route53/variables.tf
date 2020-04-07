@@ -35,10 +35,9 @@ variable "public_zones" {
     # (Optional) Whether to destroy all records (possibly managed ouside of Terraform) in the zone when destroying the zone
     force_destroy = bool
     # (Optional) If set to true, automatically order and verify a wildcard certificate via ACM for this domain
-    provision_wildcard_certificate
+    provision_wildcard_certificate = bool
   }))
 }
-
 
 /*
 

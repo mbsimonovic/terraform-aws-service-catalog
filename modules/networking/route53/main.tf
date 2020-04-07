@@ -25,7 +25,6 @@ resource "aws_route53_zone" "private_zones" {
 
   vpc {
     vpc_id = each.value.vpc_id
-
   }
 
   tags = each.value.tags
@@ -50,7 +49,6 @@ resource "aws_route53_zone" "public_zones" {
   tags = each.value.tags
 
   force_destroy = each.value.force_destroy
-
 }
 
 
@@ -68,11 +66,5 @@ locals {
       create_verification_record = true
       verify_certificate         = true
     }
-  }
-
-  # Only order certificates for public zones 
-  public_zones_for_certs = {
-    for domain, zone in var.public_zones :
-    domain => zone if lookup(var.public_zones[domain], "provision_wildcard_certificate", false)
   }
 }
