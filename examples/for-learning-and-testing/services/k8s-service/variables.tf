@@ -33,7 +33,7 @@ variable "namespace" {
 }
 
 variable "expose_type" {
-  description = "How to expose the service? Must be one of `external` (publicly accessible outside of cluster), `internal` (internally accessible within VPC outside of cluster), `cluster-internal` (internally accessible only within Kubernetes)."
+  description = "How to expose the service? Must be one of `external` (accessible over the public Internet), `internal` (only accessible from within the same VPC as the cluster), `cluster-internal` (only accessible within the Kubernetes network)."
   type        = string
   default     = "cluster-internal"
 }

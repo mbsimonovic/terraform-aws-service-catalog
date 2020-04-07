@@ -1,4 +1,4 @@
-## How do I expose my application?
+## How do I expose my application to clients and other applications?
 
 In general, `Pods` are considered ephemeral in Kubernetes. `Pods` can come and go at any point in time, either because
 containers fail or the underlying instances crash. In either case, the dynamic nature of `Pods` make it difficult to

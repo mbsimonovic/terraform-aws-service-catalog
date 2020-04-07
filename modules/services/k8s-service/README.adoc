@@ -1,6 +1,6 @@
 :type: service
 :name: Kubernetes Service
-:description: Deploy your application containers as a web service on Kubernetes following best practices.
+:description: Deploy your application containers as a Kubernetes Service and Deployment following best practices.
 :icon: /_docs/k8s-service-icon.png
 :category: docker-orchestration
 :cloud: aws

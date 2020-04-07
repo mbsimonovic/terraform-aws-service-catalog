@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------------------------------------------------
-# DEPLOY SERVICE ON KUBERNETES USING THE k8s-service HELM CHART
+# DEPLOY SERVICE ON KUBERNETES USING THE K8S-SERVICE HELM CHART
 # ----------------------------------------------------------------------------------------------------------------------
 
 provider "aws" {
@@ -54,7 +54,7 @@ module "application" {
   create_route53_entry = var.domain_name != null
   domain_name          = var.domain_name != null ? var.domain_name : ""
 
-  # We emit the rendered helm chart values into the module path for debugging purposes.
+  # If you want to debug the Helm chart, you can set this parameter to output the chart values to a file
   values_file_path = "${path.module}/debug_values.yaml"
 
   # To make it easier to test, we allow force destroying the ALB access logs but in production, you will want to set
