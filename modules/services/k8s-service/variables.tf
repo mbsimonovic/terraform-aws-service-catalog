@@ -32,6 +32,11 @@ variable "container_port" {
   type        = number
 }
 
+variable "desired_number_of_pods" {
+  description = "How many Pods to run on the Kubernetes cluster?"
+  type        = number
+}
+
 
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL MODULE PARAMETERS
@@ -39,12 +44,6 @@ variable "container_port" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 # Pod container options
-
-variable "desired_number_of_pods" {
-  description = "How many Pods to run on the Kubernetes cluster?"
-  type        = number
-  default     = 1
-}
 
 variable "desired_number_of_canary_pods" {
   description = "How many canary pods to run. If greater than 0, you must provide var.canary_image."

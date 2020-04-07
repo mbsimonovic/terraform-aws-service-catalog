@@ -47,9 +47,10 @@ module "application" {
     tag         = var.image_version
     pull_policy = "IfNotPresent"
   }
-  container_port = var.container_port
-  namespace      = var.namespace
-  expose_type    = var.expose_type
+  container_port         = var.container_port
+  namespace              = var.namespace
+  expose_type            = var.expose_type
+  desired_number_of_pods = 1
 
   create_route53_entry = var.domain_name != null
   domain_name          = var.domain_name != null ? var.domain_name : ""
