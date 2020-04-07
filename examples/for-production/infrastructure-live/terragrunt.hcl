@@ -32,14 +32,14 @@ EOF
 remote_state {
   backend = "s3"
   config = {
-    encrypt = true
-    bucket = "gruntwork-ref-arch-lite-${local.account_name}-${local.aws_region}-terraform-state"
-    key = "${path_relative_to_include()}/terraform.tfstate"
-    region = local.aws_region
+    encrypt        = true
+    bucket         = "gruntwork-ref-arch-lite-${local.account_name}-${local.aws_region}-terraform-state"
+    key            = "${path_relative_to_include()}/terraform.tfstate"
+    region         = local.aws_region
     dynamodb_table = "terraform-locks"
   }
   generate = {
-    path = "backend.tf"
+    path      = "backend.tf"
     if_exists = "overwrite_terragrunt"
   }
 }
@@ -47,5 +47,5 @@ remote_state {
 # The default set of inputs for all accounts
 inputs = {
   aws_account_id = local.account_id
-  aws_region = local.aws_region
+  aws_region     = local.aws_region
 }
