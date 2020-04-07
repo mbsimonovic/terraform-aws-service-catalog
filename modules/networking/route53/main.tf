@@ -52,3 +52,24 @@ resource "aws_route53_zone" "public_zones" {
   force_destroy = each.value.force_destroy
 
 }
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# LOCAL VARIABLES
+# ---------------------------------------------------------------------------------------------------------------------
+
+locals {
+  acm_tls_certificates = {
+    for domain, zone in local.public_zones_for_certs :
+    "*.${domain}" => {
+      tags                       = zone.tags
+      create_verification_record = true
+      verify_certificate         = true
+    }
+  }
+
+  public_zones_for_certs = {
+    for domain, zone in var.public_zones :
+    domain => zone if lookup(var.public_zones[domain], "provision_wildcard_certificate", false)
+  }
+}
