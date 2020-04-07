@@ -22,14 +22,15 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
-= Kubernetes Namespace
+= Kubernetes Service
 
 image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
 image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
 image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
 image:https://img.shields.io/badge/helm-%3E%3D3.1.0-green[Helm version]
 
-This folder contains https://www.terraform.io[Terraform] code to deploy your web application containers on to
+This folder contains https://www.terraform.io[Terraform] code to deploy your web application containers using
+https://github.com/gruntwork-io/helm-kubernetes-services/[the k8-service Gruntwork Helm Chart] on to
 https://kubernetes.io/[Kubernetes] following best practices.
 
 image::/_docs/k8s-service-architecture.png?raw=true[Kubernetes Service architecture]
@@ -47,6 +48,8 @@ toc::[]
 * Auto scaling and auto healing
 * Configuration management and Secrets management
 * Ingress and Service endpoints
+* Service discovery with Kubernetes DNS
+* Managed with Helm
 
 
 
