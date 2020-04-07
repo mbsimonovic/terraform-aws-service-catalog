@@ -56,7 +56,7 @@ inputs = {
   db_name           = "my_db"
   multi_az          = false
   master_username   = "admin"
-  
+
   # To avoid storing the password in configuration, the master_password variable should be passed at runtime. E.g.
   #   terragrunt apply -var master_password="<password>"
 
