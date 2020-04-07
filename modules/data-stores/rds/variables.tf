@@ -297,6 +297,7 @@ variable "allow_manage_key_permissions_with_iam" {
   type        = bool
   default     = false
 }
+
 # ---------------------------------------------------------------------------------------------------------------------
 # TEST PARAMETERS
 # These variables exist solely for testing purposes.
