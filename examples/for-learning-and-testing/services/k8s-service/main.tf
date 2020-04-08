@@ -18,7 +18,7 @@ provider "kubernetes" {
   # Pin to this specific version to work around a bug introduced in 1.11.0:
   # https://github.com/terraform-providers/terraform-provider-kubernetes/issues/759
   # (Only for EKS)
-  kubernetes = "= 1.10.0"
+  version = "= 1.10.0"
 
   # If using `context`, load the authentication info from the config file and chosen context.
   load_config_file = var.kubeconfig_auth_type == "context"
