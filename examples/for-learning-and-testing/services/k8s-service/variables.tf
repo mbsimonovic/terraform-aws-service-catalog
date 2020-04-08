@@ -8,12 +8,12 @@ variable "application_name" {
 }
 
 variable "image" {
-  description = "The Docker image to run (e.g. gruntwork/frontend-service)"
+  description = "The Docker image to run (e.g. gruntwork/frontend-service)."
   type        = string
 }
 
 variable "image_version" {
-  description = "Which version (AKA tag) of the var.image Docker image to deploy (e.g. 0.57)"
+  description = "Which version (AKA tag) of the var.image Docker image to deploy (e.g. 0.57)."
   type        = string
 }
 
@@ -27,13 +27,13 @@ variable "container_port" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "namespace" {
-  description = "Which Kubernetes Namespace to deploy the application into?"
+  description = "The Kubernetes Namespace to deploy the application into."
   type        = string
   default     = "default"
 }
 
 variable "expose_type" {
-  description = "How to expose the service? Must be one of `external` (accessible over the public Internet), `internal` (only accessible from within the same VPC as the cluster), `cluster-internal` (only accessible within the Kubernetes network)."
+  description = "How the service will be exposed in the cluster. Must be one of `external` (accessible over the public Internet), `internal` (only accessible from within the same VPC as the cluster), `cluster-internal` (only accessible within the Kubernetes network)."
   type        = string
   default     = "cluster-internal"
 }

@@ -32,10 +32,13 @@ resource "helm_release" "application" {
   # external-dns and AWS ALB Ingress controller will turn the Ingress resources from the chart into AWS resources. These
   # are properly destroyed when the Ingress resource is destroyed. However, because of the asynchronous nature of
   # Kubernetes operations, there is a delay before the respective controllers delete the AWS resources. This can cause
-  # problems when you are destroying related resources in quick succession (e.g the Route 53 Hosted Zone).
-  # To handle this, we depend on a null resource that, when deleted, will sleep for 30 seconds, giving Kubernetes some
-  # time to cull the resources before completing. Since this will depend on the null resource, the release will be
-  # deleted before the null_resource is deleted and the sleep is triggered.
+  # problems when you are destroying related resources in quick succession (e.g the Route 53 Hosted Zone). Since we want
+  # to add a wait after the release is destroyed, we need to use a null_resource to add the delay instead of a destroy
+  # provisioner on the resource, as the destroy provisioner typically runs before the resource is deleted.
+  # By depending on the null_resource, the destroy sequence will be:
+  # 1. Destroy this resource (and thus undeploy the application from the cluster)
+  # 2. Run the destroy provisioner on null_resource.sleep_for_resource_culling
+  # 3. Destroy null_resource.sleep_for_resource_culling
   depends_on = [null_resource.sleep_for_resource_culling]
 }
 

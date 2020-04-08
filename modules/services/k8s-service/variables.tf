@@ -9,7 +9,7 @@ variable "application_name" {
 }
 
 variable "namespace" {
-  description = "Which Kubernetes Namespace to deploy the application into?"
+  description = "The Kubernetes Namespace to deploy the application into."
   type        = string
 }
 
@@ -33,7 +33,7 @@ variable "container_port" {
 }
 
 variable "desired_number_of_pods" {
-  description = "How many Pods to run on the Kubernetes cluster?"
+  description = "The number of Pods to run on the Kubernetes cluster for this service."
   type        = number
 }
 
@@ -46,7 +46,7 @@ variable "desired_number_of_pods" {
 # Pod container options
 
 variable "desired_number_of_canary_pods" {
-  description = "How many canary pods to run. If greater than 0, you must provide var.canary_image."
+  description = "The number of canary Pods to run on the Kubernetes cluster for this service. If greater than 0, you must provide var.canary_image."
   type        = number
   default     = 0
 }
@@ -73,7 +73,7 @@ variable "container_protocol" {
 # Access point configuration. Used to configure Service and Ingress/ALB (if externally exposed to cluster)
 
 variable "expose_type" {
-  description = "How to expose the service? Must be one of `external` (publicly accessible outside of cluster), `internal` (internally accessible within VPC outside of cluster), `cluster-internal` (internally accessible only within Kubernetes)."
+  description = "How the service will be exposed in the cluster. Must be one of `external` (accessible over the public Internet), `internal` (only accessible from within the same VPC as the cluster), `cluster-internal` (only accessible within the Kubernetes network)."
   type        = string
   default     = "cluster-internal"
 }
