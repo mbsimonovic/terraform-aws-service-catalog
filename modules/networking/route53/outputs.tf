@@ -27,3 +27,4 @@ output "public_hosted_zones_name_servers" {
   description = "The name servers associated with the public Route 53 Hosted Zones"
   value       = values(aws_route53_zone.public_zones)[*].name_servers
 }
+

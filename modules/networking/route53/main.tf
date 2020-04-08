@@ -23,6 +23,11 @@ resource "aws_route53_zone" "private_zones" {
   name    = each.key
   comment = each.value.comment
 
+  # The presence of the VPC association here signifies that this zone will be private. 
+  # Public zones do not require a VPC association 
+
+  # See https://www.terraform.io/docs/providers/aws/r/route53_zone.html#private-zone
+  # for more information 
   vpc {
     vpc_id = each.value.vpc_id
   }
@@ -42,15 +47,29 @@ resource "aws_route53_zone" "public_zones" {
   name    = each.key
   comment = each.value.comment
 
-  vpc {
-    vpc_id = each.value.vpc_id
-  }
-
   tags = each.value.tags
 
   force_destroy = each.value.force_destroy
 }
 
+
+# ---------------------------------------------------------------------------------------------------------------------
+# CREATE PUBLIC HOSTED ZONE(S)
+# ---------------------------------------------------------------------------------------------------------------------
+
+module "acm-tls-certificates" {
+  # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
+  # to a specific version of the modules, such as the following example:
+  # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/route53?ref=v1.2.3"
+  #source = "git::git@github.com:gruntwork-io/module-load-balancer.git//modules/acm-tls-certificate?ref=v0.19.0"
+
+  # TODO: Replace me when the latest module-load-balancer ref is released 
+  source = "../../../../module-load-balancer/modules/acm-tls-certificate/"
+
+  # Pass in the nested map of certificate requests 
+  # built locally from var.public_zones 
+  acm_tls_certificates = local.acm_tls_certificates
+}
 
 # ---------------------------------------------------------------------------------------------------------------------
 # LOCAL VARIABLES
@@ -60,11 +79,24 @@ locals {
   # Create nested map of ACM certificates to request 
   # in the formmat expected by the ACM module 
   acm_tls_certificates = {
-    for domain, zone in local.public_zones_for_certs :
+    for domain, zone in var.public_zones :
+    # These certificates that are going to be 
+    # automatically issued and verified for 
+    # public Route53 zones, so we prefix them 
+    # with *. to denote we are requesting 
+    # "wildcard" certificates 
+
+    # A wildcard certificate for example.com,  
+    # requested with a domain of *.example.com, 
+    # will protect all one-level subdomains of example.com,
+    # such as mail.example.com, admin.example.com, etc
     "*.${domain}" => {
       tags                       = zone.tags
       create_verification_record = true
       verify_certificate         = true
-    }
+      bare_domain                = domain
+      vpc_id                     = zone.vpc_id
+    } if zone.provision_wildcard_certificate
   }
+
 }
