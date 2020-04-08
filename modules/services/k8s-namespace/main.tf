@@ -8,11 +8,8 @@ terraform {
   required_version = "~> 0.12.6"
 
   required_providers {
-    aws = "~> 2.6"
-
-    # Pin to this specific version to work around a bug introduced in 1.11.0:
-    # https://github.com/terraform-providers/terraform-provider-kubernetes/issues/759
-    kubernetes = "= 1.10.0"
+    aws        = "~> 2.6"
+    kubernetes = "~> 1.10"
   }
 }
 

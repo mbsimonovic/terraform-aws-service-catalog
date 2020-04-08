@@ -99,6 +99,8 @@ If you want to deploy this repo in production, check out the following resources
 * https://github.com/gruntwork-io/module-data-storage/blob/master/modules/aurora/core-concepts.md#how-do-you-scale-this-database[How to scale Aurora]
 * link:core-concepts.md#how-do-i-scale-the-aurora-serverless-database[How to scale Aurora Serverless]
 * link:core-concepts.md#how-do-you-backup-your-rds-snapshots-to-a-separate-aws-account[How to backup Aurora snapshots to a separate AWS account]
+* link:core-concepts.md#how-do-i-use-kubernetes-service-discovery-with-the-aurora-database[How do I use Kubernetes Service
+  Discovery with the Aurora database?
 
 === Major changes
 

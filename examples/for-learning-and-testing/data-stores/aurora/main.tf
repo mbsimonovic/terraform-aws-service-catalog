@@ -51,4 +51,8 @@ module "aurora" {
   # To keep the example simple, all changes will be applied immediately. In production, consider setting this to `false`
   # so that changes are rolled out during preselected maintenance windows.
   apply_immediately = true
+
+  # Configurations for creating a Service to route to the DB.
+  create_kubernetes_service = var.create_kubernetes_service
+  kubernetes_namespace      = var.kubernetes_namespace
 }

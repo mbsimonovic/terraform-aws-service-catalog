@@ -56,3 +56,17 @@ variable "aws_region" {
   type        = string
   default     = "eu-west-1"
 }
+
+# Kubernetes parameters
+
+variable "create_kubernetes_service" {
+  description = "If true, this will create a Kubernetes Service in the configured Kubernetes cluster that can be used for service discovery against the data store. Customize the kubernetes provider to configure which Kubernetes cluster the Service should be created in."
+  type        = bool
+  default     = false
+}
+
+variable "kubernetes_namespace" {
+  description = "The Namespace where the Kubernetes Service will be created. Only used if var.create_kubernetes_service is true."
+  type        = string
+  default     = "default"
+}
