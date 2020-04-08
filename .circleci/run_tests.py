@@ -32,7 +32,9 @@ DIRECT_TEST_MAP = {
     'account-baseline-security': ['TestAccountBaseline'],
     'ec2-baseline': ['TestBastionHost', 'TestJenkins', 'TestOpenvpnServer'],
     'eks-core-services': ['TestEksCluster'],
-    'test_helpers.go': ['.*']
+    'k8s-service': ['TestK8SService', 'TestEksCluster'],
+    'test_helpers.go': ['.*'],
+    'k8s_test_helpers.go': ['TestK8SNamespace', 'TestK8SService', 'TestEksCluster'],
 }
 
 

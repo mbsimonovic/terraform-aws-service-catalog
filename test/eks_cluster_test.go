@@ -10,6 +10,7 @@ import (
 
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/git"
+	http_helper "github.com/gruntwork-io/terratest/modules/http-helper"
 	"github.com/gruntwork-io/terratest/modules/k8s"
 	"github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/packer"
@@ -48,6 +49,9 @@ func TestEksCluster(t *testing.T) {
 	//os.Setenv("SKIP_deploy_terraform", "true")
 	//os.Setenv("SKIP_validate_cluster", "true")
 	//os.Setenv("SKIP_deploy_core_services", "true")
+	//os.Setenv("SKIP_deploy_nginx", "true")
+	//os.Setenv("SKIP_validate_nginx", "true")
+	//os.Setenv("SKIP_cleanup_nginx", "true")
 	//os.Setenv("SKIP_cleanup_core_services", "true")
 	//os.Setenv("SKIP_cleanup", "true")
 	//os.Setenv("SKIP_cleanup_keypair", "true")
@@ -55,6 +59,7 @@ func TestEksCluster(t *testing.T) {
 
 	testFolder := "../examples/for-learning-and-testing/services/eks-cluster"
 	coreServicesTestFolder := "../examples/for-learning-and-testing/services/eks-core-services"
+	k8sServiceTestFolder := "../examples/for-learning-and-testing/services/k8s-service"
 
 	defer test_structure.RunTestStage(t, "cleanup_ami", func() {
 		amiId := test_structure.LoadArtifactID(t, testFolder)
@@ -73,59 +78,15 @@ func TestEksCluster(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "build_ami", func() {
-		awsRegion := aws.GetRandomStableRegion(t, eksFargateRegions, nil)
-		test_structure.SaveString(t, testFolder, "region", awsRegion)
-
-		branchName := git.GetCurrentBranchName(t)
-		packerOptions := &packer.Options{
-			Template: "../modules/services/eks-cluster/eks-node-al2.json",
-			Vars: map[string]string{
-				"aws_region":          awsRegion,
-				"service_catalog_ref": branchName,
-				"version_tag":         branchName,
-			},
-			MaxRetries:         3,
-			TimeBetweenRetries: 5 * time.Second,
-		}
-
-		amiId := packer.BuildArtifact(t, packerOptions)
-		test_structure.SaveArtifactID(t, testFolder, amiId)
-
-		uniqueID := random.UniqueId()
-		clusterName := fmt.Sprintf("eks-service-catalog-%s", strings.ToLower(uniqueID))
-		test_structure.SaveString(t, testFolder, "clusterName", clusterName)
-
-		awsKeyPair := aws.CreateAndImportEC2KeyPair(t, awsRegion, uniqueID)
-		test_structure.SaveEc2KeyPair(t, testFolder, awsKeyPair)
+		buildWorkerAmi(t, testFolder)
 	})
 
 	test_structure.RunTestStage(t, "deploy_terraform", func() {
-		amiId := test_structure.LoadArtifactID(t, testFolder)
-		awsRegion := test_structure.LoadString(t, testFolder, "region")
-		clusterName := test_structure.LoadString(t, testFolder, "clusterName")
-		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
-
-		terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
-		terraformOptions.Vars["cluster_name"] = clusterName
-		terraformOptions.Vars["cluster_instance_ami_id"] = amiId
-		terraformOptions.Vars["keypair_name"] = awsKeyPair.Name
-
-		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
-		terraform.InitAndApply(t, terraformOptions)
+		deployEKSCluster(t, testFolder)
 	})
 
 	test_structure.RunTestStage(t, "validate_cluster", func() {
-		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
-		eksClusterArn := terraform.OutputRequired(t, terraformOptions, "eks_cluster_arn")
-
-		tmpKubeConfigPath := configureKubectlForEKSCluster(t, eksClusterArn)
-		defer os.Remove(tmpKubeConfigPath)
-		kubectlOptions := k8s.NewKubectlOptions("", tmpKubeConfigPath, "")
-
-		kubeWaitUntilNumNodes(t, kubectlOptions, expectedEksNodeCount, 30, 10*time.Second)
-		k8s.WaitUntilAllNodesReady(t, kubectlOptions, 30, 10*time.Second)
-		readyNodes := k8s.GetReadyNodes(t, kubectlOptions)
-		assert.Equal(t, len(readyNodes), expectedEksNodeCount)
+		validateEKSCluster(t, testFolder)
 	})
 
 	defer test_structure.RunTestStage(t, "cleanup_core_services", func() {
@@ -134,28 +95,146 @@ func TestEksCluster(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "deploy_core_services", func() {
-		awsRegion := test_structure.LoadString(t, testFolder, "region")
-		clusterName := test_structure.LoadString(t, testFolder, "clusterName")
-		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
-
-		eksClusterIRSAConfig := terraform.OutputMap(t, terraformOptions, "eks_iam_role_for_service_accounts_config")
-		eksClusterVpcID := terraform.Output(t, terraformOptions, "eks_cluster_vpc_id")
-		eksPrivateSubnetIDs := terraform.Output(t, terraformOptions, "private_subnet_ids")
-		eksClusterFargateRole := terraform.Output(t, terraformOptions, "eks_default_fargate_execution_role_arn")
-
-		coreServicesOptions := createBaseTerraformOptions(t, coreServicesTestFolder, awsRegion)
-		coreServicesOptions.Vars["eks_cluster_name"] = clusterName
-		coreServicesOptions.Vars["vpc_id"] = eksClusterVpcID
-		coreServicesOptions.Vars["worker_vpc_subnet_ids"] = eksPrivateSubnetIDs
-		coreServicesOptions.Vars["eks_iam_role_for_service_accounts_config"] = eksClusterIRSAConfig
-		coreServicesOptions.Vars["external_dns_route53_hosted_zone_tag_filters"] = defaultDomainTagFilterForTest
-		coreServicesOptions.Vars["pod_execution_iam_role_arn"] = eksClusterFargateRole
-		test_structure.SaveTerraformOptions(t, coreServicesTestFolder, coreServicesOptions)
-
-		terraform.InitAndApply(t, coreServicesOptions)
+		deployCoreServices(t, testFolder, coreServicesTestFolder)
 	})
 
-	// TODO: All the core services will be tested when we introduce k8s-service
+	defer test_structure.RunTestStage(t, "cleanup_nginx", func() {
+		terraformOptions := test_structure.LoadTerraformOptions(t, k8sServiceTestFolder)
+		terraform.Destroy(t, terraformOptions)
+	})
+
+	test_structure.RunTestStage(t, "deploy_nginx", func() {
+		deployNginx(t, testFolder, k8sServiceTestFolder)
+	})
+
+	test_structure.RunTestStage(t, "validate_nginx", func() {
+		validateNginx(t, testFolder, k8sServiceTestFolder)
+	})
+}
+
+func buildWorkerAmi(t *testing.T, testFolder string) {
+	awsRegion := aws.GetRandomStableRegion(t, eksFargateRegions, nil)
+	test_structure.SaveString(t, testFolder, "region", awsRegion)
+
+	branchName := git.GetCurrentBranchName(t)
+	packerOptions := &packer.Options{
+		Template: "../modules/services/eks-cluster/eks-node-al2.json",
+		Vars: map[string]string{
+			"aws_region":          awsRegion,
+			"service_catalog_ref": branchName,
+			"version_tag":         branchName,
+		},
+		MaxRetries:         3,
+		TimeBetweenRetries: 5 * time.Second,
+	}
+
+	amiId := packer.BuildArtifact(t, packerOptions)
+	test_structure.SaveArtifactID(t, testFolder, amiId)
+
+	uniqueID := random.UniqueId()
+	test_structure.SaveString(t, testFolder, "uniqueID", uniqueID)
+
+	clusterName := fmt.Sprintf("eks-service-catalog-%s", strings.ToLower(uniqueID))
+	test_structure.SaveString(t, testFolder, "clusterName", clusterName)
+
+	awsKeyPair := aws.CreateAndImportEC2KeyPair(t, awsRegion, uniqueID)
+	test_structure.SaveEc2KeyPair(t, testFolder, awsKeyPair)
+}
+
+func deployEKSCluster(t *testing.T, testFolder string) {
+	amiId := test_structure.LoadArtifactID(t, testFolder)
+	awsRegion := test_structure.LoadString(t, testFolder, "region")
+	clusterName := test_structure.LoadString(t, testFolder, "clusterName")
+	awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
+
+	terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
+	terraformOptions.Vars["cluster_name"] = clusterName
+	terraformOptions.Vars["cluster_instance_ami_id"] = amiId
+	terraformOptions.Vars["keypair_name"] = awsKeyPair.Name
+
+	test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
+	terraform.InitAndApply(t, terraformOptions)
+}
+
+func validateEKSCluster(t *testing.T, testFolder string) {
+	terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
+	eksClusterArn := terraform.OutputRequired(t, terraformOptions, "eks_cluster_arn")
+
+	tmpKubeConfigPath := configureKubectlForEKSCluster(t, eksClusterArn)
+	defer os.Remove(tmpKubeConfigPath)
+	kubectlOptions := k8s.NewKubectlOptions("", tmpKubeConfigPath, "")
+
+	kubeWaitUntilNumNodes(t, kubectlOptions, expectedEksNodeCount, 30, 10*time.Second)
+	k8s.WaitUntilAllNodesReady(t, kubectlOptions, 30, 10*time.Second)
+	readyNodes := k8s.GetReadyNodes(t, kubectlOptions)
+	assert.Equal(t, len(readyNodes), expectedEksNodeCount)
+}
+
+func deployCoreServices(t *testing.T, eksClusterTestFolder string, coreServicesTestFolder string) {
+	awsRegion := test_structure.LoadString(t, eksClusterTestFolder, "region")
+	clusterName := test_structure.LoadString(t, eksClusterTestFolder, "clusterName")
+	terraformOptions := test_structure.LoadTerraformOptions(t, eksClusterTestFolder)
+
+	eksClusterIRSAConfig := terraform.OutputMap(t, terraformOptions, "eks_iam_role_for_service_accounts_config")
+	eksClusterVpcID := terraform.Output(t, terraformOptions, "eks_cluster_vpc_id")
+	eksPrivateSubnetIDs := terraform.Output(t, terraformOptions, "private_subnet_ids")
+	eksClusterFargateRole := terraform.Output(t, terraformOptions, "eks_default_fargate_execution_role_arn")
+
+	coreServicesOptions := createBaseTerraformOptions(t, coreServicesTestFolder, awsRegion)
+	coreServicesOptions.Vars["eks_cluster_name"] = clusterName
+	coreServicesOptions.Vars["vpc_id"] = eksClusterVpcID
+	coreServicesOptions.Vars["worker_vpc_subnet_ids"] = eksPrivateSubnetIDs
+	coreServicesOptions.Vars["eks_iam_role_for_service_accounts_config"] = eksClusterIRSAConfig
+	coreServicesOptions.Vars["external_dns_route53_hosted_zone_tag_filters"] = defaultDomainTagFilterForTest
+	coreServicesOptions.Vars["pod_execution_iam_role_arn"] = eksClusterFargateRole
+	test_structure.SaveTerraformOptions(t, coreServicesTestFolder, coreServicesOptions)
+
+	terraform.InitAndApply(t, coreServicesOptions)
+}
+
+func deployNginx(t *testing.T, eksClusterTestFolder string, k8sServiceTestFolder string) {
+	uniqueID := test_structure.LoadString(t, eksClusterTestFolder, "uniqueID")
+	awsRegion := test_structure.LoadString(t, eksClusterTestFolder, "region")
+	clusterName := test_structure.LoadString(t, eksClusterTestFolder, "clusterName")
+	applicationName := fmt.Sprintf("nginx-%s", strings.ToLower(uniqueID))
+	test_structure.SaveString(t, k8sServiceTestFolder, "applicationName", applicationName)
+
+	k8sServiceOptions := createBaseTerraformOptions(t, k8sServiceTestFolder, awsRegion)
+	k8sServiceOptions.Vars["application_name"] = applicationName
+	k8sServiceOptions.Vars["image"] = "nginx"
+	k8sServiceOptions.Vars["image_version"] = "1.17"
+	k8sServiceOptions.Vars["container_port"] = 80
+	k8sServiceOptions.Vars["expose_type"] = "external"
+	k8sServiceOptions.Vars["domain_name"] = fmt.Sprintf("nginx-%s.%s", clusterName, baseDomainForTest)
+	k8sServiceOptions.Vars["aws_region"] = awsRegion
+	k8sServiceOptions.Vars["kubeconfig_auth_type"] = "eks"
+	k8sServiceOptions.Vars["kubeconfig_eks_cluster_name"] = clusterName
+	test_structure.SaveTerraformOptions(t, k8sServiceTestFolder, k8sServiceOptions)
+
+	terraform.InitAndApply(t, k8sServiceOptions)
+}
+
+func validateNginx(t *testing.T, eksClusterTestFolder string, k8sServiceTestFolder string) {
+	terraformOptions := test_structure.LoadTerraformOptions(t, eksClusterTestFolder)
+	clusterName := test_structure.LoadString(t, eksClusterTestFolder, "clusterName")
+	eksClusterArn := terraform.OutputRequired(t, terraformOptions, "eks_cluster_arn")
+	applicationName := test_structure.LoadString(t, k8sServiceTestFolder, "applicationName")
+
+	tmpKubeConfigPath := configureKubectlForEKSCluster(t, eksClusterArn)
+	defer os.Remove(tmpKubeConfigPath)
+	options := k8s.NewKubectlOptions("", tmpKubeConfigPath, "default")
+	verifyPodsCreatedSuccessfully(t, options, applicationName)
+	verifyAllPodsAvailable(t, options, applicationName, nginxValidationFunction)
+
+	ingressEndpoint := fmt.Sprintf("https://nginx-%s.%s", clusterName, baseDomainForTest)
+	http_helper.HttpGetWithRetryWithCustomValidation(
+		t,
+		ingressEndpoint,
+		nil,
+		K8SServiceWaitTimerRetries,
+		K8SIngressWaitTimerSleep,
+		nginxValidationFunction,
+	)
 }
 
 func configureKubectlForEKSCluster(t *testing.T, eksClusterArn string) string {
