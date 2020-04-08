@@ -231,8 +231,8 @@ func validateNginx(t *testing.T, eksClusterTestFolder string, k8sServiceTestFold
 		t,
 		ingressEndpoint,
 		nil,
-		K8SIngressWaitTimerRetries,
-		K8SServiceWaitTimerSleep,
+		K8SServiceWaitTimerRetries,
+		K8SIngressWaitTimerSleep,
 		nginxValidationFunction,
 	)
 }

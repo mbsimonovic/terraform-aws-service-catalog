@@ -14,9 +14,9 @@ import (
 )
 
 const (
-	K8SIngressWaitTimerRetries = 120
 	K8SServiceWaitTimerRetries = 60
 	K8SServiceWaitTimerSleep   = 5 * time.Second
+	K8SIngressWaitTimerSleep   = 20 * time.Second
 	K8SServiceNumPodsExpected  = 1
 )
 
