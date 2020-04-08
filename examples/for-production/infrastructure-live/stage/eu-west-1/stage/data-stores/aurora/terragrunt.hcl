@@ -17,11 +17,6 @@ include {
   path = find_in_parent_folders()
 }
 
-# When using the terragrunt xxx-all commands (e.g., apply-all, plan-all), deploy these dependencies before this module
-dependencies {
-  paths = ["../../../../_global/account-baseline"]
-}
-
 # Pull in outputs from these modules to compute inputs. These modules will also be added to the dependency list for
 # xxx-all commands.
 dependency "vpc" {
@@ -43,10 +38,14 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 inputs = {
-  name           = "ref-arch-lite-${local.account_vars.locals.account_name}-aurora"
-  engine         = "aurora"
-  instance_type  = "db.t3.small"
-  instance_count = 1
+  name            = "ref-arch-lite-${local.account_vars.locals.account_name}-aurora"
+  engine          = "aurora"
+  instance_type   = "db.t3.small"
+  instance_count  = 1
+  master_username = "admin"
+
+  # To avoid storing the password in configuration, the master_password variable should be passed as an environment
+  # variable. For example: export TF_VAR_master_password="<password>"
 
   # We deploy Aurora into the App VPC, inside the private persistence tier.
   vpc_id            = dependency.vpc.outputs.vpc_id

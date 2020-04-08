@@ -17,20 +17,11 @@ include {
   path = find_in_parent_folders()
 }
 
-# When using the terragrunt xxx-all commands (e.g., apply-all, plan-all), deploy these dependencies before this module
-dependencies {
-  paths = ["../../../../_global/account-baseline"]
-}
-
 # Pull in outputs from these modules to compute inputs. These modules will also be added to the dependency list for
 # xxx-all commands.
 dependency "vpc" {
   config_path = "../../networking/vpc"
 }
-
-# We set prevent destroy here to prevent accidentally deleting your company's data in case of overly ambitious use
-# of destroy or destroy-all. If you really want to run destroy on this module, remove this flag.
-prevent_destroy = true
 
 # Locals are named constants that are reusable within the configuration.
 locals {
@@ -57,8 +48,8 @@ inputs = {
   multi_az          = false
   master_username   = "admin"
 
-  # To avoid storing the password in configuration, the master_password variable should be passed at runtime. E.g.
-  #   terragrunt apply -var master_password="<password>"
+  # To avoid storing the password in configuration, the master_password variable should be passed as an environment
+  # variable. For example: export TF_VAR_master_password="<password>"
 
   # In staging, backups aren't critical, but we might want to keep them around for a little while
   backup_retention_period = 30
@@ -81,4 +72,3 @@ inputs = {
   # Set this to true to immediately roll out the changes.
   apply_immediately = false
 }
-

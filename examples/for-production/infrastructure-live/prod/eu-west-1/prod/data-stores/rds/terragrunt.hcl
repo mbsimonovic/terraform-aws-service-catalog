@@ -17,11 +17,6 @@ include {
   path = find_in_parent_folders()
 }
 
-# When using the terragrunt xxx-all commands (e.g., apply-all, plan-all), deploy these dependencies before this module
-dependencies {
-  paths = ["../../../../_global/account-baseline"]
-}
-
 # Pull in outputs from these modules to compute inputs. These modules will also be added to the dependency list for
 # xxx-all commands.
 dependency "vpc" {
@@ -57,8 +52,8 @@ inputs = {
   multi_az          = true
   master_username   = "admin"
 
-  # To avoid storing the password in configuration, the master_password variable should be passed at runtime. E.g.
-  #   terragrunt apply -var master_password="<password>"
+  # To avoid storing the password in configuration, the master_password variable should be passed as an environment
+  # variable. For example: export TF_VAR_master_password="<password>"
 
   # In production, it's wise to keep backups around for a while
   backup_retention_period = 365
