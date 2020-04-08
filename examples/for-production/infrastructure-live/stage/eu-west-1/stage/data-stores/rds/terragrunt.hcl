@@ -9,7 +9,7 @@
 # locally, you can use --terragrunt-source /path/to/local/checkout/of/module to override the source parameter to a
 # local check out of the module for faster iteration.
 terraform {
-  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/data-stores/aurora?ref=master"
+  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/data-stores/rds?ref=master"
 }
 
 # Include all settings from the root terragrunt.hcl file
@@ -38,18 +38,25 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 inputs = {
-  name            = "ref-arch-lite-${local.account_vars.locals.account_name}-aurora"
-  engine          = "aurora"
-  instance_type   = "db.t3.small"
-  instance_count  = 1
-  master_username = "admin"
+  name              = "ref-arch-lite-${local.account_vars.locals.account_name}-rds"
+  engine            = "mysql"
+  engine_version    = "8.0.17"
+  port              = 3306
+  instance_type     = "db.t3.micro"
+  allocated_storage = 5
+  db_name           = "my_db"
+  multi_az          = false
+  master_username   = "admin"
 
   # To avoid storing the password in configuration, the master_password variable should be passed as an environment
   # variable. For example: export TF_VAR_master_password="<password>"
 
-  # We deploy Aurora into the App VPC, inside the private persistence tier.
-  vpc_id            = dependency.vpc.outputs.vpc_id
-  aurora_subnet_ids = dependency.vpc.outputs.private_persistence_subnet_ids
+  # In staging, backups aren't critical, but we might want to keep them around for a little while
+  backup_retention_period = 30
+
+  # We deploy RDS into the App VPC, inside the private persistence tier.
+  vpc_id     = dependency.vpc.outputs.vpc_id
+  subnet_ids = dependency.vpc.outputs.private_persistence_subnet_ids
 
   # Here we allow any connection from the private app subnet tier of the VPC. You can further restrict network access by
   # security groups for better defense in depth.
