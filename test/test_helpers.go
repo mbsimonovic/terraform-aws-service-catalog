@@ -85,7 +85,7 @@ func smokeTestMysql(t *testing.T, serverInfo RDSInfo) {
 
 func smokeTestMysqlWithKubernetes(t *testing.T, kubectlOptions *k8s.KubectlOptions, serverInfo RDSInfo) {
 	defer k8s.RunKubectl(t, kubectlOptions, "delete", "pod", "mysql")
-	k8s.RunKubectl(t, kubectlOptions, "run", "--image", "mysql", "mysql", "--", "sleep", "9999999")
+	k8s.RunKubectl(t, kubectlOptions, "run", "--generator=run-pod/v1", "--image", "mysql", "mysql", "--", "sleep", "9999999")
 
 	kubectlExecMysqlCommand := []string{
 		"exec", "mysql", "--", "mysql",
