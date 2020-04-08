@@ -13,11 +13,14 @@ provider "aws" {
   skip_metadata_api_check     = var.kubeconfig_auth_type != "eks"
 }
 
+# Configure the kubernetes and Helm providers based on the requested authentication type.
 provider "kubernetes" {
+  # If using `context`, load the authentication info from the config file and chosen context.
   load_config_file = var.kubeconfig_auth_type == "context"
   config_path      = var.kubeconfig_auth_type == "context" ? var.kubeconfig_path : null
   config_context   = var.kubeconfig_auth_type == "context" ? var.kubeconfig_context : null
 
+  # If using `eks`, load the authentication info directly from EKS.
   host                   = var.kubeconfig_auth_type == "eks" ? data.aws_eks_cluster.cluster[0].endpoint : null
   cluster_ca_certificate = var.kubeconfig_auth_type == "eks" ? base64decode(data.aws_eks_cluster.cluster[0].certificate_authority.0.data) : null
   token                  = var.kubeconfig_auth_type == "eks" ? data.aws_eks_cluster_auth.kubernetes_token[0].token : null
@@ -25,10 +28,12 @@ provider "kubernetes" {
 
 provider "helm" {
   kubernetes {
+    # If using `context`, load the authentication info from the config file and chosen context.
     load_config_file = var.kubeconfig_auth_type == "context"
     config_path      = var.kubeconfig_auth_type == "context" ? var.kubeconfig_path : null
     config_context   = var.kubeconfig_auth_type == "context" ? var.kubeconfig_context : null
 
+    # If using `eks`, load the authentication info directly from EKS.
     host                   = var.kubeconfig_auth_type == "eks" ? data.aws_eks_cluster.cluster[0].endpoint : null
     cluster_ca_certificate = var.kubeconfig_auth_type == "eks" ? base64decode(data.aws_eks_cluster.cluster[0].certificate_authority.0.data) : null
     token                  = var.kubeconfig_auth_type == "eks" ? data.aws_eks_cluster_auth.kubernetes_token[0].token : null
