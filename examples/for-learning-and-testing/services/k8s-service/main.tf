@@ -48,8 +48,11 @@ module "application" {
 
   application_name = var.application_name
   container_image = {
-    repository  = var.image
-    tag         = var.image_version
+    repository = var.image
+    tag        = var.image_version
+    # We use IfNotPresent here to optimize and encourage usage of immutable tags. You may want to use different policies
+    # dependending on your use case. E.g., if you wish to test locally and want to continuously push to the latest tag,
+    # you can use `Always`.
     pull_policy = "IfNotPresent"
   }
   container_port         = var.container_port
