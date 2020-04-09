@@ -87,7 +87,7 @@ inputs = {
   # Set this to true to immediately roll out the changes.
   apply_immediately = false
 
-  # Create a Kubernetes Service resource so we can use Kubernetes DNS for service discovery
+  # Create a Kubernetes Service resource so Pods running Kubernetes can get this database's IP address via Kubernetes DNS service discovery
   create_kubernetes_service = true
   kubernetes_namespace      = dependency.eks_applications_namespace.outputs.namespace_name
 }
