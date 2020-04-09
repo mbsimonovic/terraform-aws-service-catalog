@@ -52,7 +52,6 @@ resource "aws_route53_zone" "public_zones" {
   force_destroy = each.value.force_destroy
 }
 
-
 # ---------------------------------------------------------------------------------------------------------------------
 # CREATE PUBLIC HOSTED ZONE(S)
 # ---------------------------------------------------------------------------------------------------------------------
@@ -69,7 +68,7 @@ module "acm-tls-certificates" {
   # Pass in the nested map of certificate requests
   # built locally from var.public_zones 
   acm_tls_certificates = {
-    for domain, zone in aws_route53_zone.public_zones:
+    for domain, zone in aws_route53_zone.public_zones :
     # These certificates that are going to be
     # automatically issued and verified for
     # public Route53 zones, so we prefix them
@@ -82,10 +81,10 @@ module "acm-tls-certificates" {
     # such as mail.example.com, admin.example.com, etc
     "*.${zone.name}" => {
       tags                       = zone.tags
+      subject_alternative_names  = []
       create_verification_record = true
       verify_certificate         = true
       bare_domain                = zone.name
-      vpc_id                     = ""
-    } # TODO if lookup(var.public_zones, zone.name, "provision_wildcard_certificate")
+    } if var.public_zones[domain].provision_wildcard_certificate
   }
 }
