@@ -23,6 +23,24 @@ dependency "vpc" {
   config_path = "../../networking/vpc"
 }
 
+dependency "eks_cluster" {
+  config_path = "../../services/eks-cluster"
+}
+
+dependency "eks_applications_namespace" {
+  config_path = "../../services/eks-applications-namespace"
+}
+
+# Generate a Kubernetes provider configuration for authenticating against the EKS cluster.
+generate "k8s_helm" {
+  path      = "k8s_helm_provider.tf"
+  if_exists = "overwrite_terragrunt"
+  contents = templatefile(
+    find_in_parent_folders("provider_k8s_helm_for_eks.template.hcl"),
+    { eks_cluster_name = dependency.eks.outputs.eks_cluster_name },
+  )
+}
+
 # We set prevent destroy here to prevent accidentally deleting your company's data in case of overly ambitious use
 # of destroy or destroy-all. If you really want to run destroy on this module, remove this flag.
 prevent_destroy = true
@@ -68,4 +86,8 @@ inputs = {
   # http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.DBInstance.Modifying.html
   # Set this to true to immediately roll out the changes.
   apply_immediately = false
+
+  # Create a Kubernetes Service resource so Pods running Kubernetes can get this database's IP address via Kubernetes DNS service discovery
+  create_kubernetes_service = true
+  kubernetes_namespace      = dependency.eks_applications_namespace.outputs.namespace_name
 }

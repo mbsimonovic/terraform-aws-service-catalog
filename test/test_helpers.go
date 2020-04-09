@@ -4,14 +4,17 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gruntwork-io/terratest/modules/aws"
+	"github.com/gruntwork-io/terratest/modules/k8s"
 	"github.com/gruntwork-io/terratest/modules/retry"
 	"github.com/gruntwork-io/terratest/modules/ssh"
 	"github.com/gruntwork-io/terratest/modules/terraform"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -78,6 +81,32 @@ func smokeTestMysql(t *testing.T, serverInfo RDSInfo) {
 	scanErr := row.Scan(&result)
 	require.NoError(t, scanErr)
 	require.Equal(t, result, "2")
+}
+
+func smokeTestMysqlWithKubernetes(t *testing.T, kubectlOptions *k8s.KubectlOptions, serverInfo RDSInfo) {
+	defer k8s.RunKubectl(t, kubectlOptions, "delete", "pod", "mysql")
+	k8s.RunKubectl(t, kubectlOptions, "run", "--generator=run-pod/v1", "--image", "mysql", "mysql", "--", "sleep", "9999999")
+
+	kubectlExecMysqlCommand := []string{
+		"exec", "mysql", "--", "mysql",
+		"-h", serverInfo.DBEndpoint,
+		"-u", serverInfo.Username,
+		fmt.Sprintf("--password=%s", serverInfo.Password),
+		"-P", serverInfo.DBPort,
+		"--ssl-mode", "DISABLED",
+		"-e", "SELECT 1+1;",
+	}
+	out := retry.DoWithRetry(
+		t,
+		"try mysql connection",
+		10,
+		5*time.Second,
+		func() (string, error) {
+			return k8s.RunKubectlAndGetOutputE(t, kubectlOptions, kubectlExecMysqlCommand...)
+		},
+	)
+	resp := strings.Split(out, "\n")
+	assert.Equal(t, resp[len(resp)-1], "2")
 }
 
 // Some of the tests need to run against Organization root account. This method overrides the default AWS_* environment variables

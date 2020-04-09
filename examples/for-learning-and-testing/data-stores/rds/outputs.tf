@@ -44,7 +44,7 @@ output "port" {
 
 output "name" {
   description = "The name of the RDS DB instance."
-  value       = var.name
+  value       = local.cluster_name
 }
 
 output "db_name" {

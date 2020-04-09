@@ -16,7 +16,7 @@ module "mysql_rds" {
   # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/data-stores/rds?ref=v1.0.8"
   source = "../../../../modules/data-stores/rds"
 
-  name           = "${var.name}-mysql"
+  name           = local.cluster_name
   engine         = "mysql"
   engine_version = "8.0.17"
   port           = 3306
@@ -46,4 +46,12 @@ module "mysql_rds" {
   multi_az                = false
   backup_retention_period = 0
   skip_final_snapshot     = true
+
+  # Configurations for creating a Service to route to the DB.
+  create_kubernetes_service = var.create_kubernetes_service
+  kubernetes_namespace      = var.kubernetes_namespace
+}
+
+locals {
+  cluster_name = "${var.name}-mysql"
 }
