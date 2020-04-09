@@ -46,6 +46,7 @@ toc::[]
 * Automatic scaling of storage
 * CloudWatch Alarms for alerting when CPU, memory, and disk metrics exceed certain thresholds
 * CloudWatch dashboard widgets for RDS statistics
+* Integrate with Kubernetes Service Discovery
 
 
 == Learn
@@ -96,7 +97,7 @@ If you want to deploy this repo in production, check out the following resources
 * https://github.com/gruntwork-io/module-data-storage/blob/master/modules/lambda-create-snapshot/core-concepts.md#data-backup-core-concepts[How to back up RDS databases]
 * https://github.com/gruntwork-io/module-data-storage/blob/master/modules/lambda-cleanup-snapshots/README.md[How clean up old database snapshots]
 * link:core-concepts.md#how-do-i-use-kubernetes-service-discovery-with-the-rds-database[How do I use Kubernetes Service
-  Discovery with the RDS database?
+  Discovery with the RDS database?]
 
 === Major changes
 

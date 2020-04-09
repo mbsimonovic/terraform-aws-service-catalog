@@ -48,6 +48,7 @@ toc::[]
 * Automatic cross account snapshots
 * Automatic scaling of storage
 * Scale to 0 with Aurora Serverless
+* Integrate with Kubernetes Service Discovery
 
 
 == Learn
@@ -100,7 +101,7 @@ If you want to deploy this repo in production, check out the following resources
 * link:core-concepts.md#how-do-i-scale-the-aurora-serverless-database[How to scale Aurora Serverless]
 * link:core-concepts.md#how-do-you-backup-your-rds-snapshots-to-a-separate-aws-account[How to backup Aurora snapshots to a separate AWS account]
 * link:core-concepts.md#how-do-i-use-kubernetes-service-discovery-with-the-aurora-database[How do I use Kubernetes Service
-  Discovery with the Aurora database?
+  Discovery with the Aurora database?]
 
 === Major changes
 
