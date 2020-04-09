@@ -6,9 +6,6 @@
 variable "private_zones" {
   description = "A map of private Route 53 Hosted Zones"
   type = map(object({
-    # Name of the private Route 54 Hosted Zone to be created
-    # e.g: gruntwork-example.xyz 
-    name = string
     # An optional, arbitrary comment to attach to the private Hosted Zone
     comment = string
     # The ID of the VPC to associate with the private Hosted Zone
@@ -23,9 +20,6 @@ variable "private_zones" {
 variable "public_zones" {
   description = "A map of public Route 53 Hosted Zones"
   type = map(object({
-    # Name of the public Route 54 Hosted Zone to be created
-    # e.g: gruntwork-example.com
-    name = string
     # An optional, arbitrary comment to attach to the public Hosted Zone
     comment = string
     # The ID of the VPC to associate with the public Hosted Zone
