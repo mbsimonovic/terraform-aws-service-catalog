@@ -20,7 +20,14 @@ terraform {
 resource "aws_route53_zone" "private_zones" {
   for_each = var.private_zones
 
-  name    = each.key
+  # Normalize zone name - whether the user added a 
+  # trailing dot or not, ensure the trailing dot is present
+  # This helps prevent some state change errors where the AWS
+  # provider may return a zone name with a trailing dot, 
+  # which causes Terraform to see the input map that is 
+  # provided to for_each loops has been changed at runtime
+  # which leads to very obscure errors
+  name    = "${trimsuffix(each.key, ".")}."
   comment = each.value.comment
 
   # The presence of the VPC association here signifies that this zone will be private. 
@@ -44,7 +51,14 @@ resource "aws_route53_zone" "private_zones" {
 resource "aws_route53_zone" "public_zones" {
   for_each = var.public_zones
 
-  name    = each.key
+  # Normalize zone name - whether the user added a 
+  # trailing dot or not, ensure the trailing dot is present
+  # This helps prevent some state change errors where the AWS
+  # provider may return a zone name with a trailing dot, 
+  # which causes Terraform to see the input map that is 
+  # provided to for_each loops has been changed at runtime
+  # which leads to very obscure errors
+  name    = "${trimsuffix(each.key, ".")}."
   comment = each.value.comment
 
   tags = each.value.tags
@@ -84,7 +98,6 @@ module "acm-tls-certificates" {
       subject_alternative_names  = []
       create_verification_record = true
       verify_certificate         = true
-      bare_domain                = zone.name
       # Only issue wildcard certificates for those zones 
       # where they were requested 
     } if var.public_zones[domain].provision_wildcard_certificate
