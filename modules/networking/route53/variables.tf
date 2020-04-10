@@ -22,8 +22,6 @@ variable "public_zones" {
   type = map(object({
     # An optional, arbitrary comment to attach to the public Hosted Zone
     comment = string
-    # The ID of the VPC to associate with the public Hosted Zone
-    vpc_id = string
     # A mapping of tags to assign to the public Hosted Zone 
     tags = map(string)
     # (Optional) Whether to destroy all records (possibly managed ouside of Terraform) in the zone when destroying the zone

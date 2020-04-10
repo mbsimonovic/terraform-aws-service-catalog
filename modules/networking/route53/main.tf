@@ -85,7 +85,8 @@ module "acm-tls-certificates" {
       create_verification_record = true
       verify_certificate         = true
       bare_domain                = zone.name
-      vpc_id                     = var.public_zones[domain].vpc_id
+      # Only issue wildcard certificates for those zones 
+      # where they were requested 
     } if var.public_zones[domain].provision_wildcard_certificate
   }
 }
