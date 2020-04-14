@@ -20,13 +20,10 @@ terraform {
 resource "aws_route53_zone" "private_zones" {
   for_each = var.private_zones
 
-  # Normalize zone name - whether the user added a 
-  # trailing dot or not, ensure the trailing dot is present
-  # This helps prevent some state change errors where the AWS
-  # provider may return a zone name with a trailing dot, 
-  # which causes Terraform to see the input map that is 
-  # provided to for_each loops has been changed at runtime
-  # which leads to very obscure errors
+  # Normalize zone name - whether the user added a trailing dot or not, ensure the trailing dot is present
+  # This helps prevent some state change errors where the AWS provider may return a zone name with a trailing dot, 
+  # which causes Terraform to see the input map that is provided to for_each loops has been changed at runtime,
+  # leading to very obscure errors
   name    = "${trimsuffix(each.key, ".")}."
   comment = each.value.comment
 
