@@ -74,7 +74,7 @@ module "acm-tls-certificates" {
   #source = "git::git@github.com:gruntwork-io/module-load-balancer.git//modules/acm-tls-certificate?ref=v0.19.0"
 
   # TODO: Replace me when the latest module-load-balancer ref is released 
-  source = "../../../../module-load-balancer/modules/acm-tls-certificate/"
+  source = "git::git@github.com:gruntwork-io/module-load-balancer.git//modules/acm-tls-certificate?ref=data-zone-id"
 
   # Pass in the nested map of certificate requests
   # built locally from var.public_zones 
