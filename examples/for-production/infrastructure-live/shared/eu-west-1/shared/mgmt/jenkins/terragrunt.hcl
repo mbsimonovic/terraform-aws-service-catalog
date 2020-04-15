@@ -17,15 +17,17 @@ include {
   path = find_in_parent_folders()
 }
 
-# When using the terragrunt xxx-all commands (e.g., apply-all, plan-all), deploy these dependencies before this module
-dependencies {
-  paths = ["../../../../_global/account-baseline"]
-}
-
 # Pull in outputs from these modules to compute inputs. These modules will also be added to the dependency list for
 # xxx-all commands.
 dependency "vpc" {
   config_path = "../../networking/vpc"
+
+  mock_outputs = {
+    vpc_id                 = "mock-vpc-id"
+    public_subnet_ids      = ["mock-subnet-id-public"]
+    private_app_subnet_ids = ["mock-subnet-id-priv-app"]
+  }
+  mock_outputs_allowed_terraform_commands = ["validate"]
 }
 
 # Locals are named constants that are reusable within the configuration.
