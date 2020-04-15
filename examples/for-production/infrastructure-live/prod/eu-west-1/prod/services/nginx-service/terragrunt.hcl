@@ -21,10 +21,20 @@ include {
 # xxx-all commands.
 dependency "eks_cluster" {
   config_path = "../eks-cluster"
+
+  mock_outputs = {
+    eks_cluster_name = "eks-cluster"
+  }
+  mock_outputs_allowed_terraform_commands = ["validate"]
 }
 
 dependency "eks_applications_namespace" {
   config_path = "../eks-applications-namespace"
+
+  mock_outputs = {
+    namespace_name = "applications"
+  }
+  mock_outputs_allowed_terraform_commands = ["validate"]
 }
 
 # Generate a Kubernetes provider configuration for authenticating against the EKS cluster.
@@ -33,7 +43,7 @@ generate "k8s_helm" {
   if_exists = "overwrite_terragrunt"
   contents = templatefile(
     find_in_parent_folders("provider_k8s_helm_for_eks.template.hcl"),
-    { eks_cluster_name = dependency.eks.outputs.eks_cluster_name },
+    { eks_cluster_name = dependency.eks_cluster.outputs.eks_cluster_name },
   )
 }
 

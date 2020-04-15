@@ -21,11 +21,12 @@ include {
 # xxx-all commands.
 dependency "eks_cluster" {
   config_path = "../eks-cluster"
-}
 
-# We set prevent destroy here to prevent accidentally deleting your company's data in case of overly ambitious use
-# of destroy or destroy-all. If you really want to run destroy on this module, remove this flag.
-prevent_destroy = true
+  mock_outputs = {
+    eks_cluster_name = "eks-cluster"
+  }
+  mock_outputs_allowed_terraform_commands = ["validate"]
+}
 
 # Generate a Kubernetes provider configuration for authenticating against the EKS cluster.
 generate "k8s_helm" {
@@ -33,7 +34,7 @@ generate "k8s_helm" {
   if_exists = "overwrite_terragrunt"
   contents = templatefile(
     find_in_parent_folders("provider_k8s_helm_for_eks.template.hcl"),
-    { eks_cluster_name = dependency.eks.outputs.eks_cluster_name },
+    { eks_cluster_name = dependency.eks_cluster.outputs.eks_cluster_name },
   )
 }
 

@@ -19,16 +19,36 @@ include {
 
 # Pull in outputs from these modules to compute inputs. These modules will also be added to the dependency list for
 # xxx-all commands.
+# For each dependency, we also set mock outputs that can be used for running `validate-all` without having to apply the
+# underlying modules. Note that we only use this path for validation of the module, as using mock values for `plan-all`
+# can lead to unintended consequences.
 dependency "vpc" {
   config_path = "../../networking/vpc"
+
+  mock_outputs = {
+    vpc_id                         = "mock-vpc-id"
+    private_app_subnet_cidr_blocks = ["1.2.3.4/24"]
+    private_persistence_subnet_ids = ["mock-subnet-id-priv-persist"]
+  }
+  mock_outputs_allowed_terraform_commands = ["validate"]
 }
 
 dependency "eks_cluster" {
   config_path = "../../services/eks-cluster"
+
+  mock_outputs = {
+    eks_cluster_name = "eks-cluster"
+  }
+  mock_outputs_allowed_terraform_commands = ["validate"]
 }
 
 dependency "eks_applications_namespace" {
   config_path = "../../services/eks-applications-namespace"
+
+  mock_outputs = {
+    namespace_name = "applications"
+  }
+  mock_outputs_allowed_terraform_commands = ["validate"]
 }
 
 # Generate a Kubernetes provider configuration for authenticating against the EKS cluster.
@@ -37,7 +57,7 @@ generate "k8s_helm" {
   if_exists = "overwrite_terragrunt"
   contents = templatefile(
     find_in_parent_folders("provider_k8s_helm_for_eks.template.hcl"),
-    { eks_cluster_name = dependency.eks.outputs.eks_cluster_name },
+    { eks_cluster_name = dependency.eks_cluster.outputs.eks_cluster_name },
   )
 }
 
@@ -83,7 +103,7 @@ inputs = {
   # Set this to true to immediately roll out the changes.
   apply_immediately = false
 
-  # Create a Kubernetes Service resource so we can use Kubernetes DNS for service discovery
+  # Create a Kubernetes Service resource so Pods running Kubernetes can get this database's IP address via Kubernetes DNS service discovery
   create_kubernetes_service = true
   kubernetes_namespace      = dependency.eks_applications_namespace.outputs.namespace_name
 }

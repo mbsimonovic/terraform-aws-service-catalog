@@ -19,13 +19,19 @@ include {
 
 # Pull in outputs from these modules to compute inputs. These modules will also be added to the dependency list for
 # xxx-all commands.
+# For each dependency, we also set mock outputs that can be used for running `validate-all` without having to apply the
+# underlying modules. Note that we only use this path for validation of the module, as using mock values for `plan-all`
+# can lead to unintended consequences.
 dependency "vpc" {
   config_path = "../../networking/vpc"
-}
 
-# We set prevent destroy here to prevent accidentally deleting your company's data in case of overly ambitious use
-# of destroy or destroy-all. If you really want to run destroy on this module, remove this flag.
-prevent_destroy = true
+  mock_outputs = {
+    vpc_id                 = "mock-vpc-id"
+    vpc_cidr_block         = "1.2.3.4/20"
+    private_app_subnet_ids = ["mock-subnet-id-priv-app"]
+  }
+  mock_outputs_allowed_terraform_commands = ["validate"]
+}
 
 # Locals are named constants that are reusable within the configuration.
 locals {

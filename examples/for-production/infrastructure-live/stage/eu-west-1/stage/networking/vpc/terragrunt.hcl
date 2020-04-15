@@ -17,6 +17,15 @@ include {
   path = find_in_parent_folders()
 }
 
+# When using the terragrunt xxx-all commands (e.g., apply-all, plan-all), deploy these dependencies before this module
+dependencies {
+  paths = ["../../../../_global/account-baseline"]
+}
+
+# We set prevent destroy here to prevent accidentally deleting your company's data in case of overly ambitious use
+# of destroy or destroy-all. If you really want to run destroy on this module, remove this flag.
+prevent_destroy = true
+
 # Locals are named constants that are reusable within the configuration.
 locals {
   # Automatically load common variables shared across all accounts
@@ -24,11 +33,6 @@ locals {
 
   # Automatically load account-level variables
   account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
-}
-
-# When using the terragrunt xxx-all commands (e.g., apply-all, plan-all), deploy these dependencies before this module
-dependencies {
-  paths = ["../../../../_global/account-baseline"]
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
