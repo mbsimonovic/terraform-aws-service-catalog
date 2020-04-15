@@ -27,10 +27,10 @@ func TestSmokeForProductionExamples(t *testing.T) {
 			allAccounts = append(allAccounts, item)
 		}
 	}
+	// We run validate-all in each account sequentially. For some reason, running in parallel cause mysterious errors in
+	// git clone phase for all but one of the accounts that manage to "win" the race.
 	for _, account := range allAccounts {
 		t.Run(filepath.Base(account), func(t *testing.T) {
-			t.Parallel()
-
 			opts := &terraform.Options{
 				TerraformBinary: "terragrunt",
 				TerraformDir:    account,
