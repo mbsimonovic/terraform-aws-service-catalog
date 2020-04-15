@@ -6,6 +6,7 @@ locals {
   account_ids = {
     master   = "087285199408"
     security = "087285199408"
+    shared   = "087285199408"
     stage    = "087285199408"
     prod     = "087285199408"
   }
@@ -15,10 +16,17 @@ locals {
 
   # Centrally manage all the VPC CIDR blocks
   vpc_cidr_blocks = {
-    stage = "10.0.0.0/16"
-    prod  = "10.2.0.0/16"
+    shared = "10.0.0.0/16"
+    stage  = "10.2.0.0/16"
+    prod   = "10.4.0.0/16"
   }
 
   # Default AWS region for API calls
   default_region = "eu-west-1"
+
+  # List of known CIDR blocks that correspond to organization office locations. Administrative access (e.g., VPN, SSH,
+  # etc) will be limited to these source CIDRs.
+  office_cidr_blocks = [
+    "1.2.3.0/24",
+  ]
 }

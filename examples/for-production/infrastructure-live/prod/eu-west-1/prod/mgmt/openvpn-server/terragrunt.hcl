@@ -48,7 +48,8 @@ inputs = {
   ami       = "ami-abcd1234"
 
   # Access to the vpn should be limited to specific, known CIDR blocks
-  allow_ssh_from_cidr_list = ["1.2.3.0/24"]
+  allow_vpn_from_cidr_list = local.common_vars.locals.office_cidr_blocks
+  allow_ssh_from_cidr_list = local.common_vars.locals.office_cidr_blocks
 
   # TODO: Set to true, and configure external_account_ssh_grunt_role_arn
   enable_ssh_grunt = false

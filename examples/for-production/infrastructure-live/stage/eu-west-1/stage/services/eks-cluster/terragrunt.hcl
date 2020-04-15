@@ -62,8 +62,7 @@ inputs = {
     }
   }
 
-  # Here we restrict Kubernetes API connections to only those originating from within the VPC, and specifically the
-  # private app subnet CIDR blocks.
+  # Here we restrict Kubernetes API connections to only those originating from within the VPC.
   endpoint_public_access                    = false
-  allow_inbound_api_access_from_cidr_blocks = dependency.vpc.outputs.private_app_subnet_cidr_blocks
+  allow_inbound_api_access_from_cidr_blocks = dependency.vpc.outputs.vpc_cidr_block
 }
