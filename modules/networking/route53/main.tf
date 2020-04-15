@@ -70,16 +70,29 @@ resource "aws_route53_zone" "public_zones" {
 module "acm-tls-certificates" {
   # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
   # to a specific version of the modules, such as the following example:
-  # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/route53?ref=v1.2.3"
-  #source = "git::git@github.com:gruntwork-io/module-load-balancer.git//modules/acm-tls-certificate?ref=v0.19.0"
+  # source = "git::git@github.com:gruntwork-io/module-load-balancer.git//modules/acm-tls-certificate?ref=v0.19.0"
 
   # TODO: Replace me when the latest module-load-balancer ref is released 
-  source = "git::git@github.com:gruntwork-io/module-load-balancer.git//modules/acm-tls-certificate?ref=data-zone-id"
+  source               = "git::git@github.com:gruntwork-io/module-load-balancer.git//modules/acm-tls-certificate?ref=data-zone-id"
+  acm_tls_certificates = local.acm_tls_certificates
 
-  # Pass in the nested map of certificate requests
-  # built locally from var.public_zones 
+  # Workaround Terraform limitation where there is no module depends_on.
+  # See https://github.com/hashicorp/terraform/issues/1178 for more details.
+  # This effectively draws an explicit dependency between the public 
+  # and private zones managed here and the ACM certificates that will be optionally 
+  # provisioned for them 
+  dependencies = flatten([values(aws_route53_zone.public_zones).*.name_servers])
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# LOCAL VARIABLES
+# ---------------------------------------------------------------------------------------------------------------------
+
+locals {
+  # For public zones with their `provision_wildcard_certificate` attribute set to true, build a map that will 
+  # be provided as input to the acm-tls-certificates module 
   acm_tls_certificates = {
-    for domain, zone in aws_route53_zone.public_zones :
+    for domain, zone in var.public_zones :
     # These certificates that are going to be
     # automatically issued and verified for
     # public Route53 zones, so we prefix them
@@ -90,13 +103,13 @@ module "acm-tls-certificates" {
     # requested with a domain of *.example.com,
     # will protect all one-level subdomains of example.com,
     # such as mail.example.com, admin.example.com, etc
-    "*.${zone.name}" => {
+    "*.${domain}" => {
       tags                       = zone.tags
       subject_alternative_names  = []
       create_verification_record = true
       verify_certificate         = true
       # Only issue wildcard certificates for those zones 
       # where they were requested 
-    } if var.public_zones[domain].provision_wildcard_certificate
+    } if zone.provision_wildcard_certificate
   }
 }
