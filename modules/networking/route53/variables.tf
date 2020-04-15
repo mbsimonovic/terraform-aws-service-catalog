@@ -4,7 +4,7 @@
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "private_zones" {
-  description = "A map of private Route 53 Hosted Zones"
+  description = "A map of private Route 53 Hosted Zones. In this map, the key should be the domain name. See examples below."
   type = map(object({
     # An optional, arbitrary comment to attach to the private Hosted Zone
     comment = string
@@ -18,7 +18,7 @@ variable "private_zones" {
 }
 
 variable "public_zones" {
-  description = "A map of public Route 53 Hosted Zones"
+  description = "A map of public Route 53 Hosted Zones. In this map, the key should be the domain name. See examples below."
   type = map(object({
     # An optional, arbitrary comment to attach to the public Hosted Zone
     comment = string
@@ -33,47 +33,42 @@ variable "public_zones" {
 
 /*
 
-Example inputs:
+Example inputs: 
 
 public_zones = {
     "example.com" = {
-        comment = "this is prod don't delete"
-        vpc_id = 19233983937
+        comment = "You can add arbitrary text here"
         tags = {
-            Isprod = true 
-            ShouldDelete = false 
+            Foo = "bar" 
         }
         force_destroy = true 
         provision_wildcard_certificate = true
     }
     "company-name.com" = {
-        comment = "this is also sort of prod"
-        vpc_id = 129734967447
+        comment = "This is another comment"
         tags = {
-            Isprod = "Kinda" 
-            ShouldDelete = "Shrug" 
+           Bar = "baz"
         }
     }
 }
+
 private_zones = {
     "backend.com" = {
-        comment = "this is prod don't delete"
+        comment = "Use for arbitrary comments"
         vpc_id = 19233983937
         tags = {
-            Isprod = true 
-            ShouldDelete = false 
+            CanDelete = true 
         }
         force_destroy = true 
-        provision_wildcard_certificate = true
     }
     "database.com" = {
-        comment = "this is also sort of prod"
+        comment = "This is prod - don't delete!"
         vpc_id = 129734967447
         tags = {
-            Isprod = "Kinda" 
-            ShouldDelete = "Shrug" 
+            Application = "redis" 
+            Team = "apps"
         }
-        provision_wildcard_certificate = true 
+        force_destroy = false
     }
 }
 
