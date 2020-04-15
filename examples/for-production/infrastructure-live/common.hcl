@@ -7,6 +7,7 @@ locals {
     master   = "087285199408"
     security = "087285199408"
     shared   = "087285199408"
+    dev      = "087285199408"
     stage    = "087285199408"
     prod     = "087285199408"
   }
@@ -17,8 +18,9 @@ locals {
   # Centrally manage all the VPC CIDR blocks
   vpc_cidr_blocks = {
     shared = "10.0.0.0/16"
-    stage  = "10.2.0.0/16"
-    prod   = "10.4.0.0/16"
+    dev    = "10.2.0.0/16"
+    stage  = "10.4.0.0/16"
+    prod   = "10.6.0.0/16"
   }
 
   # Default AWS region for API calls
