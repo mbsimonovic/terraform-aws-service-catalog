@@ -24,6 +24,8 @@ logging.basicConfig(format='%(asctime)s [%(levelname)s] %(message)s', level=logg
 DEFAULT_SOURCE_REF = 'origin/master'
 DEFAULT_TARGET_REF = 'HEAD'
 
+TERRAGRUNT_SMOKE_TEST = 'TestSmokeForProductionExamples'
+
 # A mapping of module or test file names to corresponding tests to run for the cases where the test name does not
 # directly correspond to the files.
 DIRECT_TEST_MAP = {
@@ -35,6 +37,7 @@ DIRECT_TEST_MAP = {
     'k8s-service': ['TestK8SService', 'TestEksCluster'],
     'test_helpers.go': ['.*'],
     'k8s_test_helpers.go': ['TestK8SNamespace', 'TestK8SService', 'TestEksCluster'],
+    'for_production_smoke_test.go': [TERRAGRUNT_SMOKE_TEST],
 }
 
 
@@ -130,6 +133,27 @@ def get_test_files_updated(source_ref):
     updated_files = (f.decode('utf-8').strip() for f in result.stdout.splitlines())
     updated_test_files = [f for f in updated_files if f.startswith('test') and f.endswith('.go')]
     return updated_test_files
+
+
+def any_terragrunt_files_updated(source_ref):
+    """
+    Calls out to the script git-updated-folders to find all the terragrunt files that have been updated, and if any were
+    updated, returns true.
+    """
+    # First get the raw list of folders containing updated files
+    result = subprocess.run(
+        [
+            'git-updated-folders',
+            '--source-ref', source_ref,
+            '--target-ref', DEFAULT_TARGET_REF,
+            '--terragrunt',
+        ],
+        stdout=subprocess.PIPE,
+        check=True,
+    )
+    if result.stdout:
+        return True
+    return False
 
 
 def find_module(all_modules, folder):
@@ -255,7 +279,20 @@ def main():
     else:
         logging.warning('Did not find any tests to run')
 
-    # 4. Construct the regex and print it to stdout so it can be used in a script
+    # 4. If any terragrunt files were updated, run the terragrunt smoke test
+    logging.info('Checking if any terragrunt files were updated.')
+    if any_terragrunt_files_updated(source_ref):
+        logging.info(
+            (
+                'Detected terragrunt files updated: running terragrunt smoke test '
+                '({}).'
+            ).format(TERRAGRUNT_SMOKE_TEST)
+        )
+        tests_to_run.add(TERRAGRUNT_SMOKE_TEST)
+    else:
+        logging.info('No terragrunt files were updated: skipping terragrunt smoke test.')
+
+    # 5. Construct the regex and print it to stdout so it can be used in a script
     test_regex = get_tests_to_run_regex(tests_to_run)
     logging.info('Running the tests with regex {}'.format(test_regex))
     print(test_regex)
