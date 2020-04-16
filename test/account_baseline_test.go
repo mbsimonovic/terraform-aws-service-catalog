@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/logger"
+	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 	"github.com/stretchr/testify/assert"
@@ -69,6 +70,7 @@ func TestAccountBaseline(t *testing.T) {
 				logger.Logf(t, "Bootstrapping variables")
 
 				awsRegion := pickAwsRegion(t)
+				uniqueId := random.UniqueId()
 				terraformOptions := createBaseTerraformOptions(t, _examplesDir, awsRegion)
 
 				if testCase.isOrg {
@@ -81,6 +83,7 @@ func TestAccountBaseline(t *testing.T) {
 					terraformOptions.Vars["allow_read_only_access_from_other_account_arns"] = []string{"arn:aws:iam::123445678910:root"}
 					terraformOptions.Vars["auto_deploy_permissions"] = []string{"cloudwatch:*", "logs:*", "dynamodb:*", "ecr:*", "ecs:*"}
 					terraformOptions.Vars["dev_permitted_services"] = []string{"ec2", "s3", "rds", "dynamodb", "elasticache"}
+					terraformOptions.Vars["sns_topic_name"] = "test-topic-" + uniqueId
 				}
 
 				test_structure.SaveTerraformOptions(t, _examplesDir, terraformOptions)

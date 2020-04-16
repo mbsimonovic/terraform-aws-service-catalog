@@ -133,3 +133,18 @@ module "customer_master_keys" {
   global_tags          = var.kms_cmk_global_tags
   opt_in_regions       = var.kms_cmk_opt_in_regions
 }
+
+# ----------------------------------------------------------------------------------------------------------------------
+# SNS TOPIC
+# Optionally create an SNS topic for CloudWatch alarms or any other reason. If sns_topic_name is empty,
+# no topic will be created
+# ----------------------------------------------------------------------------------------------------------------------
+
+module "sns_topic" {
+  source = "../../networking/sns-topics"
+
+  create_resources = var.sns_topic_name != null
+
+  name              = var.sns_topic_name
+  slack_webhook_url = var.slack_webhook_url
+}

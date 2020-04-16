@@ -14,7 +14,7 @@ provider "aws" {
 # CALL THE BASELINE MODULE
 # ---------------------------------------------------------------------------------------------------------------------
 
-module "security_baseline" {
+module "app_baseline" {
   # When using these modules in your own templates, you will need to use a Git URL with a ref attribute that pins you
   # to a specific version of the modules, such as the following example:
   # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/landingzone/account-baseline-app?ref=v1.0.0"
@@ -47,6 +47,8 @@ module "security_baseline" {
       allow_manage_key_permissions_with_iam = false
     }
   }
+
+  sns_topic_name = var.sns_topic_name
 }
 
 data "aws_caller_identity" "current" {}
