@@ -41,19 +41,25 @@ func TestRoute53(t *testing.T) {
 
 		var privateZones = map[string]interface{}{
 			privateZoneName: map[string]interface{}{
-				"name":          privateZoneName,
-				"comment":       "This is an optional test comment",
-				"vpc_id":        aws.GetDefaultVpc(t, awsRegion).Id,
-				"tags":          domainNameTagsForTest,
+				"name":    privateZoneName,
+				"comment": "This is an optional test comment",
+				"vpc_id":  aws.GetDefaultVpc(t, awsRegion).Id,
+				"tags": map[string]interface{}{
+					"Application": "redis",
+					"Env":         "dev",
+				},
 				"force_destroy": "true",
 			},
 		}
 
 		var publicZones = map[string]interface{}{
 			publicZoneName: map[string]interface{}{
-				"name":                           publicZoneName,
-				"comment":                        "This is another optional test comment",
-				"tags":                           domainNameTagsForTest,
+				"name":    publicZoneName,
+				"comment": "This is another optional test comment",
+				"tags": map[string]interface{}{
+					"Application": "redis",
+					"Env":         "dev",
+				},
 				"force_destroy":                  "true",
 				"provision_wildcard_certificate": "false",
 			},
