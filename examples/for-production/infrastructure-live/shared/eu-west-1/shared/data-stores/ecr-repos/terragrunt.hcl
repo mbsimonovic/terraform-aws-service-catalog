@@ -2,9 +2,6 @@
 # TERRAGRUNT CONFIGURATION
 # This is the configuration for Terragrunt, a thin wrapper for Terraform that helps keep your code DRY and maintainable:
 # https://github.com/gruntwork-io/terragrunt
-#
-# MAINTAINERS NOTE: It's a bit silly to create ECR repos in all these accounts, but we're just using this as a dummy
-# test case for now.
 # ---------------------------------------------------------------------------------------------------------------------
 
 # Terragrunt will copy the Terraform configurations specified by the source parameter, along with any files in the

@@ -21,6 +21,11 @@ include {
 # xxx-all commands.
 dependency "eks_cluster" {
   config_path = "../eks-cluster"
+
+  mock_outputs = {
+    eks_cluster_name = "eks-cluster"
+  }
+  mock_outputs_allowed_terraform_commands = ["validate"]
 }
 
 # We set prevent destroy here to prevent accidentally deleting your company's data in case of overly ambitious use
@@ -33,7 +38,7 @@ generate "k8s_helm" {
   if_exists = "overwrite_terragrunt"
   contents = templatefile(
     find_in_parent_folders("provider_k8s_helm_for_eks.template.hcl"),
-    { eks_cluster_name = dependency.eks.outputs.eks_cluster_name },
+    { eks_cluster_name = dependency.eks_cluster.outputs.eks_cluster_name },
   )
 }
 

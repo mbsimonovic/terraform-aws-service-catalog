@@ -26,6 +26,15 @@ dependencies {
 # xxx-all commands.
 dependency "vpc" {
   config_path = "../../networking/vpc"
+
+  # Set mock outputs that can be used for running `validate-all` without having to apply the underlying modules. Note
+  # that we only use this path for validation of the module, as using mock values for `plan-all` can lead to unintended
+  # consequences.
+  mock_outputs = {
+    vpc_id            = "mock-vpc-id"
+    public_subnet_ids = ["mock-subnet-id-public"]
+  }
+  mock_outputs_allowed_terraform_commands = ["validate"]
 }
 
 # Locals are named constants that are reusable within the configuration.
@@ -48,7 +57,7 @@ inputs = {
   ami       = "ami-abcd1234"
 
   # Access to the bastion should be limited to specific, known CIDR blocks
-  allow_ssh_from_cidr_list = ["1.2.3.0/24"]
+  allow_ssh_from_cidr_list = local.common_vars.locals.office_cidr_blocks
 
   # TODO: Set to true, and configure external_account_ssh_grunt_role_arn
   enable_ssh_grunt = false

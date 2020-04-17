@@ -21,10 +21,26 @@ include {
 # xxx-all commands.
 dependency "vpc" {
   config_path = "../../networking/vpc"
+
+  mock_outputs = {
+    vpc_id                 = "mock-vpc-id"
+    private_app_subnet_ids = ["mock-subnet-id-priv-app"]
+  }
+  mock_outputs_allowed_terraform_commands = ["validate"]
 }
 
 dependency "eks_cluster" {
   config_path = "../eks-cluster"
+
+  mock_outputs = {
+    eks_cluster_name                       = "eks-cluster"
+    eks_default_fargate_execution_role_arn = "arn:aws:::iam"
+    eks_iam_role_for_service_accounts_config = {
+      openid_connect_provider_arn = "arn:aws:::openid"
+      openid_connect_provider_url = "https://openid"
+    }
+  }
+  mock_outputs_allowed_terraform_commands = ["validate"]
 }
 
 # Locals are named constants that are reusable within the configuration.

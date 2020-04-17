@@ -9,7 +9,7 @@
 # locally, you can use --terragrunt-source /path/to/local/checkout/of/module to override the source parameter to a
 # local check out of the module for faster iteration.
 terraform {
-  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/services/eks-core-services?ref=master"
+  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/mgmt/jenkins?ref=master"
 }
 
 # Include all settings from the root terragrunt.hcl file
@@ -24,29 +24,19 @@ dependency "vpc" {
 
   mock_outputs = {
     vpc_id                 = "mock-vpc-id"
+    public_subnet_ids      = ["mock-subnet-id-public"]
     private_app_subnet_ids = ["mock-subnet-id-priv-app"]
-  }
-  mock_outputs_allowed_terraform_commands = ["validate"]
-}
-
-dependency "eks_cluster" {
-  config_path = "../eks-cluster"
-
-  mock_outputs = {
-    eks_cluster_name                       = "eks-cluster"
-    eks_default_fargate_execution_role_arn = "arn:aws:::iam"
-    eks_iam_role_for_service_accounts_config = {
-      openid_connect_provider_arn = "arn:aws:::openid"
-      openid_connect_provider_url = "https://openid"
-    }
   }
   mock_outputs_allowed_terraform_commands = ["validate"]
 }
 
 # Locals are named constants that are reusable within the configuration.
 locals {
-  # Automatically load region-level variables
-  region_vars = read_terragrunt_config(find_in_parent_folders("region.hcl"))
+  # Automatically load common variables shared across all accounts
+  common_vars = read_terragrunt_config(find_in_parent_folders("common.hcl"))
+
+  # Automatically load account-level variables
+  account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -55,22 +45,25 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 inputs = {
-  aws_region                               = local.region_vars.locals.aws_region
-  vpc_id                                   = dependency.vpc.outputs.vpc_id
-  eks_cluster_name                         = dependency.eks_cluster.outputs.eks_cluster_name
-  eks_iam_role_for_service_accounts_config = dependency.eks_cluster.outputs.eks_iam_role_for_service_accounts_config
+  name          = "ref-arch-lite-${local.account_vars.locals.account_name}-jenkins"
+  ami           = "ami-abcd1234"
+  instance_type = "t3.micro"
+  memory        = "512m"
 
-  # Fargate configuration
-  # We will schedule everything we can on Fargate. Each of these pods use an IP address on the worker nodes, so it helps
-  # to schedule them off the worker nodes.
-  schedule_alb_ingress_controller_on_fargate = true
-  schedule_external_dns_on_fargate           = true
-  schedule_cluster_autoscaler_on_fargate     = true
-  worker_vpc_subnet_ids                      = dependency.vpc.outputs.private_app_subnet_ids
-  pod_execution_iam_role_arn                 = dependency.eks_cluster.outputs.eks_default_fargate_execution_role_arn
+  vpc_id            = dependency.vpc.outputs.vpc_id
+  jenkins_subnet_id = dependency.vpc.outputs.private_app_subnet_ids[0]
+  alb_subnet_ids    = dependency.vpc.outputs.public_subnet_ids
 
-  # Configuration for external-dns
+  keypair_name               = "jim-brikman"
+  allow_ssh_from_cidr_blocks = ["0.0.0.0/0"]
+  enable_ssh_grunt           = false
+
+  is_internal_alb                      = false
+  allow_incoming_http_from_cidr_blocks = ["0.0.0.0/0"]
+
   # TODO: We'd normally use a dependency block to pull in the hosted zone ID, but we haven't converted the route 53
   # modules to the new service catalog format yet, so for now, we just hard-code the ID.
-  external_dns_route53_hosted_zone_id_filters = ["Z2AJ7S3R6G9UYJ"]
+  hosted_zone_id             = "Z2AJ7S3R6G9UYJ"
+  domain_name                = "ref-arch-lite-${local.account_vars.locals.account_name}-jenkins.gruntwork.in"
+  acm_ssl_certificate_domain = "*.gruntwork.in"
 }
