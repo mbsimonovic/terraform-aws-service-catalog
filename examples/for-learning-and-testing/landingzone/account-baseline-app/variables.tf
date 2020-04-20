@@ -117,3 +117,13 @@ variable "kms_cmk_administrator_iam_arns" {
   type        = list(string)
   default     = ["arn:aws:iam::123456789012:user/acme-admin"]
 }
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Modify the following variables to create an SNS topic
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "sns_topic_name" {
+  description = "(Optional) The name of an SNS topic to create for use with CloudWatch alarms or anything else."
+  type        = string
+  default     = null
+}

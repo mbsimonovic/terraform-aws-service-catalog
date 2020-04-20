@@ -369,3 +369,20 @@ variable "kms_cmk_opt_in_regions" {
   type        = list(string)
   default     = null
 }
+
+# ---------------------------------------------------------------------------------------------------------------------
+# OPTIONAL SNS TOPIC PARAMETERS
+# These variables must be passed in by the operator.
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "sns_topic_name" {
+  description = "The display name of the SNS topic. If null, no topic will be created."
+  type        = string
+  default     = null
+}
+
+variable "slack_webhook_url" {
+  description = "Send topic notifications to this Slack Webhook URL (e.g., https://hooks.slack.com/services/FOO/BAR/BAZ). Ignored if null."
+  type        = string
+  default     = null
+}
