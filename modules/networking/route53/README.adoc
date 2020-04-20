@@ -34,11 +34,10 @@ image::../../../_docs/route53-architecture.png?raw=true[Route 53 architecture]
 toc::[]
 
 
-
-
 == Features
 
 * Manage DNS entries using AWS Route 53 
+* Optionally order and automatically verify ACM wildcard certificates for public zones 
 * Automatic health checks to route traffic only to healthy endpoints
 * Automatic integration with other AWS services, such as ELBs
 

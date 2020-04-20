@@ -3,7 +3,7 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 provider "aws" {
-  region = "us-west-1"
+  region = var.aws_region
 }
 
 module "route53" {
@@ -15,5 +15,4 @@ module "route53" {
   private_zones = var.private_zones
 
   public_zones = var.public_zones
-
 }

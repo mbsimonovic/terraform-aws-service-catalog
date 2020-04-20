@@ -20,12 +20,20 @@ terraform {
 resource "aws_route53_zone" "private_zones" {
   for_each = var.private_zones
 
-  name    = each.key
+  # Normalize zone name - whether the user added a trailing dot or not, ensure the trailing dot is present
+  # This helps prevent some state change errors where the AWS provider may return a zone name with a trailing dot, 
+  # which causes Terraform to see the input map that is provided to for_each loops has been changed at runtime,
+  # leading to very obscure errors
+  name    = "${trimsuffix(each.key, ".")}."
   comment = each.value.comment
 
+  # The presence of the VPC association here signifies that this zone will be private. 
+  # Public zones do not require a VPC association 
+
+  # See https://www.terraform.io/docs/providers/aws/r/route53_zone.html#private-zone
+  # for more information 
   vpc {
     vpc_id = each.value.vpc_id
-
   }
 
   tags = each.value.tags
@@ -40,15 +48,67 @@ resource "aws_route53_zone" "private_zones" {
 resource "aws_route53_zone" "public_zones" {
   for_each = var.public_zones
 
-  name    = each.key
+  # Normalize zone name - whether the user added a 
+  # trailing dot or not, ensure the trailing dot is present
+  # This helps prevent some state change errors where the AWS
+  # provider may return a zone name with a trailing dot, 
+  # which causes Terraform to see the input map that is 
+  # provided to for_each loops has been changed at runtime
+  # which leads to very obscure errors
+  name    = "${trimsuffix(each.key, ".")}."
   comment = each.value.comment
-
-  vpc {
-    vpc_id = each.value.vpc_id
-  }
 
   tags = each.value.tags
 
   force_destroy = each.value.force_destroy
+}
 
+# ---------------------------------------------------------------------------------------------------------------------
+# CREATE PUBLIC HOSTED ZONE(S)
+# ---------------------------------------------------------------------------------------------------------------------
+
+module "acm-tls-certificates" {
+  # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
+  # to a specific version of the modules, such as the following example:
+  # source = "git::git@github.com:gruntwork-io/module-load-balancer.git//modules/acm-tls-certificate?ref=v0.19.0"
+
+  source               = "git::git@github.com:gruntwork-io/module-load-balancer.git//modules/acm-tls-certificate?ref=v0.20.0"
+  acm_tls_certificates = local.acm_tls_certificates
+
+  # Workaround Terraform limitation where there is no module depends_on.
+  # See https://github.com/hashicorp/terraform/issues/1178 for more details.
+  # This effectively draws an explicit dependency between the public 
+  # and private zones managed here and the ACM certificates that will be optionally 
+  # provisioned for them 
+  dependencies = flatten([values(aws_route53_zone.public_zones).*.name_servers])
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# LOCAL VARIABLES
+# ---------------------------------------------------------------------------------------------------------------------
+
+locals {
+  # For public zones with their `provision_wildcard_certificate` attribute set to true, build a map that will 
+  # be provided as input to the acm-tls-certificates module 
+  acm_tls_certificates = {
+    for domain, zone in var.public_zones :
+    # These certificates that are going to be
+    # automatically issued and verified for
+    # public Route53 zones, so we prefix them
+    # with *. to denote we are requesting
+    # "wildcard" certificates
+
+    # A wildcard certificate for example.com,
+    # requested with a domain of *.example.com,
+    # will protect all one-level subdomains of example.com,
+    # such as mail.example.com, admin.example.com, etc
+    "*.${domain}" => {
+      tags                       = zone.tags
+      subject_alternative_names  = []
+      create_verification_record = true
+      verify_certificate         = true
+      # Only issue wildcard certificates for those zones 
+      # where they were requested 
+    } if zone.provision_wildcard_certificate
+  }
 }

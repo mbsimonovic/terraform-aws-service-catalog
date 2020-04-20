@@ -4,11 +4,8 @@
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "private_zones" {
-  description = "A map of private Route 53 Hosted Zones"
+  description = "A map of private Route 53 Hosted Zones. In this map, the key should be the domain name. See examples below."
   type = map(object({
-    # Name of the private Route 54 Hosted Zone to be created
-    # e.g: gruntwork-example.xyz 
-    name = string
     # An optional, arbitrary comment to attach to the private Hosted Zone
     comment = string
     # The ID of the VPC to associate with the private Hosted Zone
@@ -21,18 +18,58 @@ variable "private_zones" {
 }
 
 variable "public_zones" {
-  description = "A map of public Route 53 Hosted Zones"
+  description = "A map of public Route 53 Hosted Zones. In this map, the key should be the domain name. See examples below."
   type = map(object({
-    # Name of the public Route 54 Hosted Zone to be created
-    # e.g: gruntwork-example.com
-    name = string
     # An optional, arbitrary comment to attach to the public Hosted Zone
     comment = string
-    # The ID of the VPC to associate with the public Hosted Zone
-    vpc_id = string
     # A mapping of tags to assign to the public Hosted Zone 
     tags = map(string)
     # (Optional) Whether to destroy all records (possibly managed ouside of Terraform) in the zone when destroying the zone
     force_destroy = bool
+    # (Optional) If set to true, automatically order and verify a wildcard certificate via ACM for this domain
+    provision_wildcard_certificate = bool
   }))
 }
+
+/*
+
+Example inputs: 
+
+public_zones = {
+    "example.com" = {
+        comment = "You can add arbitrary text here"
+        tags = {
+            Foo = "bar" 
+        }
+        force_destroy = true 
+        provision_wildcard_certificate = true
+    }
+    "company-name.com" = {
+        comment = "This is another comment"
+        tags = {
+           Bar = "baz"
+        }
+    }
+}
+
+private_zones = {
+    "backend.com" = {
+        comment = "Use for arbitrary comments"
+        vpc_id = 19233983937
+        tags = {
+            CanDelete = true 
+        }
+        force_destroy = true 
+    }
+    "database.com" = {
+        comment = "This is prod - don't delete!"
+        vpc_id = 129734967447
+        tags = {
+            Application = "redis" 
+            Team = "apps"
+        }
+        force_destroy = false
+    }
+}
+
+ */
