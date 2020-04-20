@@ -135,8 +135,8 @@ func TestRoute53ProvisionWildcardCertPlan(t *testing.T) {
 					"Application": "redis",
 					"Env":         "dev",
 				},
-				"force_destroy": "true",
-				// Our module should gracefully handle both string and bool types for boolean values
+				"force_destroy": true,
+
 				"provision_wildcard_certificate": true,
 			},
 		}
