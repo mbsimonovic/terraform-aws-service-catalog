@@ -70,8 +70,7 @@ func TestRoute53(t *testing.T) {
 			},
 		}
 
-		terraformOptions := createBaseTerraformOptions(t, testFolder, "")
-		delete(terraformOptions.Vars, "aws_region")
+		terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
 		terraformOptions.Vars["private_zones"] = privateZones
 		terraformOptions.Vars["public_zones"] = publicZones
 
@@ -142,9 +141,7 @@ func TestRoute53ProvisionWildcardCertPlan(t *testing.T) {
 			},
 		}
 
-		terraformOptions := createBaseTerraformOptions(t, testFolder, "")
-		// This module does not accept an aws_region variable
-		delete(terraformOptions.Vars, "aws_region")
+		terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
 		terraformOptions.Vars["public_zones"] = publicZones
 		terraformOptions.Vars["private_zones"] = privateZones
 

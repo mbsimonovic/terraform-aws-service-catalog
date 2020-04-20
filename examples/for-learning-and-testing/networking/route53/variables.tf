@@ -3,6 +3,12 @@
 # These variables are expected to be passed in by the operator
 # ---------------------------------------------------------------------------------------------------------------------
 
+variable "aws_region" {
+  description = "The AWS region in which to deploy the resources. This variable will be passed to the provider's region parameter."
+  type        = string
+  default     = "eu-west-1"
+}
+
 variable "private_zones" {
   description = "A map of private Route 53 Hosted Zones. In this map, the key should be the domain name. See examples below."
   type = map(object({
