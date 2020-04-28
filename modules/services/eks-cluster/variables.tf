@@ -240,6 +240,62 @@ variable "enabled_control_plane_log_types" {
   default     = ["api", "audit", "authenticator"]
 }
 
+# CloudWatch Dashboard Widgets
+
+variable "dashboard_cpu_usage_widget_parameters" {
+  description = "Parameters for the worker cpu usage widget to output for use in a CloudWatch dashboard."
+  type = object({
+    # The period in seconds for metrics to sample across.
+    period = number
+
+    # The width and height of the widget in grid units in a 24 column grid. E.g., a value of 12 will take up half the
+    # space.
+    width  = number
+    height = number
+  })
+  default = {
+    period = 60
+    width  = 8
+    height = 6
+  }
+}
+
+variable "dashboard_memory_usage_widget_parameters" {
+  description = "Parameters for the worker memory usage widget to output for use in a CloudWatch dashboard."
+  type = object({
+    # The period in seconds for metrics to sample across.
+    period = number
+
+    # The width and height of the widget in grid units in a 24 column grid. E.g., a value of 12 will take up half the
+    # space.
+    width  = number
+    height = number
+  })
+  default = {
+    period = 60
+    width  = 8
+    height = 6
+  }
+}
+
+variable "dashboard_disk_usage_widget_parameters" {
+  description = "Parameters for the worker disk usage widget to output for use in a CloudWatch dashboard."
+  type = object({
+    # The period in seconds for metrics to sample across.
+    period = number
+
+    # The width and height of the widget in grid units in a 24 column grid. E.g., a value of 12 will take up half the
+    # space.
+    width  = number
+    height = number
+  })
+  default = {
+    period = 60
+    width  = 8
+    height = 6
+  }
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # TEST PARAMETERS
 # These variables exist solely for testing purposes.
