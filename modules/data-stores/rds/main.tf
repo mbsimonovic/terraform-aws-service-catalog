@@ -65,7 +65,7 @@ module "database" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "rds_alarms" {
-  source           = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/rds-alarms?ref=v0.19.0"
+  source           = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/rds-alarms?ref=v0.19.4"
   create_resources = var.enable_cloudwatch_alarms
 
   rds_instance_ids     = local.rds_database_ids
@@ -83,11 +83,14 @@ module "rds_alarms" {
 }
 
 module "metric_widget_rds_cpu_usage" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.19.0"
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.19.4"
 
-  period = 60
-  stat   = "Average"
-  title  = "${title(var.engine)} CPUUtilization"
+  title = "${var.name} ${title(var.engine)} CPUUtilization"
+  stat  = "Average"
+
+  period = var.dashboard_cpu_usage_widget_parameters.period
+  width  = var.dashboard_cpu_usage_widget_parameters.width
+  height = var.dashboard_cpu_usage_widget_parameters.height
 
   metrics = [
     for id in local.rds_database_ids : ["AWS/RDS", "CPUUtilization", "DBInstanceIdentifier", id]
@@ -95,11 +98,14 @@ module "metric_widget_rds_cpu_usage" {
 }
 
 module "metric_widget_rds_memory" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.19.0"
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.19.4"
 
-  period = 60
-  stat   = "Minimum"
-  title  = "${title(var.engine)} FreeableMemory"
+  title = "${var.name} ${title(var.engine)} FreeableMemory"
+  stat  = "Minimum"
+
+  period = var.dashboard_memory_widget_parameters.period
+  width  = var.dashboard_memory_widget_parameters.width
+  height = var.dashboard_memory_widget_parameters.height
 
   metrics = [
     for id in local.rds_database_ids : ["AWS/RDS", "FreeableMemory", "DBInstanceIdentifier", id]
@@ -107,11 +113,14 @@ module "metric_widget_rds_memory" {
 }
 
 module "metric_widget_rds_disk_space" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.19.0"
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.19.4"
 
-  period = 60
-  stat   = "Minimum"
-  title  = "${title(var.engine)} FreeStorageSpace"
+  title = "${var.name} ${title(var.engine)} FreeStorageSpace"
+  stat  = "Minimum"
+
+  period = var.dashboard_disk_space_widget_parameters.period
+  width  = var.dashboard_disk_space_widget_parameters.width
+  height = var.dashboard_disk_space_widget_parameters.height
 
   metrics = [
     for id in local.rds_database_ids : ["AWS/RDS", "FreeStorageSpace", "DBInstanceIdentifier", id]
@@ -119,11 +128,14 @@ module "metric_widget_rds_disk_space" {
 }
 
 module "metric_widget_rds_db_connections" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.19.0"
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.19.4"
 
-  period = 60
-  stat   = "Maximum"
-  title  = "${title(var.engine)} DatabaseConnections"
+  title = "${var.name} ${title(var.engine)} DatabaseConnections"
+  stat  = "Maximum"
+
+  period = var.dashboard_db_connections_widget_parameters.period
+  width  = var.dashboard_db_connections_widget_parameters.width
+  height = var.dashboard_db_connections_widget_parameters.height
 
   metrics = [
     for id in local.rds_database_ids : ["AWS/RDS", "DatabaseConnections", "DBInstanceIdentifier", id]
@@ -131,11 +143,14 @@ module "metric_widget_rds_db_connections" {
 }
 
 module "metric_widget_rds_read_latency" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.19.0"
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.19.4"
 
-  period = 60
-  stat   = "Average"
-  title  = "${title(var.engine)} ReadLatency"
+  title = "${var.name} ${title(var.engine)} ReadLatency"
+  stat  = "Average"
+
+  period = var.dashboard_read_latency_widget_parameters.period
+  width  = var.dashboard_read_latency_widget_parameters.width
+  height = var.dashboard_read_latency_widget_parameters.height
 
   metrics = [
     for id in local.rds_database_ids : ["AWS/RDS", "ReadLatency", "DBInstanceIdentifier", id]
@@ -143,11 +158,14 @@ module "metric_widget_rds_read_latency" {
 }
 
 module "metric_widget_rds_write_latency" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.19.0"
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.19.4"
 
-  period = 60
-  stat   = "Average"
-  title  = "${title(var.engine)} WriteLatency"
+  title = "${var.name} ${title(var.engine)} WriteLatency"
+  stat  = "Average"
+
+  period = var.dashboard_write_latency_widget_parameters.period
+  width  = var.dashboard_write_latency_widget_parameters.width
+  height = var.dashboard_write_latency_widget_parameters.height
 
   metrics = [
     for id in local.rds_database_ids : ["AWS/RDS", "WriteLatency", "DBInstanceIdentifier", id]
@@ -211,7 +229,7 @@ module "cleanup_snapshots" {
 
 # CloudWatch alarm that goes off if the backup job fails to create a new snapshot.
 module "backup_job_alarm" {
-  source           = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/scheduled-job-alarm?ref=v0.19.0"
+  source           = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/scheduled-job-alarm?ref=v0.19.4"
   create_resources = var.share_snapshot_with_another_account && var.enable_cloudwatch_alarms
 
   name                 = "${var.name}-create-snapshot-failed"

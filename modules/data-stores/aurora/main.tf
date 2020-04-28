@@ -65,7 +65,7 @@ module "database" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "rds_alarms" {
-  source           = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/rds-alarms?ref=v0.19.0"
+  source           = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/rds-alarms?ref=v0.19.4"
   create_resources = var.enable_cloudwatch_alarms && var.engine_mode == "provisioned"
 
   rds_instance_ids     = module.database.instance_ids
@@ -142,7 +142,7 @@ module "cleanup_snapshots" {
 
 # CloudWatch alarm that goes off if the backup job fails to create a new snapshot.
 module "backup_job_alarm" {
-  source           = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/scheduled-job-alarm?ref=v0.19.0"
+  source           = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/scheduled-job-alarm?ref=v0.19.4"
   create_resources = var.share_snapshot_with_another_account && var.enable_cloudwatch_alarms
 
   name                 = "${var.name}-create-snapshot-failed"
@@ -155,6 +155,102 @@ module "backup_job_alarm" {
 locals {
   create_snapshot_cloudwatch_metric_namespace = var.create_snapshot_cloudwatch_metric_namespace != null ? var.create_snapshot_cloudwatch_metric_namespace : var.name
 }
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# SET UP WIDGETS FOR CLOUDWATCH DASHBOARD
+# ---------------------------------------------------------------------------------------------------------------------
+
+module "metric_widget_aurora_cpu_usage" {
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.19.4"
+
+  title = "${var.name} Aurora CPUUtilization"
+  stat  = "Average"
+
+  period = var.dashboard_cpu_usage_widget_parameters.period
+  width  = var.dashboard_cpu_usage_widget_parameters.width
+  height = var.dashboard_cpu_usage_widget_parameters.height
+
+  metrics = [
+    ["AWS/RDS", "CPUUtilization", "DBClusterIdentifier", var.name]
+  ]
+}
+
+module "metric_widget_aurora_memory" {
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.19.4"
+
+  title = "${var.name} Aurora FreeableMemory"
+  stat  = "Minimum"
+
+  period = var.dashboard_memory_widget_parameters.period
+  width  = var.dashboard_memory_widget_parameters.width
+  height = var.dashboard_memory_widget_parameters.height
+
+  metrics = [
+    ["AWS/RDS", "FreeableMemory", "DBClusterIdentifier", var.name]
+  ]
+}
+
+module "metric_widget_aurora_disk_space" {
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.19.4"
+
+  title = "${var.name} Aurora Volume Bytes Available"
+  stat  = "Minimum"
+
+  period = var.dashboard_disk_space_widget_parameters.period
+  width  = var.dashboard_disk_space_widget_parameters.width
+  height = var.dashboard_disk_space_widget_parameters.height
+
+  metrics = [
+    ["AWS/RDS", "AuroraVolumeBytesLeftTotal", "DBClusterIdentifier", var.name]
+  ]
+}
+
+module "metric_widget_aurora_db_connections" {
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.19.4"
+
+  title = "${var.name} Aurora DatabaseConnections"
+  stat  = "Maximum"
+
+  period = var.dashboard_db_connections_widget_parameters.period
+  width  = var.dashboard_db_connections_widget_parameters.width
+  height = var.dashboard_db_connections_widget_parameters.height
+
+  metrics = [
+    ["AWS/RDS", "DatabaseConnections", "DBClusterIdentifier", var.name]
+  ]
+}
+
+module "metric_widget_aurora_read_latency" {
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.19.4"
+
+  title = "${var.name} Aurora ReadLatency"
+  stat  = "Average"
+
+  period = var.dashboard_read_latency_widget_parameters.period
+  width  = var.dashboard_read_latency_widget_parameters.width
+  height = var.dashboard_read_latency_widget_parameters.height
+
+  metrics = [
+    ["AWS/RDS", "ReadLatency", "DBClusterIdentifier", var.name]
+  ]
+}
+
+module "metric_widget_aurora_write_latency" {
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.19.4"
+
+  title = "${var.name} Aurora WriteLatency"
+  stat  = "Average"
+
+  period = var.dashboard_write_latency_widget_parameters.period
+  width  = var.dashboard_write_latency_widget_parameters.width
+  height = var.dashboard_write_latency_widget_parameters.height
+
+  metrics = [
+    ["AWS/RDS", "WriteLatency", "DBClusterIdentifier", var.name]
+  ]
+}
+
 
 # ---------------------------------------------------------------------------------------------------------------------
 # SET UP KUBERNETES SERVICE FOR SERVICE DISCOVERY

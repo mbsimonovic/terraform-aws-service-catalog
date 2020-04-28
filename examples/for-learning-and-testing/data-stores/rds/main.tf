@@ -55,3 +55,23 @@ module "mysql_rds" {
 locals {
   cluster_name = "${var.name}-mysql"
 }
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# CREATE A CLOUDWATCH DASHBOARD WITH METRICS FOR THE CLUSTER
+# ----------------------------------------------------------------------------------------------------------------------
+
+module "dashboard" {
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard?ref=v0.20.0"
+
+  dashboards = {
+    (local.cluster_name) = [
+      module.mysql_rds.metric_widget_rds_cpu_usage,
+      module.mysql_rds.metric_widget_rds_memory,
+      module.mysql_rds.metric_widget_rds_disk_space,
+      module.mysql_rds.metric_widget_rds_db_connections,
+      module.mysql_rds.metric_widget_rds_read_latency,
+      module.mysql_rds.metric_widget_rds_write_latency,
+    ]
+  }
+}

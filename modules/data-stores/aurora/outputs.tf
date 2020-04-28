@@ -37,3 +37,35 @@ output "cleanup_snapshots_lambda_arn" {
   description = "The ARN of the AWS Lambda Function used for cleaning up manual snapshots taken for sharing with secondary accounts."
   value       = module.cleanup_snapshots.lambda_function_arn
 }
+
+# CloudWatch Dashboard Widgets
+
+output "metric_widget_aurora_cpu_usage" {
+  description = "A CloudWatch Dashboard widget that graphs CPU usage (percentage) of the Aurora cluster."
+  value       = module.metric_widget_aurora_cpu_usage.widget
+}
+
+output "metric_widget_aurora_memory" {
+  description = "A CloudWatch Dashboard widget that graphs available memory (in bytes) on the Aurora cluster."
+  value       = module.metric_widget_aurora_memory.widget
+}
+
+output "metric_widget_aurora_disk_space" {
+  description = "A CloudWatch Dashboard widget that graphs available disk space (in bytes) on the Aurora cluster."
+  value       = module.metric_widget_aurora_disk_space.widget
+}
+
+output "metric_widget_aurora_db_connections" {
+  description = "A CloudWatch Dashboard widget that graphs the number of active database connections of the Aurora cluster."
+  value       = module.metric_widget_aurora_db_connections.widget
+}
+
+output "metric_widget_aurora_read_latency" {
+  description = "A CloudWatch Dashboard widget that graphs the average amount of time taken per disk I/O operation on reads."
+  value       = module.metric_widget_aurora_read_latency.widget
+}
+
+output "metric_widget_aurora_write_latency" {
+  description = "A CloudWatch Dashboard widget that graphs the average amount of time taken per disk I/O operation on writes."
+  value       = module.metric_widget_aurora_write_latency.widget
+}
