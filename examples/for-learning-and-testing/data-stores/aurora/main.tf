@@ -56,3 +56,23 @@ module "aurora" {
   create_kubernetes_service = var.create_kubernetes_service
   kubernetes_namespace      = var.kubernetes_namespace
 }
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# CREATE A CLOUDWATCH DASHBOARD WITH METRICS FOR THE CLUSTER
+# ----------------------------------------------------------------------------------------------------------------------
+
+module "dashboard" {
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard?ref=v0.20.0"
+
+  dashboards = {
+    (var.name) = [
+      module.aurora.metric_widget_aurora_cpu_usage,
+      module.aurora.metric_widget_aurora_memory,
+      module.aurora.metric_widget_aurora_disk_space,
+      module.aurora.metric_widget_aurora_db_connections,
+      module.aurora.metric_widget_aurora_read_latency,
+      module.aurora.metric_widget_aurora_write_latency,
+    ]
+  }
+}

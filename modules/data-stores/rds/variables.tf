@@ -298,6 +298,116 @@ variable "allow_manage_key_permissions_with_iam" {
   default     = false
 }
 
+# Dashboard Settings
+
+variable "dashboard_cpu_usage_widget_parameters" {
+  description = "Parameters for the cpu usage widget to output for use in a CloudWatch dashboard."
+  type = object({
+    # The period in seconds for metrics to sample across.
+    period = number
+
+    # The width and height of the widget in grid units in a 24 column grid. E.g., a value of 12 will take up half the
+    # space.
+    width  = number
+    height = number
+  })
+  default = {
+    period = 60
+    width  = 8
+    height = 6
+  }
+}
+
+variable "dashboard_memory_widget_parameters" {
+  description = "Parameters for the available memory widget to output for use in a CloudWatch dashboard."
+  type = object({
+    # The period in seconds for metrics to sample across.
+    period = number
+
+    # The width and height of the widget in grid units in a 24 column grid. E.g., a value of 12 will take up half the
+    # space.
+    width  = number
+    height = number
+  })
+  default = {
+    period = 60
+    width  = 8
+    height = 6
+  }
+}
+
+variable "dashboard_disk_space_widget_parameters" {
+  description = "Parameters for the available disk space widget to output for use in a CloudWatch dashboard."
+  type = object({
+    # The period in seconds for metrics to sample across.
+    period = number
+
+    # The width and height of the widget in grid units in a 24 column grid. E.g., a value of 12 will take up half the
+    # space.
+    width  = number
+    height = number
+  })
+  default = {
+    period = 60
+    width  = 8
+    height = 6
+  }
+}
+
+variable "dashboard_db_connections_widget_parameters" {
+  description = "Parameters for the database connections widget to output for use in a CloudWatch dashboard."
+  type = object({
+    # The period in seconds for metrics to sample across.
+    period = number
+
+    # The width and height of the widget in grid units in a 24 column grid. E.g., a value of 12 will take up half the
+    # space.
+    width  = number
+    height = number
+  })
+  default = {
+    period = 60
+    width  = 8
+    height = 6
+  }
+}
+
+variable "dashboard_read_latency_widget_parameters" {
+  description = "Parameters for the read latency widget to output for use in a CloudWatch dashboard."
+  type = object({
+    # The period in seconds for metrics to sample across.
+    period = number
+
+    # The width and height of the widget in grid units in a 24 column grid. E.g., a value of 12 will take up half the
+    # space.
+    width  = number
+    height = number
+  })
+  default = {
+    period = 60
+    width  = 8
+    height = 6
+  }
+}
+
+variable "dashboard_write_latency_widget_parameters" {
+  description = "Parameters for the read latency widget to output for use in a CloudWatch dashboard."
+  type = object({
+    # The period in seconds for metrics to sample across.
+    period = number
+
+    # The width and height of the widget in grid units in a 24 column grid. E.g., a value of 12 will take up half the
+    # space.
+    width  = number
+    height = number
+  })
+  default = {
+    period = 60
+    width  = 8
+    height = 6
+  }
+}
+
 # Kubernetes parameters
 
 variable "create_kubernetes_service" {

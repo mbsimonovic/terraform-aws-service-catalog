@@ -56,32 +56,34 @@ output "db_name" {
   value       = module.database.db_name
 }
 
+# CloudWatch Dashboard Widgets
+
 output "metric_widget_rds_cpu_usage" {
-  description = "A CloudWatch Dashboard Widget for CPU usage on the RDS DB instance."
+  description = "A CloudWatch Dashboard widget that graphs CPU usage (percentage) on the RDS DB instance."
   value       = module.metric_widget_rds_cpu_usage.widget
 }
 
 output "metric_widget_rds_memory" {
-  description = "A CloudWatch Dashboard Widget for memory usage on the RDS DB instance."
+  description = "A CloudWatch Dashboard widget that graphs available memory (in bytes) on the RDS DB instance."
   value       = module.metric_widget_rds_memory.widget
 }
 
 output "metric_widget_rds_disk_space" {
-  description = "A CloudWatch Dashboard Widget for disk space on the RDS DB instance."
+  description = "A CloudWatch Dashboard widget that graphs available disk space (in bytes) on the RDS DB instance."
   value       = module.metric_widget_rds_disk_space.widget
 }
 
 output "metric_widget_rds_db_connections" {
-  description = "A CloudWatch Dashboard Widget for database connections on the RDS DB instance."
+  description = "A CloudWatch Dashboard widget that graphs the number of active database connections on the RDS DB Instance."
   value       = module.metric_widget_rds_db_connections.widget
 }
 
 output "metric_widget_rds_read_latency" {
-  description = "A CloudWatch Dashboard Widget for read latency on the RDS DB instance."
+  description = "A CloudWatch Dashboard widget that graphs the average amount of time taken per disk I/O operation on reads."
   value       = module.metric_widget_rds_read_latency.widget
 }
 
 output "metric_widget_rds_write_latency" {
-  description = "A CloudWatch Dashboard Widget for write latency on the RDS DB instance."
+  description = "A CloudWatch Dashboard widget that graphs the average amount of time taken per disk I/O operation on writes."
   value       = module.metric_widget_rds_write_latency.widget
 }
