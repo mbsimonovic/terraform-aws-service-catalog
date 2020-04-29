@@ -152,6 +152,57 @@ module "eks_k8s_role_mapping" {
   }
 }
 
+
+# ---------------------------------------------------------------------------------------------------------------------
+# SET UP WIDGETS FOR CLOUDWATCH DASHBOARD
+# ---------------------------------------------------------------------------------------------------------------------
+
+module "metric_widget_worker_cpu_usage" {
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.19.4"
+
+  title = "${var.cluster_name} EKSWorker CPUUtilization"
+  stat  = "Average"
+
+  period = var.dashboard_cpu_usage_widget_parameters.period
+  width  = var.dashboard_cpu_usage_widget_parameters.width
+  height = var.dashboard_cpu_usage_widget_parameters.height
+
+  metrics = [
+    for name in module.eks_workers.eks_worker_asg_names : ["AWS/EC2", "CPUUtilization", "AutoScalingGroupName", name]
+  ]
+}
+
+module "metric_widget_worker_memory_usage" {
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.19.4"
+
+  title = "${var.cluster_name} EKSWorker MemoryUtilization"
+  stat  = "Average"
+
+  period = var.dashboard_memory_usage_widget_parameters.period
+  width  = var.dashboard_memory_usage_widget_parameters.width
+  height = var.dashboard_memory_usage_widget_parameters.height
+
+  metrics = [
+    for name in module.eks_workers.eks_worker_asg_names : ["System/Linux", "MemoryUtilization", "AutoScalingGroupName", name]
+  ]
+}
+
+module "metric_widget_worker_disk_usage" {
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.19.4"
+
+  title = "${var.cluster_name} EKSWorker DiskUtilization"
+  stat  = "Average"
+
+  period = var.dashboard_disk_usage_widget_parameters.period
+  width  = var.dashboard_disk_usage_widget_parameters.width
+  height = var.dashboard_disk_usage_widget_parameters.height
+
+  metrics = [
+    for name in module.eks_workers.eks_worker_asg_names : ["System/Linux", "DiskSpaceUtilization", "AutoScalingGroupName", name, "MountPath", "/"]
+  ]
+}
+
+
 # ---------------------------------------------------------------------------------------------------------------------
 # BASE RESOURCES
 # Includes resources common to all EC2 instances in the Service Catalog, including permissions

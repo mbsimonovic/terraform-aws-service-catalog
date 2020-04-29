@@ -62,3 +62,20 @@ module "vpc_app" {
   tag_for_use_with_eks = true
   eks_cluster_names    = [var.cluster_name]
 }
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+# CREATE A CLOUDWATCH DASHBOARD WITH METRICS FOR THE CLUSTER
+# ----------------------------------------------------------------------------------------------------------------------
+
+module "dashboard" {
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard?ref=v0.20.0"
+
+  dashboards = {
+    (var.cluster_name) = [
+      module.eks_cluster.metric_widget_worker_cpu_usage,
+      module.eks_cluster.metric_widget_worker_memory_usage,
+      module.eks_cluster.metric_widget_worker_disk_usage,
+    ]
+  }
+}

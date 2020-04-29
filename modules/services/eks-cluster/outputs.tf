@@ -40,3 +40,20 @@ output "eks_default_fargate_execution_role_arn" {
   description = "A basic IAM Role ARN that has the minimal permissions to pull images from ECR that can be used for most Pods as Fargate Execution Role that do not need to interact with AWS."
   value       = module.eks_cluster.eks_default_fargate_execution_role_arn
 }
+
+# CloudWatch Dashboard Widgets
+
+output "metric_widget_worker_cpu_usage" {
+  description = "A CloudWatch Dashboard widget that graphs CPU usage (percentage) of the EKS workers."
+  value       = module.metric_widget_worker_cpu_usage.widget
+}
+
+output "metric_widget_worker_memory_usage" {
+  description = "A CloudWatch Dashboard widget that graphs memory usage (percentage) of the EKS workers."
+  value       = module.metric_widget_worker_memory_usage.widget
+}
+
+output "metric_widget_worker_disk_usage" {
+  description = "A CloudWatch Dashboard widget that graphs disk usage (percentage) of the EKS workers."
+  value       = module.metric_widget_worker_disk_usage.widget
+}
