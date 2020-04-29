@@ -87,8 +87,15 @@ inputs = {
       dependency.eks_cluster.outputs.metric_widget_worker_disk_usage,
     ]
 
+    # EKS Cluster dashboard
+    "${local.account_vars.locals.account_name}-eks-cluster" = [
+      dependency.eks_cluster.outputs.metric_widget_worker_cpu_usage,
+      dependency.eks_cluster.outputs.metric_widget_worker_memory_usage,
+      dependency.eks_cluster.outputs.metric_widget_worker_disk_usage,
+    ]
+
     # Aurora DB dashboard
-    "${local.account_vars.locals.account_name}-aurora-dashboard" = [
+    "${local.account_vars.locals.account_name}-aurora" = [
       dependency.aurora.outputs.metric_widget_aurora_cpu_usage,
       dependency.aurora.outputs.metric_widget_aurora_memory,
       dependency.aurora.outputs.metric_widget_aurora_disk_space,
@@ -98,7 +105,7 @@ inputs = {
     ]
 
     # RDS DB dashboard
-    "${local.account_vars.locals.account_name}-rds-dashboard" = [
+    "${local.account_vars.locals.account_name}-rds" = [
       dependency.rds.outputs.metric_widget_rds_cpu_usage,
       dependency.rds.outputs.metric_widget_rds_memory,
       dependency.rds.outputs.metric_widget_rds_disk_space,
