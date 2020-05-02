@@ -97,6 +97,9 @@ function install_gruntwork_modules {
 function install_stateful_server_packages {
   local -r module_server_version="$1"
 
+  echo "Installing nvme CLI for nitro based instances"
+  sudo apt-get install -y nvme-cli
+
   echo "Installing Gruntwork Stateful Server Modules"
   gruntwork-install --module-name 'persistent-ebs-volume' --repo 'https://github.com/gruntwork-io/module-server' --tag "$module_server_version"
 }
@@ -111,7 +114,7 @@ function install_user_data {
   local -r user_data_script="$1"
 
   echo "Installing common user-data script"
-  
+
   # This directory should have already been created by the gruntwork-installer,
   # but we create it here as a failsafe measure
   mkdir -p /etc/user-data
