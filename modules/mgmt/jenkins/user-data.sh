@@ -17,6 +17,11 @@ exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
 # Include common functions
 source /etc/user-data/user-data-common.sh
 
+function stop_jenkins {
+  echo "Stopping Jenkins"
+  sudo systemctl stop jenkins
+}
+
 function start_jenkins {
   local -r mount_point="$1"
   local -r memory="$2"
@@ -40,6 +45,10 @@ function start_server {
   attach_volume "$aws_region" "$volume_name_tag" "$device_name" "$mount_point" "$owner"
   start_jenkins "$mount_point" "$memory"
 }
+
+# Stop jenkins before doing anything. This ensures that if anything fails during the boot up process, Jenkins does not
+# come up and the health check for the instance fails, triggering the ASG to rotate out the instance.
+stop_jenkins
 
 start_ec2_baseline \
   "${enable_cloudwatch_log_aggregation}" \
