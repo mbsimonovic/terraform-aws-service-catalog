@@ -12,11 +12,11 @@ readonly DEFAULT_JENKINS_VERSION="2.204.2"
 readonly DEFAULT_MODULE_CI_VERSION="v0.18.1"
 
 # Build tooling
-readonly DEFAULT_KUBERGRUNT_VERSION="v0.5.1"
+readonly DEFAULT_KUBERGRUNT_VERSION="v0.5.13"
 readonly DEFAULT_TERRAFORM_VERSION="0.12.21"
-readonly DEFAULT_TERRAGRUNT_VERSION="v0.22.3"
+readonly DEFAULT_TERRAGRUNT_VERSION="v0.23.13"
 readonly DEFAULT_KUBECTL_VERSION="v1.17.3"
-readonly DEFAULT_HELM_VERSION="v2.11.0"
+readonly DEFAULT_HELM_VERSION="v3.2.0"
 readonly DEFAULT_PACKER_VERSION="1.5.4"
 readonly DEFAULT_DOCKER_VERSION="18.06.1~ce~3-0~ubuntu"
 
@@ -136,14 +136,17 @@ function install_helm {
   fi
 
   echo "Installing Helm $version"
-  wget "https://storage.googleapis.com/kubernetes-helm/helm-${version}-linux-amd64.tar.gz"
-  tar -xvf helm-${version}-linux-amd64.tar.gz
+  wget "https://get.helm.sh/helm-${version}-linux-amd64.tar.gz"
+  tar -xvf "helm-${version}-linux-amd64.tar.gz"
   sudo mv linux-amd64/helm /usr/local/bin/helm
   sudo chmod a+x /usr/local/bin/helm
 
+  echo "Initialize stable repository"
+  helm repo add stable https://kubernetes-charts.storage.googleapis.com/
+
   echo "Cleaning up temporary files"
   rm -rf linux-amd64
-  rm helm-${version}-linux-amd64.tar.gz
+  rm "helm-${version}-linux-amd64.tar.gz"
 }
 
 # Based on: https://docs.docker.com/engine/installation/linux/ubuntu/#install-using-the-repository
