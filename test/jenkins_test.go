@@ -2,6 +2,7 @@ package test
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -13,6 +14,7 @@ import (
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
+	"github.com/stretchr/testify/require"
 )
 
 func TestJenkins(t *testing.T) {
@@ -23,7 +25,6 @@ func TestJenkins(t *testing.T) {
 	//os.Setenv("SKIP_build_ami", "true")
 	//os.Setenv("SKIP_deploy_terraform", "true")
 	//os.Setenv("SKIP_validate", "true")
-	//os.Setenv("SKIP_vaildate", "true")
 	//os.Setenv("SKIP_cleanup", "true")
 	//os.Setenv("SKIP_cleanup_ami", "true")
 
@@ -33,6 +34,8 @@ func TestJenkins(t *testing.T) {
 		amiId := test_structure.LoadArtifactID(t, testFolder)
 		awsRegion := test_structure.LoadString(t, testFolder, "region")
 		aws.DeleteAmiAndAllSnapshots(t, awsRegion, amiId)
+		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
+		aws.DeleteEC2KeyPair(t, awsKeyPair)
 	})
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
@@ -41,9 +44,13 @@ func TestJenkins(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "build_ami", func() {
-		awsRegion := aws.GetRandomRegion(t, regionsForEc2Tests, nil)
-		branchName := git.GetCurrentBranchName(t)
+		uniqueId := random.UniqueId()
+		test_structure.SaveString(t, testFolder, "uniqueId", uniqueId)
 
+		awsRegion := aws.GetRandomRegion(t, regionsForEc2Tests, nil)
+		test_structure.SaveString(t, testFolder, "region", awsRegion)
+
+		branchName := git.GetCurrentBranchName(t)
 		packerOptions := &packer.Options{
 			Template: "../modules/mgmt/jenkins/jenkins-ubuntu.json",
 			Vars: map[string]string{
@@ -59,16 +66,19 @@ func TestJenkins(t *testing.T) {
 		}
 
 		amiId := packer.BuildArtifact(t, packerOptions)
-
-		test_structure.SaveString(t, testFolder, "region", awsRegion)
 		test_structure.SaveArtifactID(t, testFolder, amiId)
+
+		awsKeyPair := aws.CreateAndImportEC2KeyPair(t, awsRegion, uniqueId)
+		test_structure.SaveEc2KeyPair(t, testFolder, awsKeyPair)
 	})
 
 	test_structure.RunTestStage(t, "deploy_terraform", func() {
 		amiId := test_structure.LoadArtifactID(t, testFolder)
 		awsRegion := test_structure.LoadString(t, testFolder, "region")
+		uniqueId := test_structure.LoadString(t, testFolder, "uniqueId")
+		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
 
-		name := fmt.Sprintf("jenkins-%s", random.UniqueId())
+		name := fmt.Sprintf("jenkins-%s", uniqueId)
 
 		terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
 		terraformOptions.Vars["name"] = name
@@ -77,6 +87,7 @@ func TestJenkins(t *testing.T) {
 		terraformOptions.Vars["jenkins_subdomain"] = name
 		terraformOptions.Vars["acm_ssl_certificate_domain"] = acmDomainForTest
 		terraformOptions.Vars["base_domain_name_tags"] = domainNameTagsForTest
+		terraformOptions.Vars["keypair_name"] = awsKeyPair.Name
 
 		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
 		terraform.InitAndApply(t, terraformOptions)
@@ -90,8 +101,12 @@ func TestJenkins(t *testing.T) {
 		retries := 60
 		timeBetweenRetries := 5 * time.Second
 
+		// Make sure to check that jenkins properly started on the EBS volume by checking if the secrets location is
+		// `/jenkins` and not the default `/var/lib/jenkins`
+		re, err := regexp.Compile(`<code>\s*/jenkins/secrets/initialAdminPassword\s*</code>`)
+		require.NoError(t, err)
 		http_helper.HttpGetWithRetryWithCustomValidation(t, url, nil, retries, timeBetweenRetries, func(status int, body string) bool {
-			return status == 200 && strings.Contains(body, "Unlock Jenkins")
+			return status == 200 && strings.Contains(body, "Unlock Jenkins") && re.MatchString(body)
 		})
 	})
 }
