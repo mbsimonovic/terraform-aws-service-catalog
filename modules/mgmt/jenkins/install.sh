@@ -9,7 +9,7 @@ readonly JENKINS_USER="jenkins"
 readonly DEFAULT_JENKINS_VERSION="2.204.2"
 
 # Gruntwork module versions
-readonly DEFAULT_MODULE_CI_VERSION="v0.18.1"
+readonly DEFAULT_MODULE_CI_VERSION="v0.19.0"
 
 # Build tooling
 readonly DEFAULT_KUBERGRUNT_VERSION="v0.5.1"
@@ -223,7 +223,7 @@ function install_jenkins {
   local enable_cloudwatch_metrics="${enable_cloudwatch_metrics:-$DEFAULT_ENABLE_CLOUDWATCH_METRICS}"
   local enable_cloudwatch_log_aggregation="${enable_cloudwatch_log_aggregation:-$DEFAULT_ENABLE_CLOUDWATCH_LOG_AGGREGATION}"
 
-  while [[ $# > 0 ]]; do
+  while [[ $# -gt 0 ]]; do
     local key="$1"
 
     case "$key" in
