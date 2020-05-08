@@ -147,6 +147,7 @@ def any_terragrunt_files_updated(source_ref):
             '--source-ref', source_ref,
             '--target-ref', DEFAULT_TARGET_REF,
             '--terragrunt',
+            '--ext .hcl',
         ],
         stdout=subprocess.PIPE,
         check=True,
