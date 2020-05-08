@@ -24,7 +24,7 @@ readonly DEFAULT_DOCKER_VERSION="18.06.1~ce~3-0~ubuntu"
 readonly SKIP_INSTALL_VERSION="NONE"
 
 # TODO: Update ref to a tag when released
-readonly DEFAULT_EC2_BASELINE_REF="yori-test-jenkins"
+readonly DEFAULT_EC2_BASELINE_REF="master"
 
 function include_ec2_baseline {
   gruntwork-install \
