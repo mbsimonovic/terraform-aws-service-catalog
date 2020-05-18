@@ -23,6 +23,18 @@ variable "aws_account_id" {
 # These variables have reasonable defaults that can be overridden for further customizations.
 # ---------------------------------------------------------------------------------------------------------------------
 
+variable "config_should_create_s3_bucket" {
+  description = "If true, create an S3 bucket in this account. Should be false when this module is used in a multi-account architecture along with the account-baseline-security module. Defaults to false."
+  type        = bool
+  default     = false
+}
+
+variable "config_s3_bucket_name" {
+  description = "The name of the S3 Bucket where Config items will be stored. Can be in the same account or in another account."
+  type        = string
+  default     = null
+}
+
 variable "config_opt_in_regions" {
   description = "Creates resources in the specified regions. Note that the region must be enabled on your AWS account. Regions that are not enabled are automatically filtered from this list. When null (default), AWS Config will be enabled on all regions enabled on the account. Please note that the best practice is to enable AWS Config in all available regions. Use this list to provide an alternate region list for testing purposes"
   type        = list(string)
@@ -53,6 +65,12 @@ variable "config_tags" {
   default     = {}
 }
 
+variable "config_linked_accounts" {
+  description = "Provide a list of AWS account IDs that will send Config data to this account."
+  type        = list(string)
+  default     = []
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL IAM-GROUPS PARAMETERS
 # These variables have defaults, but may be overridden by the operator.
@@ -71,10 +89,10 @@ variable "iam_group_developers_permitted_services" {
 }
 
 variable "iam_groups_for_cross_account_access" {
-  description = "This variable is used to create groups that allow allow IAM users to assume roles in your other AWS accounts. It should be a list of maps, where each map has the keys group_name and iam_role_arn. For each entry in the list, we will create an IAM group that allows users to assume the given IAM role in the other AWS account. This allows you to define all your IAM users in one account (e.g. the users account) and to grant them access to certain IAM roles in other accounts (e.g. the stage, prod, audit accounts)."
+  description = "This variable is used to create groups that allow IAM users to assume roles in your other AWS accounts. It should be a list of objects, where each object has the fields 'group_name', which will be used as the name of the IAM group, and 'iam_role_arns', which is a list of ARNs of IAM Roles that you can assume when part of that group. For each entry in the list of objects, we will create an IAM group that allows users to assume the given IAM role(s) in the other AWS account. This allows you to define all your IAM users in one account (e.g. the users account) and to grant them access to certain IAM roles in other accounts (e.g. the stage, prod, audit accounts)."
   type = list(object({
-    group_name   = string
-    iam_role_arn = string
+    group_name    = string
+    iam_role_arns = list(string)
   }))
   default = []
 
@@ -82,11 +100,14 @@ variable "iam_groups_for_cross_account_access" {
   # default = [
   #   {
   #     group_name   = "stage-full-access"
-  #     iam_role_arn = "arn:aws:iam::123445678910:role/mgmt-full-access"
+  #     iam_role_arns = ["arn:aws:iam::123445678910:role/mgmt-full-access"]
   #   },
   #   {
   #     group_name   = "prod-read-only-access"
-  #     iam_role_arn = "arn:aws:iam::9876543210:role/prod-read-only-access"
+  #     iam_role_arns = [
+  #       "arn:aws:iam::9876543210:role/prod-read-only-ec2-access",
+  #       "arn:aws:iam::9876543210:role/prod-read-only-rds-access"
+  #     ]
   #   }
   # ]
 }
@@ -470,7 +491,7 @@ variable "kms_customer_master_keys" {
   #                                           ECC_NIST_P256, ECC_NIST_P384, ECC_NIST_P521, or ECC_SECG_P256K1.
 
   # Example:
-  # customer_master_keys = {
+  # kms_customer_master_keys = {
   #   cmk-stage = {
   #     region                                = "us-west-2"
   #     cmk_administrator_iam_arns            = ["arn:aws:iam::0000000000:user/admin"]

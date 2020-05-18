@@ -39,6 +39,18 @@ variable "cloudtrail_kms_key_administrator_iam_arns" {
 # These variables have reasonable defaults that can be overridden for further customizations.
 # ---------------------------------------------------------------------------------------------------------------------
 
+variable "config_should_create_s3_bucket" {
+  description = "If true, create an S3 bucket in this account. Should be false when this module is used in a multi-account architecture along with the account-baseline-security module. Defaults to false."
+  type        = bool
+  default     = false
+}
+
+variable "config_s3_bucket_name" {
+  description = "The name of the S3 Bucket where Config items will be stored. Can be in the same account or in another account."
+  type        = string
+  default     = null
+}
+
 variable "config_opt_in_regions" {
   description = "Creates resources in the specified regions. Note that the region must be enabled on your AWS account. Regions that are not enabled are automatically filtered from this list. When null (default), AWS Config will be enabled on all regions enabled on the account. Please note that the best practice is to enable AWS Config in all available regions. Use this list to provide an alternate region list for testing purposes"
   type        = list(string)
@@ -67,6 +79,12 @@ variable "config_tags" {
   description = "A map of tags to apply to the S3 Bucket. The key is the tag name and the value is the tag value."
   type        = map(string)
   default     = {}
+}
+
+variable "config_central_account_id" {
+  description = "Set this to the account ID of the security account in which the S3 bucket and SNS topic exist."
+  type        = string
+  default     = null
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

@@ -41,12 +41,12 @@ module "organization" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "config" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-config-multi-region?ref=v0.25.0"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-config-multi-region?ref=v0.29.1"
 
   aws_account_id         = var.aws_account_id
   global_recorder_region = var.aws_region
-  name_prefix            = var.name_prefix
 
+  s3_bucket_name                        = var.config_s3_bucket_name != null ? var.config_s3_bucket_name : "${var.name_prefix}-config"
   force_destroy                         = var.config_force_destroy
   num_days_after_which_archive_log_data = var.config_num_days_after_which_archive_log_data
   num_days_after_which_delete_log_data  = var.config_num_days_after_which_delete_log_data
