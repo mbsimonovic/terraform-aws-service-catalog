@@ -78,28 +78,41 @@ resource "aws_ecr_repository_policy" "external_account_access" {
   policy     = data.aws_iam_policy_document.external_account_access[each.key].json
 }
 
+
+data "aws_iam_policy_document" "external_write" {
+  for_each = local.repositories_with_external_access
+}
+
 data "aws_iam_policy_document" "external_account_access" {
   for_each = local.repositories_with_external_access
 
-  statement {
-    effect = "Allow"
+  dynamic "statement" {
+    for_each = each.value.external_account_ids_with_read_access
 
-    principals {
-      type        = "AWS"
-      identifiers = formatlist("arn:aws:iam::%s:root", each.value.external_account_ids_with_read_access)
+    content {
+      effect = "Allow"
+
+      principals {
+        type        = "AWS"
+        identifiers = formatlist("arn:aws:iam::%s:root", each.value.external_account_ids_with_read_access)
+      }
+
+      actions = local.iam_read_access_policies
     }
-
-    actions = local.iam_read_access_policies
   }
 
-  statement {
-    effect = "Allow"
+  dynamic "statement" {
+    for_each = each.value.external_account_ids_with_write_access
 
-    principals {
-      type        = "AWS"
-      identifiers = formatlist("arn:aws:iam::%s:root", each.value.external_account_ids_with_write_access)
+    content {
+      effect = "Allow"
+
+      principals {
+        type        = "AWS"
+        identifiers = formatlist("arn:aws:iam::%s:root", each.value.external_account_ids_with_write_access)
+      }
+
+      actions = local.iam_write_access_policies
     }
-
-    actions = local.iam_write_access_policies
   }
 }
