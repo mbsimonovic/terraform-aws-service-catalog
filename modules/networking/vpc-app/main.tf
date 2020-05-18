@@ -46,12 +46,72 @@ module "vpc" {
   # Some teams may want to explicitly define the exact CIDR blocks used by their subnets. If so, see the vpc-app vars.tf
   # docs at https://github.com/gruntwork-io/module-vpc/blob/master/modules/vpc-app/vars.tf for additional detail.
 
+  availability_zone_blacklisted_names = var.availability_zone_blacklisted_names
+
   # The VPC resources need special tags for discoverability by Kubernetes to use with certain features, like deploying
   # ALBs.
   custom_tags                            = local.maybe_vpc_tags[local.maybe_tag_key]
   public_subnet_custom_tags              = local.maybe_public_subnet_tags[local.maybe_tag_key]
   private_app_subnet_custom_tags         = local.maybe_private_app_subnet_tags[local.maybe_tag_key]
   private_persistence_subnet_custom_tags = local.maybe_private_persistence_subnet_tags[local.maybe_tag_key]
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# CREATE THE VPC PEERING CONNECTION FROM MGMT TO THIS VPC
+# Although VPCs are normally isolated from each other, this allows DevOps tools (e.g. the bastion host, Jenkins)
+# limited access to this VPC.
+# ---------------------------------------------------------------------------------------------------------------------
+
+locals {
+  destination_route_tables = concat(
+    [module.vpc.public_subnet_route_table_id],
+    module.vpc.private_app_subnet_route_table_ids,
+    module.vpc.private_persistence_route_table_ids,
+  )
+}
+
+module "mgmt_vpc_peering_connection" {
+  source = "git::git@github.com:gruntwork-io/module-vpc.git//modules/vpc-peering?ref=v0.8.2"
+
+  aws_account_id = data.aws_caller_identity.current.account_id
+
+  origin_vpc_id               = var.origin_vpc_id
+  origin_vpc_name             = var.origin_vpc_name
+  origin_vpc_cidr_block       = var.origin_vpc_cidr_block
+  origin_vpc_route_table_ids  = var.origin_vpc_route_table_ids
+  num_origin_vpc_route_tables = length(var.origin_vpc_route_table_ids)
+
+  destination_vpc_id               = module.vpc.vpc_id
+  destination_vpc_name             = module.vpc.vpc_name
+  destination_vpc_cidr_block       = module.vpc.vpc_cidr_block
+  destination_vpc_route_table_ids  = local.destination_route_tables
+  num_destination_vpc_route_tables = length(local.destination_route_tables)
+}
+
+data "aws_caller_identity" "current" {}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# CREATE DNS FORWARDER BETWEEN MGMT VPC AND APP VPC
+# Note: the DNS forwarders (both outbound and inbound) deploy into the public subnets. This means that they are both
+# publicly addressable. This is due to restrictions on the network ACLs blocking the functionality of the DNS forwarder.
+# Note that access to the endpoints are protected by security group rules that prevent network access to these endpoint.
+# ---------------------------------------------------------------------------------------------------------------------
+
+module "dns_mgmt_to_app" {
+  source           = "git::git@github.com:gruntwork-io/module-vpc.git//modules/vpc-dns-forwarder?ref=v0.8.2"
+  create_resources = var.create_dns_forwarder
+
+  origin_vpc_id                                   = var.origin_vpc_id
+  origin_vpc_name                                 = var.origin_vpc_name
+  origin_vpc_route53_resolver_primary_subnet_id   = element(var.origin_vpc_public_subnet_ids, 0)
+  origin_vpc_route53_resolver_secondary_subnet_id = element(var.origin_vpc_public_subnet_ids, 1)
+
+  destination_vpc_id                                   = module.vpc.vpc_id
+  destination_vpc_name                                 = module.vpc.vpc_name
+  destination_vpc_route53_resolver_primary_subnet_id   = element(module.vpc.public_subnet_ids, 0)
+  destination_vpc_route53_resolver_secondary_subnet_id = element(module.vpc.public_subnet_ids, 1)
+
+  name_prefix = "${var.origin_vpc_name}-to-${module.vpc.vpc_name}-"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -127,4 +187,3 @@ module "vpc_flow_logs" {
   kms_key_arn               = var.kms_key_arn
   create_resources          = var.create_flow_logs
 }
-

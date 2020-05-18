@@ -28,7 +28,9 @@ image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[li
 image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
 
 This folder contains code to deploy a [Virtual Private Cloud (VPC)](https://aws.amazon.com/vpc/) on AWS that can be used for either production or non-production workloads.
+This folder contains code to deploy a [Virtual Private Cloud (VPC)](https://aws.amazon.com/vpc/) on AWS that can be used for DevOps tooling, such as running a bastion host or Jenkins. The resources that are created include:
 
+# TODO: update this diagram
 image::../../../_docs/vpc-subnets-diagram.png?raw=true[VPC architecture]
 
 
@@ -40,19 +42,17 @@ toc::[]
 == Features
 
 * The VPC itself.
-* Subnets, which are isolated subdivisions within the VPC. There are 3 "tiers" of subnets: public, private app, and
-   private persistence.
+* Subnets, which are isolated subdivisions within the VPC. There are 2 "tiers" of subnets: public and private.
 * Route tables, which provide routing rules for the subnets.
 * Internet Gateways to route traffic to the public Internet from public subnets.
 * NATs to route traffic to the public Internet from private subnets.
-* Optionally, VPC peering to a management VPC
-* Optionally, DNS forwarding for a management VPC
+* Network ACLs that control what traffic can go in and out of each subnet.
 
 
 
 == Learn
 
-NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog//[Gruntwork Service Catalog], a collection of
+NOTE: This repo is a part of the https://gruntwork.io/service-catalog/[Gruntwork Service Catalog], a collection of
 reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
 sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catallog/[How to use the Gruntwork
 Service Catalog]!
