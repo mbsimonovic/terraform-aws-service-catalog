@@ -82,7 +82,7 @@ variable "config_tags" {
 }
 
 variable "config_central_account_id" {
-  description = "Set this to the account ID of the security account in which the S3 bucket and SNS topic exist."
+  description = "Set this to the account ID of the security account in which the S3 bucket and SNS topic exist. If the bucket and topic are in this account, set this to null."
   type        = string
   default     = null
 }

@@ -161,6 +161,18 @@ variable "config_tags" {
   default     = {}
 }
 
+variable "config_s3_bucket_name" {
+  description = "The name of the S3 Bucket where Config items will be stored. Can be in the same account or in another account."
+  type        = string
+  default     = null
+}
+
+variable "config_central_account_id" {
+  description = "Set this to the account ID of the security account in which the S3 bucket and SNS topic exist. If the bucket and topic are in this account, set this to null."
+  type        = string
+  default     = null
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL CONFIG RULE PARAMETERS
 # These variables have defaults, but may be overridden by the operator.
