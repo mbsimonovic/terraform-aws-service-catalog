@@ -98,7 +98,7 @@ module "guardduty" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "cloudtrail" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cloudtrail?ref=master"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cloudtrail?ref=v0.30.0"
 
   aws_account_id = var.aws_account_id
 
@@ -144,7 +144,7 @@ module "customer_master_keys" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "sns_topic" {
-  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/sns-topics?ref=master"
+  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/sns-topics?ref=v0.30.0"
 
   create_resources = var.sns_topic_name != null
 
