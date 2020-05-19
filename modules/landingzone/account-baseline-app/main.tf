@@ -22,16 +22,19 @@ terraform {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "config" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-config-multi-region?ref=v0.25.0"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-config-multi-region?ref=v0.30.0"
 
   aws_account_id         = var.aws_account_id
   global_recorder_region = var.aws_region
-  name_prefix            = var.name_prefix
 
+  s3_bucket_name                        = var.config_s3_bucket_name != null ? var.config_s3_bucket_name : "${var.name_prefix}-config"
+  should_create_s3_bucket               = var.config_should_create_s3_bucket
   force_destroy                         = var.config_force_destroy
   num_days_after_which_archive_log_data = var.config_num_days_after_which_archive_log_data
   num_days_after_which_delete_log_data  = var.config_num_days_after_which_delete_log_data
   opt_in_regions                        = var.config_opt_in_regions
+
+  central_account_id = var.config_central_account_id
 
   tags = var.config_tags
 }
@@ -41,7 +44,7 @@ module "config" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "iam_cross_account_roles" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cross-account-iam-roles?ref=v0.25.0"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cross-account-iam-roles?ref=v0.30.0"
 
   aws_account_id = var.aws_account_id
 
@@ -59,7 +62,7 @@ module "iam_cross_account_roles" {
 }
 
 module "iam_user_password_policy" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-user-password-policy?ref=v0.25.0"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-user-password-policy?ref=v0.30.0"
 
   # Adjust these settings as appropriate for your company
   minimum_password_length        = var.iam_password_policy_minimum_password_length
@@ -79,7 +82,7 @@ module "iam_user_password_policy" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "guardduty" {
-  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/guardduty-multi-region?ref=v0.25.0"
+  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/guardduty-multi-region?ref=v0.30.0"
   aws_account_id = var.aws_account_id
   seed_region    = var.aws_region
 
@@ -95,7 +98,7 @@ module "guardduty" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "cloudtrail" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cloudtrail?ref=v0.25.0"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cloudtrail?ref=v0.30.0"
 
   aws_account_id = var.aws_account_id
 
@@ -125,7 +128,7 @@ module "cloudtrail" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "customer_master_keys" {
-  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-master-key-multi-region?ref=v0.27.2"
+  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-master-key-multi-region?ref=v0.30.0"
   aws_account_id = var.aws_account_id
   seed_region    = var.aws_region
 
@@ -141,7 +144,7 @@ module "customer_master_keys" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "sns_topic" {
-  source = "../../networking/sns-topics"
+  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/sns-topics?ref=v0.30.0"
 
   create_resources = var.sns_topic_name != null
 
