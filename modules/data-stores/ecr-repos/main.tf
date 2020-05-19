@@ -78,16 +78,14 @@ resource "aws_ecr_repository_policy" "external_account_access" {
   policy     = data.aws_iam_policy_document.external_account_access[each.key].json
 }
 
-
-data "aws_iam_policy_document" "external_write" {
-  for_each = local.repositories_with_external_access
-}
-
 data "aws_iam_policy_document" "external_account_access" {
   for_each = local.repositories_with_external_access
 
   dynamic "statement" {
-    for_each = each.value.external_account_ids_with_read_access
+    # Ideally, this wouldn't be a dynamic block, but without it, if the principal list is empty,
+    # Terraform will keep trying to apply the policy until it times out. Therefore, we guard
+    # against this outcome by checking that the principal list has at least one value.
+    for_each = length(each.value.external_account_ids_with_read_access) > 0 ? ["noop"] : []
 
     content {
       effect = "Allow"
@@ -102,7 +100,10 @@ data "aws_iam_policy_document" "external_account_access" {
   }
 
   dynamic "statement" {
-    for_each = each.value.external_account_ids_with_write_access
+    # Ideally, this wouldn't be a dynamic block, but without it, if the principal list is empty,
+    # Terraform will keep trying to apply the policy until it times out. Therefore, we guard
+    # against this outcome by checking that the principal list has at least one value.
+    for_each = length(each.value.external_account_ids_with_write_access) > 0 ? ["noop"] : []
 
     content {
       effect = "Allow"
