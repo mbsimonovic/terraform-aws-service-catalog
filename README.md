@@ -22,15 +22,11 @@ networking, databases, caches, monitoring, alerting, CI/CD, secrets management, 
 
 ## Learn
 
-### Core concepts
+* [Gruntwork Service Catalog Overview](core-concepts.md#gruntwork-service-catalog-overview)
+* [How to deploy new infrastructure from the Service Catalog](core-concepts.md#deploy-new-infrastructure)
+* [How to update infrastructure from the Service Catalog](core-concepts.md#make-changes-to-your-infrastructure)
+* [How to create your own Service Catalog](core-concepts.md#create-your-own-service-catalog)
 
-* [How to use the Gruntwork Service Catalog](core-concepts.md)
-
-### Repo organization
-
-* [modules](/modules): The main implementation code for this repo, broken down into multiple standalone, orthogonal submodules.
-* [examples](/examples): This folder contains working examples of how to use the submodules.
-* [test](/test): Automated tests for the modules and examples.
 
 
 
