@@ -96,7 +96,7 @@ If you want to deploy this repo in production, check out the following resources
 * https://github.com/gruntwork-io/module-data-storage/blob/master/modules/rds/core-concepts.md#how-do-you-scale-this-database[How to scale RDS]
 * https://github.com/gruntwork-io/module-data-storage/blob/master/modules/lambda-create-snapshot/core-concepts.md#data-backup-core-concepts[How to back up RDS databases]
 * https://github.com/gruntwork-io/module-data-storage/blob/master/modules/lambda-cleanup-snapshots/README.md[How clean up old database snapshots]
-* link:core-concepts.md#how-do-i-use-kubernetes-service-discovery-with-the-rds-database[How do I use Kubernetes Service
+* link:/core-concepts.md#how-do-i-use-kubernetes-service-discovery-with-the-rds-database[How do I use Kubernetes Service
   Discovery with the RDS database?]
 
 === Major changes
@@ -124,7 +124,7 @@ contribute an entirely new module, we are very happy to accept pull requests, pr
 through our automated test suite.
 
 Please see
-https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/#contributing-to-the-gruntwork-service-catalog[Contributing to the Gruntwork Service Catalog]
+https://gruntwork.io/guides/foundations/how-to-use-gruntwork-infrastructure-as-code-library#_contributing_to_the_gruntwork_infrastructure_as_code_library[Contributing to the Gruntwork Service Catalog]
 for instructions.
 
 

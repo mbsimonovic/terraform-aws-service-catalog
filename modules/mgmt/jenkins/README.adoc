@@ -99,12 +99,12 @@ If you want to deploy this repo in production, check out the following resources
 
 === Day-to-day operations
 
-* link:core-concepts.md#the-jenkins_home-directory[The JENKINS_HOME directory]
-* link:core-concepts.md#why-use-an-alb[Why use an ALB?]
+* link:/core-concepts.md#the-jenkins_home-directory[The JENKINS_HOME directory]
+* link:/core-concepts.md#why-use-an-alb[Why use an ALB?]
 
 === Major changes
 
-* link:core-concepts.md#upgrading-jenkins[Upgrading Jenkins]
+* link:/core-concepts.md#upgrading-jenkins[Upgrading Jenkins]
 
 
 
@@ -126,7 +126,7 @@ contribute an entirely new module, we are very happy to accept pull requests, pr
 through our automated test suite.
 
 Please see
-https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/#contributing-to-the-gruntwork-service-catalog[Contributing to the Gruntwork Service Catalog]
+https://gruntwork.io/guides/foundations/how-to-use-gruntwork-infrastructure-as-code-library#_contributing_to_the_gruntwork_infrastructure_as_code_library[Contributing to the Gruntwork Service Catalog]
 for instructions.
 
 
