@@ -38,6 +38,8 @@ stage, prod) in AWS. It is built on top of the Gruntwork
 
 * [Undeploy](_docs/06-undeploy.md): Undeploy infrastructure or even the entire Reference Architecture.
 
+* [Deploy from scratch](_docs/07-deploy-from-scratch.md): Deploy the entire Reference Architecture from scratch.
+
 
 
 
