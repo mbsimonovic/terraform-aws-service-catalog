@@ -15,8 +15,8 @@ stage, prod) in AWS. It is built on top of the Gruntwork
 * [Overview](_docs/01-overview.md): Learn about the Reference Architecture, managing infrastructure as code (IaC), and 
   how the code in this repo is organized.
 
-* [Authenticate](_docs/02-authenticate.md): Authenticate to AWS via the web, CLI, VPN, and SSH so you can make changes 
-  to the infrastructure.
+* [Authenticate](_docs/02-authenticate.md): Authenticate to your resources in AWS—via the web console, CLI, VPN, SSH, 
+  Kubernetes, and Helm—so you can make changes to the infrastructure.
 
 * [Make changes to the infrastructure](https://github.com/gruntwork-io/aws-service-catalog/blob/master/core-concepts.md#make-changes-to-your-infrastructure): 
   Update the code and roll out changes to the infrastructure that's already deployed.

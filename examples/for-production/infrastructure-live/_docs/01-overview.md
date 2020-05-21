@@ -65,13 +65,9 @@ Terraform](https://blog.gruntwork.io/a-comprehensive-guide-to-terraform-b3d32832
 The infrastructure is deployed across multiple environments:
 
 * **dev**: Sandbox environment.
-
 * **stage**: Pre-production environment.
-
 * **prod**: Production environment.
-
 * **security**: All IAM users and permissions are defined in this account.
-
 * **shared-services**: DevOps tooling.
 
 
