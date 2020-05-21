@@ -111,6 +111,9 @@ There are three ways to use Terraform code from the Service Catalog:
 
 #### Using pure, open source Terraform with the Service Catalog
 
+Below are the instructions for using the vanilla, open source `terraform` binary to deploy Terraform code from the 
+Service Catalog. See [examples/for-learning-and-testing](/examples/for-learning-and-testing) for working sample code.
+
 1. **Find a service**. Browse the `modules` folder to find a service you wish to deploy. For this tutorial, we'll use 
    the `vpc-app` service in [modules/networking/vpc-app](/modules/networking/vpc-app) as an example.
    
@@ -126,15 +129,12 @@ There are three ways to use Terraform code from the Service Catalog:
       # The AWS region in which all resources will be created
       region = "eu-west-1"
     
-      # Require a 2.x version of the AWS provider
-      version = "~> 2.6"
-    
       # Only these AWS Account IDs may be operated on by this template
       allowed_account_ids = ["111122223333"]
     }
     ```       
 
-1. **Configure the backend**. You'll also want to configure Terraform itself, especially the 
+1. **Configure the backend**. You'll also want to configure the 
    [backend](https://www.terraform.io/docs/backends/index.html) to use to store Terraform state:
 
     ```hcl
@@ -147,10 +147,6 @@ There are three ways to use Terraform code from the Service Catalog:
         encrypt        = true
         dynamodb_table = "<YOUR DYNAMODB TABLE>"
       }
-    
-      # Only allow this Terraform version. Note that if you upgrade to a newer version, Terraform won't allow you to use an
-      # older version, so when you upgrade, you should upgrade everyone on your team and your CI servers all at once.
-      required_version = "= 0.12.25"
     }
     ```
 
@@ -225,10 +221,136 @@ There are three ways to use Terraform code from the Service Catalog:
     terraform apply
     ```   
 
-
 #### Using Terragrunt with the Service Catalog
 
-TODO
+[Terragrunt](https://terragrunt.gruntwork.io/) is a thin, open source wrapper for Terraform that helps you keep your
+code [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself). Below are the instructions for using the Terragrunt 
+to deploy Terraform code from the Service Catalog. See [examples/for-production](/examples/for-production) for working 
+sample code.
+
+First, we need to do some one time setup. One of the ways Terragrunt helps you keep your code DRY is by allowing you to
+define common configurations once in a root `terragrunt.hcl` file and to `include` those configurations in all child
+`terragrunt.hcl` files. The folder structure might look something like this:
+
+```
+terragrunt.hcl              # root terragrunt.hcl
+dev/
+stage/
+prod/
+ └ eu-west-1/
+    └ prod/
+       └ vpc-app/
+         └ terragrunt.hcl   # child terragrunt.hcl
+```
+
+Here's how you configure the root `terragrunt.hcl`:
+
+1. **Configure the provider**. Inside of `terragrunt.hcl`, configure the Terraform 
+   [providers](https://www.terraform.io/docs/providers/index.html) for your chosen service. For `vpc-app`, and for
+   most of the services in this Service Catalog, you'll need to configure the [AWS 
+   provider](https://www.terraform.io/docs/providers/aws/index.html). We'll do this using a 
+   [`generate`](https://terragrunt.gruntwork.io/docs/reference/config-blocks-and-attributes/#generate) block: 
+   
+    ```hcl
+    generate "provider" {
+      path      = "provider.tf"
+      if_exists = "overwrite_terragrunt"
+      contents  = <<EOF
+    provider "aws" {
+      # The AWS region in which all resources will be created
+      region = "eu-west-1"
+    
+      # Only these AWS Account IDs may be operated on by this template
+      allowed_account_ids = ["111122223333"]
+    }
+    EOF
+    }
+    ```   
+
+1. **Configure the backend**. You'll also want to configure the 
+   [backend](https://www.terraform.io/docs/backends/index.html) to use to store Terraform state. We'll do this using
+   a [`remote_state`](https://terragrunt.gruntwork.io/docs/reference/config-blocks-and-attributes/#remote_state) block: 
+
+    ```hcl
+    remote_state {
+      backend = "s3"
+      config = {
+        bucket         = "<YOUR S3 BUCKET>"
+        region         = "eu-west-1"
+        key            = "${path_relative_to_include()}/terraform.tfstate"
+        encrypt        = true
+        dynamodb_table = "<YOUR DYNAMODB TABLE>"
+      }
+      generate = {
+        path      = "backend.tf"
+        if_exists = "overwrite_terragrunt"
+      }
+    }    
+    ```
+
+Now you can create child `terragrunt.hcl` files to deploy services as follows:
+
+1. **Find a service**. Browse the `modules` folder to find a service you wish to deploy. For this tutorial, we'll use 
+   the `vpc-app` service in [modules/networking/vpc-app](/modules/networking/vpc-app) as an example.
+   
+1. **Create a child Terragrunt configuration**. Create a child Terragrunt configuration file called `terragrunt.hcl`.
+
+1. **Include the root Terragrunt configuration**. Pull in all the settings from the root `terragrunt.hcl` by using an
+   [`include`](https://terragrunt.gruntwork.io/docs/reference/config-blocks-and-attributes/#include) block:
+
+    ```hcl
+    include {
+      path = find_in_parent_folders()
+    }
+    ```
+
+1. **Use the service**. Now you can add the service to your child `terragrunt.hcl`:
+
+    ```hcl
+    terraform {
+      # Make sure to replace <VERSION> in this URL with the latest aws-service-catalog release from
+      # https://github.com/gruntwork-io/aws-service-catalog/releases
+      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc-app?ref=<VERSION>"
+    }
+ 
+    # Fill in the arguments for this service
+    inputs = {
+      aws_region       = "eu-west-1"
+      vpc_name         = "example-vpc"
+      cidr_block       = "10.0.0.0/16"
+      num_nat_gateways = 1
+    }
+    ```
+
+    Let's walk through the code above:
+    
+    1. **Module**. We pull in the code for the service using Terragrunt's support for [remote Terraform 
+       configurations](https://terragrunt.gruntwork.io/docs/features/keep-your-terraform-code-dry/).
+
+    1. **Git / SSH URL**. The `source` URL in the code above uses a Git URL with SSH authentication (see [module 
+       sources](https://www.terraform.io/docs/modules/sources.html) for other types of source URLs you can use). This
+       will allow you to access the code in the Gruntwork Service Catalog using an SSH key for authentication, without
+       having to hard-code credentials anywhere. See [How to get access to the Gruntwork Infrastructure as Code 
+       Library](https://gruntwork.io/guides/foundations/how-to-use-gruntwork-infrastructure-as-code-library#get_access)
+       for instructions on setting up your SSH key.
+       
+    1. **Versioned URL**. Note the `?ref=<VERSION>` at the end of the `source` URL. This parameter allows you to pull 
+       in a specific version of each service so that you don’t accidentally pull in potentially backwards incompatible 
+       code in the future. You should replace `<VERSION>` with the latest version from the [releases 
+       page](https://github.com/gruntwork-io/aws-service-catalog/releases).       
+
+    1. **Arguments**. In the `inputs` block, you’ll need to pass in the arguments specific to that service. You can 
+       find all the required and optional variables defined in `variables.tf` of the service (e.g., check out 
+       the [`variables.tf` for `vpc-app`](/modules/networking/vpc-app/variables.tf)).                          
+
+1. **Deploy**. You're now ready to deploy the service! First, you'll need to authenticate to the relevant providers
+   (for AWS authentication, see [A Comprehensive Guide to Authenticating to AWS on the Command 
+   Line](https://blog.gruntwork.io/a-comprehensive-guide-to-authenticating-to-aws-on-the-command-line-63656a686799) for
+   instructions), and then run:
+   
+    ```bash
+    terragrunt apply
+    ```   
 
 #### Using Terraform Cloud or Terraform Enterprise with the Service Catalog
 
