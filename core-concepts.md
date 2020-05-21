@@ -354,7 +354,7 @@ Now you can create child `terragrunt.hcl` files to deploy services as follows:
 
 #### Using Terraform Cloud or Terraform Enterprise with the Service Catalog
 
-TODO
+*(Documentation coming soon. If you need help with this ASAP, please contact [support@gruntwork.io](mailto:support@gruntwork.io).)*
 
 
 ### How to build machine images using Packer templates from the Service Catalog
