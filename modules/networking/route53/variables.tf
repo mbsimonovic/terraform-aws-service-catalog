@@ -15,6 +15,8 @@ variable "private_zones" {
     # (Optional) Whether to destroy all records (possibly managed ouside of Terraform) in the zone when destroying the zone
     force_destroy = bool
   }))
+  # Allow empty maps to be passed by default - since we sometimes define only public zones or only private zones in a given module call
+  default = {}
 }
 
 variable "public_zones" {
@@ -29,6 +31,8 @@ variable "public_zones" {
     # (Optional) If set to true, automatically order and verify a wildcard certificate via ACM for this domain
     provision_wildcard_certificate = bool
   }))
+  # Allow empty maps to be passed by default - since we sometimes define only public zones or only private zones in a given module call
+  default = {}
 }
 
 /*
