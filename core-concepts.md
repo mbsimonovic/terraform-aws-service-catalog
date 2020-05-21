@@ -20,6 +20,7 @@ management, VPN, and much more.
 1. [Service Catalog Terminology](#service-catalog-terminology)
 1. [The tools used in the Service Catalog](#the-tools-used-in-the-service-catalog)
 1. [How to navigate the Service Catalog](#how-to-navigate-the-service-catalog)
+1. [Maintenance and versioning](#maintenance-and-versioning)
 
 
 ### Service Catalog Terminology
@@ -79,6 +80,32 @@ The code in the `aws-service-catalog` repo is organized into three primary folde
        Cloud / Enterprise, as described later in these docs.
 
 1. `test`: Automated tests for the code in `modules` and `examples`.
+
+
+### Maintenance and versioning
+
+All of the code in the Gruntwork Service Catalog is _versioned_. The Service Catalog is commercially maintained by 
+Gruntwork, and every time we make a change, we put out a new [versioned 
+release](https://github.com/gruntwork-io/aws-service-catalog/releases), and announce it in the monthly [Gruntwork 
+Newsletter](https://blog.gruntwork.io/tagged/gruntwork-newsletter). 
+
+We use version numbers of the form `MAJOR.MINOR.PATCH` (e.g., `1.2.3`), following the principles of [semantic 
+versioning](https://semver.org/). In traditional semantic versioning, you increment the:
+
+1. MAJOR version when you make incompatible API changes,
+1. MINOR version when you add functionality in a backwards compatible manner, and
+1. PATCH version when you make backwards compatible bug fixes.
+
+However, much of the Gruntwork Service Catalog is built on Terraform, and as Terraform is still not at version 1.0.0, 
+the code in the Service Catalog is is using `0.MINOR.PATCH` version numbers. With `0.MINOR.PATCH`, the rules are a bit 
+different, where you increment the:
+
+1. MINOR version when you make incompatible API changes
+1. PATCH version when you add backwards compatible functionality or bug fixes.
+
+We try to minimize backwards incompatible changes, but when we have to make one, we bump the MINOR version number, and
+include migration instructions in the [release notes](https://github.com/gruntwork-io/aws-service-catalog/releases).
+Makes sure to ALWAYS read the release notes and migration instructions (if any) to avoid errors and outages! 
 
 
 
@@ -379,7 +406,7 @@ Below are instructions on how to build an AMI using these Packer templates. We'l
 1. **Check out the code**. Run `git clone git@github.com:gruntwork-io/aws-service-catalog.git` to check out the code
    onto your own computer.
    
-1. **Optional: make changes to the Packer template**. If you need to install custom software into your AMI—e.g., extra
+1. **(Optional) Make changes to the Packer template**. If you need to install custom software into your AMI—e.g., extra
    tools for monitoring or other server hardening tools required by your company—copy the Packer template into one of
    your own Git repos, update it accordingly, and make sure to commit the changes. Note that the Packer templates in 
    the Gruntwork Service Catalog are designed to capture all the install steps in a single `shell` provisioner that 
@@ -405,11 +432,36 @@ Below are instructions on how to build an AMI using these Packer templates. We'l
         See [How to get access to the Gruntwork Infrastructure as Code 
         Library](https://gruntwork.io/guides/foundations/how-to-use-gruntwork-infrastructure-as-code-library#get_access)
         for instructions on setting up GitHub personal access token.
+
+1. **Set variables**. Each Packer template defines variables you can set in a `variables` block at the top, such as 
+   what AWS region to use, what VPC to use for the build, what AWS accounts to share the AMI with, etc. We recommend
+   setting these variables in a [JSON vars file](https://www.packer.io/docs/templates/user-variables/#from-a-file) and 
+   checking that file into version control so that you have a versioned history of exactly what settings you used when 
+   building each AMI. For example, here's what `eks-vars.json` might look like:
+   
+    ```json
+    {
+      "service_catalog_ref": "<VERSION>",
+      "version_tag": "<TAG>"
+    }
+    ```
+    
+    This file defines two variables that are required by almost every Packer template in the Gruntwork Service Catalog:    
  
+    1. **Service Catalog Version**. You must replace `<VERSION>` with the version of the Service Catalog (from the
+       [releases page](https://github.com/gruntwork-io/aws-service-catalog/releases)) you wish to use for this build.  
+       Specifying a specific version allows you to know exactly what code you're using and ensures you don’t 
+       accidentally pull in potentially backwards incompatible code in future builds.       
+    
+    1. **AMI Version**. You must replace `<TAG>` with the version number to use for this AMI. The Packer build will add
+       a `version` tag to the AMI with this value, which provides a more human-friendly and readable version number
+       than an AMI ID that you could use to find and sort your AMIs. You'll want to use a different `<TAG>` every time
+       you run a Packer build. 
+
 1. **Build**. Now you can build an AMI as follows:
 
     ```bash
-    packer build eks-node-al2.json
+    packer build -var-file=eks-vars.json eks-node-al2.json
     ```
 
 1. **Deploy**. At the end of the build, Packer will output the ID of your new AMI. Typically, you deploy this AMI by
@@ -422,15 +474,188 @@ Below are instructions on how to build an AMI using these Packer templates. We'l
 
 ## Make changes to your infrastructure
 
-Outline:
+Now that your infrastructure is deployed, let's discuss how to make changes to it:
 
-- Versioning
-  - Semantic versioning
-  - Release notes
-- Terraform
-- Packer
-- Docker
-- Helm
+1. [Making changes to Terraform code](#making-changes-to-terraform-code)
+1. [Making changes to Packer templates](#making-changes-to-packer-templates)
+
+
+### Making changes to Terraform code
+
+1. [Making changes to pure, vanilla Terraform code](#making-changes-to-pure-vanilla-terraform-code)
+1. [Making changes to Terragrunt code](#making-changes-to-terragrunt-code)
+1. [Making changes with Terraform Cloud or Terraform Enterprise](#making-changes-with-terraform-cloud-or-terraform-enterprise)
+
+#### Making changes to pure, vanilla Terraform code
+
+1. **(Optional) Update your configuration**: One type of change you could do in your Terraform code (in the `.tf` 
+   files) is to update the arguments you're passing to the service. For example, perhaps you update from one NAT 
+   Gateway:
+   
+    ```hcl
+    module "vpc" {
+      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc-app?ref=v0.0.1"
+    
+      # ... (other args ommitted for readability) ...
+      num_nat_gateways = 1
+    }    
+    ```     
+
+    To 3 NAT Gateways for high availability:
+
+    ```hcl
+    module "vpc" {
+      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc-app?ref=v0.0.1"
+    
+      # ... (other args ommitted for readability) ...
+      num_nat_gateways = 3
+    }    
+    ```     
+
+1. **(Optional) Update the Service Catalog version**: Another type of change you might make is to update the version
+   of the Service Catalog you're using. For example, perhaps you update from version `v0.0.1`:
+   
+    ```hcl
+    module "vpc" {
+      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc-app?ref=v0.0.1"
+    
+      # ... (other args ommitted for readability) ...
+    }    
+    ```     
+   
+   To version `v0.0.2`:
+   
+    ```hcl
+    module "vpc" {
+      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc-app?ref=v0.0.2"
+    
+      # ... (other args ommitted for readability) ...
+    }    
+    ```     
+   
+    NOTE: Whenever changing version numbers, make sure to read the [release 
+    notes](https://github.com/gruntwork-io/aws-service-catalog/releases), especially if it's a backwards incompatible 
+    release (e.g., `v0.0.1` -> `v0.1.0`), to avoid errors and outages (see [maintenance and 
+    versioning](#maintenance-and-versioning) for details)!   
+
+1. **Deploy**. Once you've made your changes, you can re-run `terraform apply` to deploy them:
+
+    ```bash
+    terraform apply
+    ```
+    
+    Since Terraform [maintains state](https://blog.gruntwork.io/how-to-manage-terraform-state-28f5697e68fa), it will
+    now update your infrastructure rather than deploying something new. As part of running `apply`, Terraform will show
+    you the plan output, which will show you what's about to change before changing it. Make sure to scan the plan 
+    output carefully to catch potential issues, such as something important being deleted that shouldn't be (e.g., a 
+    database!). 
+
+#### Making changes to Terragrunt code
+
+1. **(Optional) Update your configuration**: One type of change you could do in your Terragrunt code (in the 
+   `terragrunt.hcl` files) is to update the arguments you're passing to the service. For example, perhaps you update 
+   from one NAT Gateway:
+   
+    ```hcl
+    terraform {
+      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc-app?ref=v0.0.1"
+    }
+ 
+    inputs = {
+      # ... (other args ommitted for readability) ...
+      num_nat_gateways = 1
+    }    
+    ```     
+
+    To 3 NAT Gateways for high availability:
+
+    ```hcl
+    terraform {
+      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc-app?ref=v0.0.1"
+    }
+ 
+    inputs = {
+      # ... (other args ommitted for readability) ...
+      num_nat_gateways = 3
+    }   
+    ```     
+
+1. **(Optional) Update the Service Catalog version**: Another type of change you might make is to update the version
+   of the Service Catalog you're using. For example, perhaps you update from version `v0.0.1`:
+   
+    ```hcl
+    terraform {
+      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc-app?ref=v0.0.1"
+    }
+    ```     
+   
+   To version `v0.0.2`:
+   
+    ```hcl
+    terraform {
+      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc-app?ref=v0.0.2"
+    } 
+    ```     
+   
+    NOTE: Whenever changing version numbers, make sure to read the [release 
+    notes](https://github.com/gruntwork-io/aws-service-catalog/releases), especially if it's a backwards incompatible 
+    release (e.g., `v0.0.1` -> `v0.1.0`), to avoid errors and outages (see [maintenance and 
+    versioning](#maintenance-and-versioning) for details)!   
+
+1. **Deploy**. Once you've made your changes, you can re-run `terragrunt apply` to deploy them:
+
+    ```bash
+    terragrunt apply
+    ```
+    
+    Since Terraform [maintains state](https://blog.gruntwork.io/how-to-manage-terraform-state-28f5697e68fa), it will
+    now update your infrastructure rather than deploying something new. As part of running `apply`, Terraform will show
+    you the plan output, which will show you what's about to change before changing it. Make sure to scan the plan 
+    output carefully to catch potential issues, such as something important being deleted that shouldn't be (e.g., a 
+    database!). 
+
+#### Making changes with Terraform Cloud or Terraform Enterprise
+
+*(Documentation coming soon. If you need help with this ASAP, please contact [support@gruntwork.io](mailto:support@gruntwork.io).)*
+
+
+### Making changes to Packer templates
+
+1. **(Optional) Update variables**: One type of change you might make is to update the variables you set in your vars
+   file. In particular, you may wish to use a newer version of the Service Catalog for the build. For example, perhaps 
+   you update from version `v0.0.1`:
+   
+    ```json
+    {
+      "service_catalog_ref": "v0.0.1"
+    }
+    ``` 
+   
+   To version `v0.0.2`:
+   
+    ```json
+    {
+      "service_catalog_ref": "v0.0.2"
+    }
+    ``` 
+   
+    NOTE: Whenever changing version numbers, make sure to read the [release 
+    notes](https://github.com/gruntwork-io/aws-service-catalog/releases), especially if it's a backwards incompatible 
+    release (e.g., `v0.0.1` -> `v0.1.0`), to avoid errors and outages (see [maintenance and 
+    versioning](#maintenance-and-versioning) for details)!   
+
+1. **(Optional) Update your custom Packer template**: If you made a copy of one of of the Packer templates, you can
+   of course also make updates to your own template.
+
+1. **Build**. Once you've made your changes, you can re-run `packer build` to build a new AMI:
+
+    ```bash
+    packer build -var-file=eks-vars.json eks-node-al2.json
+    ```
+    
+1. **Deploy**. Once you've built a new AMI, you'll need to [make changes to your Terraform code and deploy 
+   it](#making-changes-to-terraform-code). 
+
 
 
 
