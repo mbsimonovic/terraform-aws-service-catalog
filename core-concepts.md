@@ -18,7 +18,7 @@ orchestration, EC2 orchestration, load balancing, networking, databases, caches,
 management, VPN, and much more. 
 
 1. [Service Catalog Terminology](#service-catalog-terminology)
-1. [The tools and languages used in the Service Catalog](#the-tools-and-languages-used-in-the-service-catalog)
+1. [The tools used in the Service Catalog](#the-tools-used-in-the-service-catalog)
 1. [How to navigate the Service Catalog](#how-to-navigate-the-service-catalog)
 
 
@@ -33,44 +33,33 @@ management, VPN, and much more.
   many different ways.
 
 * **Service**: Reusable code that combines multiple modules to configure a service for a specific use case. Services 
-  are designed for specify use cases and meant to be deployed directly, without having to write more code. For 
-  example, the `eks-cluster` service combines all the modules you need to run an EKS (Kubernetes) cluster in a typical 
-  production environment, including modules for the control plane, worker nodes, secrets management, log aggregation, 
-  alerting, and so on. The [Gruntwork Service Catalog](https://github.com/gruntwork-io/aws-service-catalog/) is a 
-  collection of battle-tested, commercially supported and maintained services that you can use to deploy 
-  production-grade infrastructure in minutes.
+  are designed for specific use cases and meant to be deployed directly. For example, the `eks-cluster` service 
+  combines all the modules you need to run an EKS (Kubernetes) cluster in a typical production environment, including 
+  modules for the control plane, worker nodes, secrets management, log aggregation, alerting, and so on. The [Gruntwork 
+  Service Catalog](https://github.com/gruntwork-io/aws-service-catalog/) is a collection of battle-tested, commercially 
+  supported and maintained services that you can use to deploy production-grade infrastructure in minutes.
 
 
-### The tools and languages used in the Service Catalog
+### The tools used in the Service Catalog
 
-The Gruntwork Service Catalog is built on top of the following tools and technologies:
+The Gruntwork Service Catalog is built to be used with the following tools:
 
 1. [Terraform](https://www.terraform.io/). Used to define and manage most of the basic infrastructure, such as servers, 
-   databases, load balancers, and networking.
+   databases, load balancers, and networking. The Gruntwork Service Catalog is compatible with pure, open source 
+   [Terraform](https://www.terraform.io/), [Terragrunt](https://terragrunt.gruntwork.io/), [Terraform 
+   Cloud](https://www.hashicorp.com/blog/announcing-terraform-cloud/), and [Terraform 
+   Enteprise](https://www.terraform.io/docs/enterprise/index.html).
 
-1. [Go](https://golang.org/). Used to build cross-platform CLI applications (e.g., `ssh-grunt` is a Go app you can run 
-   on your EC2 instances to manage SSH access to those instances via IAM groups) and to write automated tests (using 
-   the open source Go library [Terratest](https://terratest.gruntwork.io/)).
-
-1. [Bash](https://www.gnu.org/software/bash/). Used for small scripts on Linux and macOS, including:
-
-    * _Install scripts_: Used to install and configure a piece of software. Example: the `install-elasticsearch` script 
-      can be used to install Elasticsearch on Linux.
-
-    * _Run scripts_: Used to run a piece of software, typically during boot. Example: you can execute the 
-      `run-elasticsearch` script while a server is booting to auto-discover other Elasticsearch nodes and bootstrap an
-      Elasticsearch cluster.
-
-1. [Python](https://www.python.org/). Used for more complicated scripts, especially those that need to run on other 
-   operating systems (e.g., Windows) and/or those that need to be called directly from Terraform (e.g., to fill in some 
-   missing functionality).
-
-1. [Packer](https://www.packer.io/). Used to define and manage _machine images_ (e.g., VM images such as AMIs). 
+1. [Packer](https://www.packer.io/). Used to define and manage _machine images_ (e.g., VM images). The main use case is
+   to package code as [Amazon Machine Images (AMIs)](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIs.html) 
+   that run on EC2 instances. 
 
 1. [Docker](https://www.docker.com/). Used to define and manage _containers_. A container is a bit like a lightweight 
    VM, except instead of virtualizing all the hardware and the entire operating system, containers virtualize solely 
    user space, which gives you many of the isolation benefits of a VM (each container is isolated in terms of memory, 
-   CPU, networking, hard drive, etc), but with much less memory, CPU, and start-up time overhead.
+   CPU, networking, hard drive, etc), but with much less memory, CPU, and start-up time overhead. The main use case is
+   to package code as Docker images that can be run with Docker orchestration tools such as Kubernetes, ECS, Fargate,
+   etc.
 
 1. [Helm](https://helm.sh/). Used to define and manage Kubernetes applications and resources. Example: `k8s-service` 
    is a helm chart that packages your application containers into a best practices deployment for Kubernetes.
@@ -106,15 +95,159 @@ The code in the `aws-service-catalog` repo is organized into three primary folde
 
 ## Deploy new infrastructure
 
-Outline:
+1. [How to deploy Terraform code from the Service Catalog](#how-to-deploy-terraform-code-from-the-service-catalog)
+1. [How to build machine images using Packer templates from the Service Catalog](#how-to-build-machine-images-using-packer-templates-from-the-service-catalog)
+1. [How to build Docker images from the Service Catalog](#how-to-build-docker-images-from-the-service-catalog)
+1. [How to use Helm charts from the Service Catalog](#how-to-use-helm-charts-from-the-service-catalog)
 
-- Terraform
-  - Pure Terraform
-  - Terragrunt
-  - Terraform Cloud / Enterprise
-- Packer
-- Docker
-- Helm
+
+### How to deploy Terraform code from the Service Catalog
+
+There are three ways to use Terraform code from the Service Catalog:
+
+1. [Using pure, open source Terraform with the Service Catalog](#using-pure-open-source-terraform-with-the-service-catalog)
+1. [Using Terragrunt with the Service Catalog](#using-terragrunt-with-the-service-catalog)
+1. [Using Terraform Cloud or Terraform Enterprise with the Service Catalog](#using-terraform-cloud-or-terraform-enterprise-with-the-service-catalog)
+
+#### Using pure, open source Terraform with the Service Catalog
+
+1. **Find a service**. Browse the `modules` folder to find a service you wish to deploy. For this tutorial, we'll use 
+   the `vpc-app` service in [modules/networking/vpc-app](/modules/networking/vpc-app) as an example.
+   
+1. **Create a Terraform configuration**. Create a Terraform configuration file, such as `main.tf`.
+
+1. **Configure the provider**. Inside of `main.tf`, configure the Terraform 
+   [providers](https://www.terraform.io/docs/providers/index.html) for your chosen service. For `vpc-app`, and for
+   most of the services in this Service Catalog, you'll need to configure the [AWS 
+   provider](https://www.terraform.io/docs/providers/aws/index.html):
+   
+    ```hcl
+    provider "aws" {
+      # The AWS region in which all resources will be created
+      region = "eu-west-1"
+    
+      # Require a 2.x version of the AWS provider
+      version = "~> 2.6"
+    
+      # Only these AWS Account IDs may be operated on by this template
+      allowed_account_ids = ["111122223333"]
+    }
+    ```       
+
+1. **Configure the backend**. You'll also want to configure Terraform itself, especially the 
+   [backend](https://www.terraform.io/docs/backends/index.html) to use to store Terraform state:
+
+    ```hcl
+    terraform {
+      # Configure S3 as a backend for storing Terraform state
+      backend "s3" {
+        bucket         = "<YOUR S3 BUCKET>"
+        region         = "eu-west-1"
+        key            = "<YOUR PATH>/terraform.tfstate"
+        encrypt        = true
+        dynamodb_table = "<YOUR DYNAMODB TABLE>"
+      }
+    
+      # Only allow this Terraform version. Note that if you upgrade to a newer version, Terraform won't allow you to use an
+      # older version, so when you upgrade, you should upgrade everyone on your team and your CI servers all at once.
+      required_version = "= 0.12.25"
+    }
+    ```
+
+1. **Use the service**. Now you can add the service to your code:
+
+    ```hcl
+    module "vpc" {
+      # Make sure to replace <VERSION> in this URL with the latest aws-service-catalog release from
+      # https://github.com/gruntwork-io/aws-service-catalog/releases
+      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc-app?ref=<VERSION>"
+    
+      # Fill in the arguments for this service
+      aws_region       = "eu-west-1"
+      vpc_name         = "example-vpc"
+      cidr_block       = "10.0.0.0/16"
+      num_nat_gateways = 1
+    }
+    ```
+
+    Let's walk through the code above:
+    
+    1. **Module**. We pull in the code for the service using Terraform's native `module` keyword. For background info, 
+       see [How to create reusable infrastructure with Terraform 
+       modules](https://blog.gruntwork.io/how-to-create-reusable-infrastructure-with-terraform-modules-25526d65f73d).
+
+    1. **Git / SSH URL**. The `source` URL in the code above uses a Git URL with SSH authentication (see [module 
+       sources](https://www.terraform.io/docs/modules/sources.html) for other types of source URLs you can use). This
+       will allow you to access the code in the Gruntwork Service Catalog using an SSH key for authentication, without
+       having to hard-code credentials anywhere. See [How to get access to the Gruntwork Infrastructure as Code 
+       Library](https://gruntwork.io/guides/foundations/how-to-use-gruntwork-infrastructure-as-code-library#get_access)
+       for instructions on setting up your SSH key.
+       
+    1. **Versioned URL**. Note the `?ref=<VERSION>` at the end of the `source` URL. This parameter allows you to pull 
+       in a specific version of each service so that you don’t accidentally pull in potentially backwards incompatible 
+       code in the future. You should replace `<VERSION>` with the latest version from the [releases 
+       page](https://github.com/gruntwork-io/aws-service-catalog/releases).       
+
+    1. **Arguments**. Below the `source` URL, you’ll need to pass in the arguments specific to that service. You can 
+       find all the required and optional variables defined in `variables.tf` of the service (e.g., check out 
+       the [`variables.tf` for `vpc-app`](/modules/networking/vpc-app/variables.tf)).                          
+
+1. **Add outputs**. You may wish to add some output variables, perhaps in an `outputs.tf` file, that forward along
+   some of the output variables from the service. You can find all the outputs defined in `outputs.tf` for the service
+   (e.g., check out [`outputs.tf` for `vpc-app`](/modules/networking/vpc-app/outputs.tf)). 
+   
+    ```hcl
+    output "vpc_name" {
+      description = "The VPC name"
+      value       = module.vpc.vpc_name
+    }
+    
+    output "vpc_id" {
+      description = "The VPC ID"
+      value       = module.vpc.vpc_id
+    }
+    
+    output "vpc_cidr_block" {
+      description = "The VPC CIDR block"
+      value       = module.vpc.vpc_cidr_block
+    }
+    
+    # ... Etc (see the service's outputs.tf for all available outputs) ...
+    ```
+
+1. **Deploy**. You're now ready to deploy the service! First, you'll need to authenticate to the relevant providers
+   (for AWS authentication, see [A Comprehensive Guide to Authenticating to AWS on the Command 
+   Line](https://blog.gruntwork.io/a-comprehensive-guide-to-authenticating-to-aws-on-the-command-line-63656a686799) for
+   instructions), and then run:
+   
+    ```bash
+    terraform init
+    terraform apply
+    ```   
+
+
+#### Using Terragrunt with the Service Catalog
+
+TODO
+
+#### Using Terraform Cloud or Terraform Enterprise with the Service Catalog
+
+TODO
+
+
+### How to build machine images using Packer templates from the Service Catalog
+
+TODO
+
+
+### How to build Docker images from the Service Catalog
+
+TODO
+
+
+### How to use Helm charts from the Service Catalog
+
+TODO
 
 
 
