@@ -42,7 +42,7 @@ management, VPN, and much more.
 
 ### The tools used in the Service Catalog
 
-The Gruntwork Service Catalog is built to be used with the following tools:
+The Gruntwork Service Catalog is designed to be deployed using the following tools:
 
 1. [Terraform](https://www.terraform.io/). Used to define and manage most of the basic infrastructure, such as servers, 
    databases, load balancers, and networking. The Gruntwork Service Catalog is compatible with pure, open source 
@@ -52,17 +52,7 @@ The Gruntwork Service Catalog is built to be used with the following tools:
 
 1. [Packer](https://www.packer.io/). Used to define and manage _machine images_ (e.g., VM images). The main use case is
    to package code as [Amazon Machine Images (AMIs)](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIs.html) 
-   that run on EC2 instances. 
-
-1. [Docker](https://www.docker.com/). Used to define and manage _containers_. A container is a bit like a lightweight 
-   VM, except instead of virtualizing all the hardware and the entire operating system, containers virtualize solely 
-   user space, which gives you many of the isolation benefits of a VM (each container is isolated in terms of memory, 
-   CPU, networking, hard drive, etc), but with much less memory, CPU, and start-up time overhead. The main use case is
-   to package code as Docker images that can be run with Docker orchestration tools such as Kubernetes, ECS, Fargate,
-   etc.
-
-1. [Helm](https://helm.sh/). Used to define and manage Kubernetes applications and resources. Example: `k8s-service` 
-   is a helm chart that packages your application containers into a best practices deployment for Kubernetes.
+   that run on EC2 instances. Once you've built an AMI, you use Terraform to deploy it into AWS. 
 
 
 ### How to navigate the Service Catalog
@@ -97,8 +87,6 @@ The code in the `aws-service-catalog` repo is organized into three primary folde
 
 1. [How to deploy Terraform code from the Service Catalog](#how-to-deploy-terraform-code-from-the-service-catalog)
 1. [How to build machine images using Packer templates from the Service Catalog](#how-to-build-machine-images-using-packer-templates-from-the-service-catalog)
-1. [How to build Docker images from the Service Catalog](#how-to-build-docker-images-from-the-service-catalog)
-1. [How to use Helm charts from the Service Catalog](#how-to-use-helm-charts-from-the-service-catalog)
 
 
 ### How to deploy Terraform code from the Service Catalog
@@ -172,12 +160,10 @@ Service Catalog. See [examples/for-learning-and-testing](/examples/for-learning-
        see [How to create reusable infrastructure with Terraform 
        modules](https://blog.gruntwork.io/how-to-create-reusable-infrastructure-with-terraform-modules-25526d65f73d).
 
-    1. **Git / SSH URL**. The `source` URL in the code above uses a Git URL with SSH authentication (see [module 
+    1. **Git / SSH URL**. We recommend setting the `source` URL to a Git URL with SSH authentication (see [module 
        sources](https://www.terraform.io/docs/modules/sources.html) for other types of source URLs you can use). This
        will allow you to access the code in the Gruntwork Service Catalog using an SSH key for authentication, without
-       having to hard-code credentials anywhere. See [How to get access to the Gruntwork Infrastructure as Code 
-       Library](https://gruntwork.io/guides/foundations/how-to-use-gruntwork-infrastructure-as-code-library#get_access)
-       for instructions on setting up your SSH key.
+       having to hard-code credentials anywhere. 
        
     1. **Versioned URL**. Note the `?ref=<VERSION>` at the end of the `source` URL. This parameter allows you to pull 
        in a specific version of each service so that you don’t accidentally pull in potentially backwards incompatible 
@@ -211,10 +197,19 @@ Service Catalog. See [examples/for-learning-and-testing](/examples/for-learning-
     # ... Etc (see the service's outputs.tf for all available outputs) ...
     ```
 
-1. **Deploy**. You're now ready to deploy the service! First, you'll need to authenticate to the relevant providers
-   (for AWS authentication, see [A Comprehensive Guide to Authenticating to AWS on the Command 
-   Line](https://blog.gruntwork.io/a-comprehensive-guide-to-authenticating-to-aws-on-the-command-line-63656a686799) for
-   instructions), and then run:
+1. **Authenticate**. You will need to authenticate to both AWS and GitHub:
+
+    1. **AWS Authentication**: See [A Comprehensive Guide to Authenticating to AWS on the Command 
+       Line](https://blog.gruntwork.io/a-comprehensive-guide-to-authenticating-to-aws-on-the-command-line-63656a686799) for
+       instructions.
+   
+    1. **GitHub Authentication**: All of Gruntwork code lives in GitHub, and as most of the repos are private, you must 
+       authenticate to GitHub to be able to access the code. For Terraform, we recommend using Git / SSH URLs and using
+       SSH keys for authentication. See [How to get access to the Gruntwork Infrastructure as Code 
+       Library](https://gruntwork.io/guides/foundations/how-to-use-gruntwork-infrastructure-as-code-library#get_access)
+       for instructions on setting up your SSH key.   
+
+1. **Deploy**. You can now deploy the service as follows:
    
     ```bash
     terraform init
@@ -327,12 +322,10 @@ Now you can create child `terragrunt.hcl` files to deploy services as follows:
     1. **Module**. We pull in the code for the service using Terragrunt's support for [remote Terraform 
        configurations](https://terragrunt.gruntwork.io/docs/features/keep-your-terraform-code-dry/).
 
-    1. **Git / SSH URL**. The `source` URL in the code above uses a Git URL with SSH authentication (see [module 
+    1. **Git / SSH URL**. We recommend setting the `source` URL to a Git URL with SSH authentication (see [module 
        sources](https://www.terraform.io/docs/modules/sources.html) for other types of source URLs you can use). This
        will allow you to access the code in the Gruntwork Service Catalog using an SSH key for authentication, without
-       having to hard-code credentials anywhere. See [How to get access to the Gruntwork Infrastructure as Code 
-       Library](https://gruntwork.io/guides/foundations/how-to-use-gruntwork-infrastructure-as-code-library#get_access)
-       for instructions on setting up your SSH key.
+       having to hard-code credentials anywhere.
        
     1. **Versioned URL**. Note the `?ref=<VERSION>` at the end of the `source` URL. This parameter allows you to pull 
        in a specific version of each service so that you don’t accidentally pull in potentially backwards incompatible 
@@ -343,10 +336,19 @@ Now you can create child `terragrunt.hcl` files to deploy services as follows:
        find all the required and optional variables defined in `variables.tf` of the service (e.g., check out 
        the [`variables.tf` for `vpc-app`](/modules/networking/vpc-app/variables.tf)).                          
 
-1. **Deploy**. You're now ready to deploy the service! First, you'll need to authenticate to the relevant providers
-   (for AWS authentication, see [A Comprehensive Guide to Authenticating to AWS on the Command 
-   Line](https://blog.gruntwork.io/a-comprehensive-guide-to-authenticating-to-aws-on-the-command-line-63656a686799) for
-   instructions), and then run:
+1. **Authenticate**. You will need to authenticate to both AWS and GitHub:
+
+    1. **AWS Authentication**: See [A Comprehensive Guide to Authenticating to AWS on the Command 
+       Line](https://blog.gruntwork.io/a-comprehensive-guide-to-authenticating-to-aws-on-the-command-line-63656a686799) for
+       instructions.
+   
+    1. **GitHub Authentication**: All of Gruntwork code lives in GitHub, and as most of the repos are private, you must 
+       authenticate to GitHub to be able to access the code. For Terraform, we recommend using Git / SSH URLs and using
+       SSH keys for authentication. See [How to get access to the Gruntwork Infrastructure as Code 
+       Library](https://gruntwork.io/guides/foundations/how-to-use-gruntwork-infrastructure-as-code-library#get_access)
+       for instructions on setting up your SSH key.   
+
+1. **Deploy**. You can now deploy the service as follows:
    
     ```bash
     terragrunt apply
@@ -359,17 +361,61 @@ Now you can create child `terragrunt.hcl` files to deploy services as follows:
 
 ### How to build machine images using Packer templates from the Service Catalog
 
-TODO
+Some of the services in the Gruntwork Service Catalog require you to build an [Amazon Machine Image 
+(AMI)](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIs.html) to install and configure the software that will
+run on EC2 instances. These services define and manage the AMI as code using [Packer](https://www.packer.io/) templates.
 
+For example, the [eks-cluster](/modules/services/eks-cluster) service defines an 
+[eks-node-al2.json](/modules/services/eks-cluster/eks-node-al2.json) Packer template that can be used to create an AMI
+for the Kubernetes worker nodes. This Packer template uses the [EKS optimized 
+AMI](https://docs.aws.amazon.com/eks/latest/userguide/eks-optimized-ami.html) as its base, which already has Docker, 
+kubelet, and the AWS IAM Authenticator installed, and on top of that, it installs the other common software you'll
+want on an EC2 instance in production, such as tools for gathering metrics, log aggregation, intrusion prevention,
+and so on.
 
-### How to build Docker images from the Service Catalog
+Below are instructions on how to build an AMI using these Packer templates. We'll be using the 
+[eks-node-al2.json](/modules/services/eks-cluster/eks-node-al2.json) Packer template as an example.
 
-TODO
+1. **Check out the code**. Run `git clone git@github.com:gruntwork-io/aws-service-catalog.git` to check out the code
+   onto your own computer.
+   
+1. **Optional: make changes to the Packer template**. If you need to install custom software into your AMI—e.g., extra
+   tools for monitoring or other server hardening tools required by your company—copy the Packer template into one of
+   your own Git repos, update it accordingly, and make sure to commit the changes. Note that the Packer templates in 
+   the Gruntwork Service Catalog are designed to capture all the install steps in a single `shell` provisioner that 
+   uses the [Gruntwork Installer](https://github.com/gruntwork-io/gruntwork-installer) to install and configure the 
+   software in just a few lines of code. We intentionally designed the templates this way so you can easily copy the
+   Packer template, add all the custom logic you need for your use cases, and only have a few lines of versioned 
+   Gruntwork code to maintain to pull in all the Service Catalog logic.
 
+1. **Authenticate**. You will need to authenticate to both AWS and GitHub:
 
-### How to use Helm charts from the Service Catalog
+    1. **AWS Authentication**: See [A Comprehensive Guide to Authenticating to AWS on the Command 
+       Line](https://blog.gruntwork.io/a-comprehensive-guide-to-authenticating-to-aws-on-the-command-line-63656a686799) for
+       instructions.
+   
+    1. **GitHub Authentication**: All of Gruntwork code lives in GitHub, and as most of the repos are private, you must 
+       authenticate to GitHub to be able to access the code. For Packer, you must use a GitHub personal access
+       token set as the environment variable `GITHUB_OAUTH_TOKEN` for authentication: 
+       
+        ```bash
+        export GITHUB_OAUTH_TOKEN=xxx
+        ```
+       
+        See [How to get access to the Gruntwork Infrastructure as Code 
+        Library](https://gruntwork.io/guides/foundations/how-to-use-gruntwork-infrastructure-as-code-library#get_access)
+        for instructions on setting up GitHub personal access token.
+ 
+1. **Build**. Now you can build an AMI as follows:
 
-TODO
+    ```bash
+    packer build eks-node-al2.json
+    ```
+
+1. **Deploy**. At the end of the build, Packer will output the ID of your new AMI. Typically, you deploy this AMI by
+   plugging the AMI ID into some Terraform code and using Terraform to deploy it: e.g., plugging in the EKS worker node
+   AMI ID into the `cluster_instance_ami` input variable of the [eks-cluster Terraform 
+   module](/modules/services/eks-cluster).
 
 
 
