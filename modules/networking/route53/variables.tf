@@ -22,6 +22,10 @@ variable "private_zones" {
 variable "public_zones" {
   description = "A map of public Route 53 Hosted Zones. In this map, the key should be the domain name. See examples below."
   type = map(object({
+    # If the public zone already exists, as is often the case when dealing with public zones bootstrapped by Route53, 
+    # you can pass the zone_id. Verification DNS records for certificate issuance will be written to the zone specified by 
+    # the Zone ID you supply. If you leave this empty, a new public hosted zone will be created instead
+    zone_id = string
     # An optional, arbitrary comment to attach to the public Hosted Zone
     comment = string
     # A mapping of tags to assign to the public Hosted Zone 
@@ -41,6 +45,10 @@ Example inputs:
 
 public_zones = {
     "example.com" = {
+        # Setting the zone_id specifies that this is an existing zone, which will often be the case
+        # if, for example, you register a domain via Route53. In this case, AWS will automatically create 
+        # a public hosted zone for your domain, so you only need to supply its ID
+        zone_id = ""
         comment = "You can add arbitrary text here"
         tags = {
             Foo = "bar" 
