@@ -271,6 +271,12 @@ variable "cloudtrail_num_days_after_which_delete_log_data" {
   default     = 365
 }
 
+variable "cloudtrail_kms_key_arn" {
+  description = "If you wish to specify a custom KMS key, then specify the key arn using this variable. This is especially useful when using CloudTrail with multiple AWS accounts, so the logs are all encrypted using the same key."
+  type        = string
+  default     = null
+}
+
 variable "cloudtrail_kms_key_user_iam_arns" {
   description = "All CloudTrail Logs will be encrypted with a KMS Key (a Customer Master Key) that governs access to write API calls older than 7 days and all read API calls. The IAM Users specified in this list will have read-only access to this extended log data."
   type        = list(string)

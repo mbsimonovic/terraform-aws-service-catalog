@@ -9,7 +9,7 @@
 # locally, you can use --terragrunt-source /path/to/local/checkout/of/module to override the source parameter to a
 # local check out of the module for faster iteration.
 terraform {
-  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/landingzone/account-baseline-app?ref=master"
+  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/landingzone/account-baseline-app?ref=yori-multiaccount-cloudtrail"
 }
 
 # Include all settings from the root terragrunt.hcl file
@@ -37,6 +37,7 @@ inputs = {
 
   # Send CloudTrail logs to this bucket in the security account
   cloudtrail_s3_bucket_name                 = local.common_vars.locals.cloudtrail_s3_bucket_name
+  cloudtrail_kms_key_arn                    = local.common_vars.locals.cloudtrail_kms_key_arn
   cloudtrail_kms_key_administrator_iam_arns = []
 
   # Allow access from other AWS accounts
