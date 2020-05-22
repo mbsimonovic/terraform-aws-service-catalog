@@ -49,7 +49,7 @@ The Gruntwork Service Catalog is designed to be deployed using the following too
    databases, load balancers, and networking. The Gruntwork Service Catalog is compatible with pure, open source 
    [Terraform](https://www.terraform.io/), [Terragrunt](https://terragrunt.gruntwork.io/), [Terraform 
    Cloud](https://www.hashicorp.com/blog/announcing-terraform-cloud/), and [Terraform 
-   Enteprise](https://www.terraform.io/docs/enterprise/index.html).
+   Enterprise](https://www.terraform.io/docs/enterprise/index.html).
 
 1. [Packer](https://www.packer.io/). Used to define and manage _machine images_ (e.g., VM images). The main use case is
    to package code as [Amazon Machine Images (AMIs)](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMIs.html) 
@@ -230,7 +230,7 @@ Service Catalog. See [examples/for-learning-and-testing](/examples/for-learning-
        Line](https://blog.gruntwork.io/a-comprehensive-guide-to-authenticating-to-aws-on-the-command-line-63656a686799) for
        instructions.
    
-    1. **GitHub Authentication**: All of Gruntwork code lives in GitHub, and as most of the repos are private, you must 
+    1. **GitHub Authentication**: All of Gruntwork's code lives in GitHub, and as most of the repos are private, you must 
        authenticate to GitHub to be able to access the code. For Terraform, we recommend using Git / SSH URLs and using
        SSH keys for authentication. See [How to get access to the Gruntwork Infrastructure as Code 
        Library](https://gruntwork.io/guides/foundations/how-to-use-gruntwork-infrastructure-as-code-library#get_access)
@@ -369,7 +369,7 @@ Now you can create child `terragrunt.hcl` files to deploy services as follows:
        Line](https://blog.gruntwork.io/a-comprehensive-guide-to-authenticating-to-aws-on-the-command-line-63656a686799) for
        instructions.
    
-    1. **GitHub Authentication**: All of Gruntwork code lives in GitHub, and as most of the repos are private, you must 
+    1. **GitHub Authentication**: All of Gruntwork's code lives in GitHub, and as most of the repos are private, you must 
        authenticate to GitHub to be able to access the code. For Terraform, we recommend using Git / SSH URLs and using
        SSH keys for authentication. See [How to get access to the Gruntwork Infrastructure as Code 
        Library](https://gruntwork.io/guides/foundations/how-to-use-gruntwork-infrastructure-as-code-library#get_access)
@@ -421,7 +421,7 @@ Below are instructions on how to build an AMI using these Packer templates. We'l
        Line](https://blog.gruntwork.io/a-comprehensive-guide-to-authenticating-to-aws-on-the-command-line-63656a686799) for
        instructions.
    
-    1. **GitHub Authentication**: All of Gruntwork code lives in GitHub, and as most of the repos are private, you must 
+    1. **GitHub Authentication**: All of Gruntwork's code lives in GitHub, and as most of the repos are private, you must 
        authenticate to GitHub to be able to access the code. For Packer, you must use a GitHub personal access
        token set as the environment variable `GITHUB_OAUTH_TOKEN` for authentication: 
        
@@ -684,8 +684,8 @@ the Gruntwork Service Catalog? There are two things to check:
    
 1. **Should the Service Catalog be updated to support it?** If the Service Catalog doesn't already support the 
    functionality you need, the next question to ask is if it should. As a general rule, if your use case is fairly 
-   common and likely affects many companies, we should support it! If that's the case, please file a GitHub issue in 
-   this repo, and the Gruntwork team may be able to implement it for you. Also, pull requests are VERY welcome! See 
+   common and likely affects many companies, we should support it! If that's the case, please [file a GitHub issue in 
+   this repo](https://github.com/gruntwork-io/aws-service-catalog/issues/new), and the Gruntwork team may be able to implement it for you. Also, pull requests are VERY welcome! See 
    [Contributing to the Gruntwork Service 
    Catalog](https://gruntwork.io/guides/foundations/how-to-use-gruntwork-infrastructure-as-code-library#_contributing_to_the_gruntwork_infrastructure_as_code_library)
    for instructions.      
@@ -795,7 +795,7 @@ We strongly recommend writing automated tests for your Service Catalog. Here are
    integration tests, end-to-end tests, test parallelism, retries, error handling, static analysis, and more.
 
 1. [The Gruntwork Service Catalog](https://github.com/gruntwork-io/aws-service-catalog/). The Gruntwork Service Catalog
-   has thorough automated tests, so you can use it inspiration and examples of how to test your own Service Catalog!   
+   has thorough automated tests, so you can use it for inspiration and examples of how to test your own Service Catalog!   
 
 
 ### Deploying from your Service Catalog
