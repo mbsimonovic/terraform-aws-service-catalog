@@ -64,8 +64,9 @@ The code in the `aws-service-catalog` repo is organized into three primary folde
    within, such as the EKS cluster service in `modules/services/eks-cluster`.
 
 1. `examples`: Sample code that shows how to use the services in the `modules` folder and allows you to try the 
-   services out without having to write any code—in other words, executable documentation. Note that the `examples` 
-   folder contains two sub-folders: 
+   services out without having to write any code: you `cd` into one of the folders, follow a few steps in the README 
+   (e.g., run `terraform apply`), and you'll have fully working infrastructure up and running. In other words, this is
+   executable documentation. Note that the `examples` folder contains two sub-folders: 
    
     1. `for-learning-and-testing`: Example code that is optimized for learning, experimenting, and testing, but not 
        direct production usage). Most of these examples use Terraform directly to make it easy to fill in dependencies 
