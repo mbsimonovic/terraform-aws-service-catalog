@@ -6,6 +6,7 @@ This documentation shows the core concepts of how to use the Gruntwork Service C
 * [How to deploy new infrastructure from the Service Catalog](#deploy-new-infrastructure)
 * [How to update infrastructure from the Service Catalog](#make-changes-to-your-infrastructure)
 * [How to create your own Service Catalog](#create-your-own-service-catalog)
+* [Support](#support)
 
 
 
@@ -827,3 +828,22 @@ inputs = {
   num_nat_gateways = 1
 }
 ```
+
+
+
+
+## Support
+
+If you need help with this repo or anything else related to infrastructure or DevOps, Gruntwork offers 
+[Commercial Support](https://gruntwork.io/support/) via Slack, email, and phone/video. You can contact us using one of
+the following channels:
+
+* [Gruntwork Community Slack](https://gruntwork-community.slack.com): Chat with other Gruntwork customers and the 
+  Gruntwork team.
+
+* **Private Shared Slack Channel**: For Gruntwork Pro Support and Enterprise Support customers, we create a private, 
+  shared channel in Slack between your company and Gruntwork that shows up in your existing Slack workspace. Contact
+  one of your Slack admins to get the channel name!  
+
+* [support@gruntwork.io](mailto:support@gruntwork.io): If you're having trouble contacting us via Slack, please feel 
+  free to email Gruntwork Support at any time! 

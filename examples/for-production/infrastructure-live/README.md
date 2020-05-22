@@ -56,5 +56,5 @@ the following channels:
   shared channel in Slack between your company and Gruntwork that shows up in your existing Slack workspace. Contact
   one of your Slack admins to get the channel name!  
 
-* [support@gruntwork.io](mailto:support@gruntwork.io): If you're having trouble contact us via Slack, please feel free
-  to email Gruntwork Support at any time! 
+* [support@gruntwork.io](mailto:support@gruntwork.io): If you're having trouble contacting us via Slack, please feel 
+  free to email Gruntwork Support at any time! 
