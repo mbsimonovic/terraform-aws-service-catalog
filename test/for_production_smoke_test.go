@@ -5,11 +5,15 @@ import (
 	"testing"
 
 	"github.com/gruntwork-io/gruntwork-cli/files"
+	"github.com/gruntwork-io/terratest/modules/collections"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 	"github.com/mattn/go-zglob"
 	"github.com/stretchr/testify/require"
 )
+
+// Folders in infrastructure live that are not terragrunt examples.
+var notTerragruntExamples = []string{"_docs"}
 
 func TestSmokeForProductionExamples(t *testing.T) {
 	t.Parallel()
@@ -23,7 +27,7 @@ func TestSmokeForProductionExamples(t *testing.T) {
 	require.NoError(t, err)
 	allAccounts := []string{}
 	for _, item := range allItemsInLive {
-		if files.IsDir(item) {
+		if files.IsDir(item) && !collections.ListContains(notTerragruntExamples, filepath.Base(item)) {
 			allAccounts = append(allAccounts, item)
 		}
 	}
