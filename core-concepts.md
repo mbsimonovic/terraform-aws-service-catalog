@@ -47,7 +47,7 @@ management, VPN, and much more.
 The Gruntwork Service Catalog is designed to be deployed using the following tools:
 
 1. [Terraform](https://www.terraform.io/). Used to define and manage most of the basic infrastructure, such as servers, 
-   databases, load balancers, and networking. The Gruntwork Service Catalog is compatible with pure, open source 
+   databases, load balancers, and networking. The Gruntwork Service Catalog is compatible with vanilla 
    [Terraform](https://www.terraform.io/), [Terragrunt](https://terragrunt.gruntwork.io/), [Terraform 
    Cloud](https://www.hashicorp.com/blog/announcing-terraform-cloud/), and [Terraform 
    Enterprise](https://www.terraform.io/docs/enterprise/index.html).
@@ -78,7 +78,7 @@ The code in the `aws-service-catalog` repo is organized into three primary folde
        Architecture](https://gruntwork.io/reference-architecture/), and it shows you how we build an end-to-end, 
        integrated tech stack on top of the Gruntwork Service Catalog. To keep the code DRY and manage dependencies 
        between modules, the code is deployed using [Terragrunt](https://terragrunt.gruntwork.io/). However, Terragrunt
-       is NOT required to use the Gruntwork Service Catalog: you can alternatively use pure Terraform or Terraform 
+       is NOT required to use the Gruntwork Service Catalog: you can alternatively use vanilla Terraform or Terraform 
        Cloud / Enterprise, as described later in these docs.
 
 1. `test`: Automated tests for the code in `modules` and `examples`.
@@ -122,14 +122,15 @@ Makes sure to ALWAYS read the release notes and migration instructions (if any) 
 
 There are three ways to use Terraform code from the Service Catalog:
 
-1. [Using pure, open source Terraform with the Service Catalog](#using-pure-open-source-terraform-with-the-service-catalog)
+1. [Using vanilla Terraform with the Service Catalog](#using-vanilla-terraform-with-the-service-catalog)
 1. [Using Terragrunt with the Service Catalog](#using-terragrunt-with-the-service-catalog)
 1. [Using Terraform Cloud or Terraform Enterprise with the Service Catalog](#using-terraform-cloud-or-terraform-enterprise-with-the-service-catalog)
 
-#### Using pure, open source Terraform with the Service Catalog
+#### Using vanilla Terraform with the Service Catalog
 
-Below are the instructions for using the vanilla, open source `terraform` binary to deploy Terraform code from the 
-Service Catalog. See [examples/for-learning-and-testing](/examples/for-learning-and-testing) for working sample code.
+Below are the instructions for using the vanilla `terraform` binary—that is, with no wrappers, extensions, or UI—to 
+deploy Terraform code from the Service Catalog. See 
+[examples/for-learning-and-testing](/examples/for-learning-and-testing) for working sample code.
 
 1. **Find a service**. Browse the `modules` folder to find a service you wish to deploy. For this tutorial, we'll use 
    the `vpc-app` service in [modules/networking/vpc-app](/modules/networking/vpc-app) as an example.
@@ -484,11 +485,11 @@ Now that your infrastructure is deployed, let's discuss how to make changes to i
 
 ### Making changes to Terraform code
 
-1. [Making changes to pure, vanilla Terraform code](#making-changes-to-pure-vanilla-terraform-code)
+1. [Making changes to vanilla Terraform code](#making-changes-to-vanilla-terraform-code)
 1. [Making changes to Terragrunt code](#making-changes-to-terragrunt-code)
 1. [Making changes with Terraform Cloud or Terraform Enterprise](#making-changes-with-terraform-cloud-or-terraform-enterprise)
 
-#### Making changes to pure, vanilla Terraform code
+#### Making changes to vanilla Terraform code
 
 1. **(Optional) Update your configuration**: One type of change you could do in your Terraform code (in the `.tf` 
    files) is to update the arguments you're passing to the service. For example, perhaps you update from one NAT 
