@@ -779,9 +779,19 @@ production:
    
 1. [5 Lessons Learned From Writing Over 300,000 Lines of Infrastructure Code](https://blog.gruntwork.io/5-lessons-learned-from-writing-over-300-000-lines-of-infrastructure-code-36ba7fadeac1).
    A talk and blog post that goes over some of the most important lessons for building reusable infrastructure code.
-   
-1. [The Gruntwork Service Catalog](https://github.com/gruntwork-io/aws-service-catalog/). You should of course also
-   use the Gruntwork Service Catalog for inspiration and examples of how to build your own Service Catalog!   
+
+1. [Modules from the Gruntwork IaC Library](https://gruntwork.io/infrastructure-as-code-library/). We strongly 
+   recommend building your own services by combining modules from the Gruntwork IaC Library. For example, if your 
+   service runs in an Auto Scaling Group (ASG), you may want to use the modules from 
+   [module-asg](https://github.com/gruntwork-io/module-asg) to create an ASG that can do zero-downtime rolling 
+   deployments; if your service needs custom CloudWatch metrics, log aggregation, or alerts, you may want to use
+   modules from [module-aws-monitoring](https://github.com/gruntwork-io/module-aws-monitoring); if your service is 
+   doing something related to Kubernetes, you may want to use modules from 
+   [terraform-aws-eks](https://github.com/gruntwork-io/terraform-aws-eks) or 
+   [helm-kubernetes-services](https://github.com/gruntwork-io/helm-kubernetes-servicesv); and so on.
+      
+1. [The Gruntwork Service Catalog](https://github.com/gruntwork-io/aws-service-catalog/). You can of course also use 
+   the Gruntwork Service Catalog for inspiration and examples of how to build your own Service Catalog!
 
 
 ### Testing your Service Catalog
