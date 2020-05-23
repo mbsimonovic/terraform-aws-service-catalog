@@ -724,7 +724,7 @@ Now that you have a Service Catalog, you can start populating it with services. 
 
 #### Extend Gruntwork Services
 
-One way to populate your Service Catalog is to extend Gruntwork Services. There are two ways to do this:
+One way to populate your Service Catalog is to extend Gruntwork Services. There are several ways to do this:
 
 1. **(RECOMMENDED) Wrap a Gruntwork Service**. The best way to extend a Gruntwork Service is to wrap it and add your
    additional functionality on top of it. Since Gruntwork Services export the IDs of all resources they create, adding
@@ -761,11 +761,19 @@ One way to populate your Service Catalog is to extend Gruntwork Services. There 
     You now have your own `vpc-app` service, with your custom routing logic, but most of the VPC code still lives in
     the Gruntwork Service Catalog and can be maintained by the Gruntwork team!
 
-1. **(NOT RECOMMENDED) Copy/Fork a Service**. Another way to extend a Gruntwork Service is to copy all of the code
-   for that service into your own Git repo and modify the code directly. This is not recommended, as then you'll have
-   to maintain all of that code yourself, and won't benefit from all the [maintenance work](#maintenance-and-versioning)
-   done by the Gruntwork team. The only reason to fork the code this way is if you need a significant change that cannot
-   be done from outside the service.
+1. **(NOT RECOMMENDED) Copy a Gruntwork Service**. Another way to extend a Gruntwork Service is to copy all of the code
+   for that one service into your own Git repo and modify the code directly. This is not recommended, as then you'll 
+   have to maintain all of the code for that service yourself, and won't benefit from all the [maintenance 
+   work](#maintenance-and-versioning) done by the Gruntwork team. The only reason to copy the code this way is if you 
+   need a significant change that cannot be done from outside the service.
+   
+1. **(NOT RECOMMENDED) Fork the Gruntwork Service Catalog**. Yet another option is to 
+   [fork](https://help.github.com/en/github/getting-started-with-github/fork-a-repo) the entire Gruntwork Service 
+   Catalog into a repo of your own. This is not recommended, as then you'll have to maintain all of that code yourself, 
+   and won't benefit from all the [maintenance work](#maintenance-and-versioning) done by the Gruntwork team. The only 
+   reason to fork the entire repo is if you have a company policy that only allows you consume code from your own
+   repositories.  
+   
 
 #### Create totally new Services
 
