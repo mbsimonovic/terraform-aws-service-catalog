@@ -49,3 +49,4 @@ inputs = {
   aws_account_id = local.account_id
   aws_region     = local.aws_region
 }
+
