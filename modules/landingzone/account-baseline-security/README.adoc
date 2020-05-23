@@ -48,10 +48,9 @@ Get a secure baseline for the security account of your AWS Organization that inc
 
 == Learn
 
-NOTE: This repo is a part of the https://gruntwork.io/service-catalog/[Gruntwork Service Catalog], a collection of
+NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog//[Gruntwork Service Catalog], a collection of
 reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
-sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/[How to use the Gruntwork
-Service Catalog]!
+sure to read link:/core-concepts.md[How to use the Gruntwork Service Catalog]!
 
 
 === Core concepts

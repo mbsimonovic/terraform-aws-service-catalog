@@ -1,36 +1,34 @@
 # Gruntwork Service Catalog for AWS
 
-This repo contains the code for the [Gruntwork Service Catalog](https://gruntwork.io/service-catalog/) for AWS. It 
-consists of a number of reusable, customizable, battle-tested [infrastructure-as-code modules](/modules) that you can 
-use to deploy your production infrastructure, including Docker orchestration, EC2 orchestration, load balancing, 
-networking, databases, caches, monitoring, alerting, CI/CD, secrets management, VPN, and much more. 
+This repo contains the code for the Gruntwork Service Catalog for AWS. It consists of a number of reusable, 
+customizable, battle-tested, production-grade [infrastructure-as-code services](/modules) that you can use to deploy 
+and manage your infrastructure, including Docker orchestration, EC2 orchestration, load balancing, networking, 
+databases, caches, monitoring, alerting, CI/CD, secrets management, VPN, and much more. Under the hood, these services 
+are built using modules from the [Gruntwork Infrastructure as Code 
+Library](https://gruntwork.io/infrastructure-as-code-library/). 
 
 
 
 
 ## Features
 
-* Deploy production-grade infrastructure in minutes by using off-the-shelf, battle-tested components.
+* Deploy production-grade infrastructure in minutes by using off-the-shelf, battle-tested services.
 * Build on top of infrastructure code that has been proven in production at hundreds of companies and is commercially
   supported and maintained by Gruntwork.
-* Each module exposes a number of input variables that give you deep control over its behavior: e.g., what VPCs and
+* Each service exposes a number of input variables that give you deep control over its behavior: e.g., what VPCs and
   subnets to use, what to do for log aggregation, how to manage SSH and VPN access, how to manage secrets, and so on.
-* Each module is defined as code, so you can customize the behavior even further by either extending or forking the  
+* Each service is defined as code, so you can customize the behavior even further by either extending or forking the  
   module.
 
 
 
 ## Learn
 
-### Core concepts
+* [Gruntwork Service Catalog Overview](core-concepts.md#gruntwork-service-catalog-overview)
+* [How to deploy new infrastructure from the Service Catalog](core-concepts.md#deploy-new-infrastructure)
+* [How to update infrastructure from the Service Catalog](core-concepts.md#make-changes-to-your-infrastructure)
+* [How to create your own Service Catalog](core-concepts.md#create-your-own-service-catalog)
 
-* [How to use the Gruntwork Service Catalog](https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catallog/)
-
-### Repo organization
-
-* [modules](/modules): The main implementation code for this repo, broken down into multiple standalone, orthogonal submodules.
-* [examples](/examples): This folder contains working examples of how to use the submodules.
-* [test](/test): Automated tests for the modules and examples.
 
 
 
@@ -72,8 +70,7 @@ Contributions to this repo are very welcome and appreciated! If you find a bug o
 contribute an entirely new module, we are very happy to accept pull requests, provide feedback, and run your changes
 through our automated test suite.
 
-Please see [Contributing to the Gruntwork Service 
-Catalog](https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/#contributing-to-the-gruntwork-service-catalog)
+Please see [Contributing to the Gruntwork Service Catalog](core-concepts.md#contributing-to-the-gruntwork-service-catalog)
 for instructions.
 
 
