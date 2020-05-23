@@ -22,9 +22,9 @@ and connecting to all the resources in your AWS accounts:
 * [Authenticate to EC2 Instances via SSH](#authenticate-to-ec2-instances-via-ssh): If you need to debug something on
   an EC2 instance, you'll need to connect over SSH. 
 
-* [Authenticate to Kubernetes and Helm](#authenticate-to-kubernetes-and-helm): If you need to make changes in your
-  Kubernetes cluster, you'll need to be able to connect and authenticate to the Kubernetes API server. You'll need this
-  to work with CLI tools such as `kubectl` and `helm`. 
+* [Authenticate to Kubernetes](#authenticate-to-kubernetes): If you need to make changes in your Kubernetes cluster, 
+  you'll need to be able to connect and authenticate to the Kubernetes API server. You'll need this to work with CLI 
+  tools such as `kubectl` and `helm`. 
 
 
 
@@ -414,12 +414,12 @@ Key Pairs.
 
 
 
-## Authenticate to Kubernetes and Helm
+## Authenticate to Kubernetes
 
 Up to this point we focused on accounts and authentication in AWS. However, with EKS, Kubernetes adds another layer of
 accounts and authentication that are tied to, but not exactly the same as, AWS IAM.
 
-In this section, you'll learn about Kubernetes RBAC roles and Helm authentication:
+In this section, you'll learn about Kubernetes RBAC roles:
 
 * [RBAC basics](#rbac-basics)
 * [Relation to IAM roles](#relation-to-iam-roles)
@@ -427,7 +427,6 @@ In this section, you'll learn about Kubernetes RBAC roles and Helm authenticatio
 * [Accessing to the cluster](#accessing-the-cluster)
     * [Terragrunt / Terraform](#terragrunt--terraform)
     * [Kubectl](#kubectl)
-    * [Helm](#helm)
 
 
 ### RBAC basics
@@ -510,7 +509,6 @@ There are three main ways to interact with Kubernetes in the Reference Architect
 
 * [Using Terragrunt / Terraform](#terragrunt--terraform)
 * [Using kubectl](#kubectl)
-* [Using Helm](#helm)
 
 #### Terragrunt / Terraform
 
@@ -518,9 +516,6 @@ When deploying Kubernetes resources using Terragrunt / Terraform, all the authen
 using a combination of EKS data sources and provider logic. What this means is that you don't have to worry about
 explicitly authenticating to Kubernetes when going through Terraform, as long as you are authenticating to an IAM role
 that has a valid mapping to an RBAC entity in the cluster.
-
-The one exception to this is the modules that depend on `helm`, which requires additional configuration. See the
-[section on helm](#helm) for more info.
 
 #### Kubectl
 
@@ -557,73 +552,6 @@ kubectl cluster-info  # Should target the dev EKS cluster
 kubectl use arn:aws:eks:$AWS_REGION:$PROD_ACCOUNT_ID:cluster/eks-prod
 kubectl cluster-info  # Should target the prod EKS cluster
 ```
-
-#### Helm
-
-Helm relies on TLS based authentication and authorization to access Tiller (the Helm Server). This is separate from the
-RBAC based authorization native to Kubernetes. Intuitively, RBAC is used to manage whether or not someone can lookup the
-`Pod` endpoint address, while the TLS authentication and authorization scheme manages whether or not you can establish a
-connection to the Tiller server. All deployments of Tiller in the Reference Architecture uses `kubergrunt` to manage the
-TLS certificates.
-
-We highly recommend reading [Gruntwork's guide to
-helm](https://github.com/gruntwork-io/kubergrunt/blob/master/HELM_GUIDE.md) to understand the security model surrounding
-Helm and Tiller.
-
-`kubergrunt` manages the TLS certificates using Kubernetes `Secrets`, guarded by RBAC roles. A cluster administrator can
-grant access to any RBAC entity to any Tiller deployment using the `kubergrunt helm grant` command. For example, to
-grant access to a Tiller server deployed in the namespace `applications-tiller` to the RBAC user
-`jane_doe`:
-
-```bash
-kubergrunt helm grant \
-    --tls-common-name jane_doe \
-    --tls-org <YOUR COMPANY NAME> \
-    --tiller-namespace applications \
-    --rbac-user jane_doe
-```
-
-**Note on RBAC users**: The RBAC user username (`--rbac-user`) corresponds to the IAM Role or User name of the
-authenticating AWS credentials.
-
-This generates new TLS certificate key pairs that grant access to the Tiller deployed in the `applications-tiller`
-Namespace. In addition, this creates and binds RBAC roles that allow users of the RBAC group `developers` to be able to
-read the necessary `Secrets` to download the generated TLS certificate key pairs.
-
-Now anyone who maps to the `developers` RBAC group can use the `kubergrunt helm configure` command to setup their
-helm client to access the deployed Tiller:
-
-```bash
-kubergrunt helm configure \
-    --tiller-namespace applications-tiller \
-    --resource-namespace applications \
-    --rbac-user jane_doe
-```
-
-This will:
-
-- Download the client TLS certificate key pair generated with the `grant` command.
-- Install the TLS certificate key pair in the helm home directory (defaults to `$HOME/.helm`).
-- Install an environment file that sets up environment variables to target the specific helm server (defaults to
-  `$HELM_HOME/env`). This environment file needs to be loaded before issuing any commands, at it sets the necessary
-  environment variables to signal to the helm client which helm server to use. The environment variables it sets are:
-  - `HELM_HOME`: The helm client home directory where the TLS certs are located.
-  - `TILLER_NAMESPACE`: The namespace where the helm server is installed.
-  - `HELM_TLS_VERIFY`: This will be set to true to enable TLS verification.
-  - `HELM_TLS_ENABLE`: This will be set to true to enable TLS authentication.
-
-Once this is setup, Terraform modules that need to access `helm` will be able to use the downloaded credentials to
-authenticate to Tiller. Additionally, once you source the environment file, you will be able to use the `helm` client to
-directly work with Tiller.
-
-If you have the `helm` client installed, you can verify your configuration setup using the `helm version` command:
-
-```bash
-helm version
-```
-
-If your `helm` client is configured correctly, the `version` command will output information about the deployed Tiller
-instance that it connected to.
 
 
 
