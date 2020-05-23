@@ -106,9 +106,9 @@ If you want to deploy this repo in production, check out the following resources
 
 * https://github.com/gruntwork-io/terraform-aws-eks/tree/master/modules/eks-alb-ingress-controller#using-the-ingress-controller[How
   do you use the ingress controller to translate Ingress resources into ALBs?]
-* link:/core-concepts.md#how-do-i-hook-up-the-cluster-autoscaler-to-my-workers[How do I hook up the cluster autoscaler to
+* link:core-concepts.md#how-do-i-hook-up-the-cluster-autoscaler-to-my-workers[How do I hook up the cluster autoscaler to
   my workers?]
-* link:/core-concepts.md#how-do-i-restrict-which-hosted-zones-the-app-should-manage[How do I restrict which Hosted Zones
+* link:core-concepts.md#how-do-i-restrict-which-hosted-zones-the-app-should-manage[How do I restrict which Hosted Zones
   the app should manage?]
 
 

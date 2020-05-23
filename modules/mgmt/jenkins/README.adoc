@@ -99,12 +99,12 @@ If you want to deploy this repo in production, check out the following resources
 
 === Day-to-day operations
 
-* link:/core-concepts.md#the-jenkins_home-directory[The JENKINS_HOME directory]
-* link:/core-concepts.md#why-use-an-alb[Why use an ALB?]
+* link:core-concepts.md#the-jenkins_home-directory[The JENKINS_HOME directory]
+* link:core-concepts.md#why-use-an-alb[Why use an ALB?]
 
 === Major changes
 
-* link:/core-concepts.md#upgrading-jenkins[Upgrading Jenkins]
+* link:core-concepts.md#upgrading-jenkins[Upgrading Jenkins]
 
 
 
