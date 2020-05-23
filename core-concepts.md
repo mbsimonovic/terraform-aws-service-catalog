@@ -807,7 +807,8 @@ We strongly recommend writing automated tests for your Service Catalog. Here are
    integration tests, end-to-end tests, test parallelism, retries, error handling, static analysis, and more.
 
 1. [The Gruntwork Service Catalog](https://github.com/gruntwork-io/aws-service-catalog/). The Gruntwork Service Catalog
-   has thorough automated tests, so you can use it for inspiration and examples of how to test your own Service Catalog!   
+   has [thorough automated tests](/test), so you can use it for inspiration and examples of how to test your own 
+   Service Catalog!   
 
 
 ### Deploying from your Service Catalog
