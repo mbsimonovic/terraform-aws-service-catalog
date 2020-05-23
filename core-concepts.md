@@ -772,7 +772,11 @@ One way to populate your Service Catalog is to extend Gruntwork Services. There 
    Catalog into a repo of your own. This is not recommended, as then you'll have to maintain all of that code yourself, 
    and won't benefit from all the [maintenance work](#maintenance-and-versioning) done by the Gruntwork team. The only 
    reason to fork the entire repo is if you have a company policy that only allows you consume code from your own
-   repositories.  
+   repositories. Note that if you do end up forking the entire Service Catalog, you can use `git fetch` and `git merge`
+   to [automatically pull in changes from 
+   upstream](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-forkhttps://help.github.com/en/github/collaborating-with-issues-and-pull-requests/syncing-a-fork) 
+   (that is, from the original Gruntwork Service Catalog), but if you make any changes to your local fork, it'll be up
+   to you to deal with merge conflicts. 
    
 
 #### Create totally new Services
