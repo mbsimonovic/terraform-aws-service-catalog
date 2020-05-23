@@ -72,7 +72,7 @@ recommend that when you reset the password for each account, you:
    except in very rare circumstances. (e.g., if you get locked out of your IAM User account). For almost all day to day 
    tasks, you should use an IAM user instead, as described in the next section.
 
-Please note that you'll want to repeat the process above of resettingg the password and enablilng MFA for _every_ 
+Please note that you'll want to repeat the process above of resetting the password and enablilng MFA for _every_ 
 account in your organization: dev, stage, prod, shared-services, security, and the root/master account too!
 
 
@@ -287,7 +287,7 @@ There are free and paid OpenVPN clients available for most major operating syste
 
 ### Join the OpenVPN IAM group
 
-To get access to an OpenVPN server, your IAM user need access to SQS queues used by that OpenVPN server. Since our
+To get access to an OpenVPN server, your IAM user needs access to SQS queues used by that OpenVPN server. Since our
 IAM users are defined in one AWS account (security) and the OpenVPN servers are defined in separate AWS accounts 
 (stage, prod, etc), that means you need to "switch" to the accounts with the OpenVPN servers by assuming an IAM role 
 that has access to the SQS queues in those accounts.

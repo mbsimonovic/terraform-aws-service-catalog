@@ -248,8 +248,8 @@ Service Catalog. See [examples/for-learning-and-testing](/examples/for-learning-
 #### Using Terragrunt with the Service Catalog
 
 [Terragrunt](https://terragrunt.gruntwork.io/) is a thin, open source wrapper for Terraform that helps you keep your
-code [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself). Below are the instructions for using the Terragrunt 
-to deploy Terraform code from the Service Catalog. See [examples/for-production](/examples/for-production) for working 
+code [DRY](https://en.wikipedia.org/wiki/Don%27t_repeat_yourself). Below are the instructions for using the `terragrunt` 
+binary to deploy Terraform code from the Service Catalog. See [examples/for-production](/examples/for-production) for working 
 sample code.
 
 First, we need to do some one time setup. One of the ways Terragrunt helps you keep your code DRY is by allowing you to
@@ -818,7 +818,7 @@ techniques you use for [deploying from the Gruntwork Service Catalog](#deploy-ne
 is that instead of the URLs all pointing to Gruntwork's Git repos, you should update them to point to your Git repos.
 
 For example, if you had your own `vpc-app` service in a repo called `infrastructure-modules` in the `acme` GitHub org, 
-you could deploy that module use Terragrunt by writing a `terragrunt.hcl` file that looks something like this: 
+you could deploy that module using Terragrunt by writing a `terragrunt.hcl` file that looks something like this: 
 
 ```hcl
 include {

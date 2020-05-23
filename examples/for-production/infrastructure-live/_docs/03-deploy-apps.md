@@ -202,7 +202,7 @@ Next, authenticate your Docker client with to ECR in the shared-services account
 eval $(aws ecr get-login --region "eu-west-1" --no-include-email --registry-ids "111122223333")
 ```
 
-And finallyl, push your newly tagged image to publish it:
+And finally, push your newly tagged image to publish it:
 
 ```bash
 docker push 111122223333.dkr.ecr.eu-west-1.amazonaws.com/simple-web-app:v1
