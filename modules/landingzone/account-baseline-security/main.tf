@@ -171,7 +171,7 @@ module "cloudtrail" {
 module "cloudtrail_cmk" {
   source = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-master-key-multi-region?ref=v0.32.0"
   customer_master_keys = {
-    "cmk-${var.name_prefix}-cloudtrail" = {
+    (local.cloudtrail_cmk_name) = {
       cmk_administrator_iam_arns = var.cloudtrail_kms_key_administrator_iam_arns
       cmk_user_iam_arns          = var.cloudtrail_kms_key_user_iam_arns
       cmk_service_principals = [
