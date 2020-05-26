@@ -100,8 +100,6 @@ module "guardduty" {
 module "cloudtrail" {
   source = "git::git@github.com:gruntwork-io/module-security.git//modules/cloudtrail?ref=v0.32.0"
 
-  aws_account_id = var.aws_account_id
-
   is_multi_region_trail = true
   cloudtrail_trail_name = var.name_prefix
   s3_bucket_name        = var.cloudtrail_s3_bucket_name != null ? var.cloudtrail_s3_bucket_name : "${var.name_prefix}-cloudtrail"
