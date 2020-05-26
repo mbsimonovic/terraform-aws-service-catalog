@@ -48,7 +48,7 @@ public_zones = {
         # Setting the zone_id specifies that this is an existing zone, which will often be the case
         # if, for example, you register a domain via Route53. In this case, AWS will automatically create 
         # a public hosted zone for your domain, so you only need to supply its ID
-        zone_id = ""
+        zone_id = null
         comment = "You can add arbitrary text here"
         tags = {
             Foo = "bar" 
