@@ -46,8 +46,15 @@ resource "aws_route53_zone" "private_zones" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_route53_zone" "public_zones" {
-  for_each = var.public_zones
-
+  # We need only create new zones when a zone_id was not specified. The presence of a zone_id indicates a route 53 
+  # public hosted zone already exists, as is often the case if the target AWS account registered a domain via route 53
+  # which automatically creates a new public hosted zone for the domain. In these cases, we're just passing the zone_id 
+  # through to acm certificates modules so that it knows the correct hosted zone to write DNS validation records to which 
+  # are required by ACM to complete certificate validation and issuance 
+  for_each = {
+    for domain, zone in var.public_zones :
+    domain => zone if zone.zone_id == null
+  }
   # Normalize zone name - whether the user added a 
   # trailing dot or not, ensure the trailing dot is present
   # This helps prevent some state change errors where the AWS
@@ -88,6 +95,7 @@ module "acm-tls-certificates" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 locals {
+
   # For public zones with their `provision_wildcard_certificate` attribute set to true, build a map that will 
   # be provided as input to the acm-tls-certificates module 
   acm_tls_certificates = {
@@ -107,6 +115,8 @@ locals {
       subject_alternative_names  = []
       create_verification_record = true
       verify_certificate         = true
+      # If hosted_zone_id is provided by the operator, it will be used as the target zone for ACM DNS validation records
+      hosted_zone_id = var.public_zones[domain].zone_id
       # Only issue wildcard certificates for those zones 
       # where they were requested 
     } if zone.provision_wildcard_certificate
