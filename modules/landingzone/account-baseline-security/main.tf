@@ -169,7 +169,7 @@ module "cloudtrail" {
 # Create a dedicated KMS key for use with cloudtrail, with explicit permissions to allow encrypting the logs for
 # external accounts.
 module "cloudtrail_cmk" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-master-key-multi-region?ref=v0.32.0"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-master-key?ref=v0.32.0"
   customer_master_keys = {
     (local.cloudtrail_cmk_name) = {
       cmk_administrator_iam_arns = var.cloudtrail_kms_key_administrator_iam_arns
