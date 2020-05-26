@@ -43,12 +43,12 @@ output "cloudtrail_s3_access_logging_bucket_name" {
 
 output "cloudtrail_kms_key_arn" {
   description = "The ARN of the KMS key used by the S3 bucket to encrypt cloudtrail logs."
-  value       = module.cloudtrail.kms_key_arn
+  value       = module.cloudtrail_cmk.key_arn[local.cloudtrail_cmk_name]
 }
 
 output "cloudtrail_kms_key_alias_name" {
   description = "The alias of the KMS key used by the S3 bucket to encrypt cloudtrail logs."
-  value       = module.cloudtrail.kms_key_alias_name
+  value       = module.cloudtrail_cmk.key_alias[local.cloudtrail_cmk_name]
 }
 
 output "cloudtrail_cloudwatch_group_name" {
