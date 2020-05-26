@@ -24,7 +24,7 @@ variable "public_zones" {
   type = map(object({
     # If the public zone already exists, as is often the case when dealing with public zones bootstrapped by Route53, 
     # you can pass the zone_id. Verification DNS records for certificate issuance will be written to the zone specified by 
-    # the Zone ID you supply. If you leave this empty, a new public hosted zone will be created instead
+    # the Zone ID you supply. Set to null to force the module to create a new public hosted zone.
     zone_id = string
     # An optional, arbitrary comment to attach to the public Hosted Zone
     comment = string
