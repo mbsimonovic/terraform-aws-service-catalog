@@ -53,7 +53,7 @@ resource "aws_route53_zone" "public_zones" {
   # are required by ACM to complete certificate validation and issuance 
   for_each = {
     for domain, zone in var.public_zones :
-    domain => zone if zone.zone_id == ""
+    domain => zone if zone.zone_id == null
   }
   # Normalize zone name - whether the user added a 
   # trailing dot or not, ensure the trailing dot is present
