@@ -16,6 +16,8 @@ locals {
   domain_names = {
     shared = "refarch-sbox-shared-gruntwork.com"
     dev    = "refarch-sbox-dev-gruntwork.com"
+    stage  = "refarch-sbox-stage-gruntwork.com"
+    prod   = "refarch-sbox-prod-gruntwork.com"
   }
 
   # Send all CloudTrail logs from all child accounts to this S3 bucket
