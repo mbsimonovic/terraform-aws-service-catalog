@@ -24,6 +24,18 @@ dependencies {
 
 # Pull in outputs from these modules to compute inputs. These modules will also be added to the dependency list for
 # xxx-all commands.
+
+dependency "route53_public" {
+  config_path = "../../../../_global/route53-public"
+
+  mock_outputs = {
+    public_hosted_zone_map = {
+      "refarch-sbox-dev-mock.com" = "mock-zone-id"
+    }
+  }
+  mock_outputs_allowed_terraform_commands = ["validate"]
+}
+
 dependency "vpc" {
   config_path = "../../networking/vpc"
 
@@ -65,8 +77,8 @@ inputs = {
   # TODO: Set up an SNS topic for alarms and use a dependency to pass it in
   # alarms_sns_topic_arn   = []
 
-  # TODO: We'd normally use a dependency block to pull in the hosted zone ID, but we haven't converted the route 53
-  # modules to the new service catalog format yet, so for now, we just hard-code the ID.
-  hosted_zone_id = "Z2AJ7S3R6G9UYJ"
-  domain_name    = "gruntwork.in"
+  # The primary hosted zone ID for the environment 
+  hosted_zone_id = values(dependency.route53_public.public_hosted_zone_map)[0]
+  # The primary domain name for the environment 
+  domain_name = keys(dependency.route53_public.public_hosted_zone_map)[0]
 }

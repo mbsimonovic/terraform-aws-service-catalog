@@ -12,6 +12,12 @@ locals {
     prod     = "087285199408"
   }
 
+  # Centrally define all domain names  
+  domain_names = {
+    shared = "refarch-sbox-shared-gruntwork.com"
+    dev    = "refarch-sbox-dev-gruntwork.com"
+  }
+
   # Send all CloudTrail logs from all child accounts to this S3 bucket
   cloudtrail_s3_bucket_name = "ref-arch-lite-security-logs"
 
