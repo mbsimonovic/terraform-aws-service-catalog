@@ -15,6 +15,9 @@ locals {
   # Send all CloudTrail logs from all child accounts to this S3 bucket
   cloudtrail_s3_bucket_name = "ref-arch-lite-security-logs"
 
+  # Use the KMS key created in the security account
+  cloudtrail_kms_key_arn = "TODO: fill me in after deploying the security account"
+
   # Centrally manage all the VPC CIDR blocks
   vpc_cidr_blocks = {
     shared = "10.0.0.0/16"
