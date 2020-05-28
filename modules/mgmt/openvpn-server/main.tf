@@ -154,10 +154,26 @@ module "ec2_baseline" {
 resource "aws_route53_record" "openvpn" {
   count   = var.domain_name != null ? 1 : 0
   name    = "${var.name}.${var.domain_name}"
-  zone_id = var.hosted_zone_id
+  zone_id = var.hosted_zone_id != null ? var.hosted_zone_id : data.aws_route53_zone.selected.zone_id
   type    = "A"
   ttl     = "300"
   records = [module.openvpn.public_ip]
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# DYNAMICALLY LOOK UP THE ZONE ID OF SUPPLIED DOMAIN NAME
+# It is possible to supply var.domain_name but NOT supply var.hosted_zone_id. In this case, a dynamic lookup of the
+# zone ID will be attempted by this data source. 
+# ---------------------------------------------------------------------------------------------------------------------
+
+data "aws_route53_zone" "selected" {
+  # We only need to perform a dynamic lookup of the zone ID if: 
+  # - the domain name was supplied as an input AND 
+  # - the hosted_zone_id was NOT supplied as an input
+  count = var.domain_name != null && var.hosted_zone_id == null ? 1 : 0
+  name  = var.domain_name
+
+  private_zone = false
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
