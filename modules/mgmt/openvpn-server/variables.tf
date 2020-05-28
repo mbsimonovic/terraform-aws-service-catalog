@@ -198,6 +198,12 @@ variable "domain_name" {
   default     = null
 }
 
+variable "hosted_zone_tags" {
+  description = "An optional set of tags you can pass in for matching purposes if you have multiple hosted zones with the same name. See: https://www.terraform.io/docs/providers/aws/d/route53_zone.html#argument-reference specifically tags for more information."
+  type        = map(string)
+  default     = {}
+}
+
 variable "alarms_sns_topic_arn" {
   description = "The ARNs of SNS topics where CloudWatch alarms (e.g., for CPU, memory, and disk space usage) should send notifications."
   type        = list(string)
