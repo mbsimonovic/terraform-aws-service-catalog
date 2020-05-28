@@ -60,7 +60,8 @@ data "aws_eks_cluster_auth" "kubernetes_token" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "eks_cluster" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.19.0"
+  # TODO: bump to released version
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=yori-cluster-security-group"
 
   cluster_name = var.cluster_name
 
@@ -78,15 +79,12 @@ module "eks_cluster" {
 }
 
 module "eks_workers" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.19.0"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=yori-cluster-security-group"
   create_resources = length(var.autoscaling_group_configurations) > 0
 
   cluster_name                      = var.cluster_name
-  vpc_id                            = var.vpc_id
   autoscaling_group_configurations  = var.autoscaling_group_configurations
   include_autoscaler_discovery_tags = var.autoscaling_group_include_autoscaler_discovery_tags
-
-  eks_master_security_group_id = module.eks_cluster.eks_master_security_group_id
 
   cluster_instance_ami              = var.cluster_instance_ami
   cluster_instance_type             = var.cluster_instance_type
