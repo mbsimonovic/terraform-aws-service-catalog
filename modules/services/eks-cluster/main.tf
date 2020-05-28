@@ -82,7 +82,10 @@ module "eks_workers" {
   source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=yori-cluster-security-group"
   create_resources = length(var.autoscaling_group_configurations) > 0
 
-  cluster_name                      = var.cluster_name
+  # Use the output from control plane module as the cluster name to ensure the module only looks up the information
+  # after the cluster is provisioned.
+  cluster_name = module.eks_cluster.eks_cluster_name
+
   autoscaling_group_configurations  = var.autoscaling_group_configurations
   include_autoscaler_discovery_tags = var.autoscaling_group_include_autoscaler_discovery_tags
 
