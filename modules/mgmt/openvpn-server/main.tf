@@ -173,7 +173,7 @@ data "aws_route53_zone" "selected" {
   count = var.domain_name != null ? 1 : 0
   name  = var.domain_name
 
-  tags = var.hosted_zone_tags != null ? var.hosted_zone_tags : {}
+  tags = var.base_domain_name_tags != null ? var.base_domain_name_tags : {}
 
   private_zone = false
 }

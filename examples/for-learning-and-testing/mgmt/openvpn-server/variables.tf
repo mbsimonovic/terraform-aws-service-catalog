@@ -70,12 +70,6 @@ variable "domain_name" {
   default     = null
 }
 
-variable "hosted_zone_tags" {
-  description = "An optional set of tags you can pass in for matching purposes if you have multiple hosted zones with the same name. See: https://www.terraform.io/docs/providers/aws/d/route53_zone.html#argument-reference specifically tags for more information."
-  type        = map(string)
-  default     = {}
-}
-
 variable "base_domain_name_tags" {
   description = "Tags to use to filter the Route 53 Hosted Zones that might match var.domain_name."
   type        = map(string)

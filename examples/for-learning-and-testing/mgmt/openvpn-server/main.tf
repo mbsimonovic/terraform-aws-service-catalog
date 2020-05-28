@@ -26,8 +26,9 @@ module "openvpn" {
   subnet_id = local.openvpn_subnet
 
   # Configure a host name for the openvpn server
-  create_route53_entry = true
-  domain_name          = var.domain_name
+  create_route53_entry  = true
+  domain_name           = var.domain_name
+  base_domain_name_tags = var.base_domain_name_tags
 
   # Back up the OpenVPN server PKI to an S3 bucket
   backup_bucket_name = var.backup_bucket_name

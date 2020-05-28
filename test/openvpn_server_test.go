@@ -2,7 +2,6 @@ package test
 
 import (
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 	"time"
@@ -22,13 +21,13 @@ func TestOpenvpnServer(t *testing.T) {
 	t.Parallel()
 
 	// Uncomment the items below to skip certain parts of the test
-	os.Setenv("TERRATEST_REGION", "us-east-2")
-	os.Setenv("SKIP_build_ami", "true")
-	os.Setenv("SKIP_deploy_terraform", "true")
-	os.Setenv("SKIP_validate", "true")
-	os.Setenv("SKIP_cleanup", "true")
-	os.Setenv("SKIP_cleanup_keypair", "true")
-	os.Setenv("SKIP_cleanup_ami", "true")
+	//os.Setenv("TERRATEST_REGION", "us-east-2")
+	//os.Setenv("SKIP_build_ami", "true")
+	//os.Setenv("SKIP_deploy_terraform", "true")
+	//os.Setenv("SKIP_validate", "true")
+	//os.Setenv("SKIP_cleanup", "true")
+	//os.Setenv("SKIP_cleanup_keypair", "true")
+	//os.Setenv("SKIP_cleanup_ami", "true")
 
 	testFolder := "../examples/for-learning-and-testing/mgmt/openvpn-server"
 
@@ -87,15 +86,14 @@ func TestOpenvpnServer(t *testing.T) {
 			TerraformDir: testFolder,
 
 			Vars: map[string]interface{}{
-				"aws_region":  awsRegion,
-				"name":        name,
-				"ami_id":      amiId,
-				"domain_name": "gruntwork.in",
-				//"base_domain_name_tags": domainNameTagsForTest,
-				"hosted_zone_tags":   domainNameTagsForTest,
-				"keypair_name":       awsKeyPair.Name,
-				"backup_bucket_name": s3BucketName,
-				"instance_type":      "c5.large",
+				"aws_region":            awsRegion,
+				"name":                  name,
+				"ami_id":                amiId,
+				"domain_name":           "gruntwork.in",
+				"base_domain_name_tags": domainNameTagsForTest,
+				"keypair_name":          awsKeyPair.Name,
+				"backup_bucket_name":    s3BucketName,
+				"instance_type":         "c5.large",
 			},
 		}
 
