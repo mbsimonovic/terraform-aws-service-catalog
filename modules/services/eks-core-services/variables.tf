@@ -345,3 +345,21 @@ variable "autoscaler_down_delay_after_add" {
   type        = string
   default     = "10m"
 }
+
+variable "service_dns" {
+  description = "??"
+  # key is service name
+  type = map(object({
+    target_dns  = string
+    target_port = number
+    namespace   = string
+  }))
+
+  default = {}
+}
+
+variable "kubernetes_namespace" {
+  description = "Kubernetes namespace for service discovery"
+  type        = string
+  default     = ""
+}

@@ -195,3 +195,33 @@ locals {
     ),
   )
 }
+
+//  service_dns = {
+//    "gruntwork-website" = {
+//      target_dns = "gruntwork.io"
+//      target_port = "80"
+//    }
+//  }
+//  kubernetes_namespace = "prod"
+
+# ---------------------------------------------------------------------------------------------------------------------
+# SET UP KUBERNETES SERVICE FOR SERVICE DISCOVERY
+# ---------------------------------------------------------------------------------------------------------------------
+
+resource "kubernetes_service" "testing" {
+  for_each = var.service_dns
+
+  metadata {
+    name      = each.key
+    namespace = each.value.namespace
+  }
+
+  spec {
+    type          = "ExternalName"
+    external_name = each.value.target_dns
+
+    port {
+      port = each.value.target_port
+    }
+  }
+}
