@@ -198,12 +198,6 @@ variable "domain_name" {
   default     = null
 }
 
-variable "hosted_zone_id" {
-  description = "The ID of the Route 53 Hosted Zone in which to create a DNS A record for the OpenVPN server. Required if domain_name is provided."
-  type        = string
-  default     = null
-}
-
 variable "alarms_sns_topic_arn" {
   description = "The ARNs of SNS topics where CloudWatch alarms (e.g., for CPU, memory, and disk space usage) should send notifications."
   type        = list(string)
