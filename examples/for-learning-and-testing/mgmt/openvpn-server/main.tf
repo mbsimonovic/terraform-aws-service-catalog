@@ -27,7 +27,6 @@ module "openvpn" {
 
   # Configure a host name for the openvpn server
   create_route53_entry = true
-  hosted_zone_id       = data.aws_route53_zone.zone.id
   domain_name          = var.domain_name
 
   # Back up the OpenVPN server PKI to an S3 bucket
