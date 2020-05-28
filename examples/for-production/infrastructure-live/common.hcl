@@ -20,6 +20,9 @@ locals {
     prod   = "refarch-sbox-prod-gruntwork.com"
   }
 
+  # Prefix resources with this name 
+  name_prefix = "gw-ra-service-catalog"
+
   # Send all CloudTrail logs from all child accounts to this S3 bucket
   cloudtrail_s3_bucket_name = "ref-arch-lite-security-logs"
 
