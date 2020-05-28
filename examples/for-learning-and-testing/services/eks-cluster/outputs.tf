@@ -1,11 +1,11 @@
 output "private_subnet_ids" {
   description = "The list of IDs of private subnets that can be used for Fargate."
-  value       = module.vpc_app.private_app_subnet_ids
+  value       = module.vpc.private_app_subnet_ids
 }
 
 output "eks_cluster_vpc_id" {
   description = "The ID of the VPC where the EKS cluster is deployed."
-  value       = module.vpc_app.vpc_id
+  value       = module.vpc.vpc_id
 }
 
 output "eks_cluster_arn" {

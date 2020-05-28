@@ -21,15 +21,15 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "vpc" {
-  source = "git::git@github.com:gruntwork-io/module-vpc.git//modules/vpc-app?ref=v0.8.2"
+  source = "git::git@github.com:gruntwork-io/module-vpc.git//modules/vpc-app?ref=v0.8.7"
 
   vpc_name   = var.vpc_name
   aws_region = var.aws_region
   tenancy    = var.tenancy
 
   # The number of NAT Gateways to launch for this VPC. For production VPCs, a NAT Gateway should be placed in each
-  # Availability Zone (so likely 3 total), whereas for non-prod VPCs, just one Availability Zone (and hence 1 NAT
-  # Gateway) will suffice. Warning: You must have at least this number of Elastic IP's to spare. The default AWS limit
+  # Availability Zone, whereas for non-production VPCs, just one Availability Zone (and hence 1 NAT
+  # Gateway) will suffice. Warning: You must have at least this number of Elastic IP addresses to spare. The default AWS limit
   # is 5 per region, but you can request more.
   num_nat_gateways = var.num_nat_gateways
 
@@ -57,9 +57,9 @@ module "vpc" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# CREATE THE VPC PEERING CONNECTION FROM MGMT TO THIS VPC
-# Although VPCs are normally isolated from each other, this allows DevOps tools (e.g. the bastion host, Jenkins)
-# limited access to this VPC.
+# OPTIONAL VPC PEERING CONNECTIONS
+# Although VPCs are normally isolated from each other, they can be peered to allow connectivity between VPC networks
+# in the same or different AWS accounts.
 # ---------------------------------------------------------------------------------------------------------------------
 
 locals {
@@ -70,8 +70,9 @@ locals {
   )
 }
 
-module "mgmt_vpc_peering_connection" {
-  source = "git::git@github.com:gruntwork-io/module-vpc.git//modules/vpc-peering?ref=v0.8.2"
+module "vpc_peering_connection" {
+  source           = "git::git@github.com:gruntwork-io/module-vpc.git//modules/vpc-peering?ref=optional-vpc-peering"
+  create_resources = var.create_peering_connection
 
   aws_account_id = data.aws_caller_identity.current.account_id
 
@@ -91,27 +92,28 @@ module "mgmt_vpc_peering_connection" {
 data "aws_caller_identity" "current" {}
 
 # ---------------------------------------------------------------------------------------------------------------------
-# CREATE DNS FORWARDER BETWEEN MGMT VPC AND APP VPC
+# OPTIONALL CREATE DNS FORWARDER BETWEEN PEERED VPCs
+# Set up Route 53 Resolvers so that private hosted zones can be resolved between peered VPCs.
 # Note: the DNS forwarders (both outbound and inbound) deploy into the public subnets. This means that they are both
 # publicly addressable. This is due to restrictions on the network ACLs blocking the functionality of the DNS forwarder.
-# Note that access to the endpoints are protected by security group rules that prevent network access to these endpoint.
+# Access to the endpoints are protected by security group rules that prevent network access to these endpoint.
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "dns_mgmt_to_app" {
-  source           = "git::git@github.com:gruntwork-io/module-vpc.git//modules/vpc-dns-forwarder?ref=v0.8.2"
+  source           = "git::git@github.com:gruntwork-io/module-vpc.git//modules/vpc-dns-forwarder?ref=v0.8.7"
   create_resources = var.create_dns_forwarder
 
   origin_vpc_id                                   = var.origin_vpc_id
   origin_vpc_name                                 = var.origin_vpc_name
-  origin_vpc_route53_resolver_primary_subnet_id   = element(var.origin_vpc_public_subnet_ids, 0)
-  origin_vpc_route53_resolver_secondary_subnet_id = element(var.origin_vpc_public_subnet_ids, 1)
+  origin_vpc_route53_resolver_primary_subnet_id   = var.create_dns_forwarder ? var.origin_vpc_public_subnet_ids[0] : null
+  origin_vpc_route53_resolver_secondary_subnet_id = var.create_dns_forwarder ? var.origin_vpc_public_subnet_ids[1] : null
 
   destination_vpc_id                                   = module.vpc.vpc_id
   destination_vpc_name                                 = module.vpc.vpc_name
-  destination_vpc_route53_resolver_primary_subnet_id   = element(module.vpc.public_subnet_ids, 0)
-  destination_vpc_route53_resolver_secondary_subnet_id = element(module.vpc.public_subnet_ids, 1)
+  destination_vpc_route53_resolver_primary_subnet_id   = var.create_dns_forwarder ? module.vpc.public_subnet_ids[0] : null
+  destination_vpc_route53_resolver_secondary_subnet_id = var.create_dns_forwarder ? module.vpc.public_subnet_ids[1] : null
 
-  name_prefix = "${var.origin_vpc_name}-to-${module.vpc.vpc_name}-"
+  name_prefix = var.create_dns_forwarder ? "${var.origin_vpc_name}-to-${module.vpc.vpc_name}-" : null
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -119,7 +121,7 @@ module "dns_mgmt_to_app" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "vpc_tags" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-vpc-tags?ref=v0.19.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-vpc-tags?ref=v0.19.9"
 
   eks_cluster_names = var.eks_cluster_names
 }
