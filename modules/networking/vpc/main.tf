@@ -21,7 +21,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "vpc" {
-  source = "git::git@github.com:gruntwork-io/module-vpc.git//modules/vpc-app?ref=v0.8.7"
+  source = "git::git@github.com:gruntwork-io/module-vpc.git//modules/vpc-app?ref=v0.8.8"
 
   vpc_name   = var.vpc_name
   aws_region = var.aws_region
@@ -71,7 +71,7 @@ locals {
 }
 
 module "vpc_peering_connection" {
-  source           = "git::git@github.com:gruntwork-io/module-vpc.git//modules/vpc-peering?ref=optional-vpc-peering"
+  source           = "git::git@github.com:gruntwork-io/module-vpc.git//modules/vpc-peering?ref=v0.8.8"
   create_resources = var.create_peering_connection
 
   aws_account_id = data.aws_caller_identity.current.account_id
@@ -92,7 +92,7 @@ module "vpc_peering_connection" {
 data "aws_caller_identity" "current" {}
 
 # ---------------------------------------------------------------------------------------------------------------------
-# OPTIONALL CREATE DNS FORWARDER BETWEEN PEERED VPCs
+# OPTIONALLY CREATE DNS FORWARDER BETWEEN PEERED VPCs
 # Set up Route 53 Resolvers so that private hosted zones can be resolved between peered VPCs.
 # Note: the DNS forwarders (both outbound and inbound) deploy into the public subnets. This means that they are both
 # publicly addressable. This is due to restrictions on the network ACLs blocking the functionality of the DNS forwarder.
@@ -100,7 +100,7 @@ data "aws_caller_identity" "current" {}
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "dns_mgmt_to_app" {
-  source           = "git::git@github.com:gruntwork-io/module-vpc.git//modules/vpc-dns-forwarder?ref=v0.8.7"
+  source           = "git::git@github.com:gruntwork-io/module-vpc.git//modules/vpc-dns-forwarder?ref=v0.8.8"
   create_resources = var.create_dns_forwarder
 
   origin_vpc_id                                   = var.origin_vpc_id
