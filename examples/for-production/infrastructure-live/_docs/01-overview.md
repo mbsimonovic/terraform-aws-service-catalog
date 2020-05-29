@@ -104,11 +104,10 @@ The only exceptions are load balancers and the [OpenVPN server](#openvpn-server)
 
 Each VPC is also configured with [VPC flow logs](https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html), which
 can be useful for monitoring and auditing network traffic across the VPC. Each VPC publishes its flow logs to CloudWatch
-Logs, under the log group `VPC_NAME-vpc-flow-logs`, where the `VPC_NAME` is an input variable to the `vpc-mgmt` and
-`vpc-app` modules.
+Logs, under the log group `VPC_NAME-vpc-flow-logs`, where the `VPC_NAME` is an input variable to the `vpc` module.
 
-To learn more about VPCs and subnets, check out the Gruntwork [vpc-app 
-service](https://github.com/gruntwork-io/aws-service-catalog/tree/master/modules/networking/vpc-app).
+To learn more about VPCs and subnets, check out the Gruntwork [vpc
+service](https://github.com/gruntwork-io/aws-service-catalog/tree/master/modules/networking/vpc).
 
 
 

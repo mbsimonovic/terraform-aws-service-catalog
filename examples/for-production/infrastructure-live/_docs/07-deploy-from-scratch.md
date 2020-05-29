@@ -47,7 +47,7 @@ using [Packer](https://www.packer.io/). To build these AMIs:
   VPC of the account and region that owns the AMI. This selection of the VPC and Subnet is done using the tags 
   `gruntwork.io/allow-packer=true`. You need to ensure a VPC with a Public Subnet, created with the tag exists in the 
   target region of the AMI account owner. The easiest way to do this would be to deploy a VPC using the 
-  `networking/vpc-app` service in the target region. This service will properly tag the public subnets and the VPC for 
+  `networking/vpc` service in the target region. This service will properly tag the public subnets and the VPC for 
   use with packer.
     
 1. **Run Packer**. Follow the [How to build machine images using Packer templates from the Service 
