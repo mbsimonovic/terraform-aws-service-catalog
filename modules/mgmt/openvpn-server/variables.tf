@@ -198,10 +198,10 @@ variable "domain_name" {
   default     = null
 }
 
-variable "hosted_zone_id" {
-  description = "The ID of the Route 53 Hosted Zone in which to create a DNS A record for the OpenVPN server. Required if domain_name is provided."
-  type        = string
-  default     = null
+variable "base_domain_name_tags" {
+  description = "Tags to use to filter the Route 53 Hosted Zones that might match var.domain_name."
+  type        = map(string)
+  default     = {}
 }
 
 variable "alarms_sns_topic_arn" {
