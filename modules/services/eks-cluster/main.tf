@@ -184,7 +184,8 @@ module "eks_k8s_role_mapping" {
   iam_user_to_rbac_group_mappings = var.iam_user_to_rbac_group_mapping
 
   config_map_labels = {
-    eks-cluster = module.eks_cluster.eks_cluster_name
+    eks-cluster                        = module.eks_cluster.eks_cluster_name
+    delete-original-aws-auth-action-id = var.schedule_control_plane_services_on_fargate ? null_resource.delete_autocreated_aws_auth[0].id : ""
   }
 }
 
