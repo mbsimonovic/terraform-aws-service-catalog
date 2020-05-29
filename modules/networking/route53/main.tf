@@ -71,7 +71,19 @@ resource "aws_route53_zone" "public_zones" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# CREATE PUBLIC HOSTED ZONE(S)
+# LOOK UP THE ZONE IDS FOR ANY EXISTING PUBLIC ZONES
+# ---------------------------------------------------------------------------------------------------------------------
+
+data "aws_route53_zone" "selected" {
+  for_each = local.existing_zones_to_lookup
+
+  tags = each.value.base_domain_name_tags != null ? each.value.base_domain_name_tags : {}
+
+  private_zone = false
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# CREATE AMAZON CERTIFICATE MANAGER (ACM) TLS CERTIFICATES
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "acm-tls-certificates" {
@@ -116,9 +128,14 @@ locals {
       create_verification_record = true
       verify_certificate         = true
       # If hosted_zone_id is provided by the operator, it will be used as the target zone for ACM DNS validation records
-      hosted_zone_id = var.public_zones[domain].zone_id
+      hosted_zone_id = zone.existing ? data.aws_route53_zone.selected[domain].zone_id : var.public_zones[domain].zone_id
       # Only issue wildcard certificates for those zones 
       # where they were requested 
     } if zone.provision_wildcard_certificate
+  }
+
+  existing_zones_to_lookup = {
+    for domain, zone in var.public_zones :
+    domain => zone if zone.existing
   }
 }
