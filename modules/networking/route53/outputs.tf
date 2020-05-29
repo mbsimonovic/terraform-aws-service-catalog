@@ -31,6 +31,6 @@ output "public_hosted_zones_name_servers" {
 output "public_hosted_zone_map" {
   description = "A map of domains to their zone IDs. IDs are user inputs, when supplied, and otherwise resource IDs"
   value = { for domain, zone in var.public_zones :
-    domain => zone.zone_id != null ? zone.zone_id : aws_route53_zone.public_zones[domain].id
+    domain => zone.created_outside_terraform ? data.aws_route53_zone.selected[domain].zone_id : aws_route53_zone.public_zones[domain].id
   }
 }

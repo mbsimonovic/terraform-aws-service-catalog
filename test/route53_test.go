@@ -15,7 +15,6 @@ import (
 
 // This is a Hosted Zone in the Gruntwork Phoenix DevOps AWS account
 const DefaultDomainNameForTest = "gruntwork.in"
-const DefaultHostedZoneIdForTest = "Z2AJ7S3R6G9UYJ"
 
 func TestRoute53(t *testing.T) {
 	t.Parallel()
@@ -34,7 +33,7 @@ func TestRoute53(t *testing.T) {
 		terraform.Destroy(t, terraformOptions)
 	})
 
-	//TODO: Figure out why certain regiosn don't have default VPCs
+	//TODO: Figure out why certain regions don't have default VPCs
 	// For the time being, hardcode the region to us-west-1
 	test_structure.RunTestStage(t, "setup", func() {
 		awsRegion := aws.GetRandomRegion(t, []string{"us-west-1"}, nil)
@@ -53,7 +52,7 @@ func TestRoute53(t *testing.T) {
 					"Application": "redis",
 					"Env":         "dev",
 				},
-				"force_destroy": "true",
+				"force_destroy": true,
 			},
 		}
 
@@ -65,8 +64,10 @@ func TestRoute53(t *testing.T) {
 					"Application": "redis",
 					"Env":         "dev",
 				},
-				"force_destroy":                  "true",
-				"provision_wildcard_certificate": "false",
+				"force_destroy":                  true,
+				"provision_wildcard_certificate": false,
+				"created_outside_terraform":      false,
+				"base_domain_name_tags":          map[string]interface{}{},
 			},
 		}
 
@@ -138,6 +139,8 @@ func TestRoute53ProvisionWildcardCertPlan(t *testing.T) {
 				"force_destroy": true,
 
 				"provision_wildcard_certificate": true,
+				"created_outside_terraform":      false,
+				"base_domain_name_tags":          map[string]interface{}{"original": "true"},
 			},
 		}
 
