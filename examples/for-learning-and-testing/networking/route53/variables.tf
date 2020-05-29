@@ -34,10 +34,10 @@ variable "public_zones" {
     force_destroy = bool
     # (Optional) If set to true, automatically order and verify a wildcard certificate via ACM for this domain
     provision_wildcard_certificate = bool
-    # If the zone already exists, and you just want to provision a wildcard certificate for it, you can set existing to true, in which case the 
+    # If the zone already exists, and you just want to provision a wildcard certificate for it, you can set created_outside_terraform to true, in which case the 
     # existing zone will have its ID looked up programmatically and DNS validation records required for certificate validation will be written 
     # to it 
-    existing = bool
+    created_outside_terraform = bool
     # Tags to use to filter the Route 53 Hosted Zones that might match the hosted zone's name (use if you have multiple public hosted zones with the same name)
     base_domain_name_tags = map(string)
   }))
@@ -51,17 +51,13 @@ Example inputs:
 
 public_zones = {
     "example.com" = {
-        # Setting the zone_id specifies that this is an existing zone, which will often be the case
-        # if, for example, you register a domain via Route53. In this case, AWS will automatically create 
-        # a public hosted zone for your domain, so you only need to supply its ID
-        zone_id = null
         comment = "You can add arbitrary text here"
         tags = {
             Foo = "bar" 
         }
         force_destroy = true 
         provision_wildcard_certificate = true
-        existing = true 
+        created_outside_terraform = true 
         base_domain_name_tags = {
             original = true 
         }

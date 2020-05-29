@@ -52,7 +52,7 @@ func TestRoute53(t *testing.T) {
 					"Application": "redis",
 					"Env":         "dev",
 				},
-				"force_destroy": "true",
+				"force_destroy": true,
 			},
 		}
 
@@ -64,9 +64,9 @@ func TestRoute53(t *testing.T) {
 					"Application": "redis",
 					"Env":         "dev",
 				},
-				"force_destroy":                  "true",
-				"provision_wildcard_certificate": "false",
-				"existing":                       "false",
+				"force_destroy":                  true,
+				"provision_wildcard_certificate": false,
+				"created_outside_terraform":      false,
 				"base_domain_name_tags":          map[string]interface{}{},
 			},
 		}
@@ -139,7 +139,7 @@ func TestRoute53ProvisionWildcardCertPlan(t *testing.T) {
 				"force_destroy": true,
 
 				"provision_wildcard_certificate": true,
-				"existing":                       false,
+				"created_outside_terraform":      false,
 				"base_domain_name_tags":          map[string]interface{}{"original": "true"},
 			},
 		}

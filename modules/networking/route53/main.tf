@@ -46,14 +46,14 @@ resource "aws_route53_zone" "private_zones" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_route53_zone" "public_zones" {
-  # We need only create new zones when the existing attribute is false. If existing is set to true, it means a that a
+  # We need only create new zones when the created_outside_terraform attribute is false. If created_outside_terraform is set to true, it means a that a
   # public hosted zone with this name already exists, as is often the case if the target AWS account registered a domain 
   # via route 53 which automatically creates a new public hosted zone for the domain. In these cases, we'll dynamically look up
   # the existing zone's ID and pass it through to acm certificates modules so that it knows the correct hosted zone to write DNS 
   # validation records to which are required by ACM to complete certificate validation and issuance 
   for_each = {
     for domain, zone in var.public_zones :
-    domain => zone if ! zone.existing
+    domain => zone if ! zone.created_outside_terraform
   }
   # Normalize zone name - whether the user added a 
   # trailing dot or not, ensure the trailing dot is present
@@ -130,7 +130,7 @@ locals {
       create_verification_record = true
       verify_certificate         = true
       # If the existing attribute is set to true, the zone ID will be looked up dynamically 
-      hosted_zone_id = zone.existing ? data.aws_route53_zone.selected[domain].zone_id : ""
+      hosted_zone_id = zone.created_outside_terraform ? data.aws_route53_zone.selected[domain].zone_id : ""
       # Only issue wildcard certificates for those zones 
       # where they were requested 
     } if zone.provision_wildcard_certificate
@@ -138,6 +138,6 @@ locals {
 
   existing_zones_to_lookup = {
     for domain, zone in var.public_zones :
-    domain => zone if zone.existing
+    domain => zone if zone.created_outside_terraform
   }
 }
