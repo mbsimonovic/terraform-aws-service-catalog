@@ -46,14 +46,14 @@ resource "aws_route53_zone" "private_zones" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_route53_zone" "public_zones" {
-  # We need only create new zones when a zone_id was not specified. The presence of a zone_id indicates a route 53 
-  # public hosted zone already exists, as is often the case if the target AWS account registered a domain via route 53
-  # which automatically creates a new public hosted zone for the domain. In these cases, we're just passing the zone_id 
-  # through to acm certificates modules so that it knows the correct hosted zone to write DNS validation records to which 
-  # are required by ACM to complete certificate validation and issuance 
+  # We need only create new zones when the existing attribute is false. If existing is set to true, it means a that a
+  # public hosted zone with this name already exists, as is often the case if the target AWS account registered a domain 
+  # via route 53 which automatically creates a new public hosted zone for the domain. In these cases, we'll dynamically look up
+  # the existing zone's ID and pass it through to acm certificates modules so that it knows the correct hosted zone to write DNS 
+  # validation records to which are required by ACM to complete certificate validation and issuance 
   for_each = {
     for domain, zone in var.public_zones :
-    domain => zone if zone.zone_id == null
+    domain => zone if ! zone.existing
   }
   # Normalize zone name - whether the user added a 
   # trailing dot or not, ensure the trailing dot is present
