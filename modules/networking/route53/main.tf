@@ -129,7 +129,7 @@ locals {
       subject_alternative_names  = []
       create_verification_record = true
       verify_certificate         = true
-      # If the existing attribute is set to true, the zone ID will be looked up dynamically 
+      # If the created_outside_terraform attribute is set to true, the zone ID will be looked up dynamically 
       hosted_zone_id = zone.created_outside_terraform ? data.aws_route53_zone.selected[domain].zone_id : ""
       # Only issue wildcard certificates for those zones 
       # where they were requested 
