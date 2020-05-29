@@ -129,8 +129,8 @@ locals {
       subject_alternative_names  = []
       create_verification_record = true
       verify_certificate         = true
-      # If hosted_zone_id is provided by the operator, it will be used as the target zone for ACM DNS validation records
-      hosted_zone_id = zone.existing ? data.aws_route53_zone.selected[domain].zone_id : var.public_zones[domain].zone_id
+      # If the existing attribute is set to true, the zone ID will be looked up dynamically 
+      hosted_zone_id = zone.existing ? data.aws_route53_zone.selected[domain].zone_id : ""
       # Only issue wildcard certificates for those zones 
       # where they were requested 
     } if zone.provision_wildcard_certificate
