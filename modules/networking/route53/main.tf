@@ -77,6 +77,8 @@ resource "aws_route53_zone" "public_zones" {
 data "aws_route53_zone" "selected" {
   for_each = local.existing_zones_to_lookup
 
+  name = each.key
+
   tags = each.value.base_domain_name_tags != null ? each.value.base_domain_name_tags : {}
 
   private_zone = false
