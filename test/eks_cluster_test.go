@@ -3,6 +3,7 @@ package test
 import (
 	"fmt"
 	"io/ioutil"
+	"net"
 	"os"
 	"strings"
 	"testing"
@@ -49,6 +50,7 @@ func TestEksCluster(t *testing.T) {
 	//os.Setenv("SKIP_deploy_terraform", "true")
 	//os.Setenv("SKIP_validate_cluster", "true")
 	//os.Setenv("SKIP_deploy_core_services", "true")
+	//os.Setenv("SKIP_validate_external_dns", "true")
 	//os.Setenv("SKIP_deploy_nginx", "true")
 	//os.Setenv("SKIP_validate_nginx", "true")
 	//os.Setenv("SKIP_cleanup_nginx", "true")
@@ -73,6 +75,9 @@ func TestEksCluster(t *testing.T) {
 	})
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
+		kubectlOptions := test_structure.LoadKubectlOptions(t, testFolder)
+		os.Remove(kubectlOptions.ConfigPath)
+
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
 		terraform.Destroy(t, terraformOptions)
 	})
@@ -96,6 +101,10 @@ func TestEksCluster(t *testing.T) {
 
 	test_structure.RunTestStage(t, "deploy_core_services", func() {
 		deployCoreServices(t, testFolder, coreServicesTestFolder)
+	})
+
+	test_structure.RunTestStage(t, "validate_external_dns", func() {
+		validateExternalDNS(t, testFolder)
 	})
 
 	defer test_structure.RunTestStage(t, "cleanup_nginx", func() {
@@ -161,8 +170,8 @@ func validateEKSCluster(t *testing.T, testFolder string) {
 	eksClusterArn := terraform.OutputRequired(t, terraformOptions, "eks_cluster_arn")
 
 	tmpKubeConfigPath := configureKubectlForEKSCluster(t, eksClusterArn)
-	defer os.Remove(tmpKubeConfigPath)
 	kubectlOptions := k8s.NewKubectlOptions("", tmpKubeConfigPath, "")
+	test_structure.SaveKubectlOptions(t, testFolder, kubectlOptions)
 
 	kubeWaitUntilNumNodes(t, kubectlOptions, expectedEksNodeCount, 30, 10*time.Second)
 	k8s.WaitUntilAllNodesReady(t, kubectlOptions, 30, 10*time.Second)
@@ -187,9 +196,52 @@ func deployCoreServices(t *testing.T, eksClusterTestFolder string, coreServicesT
 	coreServicesOptions.Vars["eks_iam_role_for_service_accounts_config"] = eksClusterIRSAConfig
 	coreServicesOptions.Vars["external_dns_route53_hosted_zone_tag_filters"] = defaultDomainTagFilterForTest
 	coreServicesOptions.Vars["pod_execution_iam_role_arn"] = eksClusterFargateRole
+	coreServicesOptions.Vars["service_dns_mappings"] = map[string]interface{}{
+		"whatismyip": map[string]interface{}{
+			"target_dns":  "checkip.amazonaws.com",
+			"target_port": 80,
+			"namespace":   "default",
+		},
+	}
 	test_structure.SaveTerraformOptions(t, coreServicesTestFolder, coreServicesOptions)
 
 	terraform.InitAndApply(t, coreServicesOptions)
+}
+
+func validateExternalDNS(t *testing.T, testFolder string) {
+	kubectlOptions := test_structure.LoadKubectlOptions(t, testFolder)
+
+	namespaceName := strings.ToLower(random.UniqueId())
+
+	defer k8s.DeleteNamespace(t, kubectlOptions, namespaceName)
+	k8s.CreateNamespace(t, kubectlOptions, namespaceName)
+	kubectlOptions.Namespace = namespaceName
+
+	out, err := k8s.RunKubectlAndGetOutputE(
+		t,
+		kubectlOptions,
+		"run",
+		"--attach",
+		"--quiet",
+		"--rm",
+		"--restart=Never",
+		"curl",
+		"--image",
+		"curlimages/curl",
+		"--",
+		"-s",
+		// We have to set the host to checkip.amazonaws.com in the header, because the endpoint only works if the Host
+		// header is set to the server. Otherwise, it returns a generic landing page for the lighthttpd server.
+		"-H", "Host: checkip.amazonaws.com",
+		"whatismyip.default.svc.cluster.local",
+	)
+	require.NoError(t, err)
+
+	// Output can sometimes contain an error message if kubectl attempts to connect to pod too early, so we always
+	// get the last line of the output.
+	outLines := strings.Split(out, "\n")
+	maybeIP := outLines[len(outLines)-1]
+	require.NotNil(t, net.ParseIP(maybeIP))
 }
 
 func deployNginx(t *testing.T, eksClusterTestFolder string, k8sServiceTestFolder string) {

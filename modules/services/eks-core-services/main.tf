@@ -209,7 +209,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "kubernetes_service" "testing" {
-  for_each = var.external_dns_mappings
+  for_each = var.service_dns_mappings
 
   metadata {
     name      = each.key

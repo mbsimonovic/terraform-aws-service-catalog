@@ -346,9 +346,9 @@ variable "autoscaler_down_delay_after_add" {
   default     = "10m"
 }
 
-# External DNS mappings
+# Mappings for external domain names
 
-variable "external_dns_mappings" {
+variable "service_dns_mappings" {
   description = "Configure Kubernetes Services to lookup external DNS records. This can be useful to bind friendly internal service names to domains (e.g. the RDS database endpoint)."
   # Key is service name
   type = map(object({

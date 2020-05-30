@@ -41,13 +41,5 @@ module "eks_core_services" {
   autoscaler_scale_down_unneeded_time = "2m"
   autoscaler_down_delay_after_add     = "2m"
 
-  service_dns = {
-    "gruntwork-website" = {
-      target_dns = "gruntwork.io"
-      target_port = "80"
-      // namespace cannot be empty
-      namespace = "kube-system"
-    }
-    // gruntwork-website.kube-system.svc.cluster-domain.example
-  }
+  service_dns_mappings = var.service_dns_mappings
 }
