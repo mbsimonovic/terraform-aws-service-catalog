@@ -77,8 +77,6 @@ inputs = {
   # TODO: Set up an SNS topic for alarms and use a dependency to pass it in
   # alarms_sns_topic_arn   = []
 
-  # The primary hosted zone ID for the environment 
-  hosted_zone_id = values(dependency.route53_public.public_hosted_zone_map)[0]
   # The primary domain name for the environment 
-  domain_name = keys(dependency.route53_public.public_hosted_zone_map)[0]
+  domain_name = local.common_vars.locals.domain_names.dev
 }
