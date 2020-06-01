@@ -30,13 +30,27 @@ module "bastion" {
   vpc_id    = var.vpc_id
   subnet_id = var.subnet_id
 
-  dns_zone_id = var.create_dns_record ? var.hosted_zone_id : ""
+  dns_zone_id = var.create_dns_record ? data.aws_route53_zone.selected[1].zone_id : ""
   dns_name    = var.domain_name
   dns_type    = "A"
   dns_ttl     = "300"
 
   keypair_name             = var.keypair_name
   allow_ssh_from_cidr_list = var.allow_ssh_from_cidr_list
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# LOOK UP ZONE ID BY DOMAIN NAME
+# ---------------------------------------------------------------------------------------------------------------------
+
+data "aws_route53_zone" "selected" {
+  count = var.create_dns_record ? 1 : 0
+
+  name = var.domain_name
+
+  tags = var.base_domain_name_tags != null ? var.base_domain_name_tags : {}
+
+  private_zone = false
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -91,3 +105,5 @@ module "ec2_baseline" {
   alarms_sns_topic_arn                = var.alarms_sns_topic_arn
   cloud_init_parts                    = local.cloud_init_parts
 }
+
+
