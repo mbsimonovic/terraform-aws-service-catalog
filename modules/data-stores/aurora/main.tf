@@ -13,8 +13,7 @@ terraform {
   required_version = "~> 0.12.6"
 
   required_providers {
-    aws        = "~> 2.6"
-    kubernetes = "~> 1.10"
+    aws = "~> 2.6"
   }
 }
 
@@ -249,26 +248,4 @@ module "metric_widget_aurora_write_latency" {
   metrics = [
     ["AWS/RDS", "WriteLatency", "DBClusterIdentifier", var.name]
   ]
-}
-
-
-# ---------------------------------------------------------------------------------------------------------------------
-# SET UP KUBERNETES SERVICE FOR SERVICE DISCOVERY
-# ---------------------------------------------------------------------------------------------------------------------
-
-resource "kubernetes_service" "aurora" {
-  count = var.create_kubernetes_service ? 1 : 0
-
-  metadata {
-    name      = var.name
-    namespace = var.kubernetes_namespace
-  }
-
-  spec {
-    type          = "ExternalName"
-    external_name = module.database.cluster_endpoint
-    port {
-      port = var.port
-    }
-  }
 }
