@@ -38,7 +38,7 @@ inputs = {
   # your resulting Amazon Certificate Manager (ACM) certificate will be issued for *.example.com and protect any 
   # subdomain at the top level, such as mail.example.com and www.example.com
   public_zones = {
-    "${local.dev_account_primary_domain_name}" = {
+    (local.dev_account_primary_domain_name) = {
       comment                        = "HostedZone created by Route53 Registrar"
       tags                           = {}
       force_destroy                  = false
