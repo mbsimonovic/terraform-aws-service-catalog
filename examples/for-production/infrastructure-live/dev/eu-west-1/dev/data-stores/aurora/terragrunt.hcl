@@ -33,34 +33,6 @@ dependency "vpc" {
   mock_outputs_allowed_terraform_commands = ["validate"]
 }
 
-dependency "eks_cluster" {
-  config_path = "../../services/eks-cluster"
-
-  mock_outputs = {
-    eks_cluster_name = "eks-cluster"
-  }
-  mock_outputs_allowed_terraform_commands = ["validate"]
-}
-
-dependency "eks_applications_namespace" {
-  config_path = "../../services/eks-applications-namespace"
-
-  mock_outputs = {
-    namespace_name = "applications"
-  }
-  mock_outputs_allowed_terraform_commands = ["validate"]
-}
-
-# Generate a Kubernetes provider configuration for authenticating against the EKS cluster.
-generate "k8s_helm" {
-  path      = "k8s_helm_provider.tf"
-  if_exists = "overwrite_terragrunt"
-  contents = templatefile(
-    find_in_parent_folders("provider_k8s_helm_for_eks.template.hcl"),
-    { eks_cluster_name = dependency.eks_cluster.outputs.eks_cluster_name },
-  )
-}
-
 # Locals are named constants that are reusable within the configuration.
 locals {
   # Automatically load common variables shared across all accounts
@@ -102,8 +74,4 @@ inputs = {
   # http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.DBInstance.Modifying.html
   # Set this to true to immediately roll out the changes.
   apply_immediately = false
-
-  # Create a Kubernetes Service resource so Pods running Kubernetes can get this database's IP address via Kubernetes DNS service discovery
-  create_kubernetes_service = true
-  kubernetes_namespace      = dependency.eks_applications_namespace.outputs.namespace_name
 }

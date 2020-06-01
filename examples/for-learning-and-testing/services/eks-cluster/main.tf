@@ -4,6 +4,10 @@
 
 provider "aws" {
   region = var.aws_region
+
+  # There is a regression in autoscaling groups tags introduced in 2.64.0 that consistently cause "inconsistent final
+  # plan" errors, so we lock the version to 2.63.0 until that is resolved.
+  version = "= 2.63.0"
 }
 
 module "eks_cluster" {
@@ -21,9 +25,9 @@ module "eks_cluster" {
   cluster_instance_keypair_name = var.keypair_name
   enable_ssh_grunt              = false
 
-  vpc_id                       = module.vpc_app.vpc_id
-  control_plane_vpc_subnet_ids = module.vpc_app.private_app_subnet_ids
-  worker_vpc_subnet_ids        = module.vpc_app.private_app_subnet_ids
+  vpc_id                       = module.vpc.vpc_id
+  control_plane_vpc_subnet_ids = module.vpc.private_app_subnet_ids
+  worker_vpc_subnet_ids        = module.vpc.private_app_subnet_ids
 
   # Due to localization limitations for EKS, it is recommended to have separate ASGs per availability zones. Here we
   # deploy one ASG in one public subnet. We use public subnets so we can SSH into the node for testing.
@@ -31,7 +35,7 @@ module "eks_cluster" {
     asg = {
       min_size   = 1
       max_size   = 2
-      subnet_ids = [module.vpc_app.public_subnet_ids[0]]
+      subnet_ids = [module.vpc.public_subnet_ids[0]]
       tags       = []
     }
   }
@@ -51,8 +55,8 @@ module "eks_cluster" {
 # for outbound calls, so we create a new VPC here to accommodate.
 # ----------------------------------------------------------------------------------------------------------------------
 
-module "vpc_app" {
-  source = "../../../../modules/networking/vpc-app"
+module "vpc" {
+  source = "../../../../modules/networking/vpc"
 
   aws_region           = var.aws_region
   cidr_block           = "10.0.0.0/16"

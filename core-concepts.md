@@ -133,12 +133,12 @@ deploy Terraform code from the Service Catalog. See
 [examples/for-learning-and-testing](/examples/for-learning-and-testing) for working sample code.
 
 1. **Find a service**. Browse the `modules` folder to find a service you wish to deploy. For this tutorial, we'll use 
-   the `vpc-app` service in [modules/networking/vpc-app](/modules/networking/vpc-app) as an example.
+   the `vpc` service in [modules/networking/vpc](/modules/networking/vpc) as an example.
    
 1. **Create a Terraform configuration**. Create a Terraform configuration file, such as `main.tf`.
 
 1. **Configure the provider**. Inside of `main.tf`, configure the Terraform 
-   [providers](https://www.terraform.io/docs/providers/index.html) for your chosen service. For `vpc-app`, and for
+   [providers](https://www.terraform.io/docs/providers/index.html) for your chosen service. For `vpc`, and for
    most of the services in this Service Catalog, you'll need to configure the [AWS 
    provider](https://www.terraform.io/docs/providers/aws/index.html):
    
@@ -174,7 +174,7 @@ deploy Terraform code from the Service Catalog. See
     module "vpc" {
       # Make sure to replace <VERSION> in this URL with the latest aws-service-catalog release from
       # https://github.com/gruntwork-io/aws-service-catalog/releases
-      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc-app?ref=<VERSION>"
+      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc?ref=<VERSION>"
     
       # Fill in the arguments for this service
       aws_region       = "eu-west-1"
@@ -202,11 +202,11 @@ deploy Terraform code from the Service Catalog. See
 
     1. **Arguments**. Below the `source` URL, you’ll need to pass in the arguments specific to that service. You can 
        find all the required and optional variables defined in `variables.tf` of the service (e.g., check out 
-       the [`variables.tf` for `vpc-app`](/modules/networking/vpc-app/variables.tf)).                          
+       the [`variables.tf` for `vpc`](/modules/networking/vpc/variables.tf)).                          
 
 1. **Add outputs**. You may wish to add some output variables, perhaps in an `outputs.tf` file, that forward along
    some of the output variables from the service. You can find all the outputs defined in `outputs.tf` for the service
-   (e.g., check out [`outputs.tf` for `vpc-app`](/modules/networking/vpc-app/outputs.tf)). 
+   (e.g., check out [`outputs.tf` for `vpc`](/modules/networking/vpc/outputs.tf)). 
    
     ```hcl
     output "vpc_name" {
@@ -264,14 +264,14 @@ stage/
 prod/
  └ eu-west-1/
     └ prod/
-       └ vpc-app/
+       └ vpc/
          └ terragrunt.hcl   # child terragrunt.hcl
 ```
 
 Here's how you configure the root `terragrunt.hcl`:
 
 1. **Configure the provider**. Inside of `terragrunt.hcl`, configure the Terraform 
-   [providers](https://www.terraform.io/docs/providers/index.html) for your chosen service. For `vpc-app`, and for
+   [providers](https://www.terraform.io/docs/providers/index.html) for your chosen service. For `vpc`, and for
    most of the services in this Service Catalog, you'll need to configure the [AWS 
    provider](https://www.terraform.io/docs/providers/aws/index.html). We'll do this using a 
    [`generate`](https://terragrunt.gruntwork.io/docs/reference/config-blocks-and-attributes/#generate) block: 
@@ -316,7 +316,7 @@ Here's how you configure the root `terragrunt.hcl`:
 Now you can create child `terragrunt.hcl` files to deploy services as follows:
 
 1. **Find a service**. Browse the `modules` folder to find a service you wish to deploy. For this tutorial, we'll use 
-   the `vpc-app` service in [modules/networking/vpc-app](/modules/networking/vpc-app) as an example.
+   the `vpc` service in [modules/networking/vpc](/modules/networking/vpc) as an example.
    
 1. **Create a child Terragrunt configuration**. Create a child Terragrunt configuration file called `terragrunt.hcl`.
 
@@ -335,7 +335,7 @@ Now you can create child `terragrunt.hcl` files to deploy services as follows:
     terraform {
       # Make sure to replace <VERSION> in this URL with the latest aws-service-catalog release from
       # https://github.com/gruntwork-io/aws-service-catalog/releases
-      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc-app?ref=<VERSION>"
+      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc?ref=<VERSION>"
     }
  
     # Fill in the arguments for this service
@@ -364,7 +364,7 @@ Now you can create child `terragrunt.hcl` files to deploy services as follows:
 
     1. **Arguments**. In the `inputs` block, you’ll need to pass in the arguments specific to that service. You can 
        find all the required and optional variables defined in `variables.tf` of the service (e.g., check out 
-       the [`variables.tf` for `vpc-app`](/modules/networking/vpc-app/variables.tf)).                          
+       the [`variables.tf` for `vpc`](/modules/networking/vpc/variables.tf)).                          
 
 1. **Authenticate**. You will need to authenticate to both AWS and GitHub:
 
@@ -497,7 +497,7 @@ Now that your infrastructure is deployed, let's discuss how to make changes to i
    
     ```hcl
     module "vpc" {
-      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc-app?ref=v0.0.1"
+      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc?ref=v0.0.1"
     
       # ... (other args ommitted for readability) ...
       num_nat_gateways = 1
@@ -508,7 +508,7 @@ Now that your infrastructure is deployed, let's discuss how to make changes to i
 
     ```hcl
     module "vpc" {
-      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc-app?ref=v0.0.1"
+      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc?ref=v0.0.1"
     
       # ... (other args ommitted for readability) ...
       num_nat_gateways = 3
@@ -520,7 +520,7 @@ Now that your infrastructure is deployed, let's discuss how to make changes to i
    
     ```hcl
     module "vpc" {
-      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc-app?ref=v0.0.1"
+      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc?ref=v0.0.1"
     
       # ... (other args ommitted for readability) ...
     }    
@@ -530,7 +530,7 @@ Now that your infrastructure is deployed, let's discuss how to make changes to i
    
     ```hcl
     module "vpc" {
-      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc-app?ref=v0.0.2"
+      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc?ref=v0.0.2"
     
       # ... (other args ommitted for readability) ...
     }    
@@ -561,7 +561,7 @@ Now that your infrastructure is deployed, let's discuss how to make changes to i
    
     ```hcl
     terraform {
-      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc-app?ref=v0.0.1"
+      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc?ref=v0.0.1"
     }
  
     inputs = {
@@ -574,7 +574,7 @@ Now that your infrastructure is deployed, let's discuss how to make changes to i
 
     ```hcl
     terraform {
-      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc-app?ref=v0.0.1"
+      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc?ref=v0.0.1"
     }
  
     inputs = {
@@ -588,7 +588,7 @@ Now that your infrastructure is deployed, let's discuss how to make changes to i
    
     ```hcl
     terraform {
-      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc-app?ref=v0.0.1"
+      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc?ref=v0.0.1"
     }
     ```     
    
@@ -596,7 +596,7 @@ Now that your infrastructure is deployed, let's discuss how to make changes to i
    
     ```hcl
     terraform {
-      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc-app?ref=v0.0.2"
+      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc?ref=v0.0.2"
     } 
     ```     
    
@@ -728,16 +728,16 @@ One way to populate your Service Catalog is to extend Gruntwork Services. There 
 
 1. **(RECOMMENDED) Wrap a Gruntwork Service**. The best way to extend a Gruntwork Service is to wrap it and add your
    additional functionality on top of it. Since Gruntwork Services export the IDs of all resources they create, adding
-   new logic / functionality is easy. For example, let's say the `vpc-app` service creates a VPC more or less like
+   new logic / functionality is easy. For example, let's say the `vpc` service creates a VPC more or less like
    you want it, but you need some additional routing logic that's specific to your company. What you can do is create
-   a module in your Private Service Catalog (e.g., in `infrastructure-modules/modules/networking/vpc-app`) that wraps
-   the Gruntwork `vpc-app` service as follows:
+   a module in your Private Service Catalog (e.g., in `infrastructure-modules/modules/networking/vpc`) that wraps
+   the Gruntwork `vpc` service as follows:
    
     ```hcl
     module "vpc" {
       # Make sure to replace <VERSION> in this URL with the latest aws-service-catalog release from
       # https://github.com/gruntwork-io/aws-service-catalog/releases
-      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc-app?ref=<VERSION>"
+      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc?ref=<VERSION>"
     
       # Fill in the arguments for this service
       aws_region       = "eu-west-1"
@@ -747,18 +747,18 @@ One way to populate your Service Catalog is to extend Gruntwork Services. There 
     }
     ```
     
-    Now you can use outputs from the `vpc-app` service to add your custom routing behavior as follows:
+    Now you can use outputs from the `vpc` service to add your custom routing behavior as follows:
     
     ```hcl
     resource "aws_route" "my_custom_route" {
-      # Use an output from the vpc-app service to attach custom behavior!
+      # Use an output from the vpc service to attach custom behavior!
       route_table_id         = module.vpc.public_subnet_route_table_id
       destination_cidr_block = "10.0.4.0/18"
       gateway_id             = var.my_custom_gateway_id
     }
     ```  
 
-    You now have your own `vpc-app` service, with your custom routing logic, but most of the VPC code still lives in
+    You now have your own `vpc` service, with your custom routing logic, but most of the VPC code still lives in
     the Gruntwork Service Catalog and can be maintained by the Gruntwork team!
 
 1. **(NOT RECOMMENDED) Copy a Gruntwork Service**. Another way to extend a Gruntwork Service is to copy all of the code
@@ -830,7 +830,7 @@ Once you've created your own Service Catalog, developers at your company can dep
 techniques you use for [deploying from the Gruntwork Service Catalog](#deploy-new-infrastructure)! The only difference
 is that instead of the URLs all pointing to Gruntwork's Git repos, you should update them to point to your Git repos.
 
-For example, if you had your own `vpc-app` service in a repo called `infrastructure-modules` in the `acme` GitHub org, 
+For example, if you had your own `vpc` service in a repo called `infrastructure-modules` in the `acme` GitHub org, 
 you could deploy that module using Terragrunt by writing a `terragrunt.hcl` file that looks something like this: 
 
 ```hcl
@@ -841,7 +841,7 @@ include {
 terraform {
   # Note how the source URL is pointing to YOUR Service Catalog! Just make sure to replace <VERSION> in this URL with 
   # the latest release from your own Service Catalog. 
-  source = "git@github.com:acme/infrastructure-modules.git//modules/networking/vpc-app?ref=<VERSION>"
+  source = "git@github.com:acme/infrastructure-modules.git//modules/networking/vpc?ref=<VERSION>"
 }
 
 # Fill in the arguments for this service

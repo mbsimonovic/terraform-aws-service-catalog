@@ -40,4 +40,6 @@ module "eks_core_services" {
   # for more info on how to set these values.
   autoscaler_scale_down_unneeded_time = "2m"
   autoscaler_down_delay_after_add     = "2m"
+
+  service_dns_mappings = var.service_dns_mappings
 }

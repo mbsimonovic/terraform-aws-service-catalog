@@ -13,8 +13,7 @@ terraform {
   required_version = "~> 0.12.6"
 
   required_providers {
-    aws        = "~> 2.6"
-    kubernetes = "~> 1.10"
+    aws = "~> 2.6"
   }
 }
 
@@ -57,6 +56,11 @@ module "database" {
   # These are dangerous variables that exposed to make testing easier, but should be left untouched.
   publicly_accessible = var.publicly_accessible
   skip_final_snapshot = var.skip_final_snapshot
+}
+
+locals {
+  # The primary_endpoint is of the format <host>:<port>. This output returns just the host part.
+  primary_host = split(":", module.database.primary_endpoint)[0]
 }
 
 
@@ -269,32 +273,6 @@ locals {
   kms_key_arn                = var.kms_key_arn != null ? var.kms_key_arn : module.kms_cmk.key_arn[var.name]
   cmk_administrator_iam_arns = length(var.cmk_administrator_iam_arns) == 0 ? [data.aws_caller_identity.current.arn] : var.cmk_administrator_iam_arns
   cmk_user_iam_arns          = length(var.cmk_user_iam_arns) == 0 ? [data.aws_caller_identity.current.arn] : var.cmk_user_iam_arns
-}
-
-# ---------------------------------------------------------------------------------------------------------------------
-# SET UP KUBERNETES SERVICE FOR SERVICE DISCOVERY
-# ---------------------------------------------------------------------------------------------------------------------
-
-resource "kubernetes_service" "rds" {
-  count = var.create_kubernetes_service ? 1 : 0
-
-  metadata {
-    name      = var.name
-    namespace = var.kubernetes_namespace
-  }
-
-  spec {
-    type          = "ExternalName"
-    external_name = local.primary_host
-    port {
-      port = var.port
-    }
-  }
-}
-
-locals {
-  # The primary_endpoint is of the format <host>:<port>.
-  primary_host = element(split(":", module.database.primary_endpoint), 0)
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

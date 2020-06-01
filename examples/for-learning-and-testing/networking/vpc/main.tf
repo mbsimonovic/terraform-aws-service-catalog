@@ -6,8 +6,8 @@ provider "aws" {
   region = var.aws_region
 }
 
-module "vpc_app" {
-  source = "../../../../modules/networking/vpc-app"
+module "vpc" {
+  source = "../../../../modules/networking/vpc"
 
   aws_region       = var.aws_region
   cidr_block       = var.cidr_block
@@ -20,7 +20,7 @@ module "vpc_app" {
 }
 
 resource "aws_security_group" "example" {
-  vpc_id = module.vpc_app.vpc_id
+  vpc_id = module.vpc.vpc_id
 
   ingress {
     from_port   = 8080
@@ -33,7 +33,7 @@ resource "aws_security_group" "example" {
 resource "aws_instance" "example" {
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = "t3.micro"
-  subnet_id                   = element(module.vpc_app.public_subnet_ids, 0)
+  subnet_id                   = element(module.vpc.public_subnet_ids, 0)
   vpc_security_group_ids      = [aws_security_group.example.id]
   associate_public_ip_address = true
 

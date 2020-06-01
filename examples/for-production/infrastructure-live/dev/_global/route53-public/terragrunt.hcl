@@ -10,8 +10,7 @@
 # local check out of the module for faster iteration.
 terraform {
   # TODO: Pin ref to the appropriate service catalog release
-  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/route53?ref=master"
-  #source = "../../../../../../modules/networking/route53"
+  source = "../../../../../../modules/networking/route53"
 }
 
 # Include all settings from the root terragrunt.hcl file
@@ -40,11 +39,14 @@ inputs = {
   # subdomain at the top level, such as mail.example.com and www.example.com
   public_zones = {
     "${local.dev_account_primary_domain_name}" = {
-      zone_id                        = "Z1KK5W3MXEN6L2"
       comment                        = "HostedZone created by Route53 Registrar"
       tags                           = {}
       force_destroy                  = false
       provision_wildcard_certificate = true
+      created_outside_terraform      = true
+      base_domain_name_tags = {
+        original = true
+      }
     }
   }
 }

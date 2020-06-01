@@ -10,12 +10,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestVpcApp(t *testing.T) {
+func TestVpc(t *testing.T) {
 	t.Parallel()
 
 	awsRegion := aws.GetRandomRegion(t, regionsForEc2Tests, nil)
 
-	testFolder := "../examples/for-learning-and-testing/networking/vpc-app"
+	testFolder := "../examples/for-learning-and-testing/networking/vpc"
 	terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
 	terraformOptions.Vars["vpc_name"] = "vpc-test-" + random.UniqueId()
 	terraformOptions.Vars["cidr_block"] = "10.100.0.0/18"

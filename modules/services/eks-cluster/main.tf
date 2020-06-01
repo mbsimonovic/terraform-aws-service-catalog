@@ -60,7 +60,8 @@ data "aws_eks_cluster_auth" "kubernetes_token" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "eks_cluster" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.19.0"
+  # TODO: bump to released version
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.20.0"
 
   cluster_name = var.cluster_name
 
@@ -78,15 +79,15 @@ module "eks_cluster" {
 }
 
 module "eks_workers" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.19.0"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.20.0"
   create_resources = length(var.autoscaling_group_configurations) > 0
 
-  cluster_name                      = var.cluster_name
-  vpc_id                            = var.vpc_id
+  # Use the output from control plane module as the cluster name to ensure the module only looks up the information
+  # after the cluster is provisioned.
+  cluster_name = module.eks_cluster.eks_cluster_name
+
   autoscaling_group_configurations  = var.autoscaling_group_configurations
   include_autoscaler_discovery_tags = var.autoscaling_group_include_autoscaler_discovery_tags
-
-  eks_master_security_group_id = module.eks_cluster.eks_master_security_group_id
 
   cluster_instance_ami              = var.cluster_instance_ami
   cluster_instance_type             = var.cluster_instance_type
@@ -135,8 +136,37 @@ resource "aws_security_group_rule" "allow_inbound_ssh_from_cidr_blocks" {
 # - The full-access roles should have admin level permissions
 # ---------------------------------------------------------------------------------------------------------------------
 
+# EKS will automatically create the `aws-auth` config map when a Fargate profile is created before the configmap exists.
+# This conflicts with the `eks-k8s-role-mapping` module, as terraform can only create the config map if it doesn't exist.
+# Here, we use a null resource to delete the config map when the EKS cluster is first created.
+resource "null_resource" "delete_autocreated_aws_auth" {
+  count = var.schedule_control_plane_services_on_fargate ? 1 : 0
+
+  triggers = {
+    # We only want to run this on initial EKS cluster deployment.
+    eks_cluster = module.eks_cluster.eks_cluster_arn
+  }
+
+  provisioner "local-exec" {
+    command = join(
+      " ",
+      [
+        module.eks_cluster.kubergrunt_path,
+        "k8s",
+        "kubectl",
+        "--kubectl-eks-cluster-arn",
+        module.eks_cluster.eks_cluster_arn,
+        "--",
+        "delete", "configmap", "aws-auth",
+        "-n", "kube-system",
+      ],
+    )
+  }
+  depends_on = [module.eks_cluster]
+}
+
 module "eks_k8s_role_mapping" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.19.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.20.0"
 
   eks_worker_iam_role_arns = (
     length(var.autoscaling_group_configurations) > 0
@@ -144,11 +174,18 @@ module "eks_k8s_role_mapping" {
     : []
   )
 
+  eks_fargate_profile_executor_iam_role_arns = (
+    var.schedule_control_plane_services_on_fargate
+    ? [module.eks_cluster.eks_default_fargate_execution_role_arn]
+    : []
+  )
+
   iam_role_to_rbac_group_mappings = var.iam_role_to_rbac_group_mapping
   iam_user_to_rbac_group_mappings = var.iam_user_to_rbac_group_mapping
 
   config_map_labels = {
-    eks-cluster = module.eks_cluster.eks_cluster_name
+    eks-cluster                        = module.eks_cluster.eks_cluster_name
+    delete-original-aws-auth-action-id = var.schedule_control_plane_services_on_fargate ? null_resource.delete_autocreated_aws_auth[0].id : ""
   }
 }
 

@@ -46,10 +46,6 @@ module "mysql_rds" {
   multi_az                = false
   backup_retention_period = 0
   skip_final_snapshot     = true
-
-  # Configurations for creating a Service to route to the DB.
-  create_kubernetes_service = var.create_kubernetes_service
-  kubernetes_namespace      = var.kubernetes_namespace
 }
 
 locals {

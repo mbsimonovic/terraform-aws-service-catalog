@@ -54,6 +54,40 @@ dependency "eks_cluster" {
   mock_outputs_allowed_terraform_commands = ["validate"]
 }
 
+dependency "rds" {
+  config_path = "../../data-stores/rds"
+
+  mock_outputs = {
+    primary_host = "database_host"
+    port         = 5432
+  }
+  mock_outputs_allowed_terraform_commands = ["validate"]
+}
+
+dependency "aurora" {
+  config_path = "../../data-stores/aurora"
+
+  mock_outputs = {
+    primary_host = "database_host"
+    port         = 5432
+  }
+  mock_outputs_allowed_terraform_commands = ["validate"]
+}
+
+dependency "applications_namespace" {
+  config_path = "../eks-applications-namespace"
+}
+
+# Generate a Kubernetes provider configuration for authenticating against the EKS cluster.
+generate "k8s_helm" {
+  path      = "k8s_helm_provider.tf"
+  if_exists = "overwrite_terragrunt"
+  contents = templatefile(
+    find_in_parent_folders("provider_k8s_helm_for_eks.template.hcl"),
+    { eks_cluster_name = dependency.eks_cluster.outputs.eks_cluster_name },
+  )
+}
+
 # Locals are named constants that are reusable within the configuration.
 locals {
   # Automatically load region-level variables
@@ -82,4 +116,18 @@ inputs = {
 
   # Configuration for external-dns
   external_dns_route53_hosted_zone_id_filters = values(dependency.route53_public.outputs.public_hosted_zone_map)
+
+  # Configure services for routing to databases
+  service_dns_mappings = {
+    rds = {
+      target_dns  = dependency.rds.outputs.primary_host
+      target_port = dependency.rds.outputs.port
+      namespace   = "applications"
+    }
+    aurora = {
+      target_dns  = dependency.aurora.outputs.primary_host
+      target_port = dependency.aurora.outputs.port
+      namespace   = "applications"
+    }
+  }
 }

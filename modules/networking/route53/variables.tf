@@ -22,11 +22,7 @@ variable "private_zones" {
 variable "public_zones" {
   description = "A map of public Route 53 Hosted Zones. In this map, the key should be the domain name. See examples below."
   type = map(object({
-    # If the public zone already exists, as is often the case when dealing with public zones bootstrapped by Route53, 
-    # you can pass the zone_id. Verification DNS records for certificate issuance will be written to the zone specified by 
-    # the Zone ID you supply. Set to null to force the module to create a new public hosted zone.
-    zone_id = string
-    # An optional, arbitrary comment to attach to the public Hosted Zone
+    # An arbitrary comment to attach to the public Hosted Zone
     comment = string
     # A mapping of tags to assign to the public Hosted Zone 
     tags = map(string)
@@ -34,6 +30,12 @@ variable "public_zones" {
     force_destroy = bool
     # (Optional) If set to true, automatically order and verify a wildcard certificate via ACM for this domain
     provision_wildcard_certificate = bool
+    # If the zone already exists, and you just want to provision a wildcard certificate for it, you can set created_outside_terraform to true, in which case the 
+    # existing zone will have its ID looked up programmatically and DNS validation records required for certificate validation will be written 
+    # to it 
+    created_outside_terraform = bool
+    # Tags to use to filter the Route 53 Hosted Zones that might match the hosted zone's name (use if you have multiple public hosted zones with the same name)
+    base_domain_name_tags = map(string)
   }))
   # Allow empty maps to be passed by default - since we sometimes define only public zones or only private zones in a given module call
   default = {}
@@ -45,16 +47,16 @@ Example inputs:
 
 public_zones = {
     "example.com" = {
-        # Setting the zone_id specifies that this is an existing zone, which will often be the case
-        # if, for example, you register a domain via Route53. In this case, AWS will automatically create 
-        # a public hosted zone for your domain, so you only need to supply its ID
-        zone_id = null
         comment = "You can add arbitrary text here"
         tags = {
             Foo = "bar" 
         }
         force_destroy = true 
         provision_wildcard_certificate = true
+        created_outside_terraform = true 
+        base_domain_name_tags = {
+            original = true 
+        }
     }
     "company-name.com" = {
         comment = "This is another comment"

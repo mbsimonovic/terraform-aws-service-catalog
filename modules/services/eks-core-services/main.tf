@@ -195,3 +195,25 @@ locals {
     ),
   )
 }
+
+# ---------------------------------------------------------------------------------------------------------------------
+# SET UP KUBERNETES SERVICE FOR SERVICE DISCOVERY
+# ---------------------------------------------------------------------------------------------------------------------
+
+resource "kubernetes_service" "mapping" {
+  for_each = var.service_dns_mappings
+
+  metadata {
+    name      = each.key
+    namespace = each.value.namespace
+  }
+
+  spec {
+    type          = "ExternalName"
+    external_name = each.value.target_dns
+
+    port {
+      port = each.value.target_port
+    }
+  }
+}

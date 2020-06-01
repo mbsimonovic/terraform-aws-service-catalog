@@ -9,7 +9,9 @@
 # locally, you can use --terragrunt-source /path/to/local/checkout/of/module to override the source parameter to a
 # local check out of the module for faster iteration.
 terraform {
-  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc?ref=master"
+  # TODO: Pin ref to the appropriate service catalog release
+  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/route53?ref=public-zone-lookup"
+  #source = "../../../../../../modules/networking/route53"
 }
 
 # Include all settings from the root terragrunt.hcl file
@@ -17,22 +19,12 @@ include {
   path = find_in_parent_folders()
 }
 
-# When using the terragrunt xxx-all commands (e.g., apply-all, plan-all), deploy these dependencies before this module
-dependencies {
-  paths = ["../../../../_global/account-baseline"]
-}
-
-# We set prevent destroy here to prevent accidentally deleting your company's data in case of overly ambitious use
-# of destroy or destroy-all. If you really want to run destroy on this module, remove this flag.
-prevent_destroy = true
-
 # Locals are named constants that are reusable within the configuration.
 locals {
   # Automatically load common variables shared across all accounts
   common_vars = read_terragrunt_config(find_in_parent_folders("common.hcl"))
 
-  # Automatically load account-level variables
-  account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
+  dev_account_primary_domain_name = local.common_vars.locals.domain_names.dev
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -41,8 +33,20 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 inputs = {
-  vpc_name         = "${local.account_vars.locals.account_name}-vpc"
-  cidr_block       = local.common_vars.locals.vpc_cidr_blocks[local.account_vars.locals.account_name]
-  num_nat_gateways = 3
-  create_flow_logs = false
+
+  ################################
+  # Route53 inputs
+  # These inputs are used to create Route53 .
+  ################################
+
+  public_zones = {
+    "${local.dev_account_primary_domain_name}" = {
+      comment                        = "HostedZone created by Route53 Registrar"
+      tags                           = {}
+      force_destroy                  = false
+      provision_wildcard_certificate = true
+      created_outside_terraform      = true
+      base_domain_name_tags          = {}
+    }
+  }
 }
