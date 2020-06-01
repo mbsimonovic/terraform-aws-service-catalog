@@ -26,8 +26,8 @@ This module supports registering external DNS names to internal service records 
 resources](https://kubernetes.io/docs/concepts/services-networking/service/). Each entry in the `service_dns_mappings`
 input variable translates to a Service of type
 [ExternalName](https://kubernetes.io/docs/concepts/services-networking/service/#externalname), which you can use with
-Kubernetes internal Service Discovery mechanism to access. This is useful to bind more friendly names to AWS generated
-DNS records (e.g., an endpoint for a RDS database).
+Kubernetes internal Service Discovery mechanism to access. This is useful to bind more friendly names to DNS records 
+managed outside of Kubernetes (e.g., such as endpoints for RDS, ElastiCache, etc).
 
 For example, to create a Kubernetes Service of name `main` in the namespace `database` that routes to an RDS database
 endpoint, you can do the following:

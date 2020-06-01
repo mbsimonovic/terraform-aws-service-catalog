@@ -72,7 +72,7 @@ variable "external_dns_route53_hosted_zone_domain_filters" {
 # Mappings for external domain names
 
 variable "service_dns_mappings" {
-  description = "Configure Kubernetes Services to lookup external DNS records. This can be useful to bind friendly internal service names to domains (e.g. the RDS database endpoint)."
+  description = "Configure Kubernetes Services to lookup external DNS records. This can be useful to bind friendly internal service names to domains (e.g. map the service name 'rds' to the RDS database endpoint)."
   # Key is service name
   type = map(object({
     # DNS record to route requests to the Kubernetes Service to.
