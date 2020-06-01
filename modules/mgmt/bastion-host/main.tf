@@ -31,6 +31,7 @@ module "bastion" {
   subnet_id = var.subnet_id
 
   dns_zone_id = var.create_dns_record ? data.aws_route53_zone.selected[0].zone_id : ""
+ # The A record that will be created for the bastion host is the concatenation of the bastion host's name plus the domain name 
   dns_name    = "${var.name}.${var.domain_name}"
   dns_type    = "A"
   dns_ttl     = "300"
@@ -105,5 +106,4 @@ module "ec2_baseline" {
   alarms_sns_topic_arn                = var.alarms_sns_topic_arn
   cloud_init_parts                    = local.cloud_init_parts
 }
-
 
