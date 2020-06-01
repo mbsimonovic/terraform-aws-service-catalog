@@ -24,18 +24,6 @@ dependencies {
 
 # Pull in outputs from these modules to compute inputs. These modules will also be added to the dependency list for
 # xxx-all commands.
-
-dependency "route53_public" {
-  config_path = "../../../../_global/route53-public"
-
-  mock_outputs = {
-    public_hosted_zone_map = {
-      "refarch-sbox-dev-mock.com" = "mock-zone-id"
-    }
-  }
-  mock_outputs_allowed_terraform_commands = ["validate"]
-}
-
 dependency "vpc" {
   config_path = "../../networking/vpc"
 
