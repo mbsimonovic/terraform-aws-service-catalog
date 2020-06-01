@@ -31,9 +31,8 @@ output "read_replica_endpoints" {
   value       = module.mysql_rds.read_replica_endpoints
 }
 
-# The primary_endpoint is of the format <host>:<port>. This output returns just the host part.
 output "primary_host" {
-  description = "The host portion of the RDS DB instance endpoint. primary_endpoint is in the form '<host>:<port>'."
+  description = "The host portion of the RDS DB instance endpoint. primary_endpoint is in the form '<host>:<port>', and this output returns just the host part."
   value       = module.mysql_rds.primary_host
 }
 
