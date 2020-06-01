@@ -102,7 +102,7 @@ variable "origin_vpc_id" {
 variable "origin_vpc_name" {
   description = "The name of the origin VPC to use when creating peering connections and DNS forwarding."
   type        = string
-  default     = ""
+  default     = null
 }
 
 variable "origin_vpc_route_table_ids" {
