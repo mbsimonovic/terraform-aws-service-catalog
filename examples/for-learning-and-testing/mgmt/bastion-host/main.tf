@@ -26,7 +26,7 @@ module "bastion" {
 
   # Configure a host name for the bastion
   create_dns_record     = true
-  domain_name           = "${var.name}.${var.domain_name}"
+  domain_name           = var.domain_name
   base_domain_name_tags = var.base_domain_name_tags
 
   # To keep this example simple, we allow incoming SSH connections from anywhere. In production, you should limit

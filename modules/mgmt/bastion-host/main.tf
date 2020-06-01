@@ -30,8 +30,8 @@ module "bastion" {
   vpc_id    = var.vpc_id
   subnet_id = var.subnet_id
 
-  dns_zone_id = var.create_dns_record ? data.aws_route53_zone[0].selected.zone_id : ""
-  dns_name    = var.domain_name
+  dns_zone_id = var.create_dns_record ? data.aws_route53_zone.selected[0].zone_id : ""
+  dns_name    = "${var.name}.${var.domain_name}"
   dns_type    = "A"
   dns_ttl     = "300"
 

@@ -8,8 +8,10 @@
 # working directory, into a temporary folder, and execute your Terraform commands in that folder. If you're iterating
 # locally, you can use --terragrunt-source /path/to/local/checkout/of/module to override the source parameter to a
 # local check out of the module for faster iteration.
+
+# TODO: replace ref once bastion host lookup PR is merged
 terraform {
-  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/mgmt/bastion-host?ref=master"
+  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/mgmt/bastion-host?ref=extend-bastion-host-dynamic-lookups"
 }
 
 # Include all settings from the root terragrunt.hcl file
