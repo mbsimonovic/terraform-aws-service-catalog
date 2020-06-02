@@ -113,21 +113,21 @@ variable "alarms_sns_topic_arn" {
 }
 
 variable "create_dns_record" {
-  description = "Set to true to create a DNS record in Route53 pointing to the bastion. If true, be sure to set var.hosted_zone_id and var.domain_name."
+  description = "Set to true to create a DNS record in Route53 pointing to the bastion. If true, be sure to set var.domain_name."
   type        = bool
   default     = true
 }
 
-variable "hosted_zone_id" {
-  description = "The ID of the Route 53 Hosted Zone in which to create a DNS A record for the bastion host. Only used if create_dns_record is true."
+variable "domain_name" {
+  description = "The apex domain of the hostname for the bastion server (e.g., example.com). The complete hostname for the bastion server will be "${var.name}.${var_domain_name}" (e.g., bastion.example.com). Only used if create_dns_record is true."
   type        = string
   default     = ""
 }
 
-variable "domain_name" {
-  description = "The fully qualified host and domain name to use for the bastion server (e.g. bastion.foo.com). Only used if create_dns_record is true."
-  type        = string
-  default     = ""
+variable "base_domain_name_tags" {
+  description = "Tags to use to filter the Route 53 Hosted Zones that might match the hosted zone's name (use if you have multiple public hosted zones with the same name)"
+  type        = map(string)
+  default     = {}
 }
 
 variable "cloud_init_parts" {

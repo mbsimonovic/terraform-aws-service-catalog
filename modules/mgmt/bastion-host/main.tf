@@ -30,13 +30,28 @@ module "bastion" {
   vpc_id    = var.vpc_id
   subnet_id = var.subnet_id
 
-  dns_zone_id = var.create_dns_record ? var.hosted_zone_id : ""
-  dns_name    = var.domain_name
+  dns_zone_id = join("", data.aws_route53_zone.selected.*.zone_id)
+ # The A record that will be created for the bastion host is the concatenation of the bastion host's name plus the domain name 
+  dns_name    = "${var.name}.${var.domain_name}"
   dns_type    = "A"
   dns_ttl     = "300"
 
   keypair_name             = var.keypair_name
   allow_ssh_from_cidr_list = var.allow_ssh_from_cidr_list
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# LOOK UP ZONE ID BY DOMAIN NAME
+# ---------------------------------------------------------------------------------------------------------------------
+
+data "aws_route53_zone" "selected" {
+  count = var.create_dns_record ? 1 : 0
+
+  name = var.domain_name
+
+  tags = var.base_domain_name_tags
+  # Since our bastion host needs to be publicly addressable, we need only look up Route 53 Public Hosted zones when querying for the zone_id 
+  private_zone = false
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -91,3 +106,4 @@ module "ec2_baseline" {
   alarms_sns_topic_arn                = var.alarms_sns_topic_arn
   cloud_init_parts                    = local.cloud_init_parts
 }
+

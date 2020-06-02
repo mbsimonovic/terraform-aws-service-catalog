@@ -8,8 +8,10 @@
 # working directory, into a temporary folder, and execute your Terraform commands in that folder. If you're iterating
 # locally, you can use --terragrunt-source /path/to/local/checkout/of/module to override the source parameter to a
 # local check out of the module for faster iteration.
+
+# TODO: replace ref once bastion host lookup PR is merged
 terraform {
-  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/mgmt/bastion-host?ref=master"
+  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/mgmt/bastion-host?ref=extend-bastion-host-dynamic-lookups"
 }
 
 # Include all settings from the root terragrunt.hcl file
@@ -65,8 +67,5 @@ inputs = {
   # TODO: Set up an SNS topic for alarms and use a dependency to pass it in
   # alarms_sns_topic_arn   = []
 
-  # TODO: We'd normally use a dependency block to pull in the hosted zone ID, but we haven't converted the route 53
-  # modules to the new service catalog format yet, so for now, we just hard-code the ID.
-  hosted_zone_id = "Z2AJ7S3R6G9UYJ"
-  domain_name    = "gruntwork.in"
+  domain_name = local.common_vars.locals.domain_names.dev
 }
