@@ -31,10 +31,10 @@ module "bastion" {
   subnet_id = var.subnet_id
 
   dns_zone_id = join("", data.aws_route53_zone.selected.*.zone_id)
- # The A record that will be created for the bastion host is the concatenation of the bastion host's name plus the domain name 
-  dns_name    = "${var.name}.${var.domain_name}"
-  dns_type    = "A"
-  dns_ttl     = "300"
+  # The A record that will be created for the bastion host is the concatenation of the bastion host's name plus the domain name 
+  dns_name = "${var.name}.${var.domain_name}"
+  dns_type = "A"
+  dns_ttl  = "300"
 
   keypair_name             = var.keypair_name
   allow_ssh_from_cidr_list = var.allow_ssh_from_cidr_list
