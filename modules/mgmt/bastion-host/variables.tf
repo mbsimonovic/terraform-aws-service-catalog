@@ -119,7 +119,7 @@ variable "create_dns_record" {
 }
 
 variable "domain_name" {
-  description = "The apex domain of the hostname for the bastion server (e.g., example.com). The complete hostname for the bastion server will be var.name.var_domain_name (e.g., bastion.example.com). Only used if create_dns_record is true."
+  description = "The apex domain of the hostname for the bastion server (e.g., example.com). The complete hostname for the bastion server will be "${var.name}.${var_domain_name}" (e.g., bastion.example.com). Only used if create_dns_record is true."
   type        = string
   default     = ""
 }
