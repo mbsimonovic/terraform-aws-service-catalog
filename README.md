@@ -78,7 +78,7 @@ Before contributing to this repo:
 1. You can examine the `.pre-commit-config.yml` file to see the hooks that will be installed and run when the git pre-commit hook is invoked. 
 1. Python version >= 3.6 is required to run the hook scripts without issues. We recommend using [pyenv](https://github.com/pyenv/pyenvv) to manage multiple versions of Python on your system.
 1. Once everything is working properly, you will notice that several checks are being run locally each time you run `git commit`. Note that your commit will not succeed until all `pre-commit` checks pass. 
-
+1. However, you may bypass these safeguards and commit anyway by passing the `--no-verify` flag to your `git commit` command. This is usually not recommended. 
 
 
 
