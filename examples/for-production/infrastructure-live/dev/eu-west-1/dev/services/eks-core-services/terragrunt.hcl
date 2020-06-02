@@ -19,17 +19,6 @@ include {
 
 # Pull in outputs from these modules to compute inputs. These modules will also be added to the dependency list for
 # xxx-all commands.
-dependency "route53_public" {
-  config_path = "../../../../_global/route53-public"
-
-  mock_outputs = {
-    public_hosted_zone_map = {
-      "refarch-sbox-dev-mock.com" = "mock-zone-id"
-    }
-  }
-  mock_outputs_allowed_terraform_commands = ["validate"]
-}
-
 dependency "vpc" {
   config_path = "../../networking/vpc"
 
@@ -117,8 +106,8 @@ inputs = {
   # Configuration for external-dns
 
   # The route53-public module creates AWS hosted zones which are containers for DNS records for a given domain.
-  # Passing this list of route53 hosted zone IDs will allow external-dns to create records into all zones managed by terraform
-  external_dns_route53_hosted_zone_id_filters = values(dependency.route53_public.outputs.public_hosted_zone_map)
+  # Passing this list of route53 hosted zone domain names will allow external-dns to create records into all zones managed by terraform
+  external_dns_route53_hosted_zone_domain_filters = var.route53_hosted_zone_domain_filters
   # Configure services for routing to databases
   service_dns_mappings = {
     rds = {
