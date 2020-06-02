@@ -1,0 +1,89 @@
+# Auto Scaling Group module boilerplate template
+#
+# This folder contains a boilerplate template that can be used to create a reusable module for a single service that
+# gets deployed on top of an Auto Scaling Group (ASG)
+
+variables:
+  - name: IamUsersDefinedInSeparateAccount
+    description: Are the IAM users for this customer defined in a separate AWS account?
+    type: bool
+    default: false
+
+  - name: ExternalAccountSshGruntRoleArn
+    description: The ARN if an IAM role in a separate AWS account that allows ssh-grunt to retrieve IAM group and public SSH key info from that account. Only used if IamUsersDefinedInSeparateAccount is true.
+    default: replace-me
+
+  - name: IncludeInternalAlbUrl
+    description: Set to true to include an environment variable that contains the URL of an internal ALB used for service discovery.
+    type: bool
+    default: false
+
+  - name: InstallCloudWatchMonitoring
+    description: Should we install the CloudWatch Monitoring and Alarms Package (true or false)?
+    type: bool
+
+  - name: GruntworkInstallerVersion
+    description: What version of the Gruntwork Installer should we use to set up this AMI (e.g. 0.0.13)?
+
+  - name: ModuleAsgVersion
+    description: What version of module-asg should we use?
+
+  - name: ModuleSecurityVersion
+    description: What version of module-security should we use?
+
+  - name: ModuleAwsMonitoringVersion
+    description: What version of module-aws-monitoring should we use?
+
+  - name: ModuleServerVersion
+    description: What version of module-server should we use?
+
+  - name: GruntKmsVersion
+    description: What version of gruntkms should we use?
+
+  - name: ModuleTerraformUtilitiesVersion
+    description: What versino of package-terraform-utilities should we use?
+
+  - name: MgmtVpcName
+    description: What is the name of the mgmt VPC?
+    default: mgmt
+
+  - name: UsingOpenVpn
+    description: Set to true if using an OpenVPN server as a bastion host
+    type: bool
+    default: false
+
+  - name: KmsKeyIsGlobal
+    description: Set to true if the kms-master-key module defined in an _global folder (i.e. there is just one CMK in this account, which is common for multi-account setups). Set it to false if there is one KMS key per region (which is common for single-account setups).
+    type: bool
+    default: false
+
+  - name: TerraformRequiredVersion
+    description: "The version of Terraform the customer should use. This should be a version expression such as '= 10.5.7.'"
+
+  - name: AWSProviderVersion
+    description: "The version of the AWS provider the customer should use. This should be a version expression, such as '~> 2.0`"
+
+  - name: IncludeDatabaseUrl
+    description: Does this service need a database URL passed in as a Terraform variable and exposed as an environment variable in User Data (true or false)?
+    type: bool
+    default: false
+
+  - name: IncludeRedisUrl
+    description: Set to true to include an environment variable that contains the URL of Redis.
+    type: bool
+    default: false
+
+  - name: IncludeMemcachedUrl
+    description: Set to true to include an environment variable that contains the URL of Memcached.
+    type: bool
+    default: false
+
+  - name: IncludeMongoDbUrl
+    description: Set to true to include an environment variable that contains the URL of MongoDb.
+    type: bool
+    default: false
+
+  - name: IncludeElasticsearchUrl
+    description: Set to true to include an environment variable that contains the URL of Elasticsearch.
+    type: bool
+    default: false
