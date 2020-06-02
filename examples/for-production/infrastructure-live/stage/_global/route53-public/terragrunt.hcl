@@ -34,11 +34,11 @@ locals {
 
 inputs = {
 
-  ################################
-  # Route53 inputs
-  # These inputs are used to create Route53 .
-  ################################
-
+ # Create a Route 53 public hosted zone and opt to provision a wildcard certificate protecting one subdomain level
+  # e.g, if your stage_account_primary_domain_name is example.com and you set provision_wildcard_certificate to true, 
+  # your resulting Amazon Certificate Manager (ACM) certificate will be issued for *.example.com and protect any 
+  # subdomain at the top level, such as mail.example.com and www.example.com
+  
   public_zones = {
     "${local.stage_account_primary_domain_name}" = {
       comment                        = "HostedZone created by Route53 Registrar"
