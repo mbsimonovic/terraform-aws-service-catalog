@@ -9,8 +9,7 @@
 # locally, you can use --terragrunt-source /path/to/local/checkout/of/module to override the source parameter to a
 # local check out of the module for faster iteration.
 terraform {
-  # TODO: Pin ref to the appropriate service catalog release
-  source = "../../../../../../modules/networking/route53"
+  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/route53?ref=master"
 }
 
 # Include all settings from the root terragrunt.hcl file
