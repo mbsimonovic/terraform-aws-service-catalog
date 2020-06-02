@@ -76,8 +76,8 @@ variable "terraform_state_s3_bucket" {
 variable "alb_listener_rule_configs" {
   description = "A list of all ALB Listener Rules that should be attached to an existing ALB Listener. These rules configure the ALB to send requests that come in on certain ports and paths to this service. Each item in the list should be a map with the keys port (the port to match), path (the path to match), and priority (earlier priorities are matched first)."
   type = list(object({
-    port = number
-    path = string
+    port     = number
+    path     = string
     priority = number
   }))
 
@@ -101,13 +101,34 @@ variable "min_elb_capacity" {
   type        = number
 }
 
-{{- if .IamUsersDefinedInSeparateAccount }}
+variable "using_open_vpn" {
+  type = bool
+}
+
+variable "using_end_to_end_encryption" {
+  type = bool
+}
+
+//variable "include_elasticsearch_url" {
+//  type = bool
+//}
+
+variable "iam_users_defined_in_separate_account" {
+  type = bool
+}
+
+variable "mgmt_vpc_name" {
+  type = string
+}
+
+//{{- if .IamUsersDefinedInSeparateAccount }}
 
 variable "external_account_ssh_grunt_role_arn" {
   description = "Since our IAM users are defined in a separate AWS account, this variable is used to specify the ARN of an IAM role that allows ssh-grunt to retrieve IAM group and public SSH key info from that account."
   type        = string
+  default     = null
 }
-{{- end }}
+//{{- end }}
 
 variable "is_internal_alb" {
   description = "If set to true, create only private DNS entries. We should be able to compute this from the ALB automatically, but can't, due to a Terraform limitation (https://goo.gl/gq5Qyk)."
@@ -130,50 +151,91 @@ variable "enable_route53_health_check" {
   default     = false
 }
 
-{{- if .IncludeDatabaseUrl }}
-
-variable "db_remote_state_path" {
-  description = "The path to the DB's remote state. This path does not need to include the region or VPC name. Example: data-stores/rds/terraform.tfstate."
-  type        = string
-  default     = "data-stores/rds/terraform.tfstate"
+variable "install_cloudwatch_monitoring" {
+  type = bool
 }
-{{- end }}
 
-{{- if .IncludeRedisUrl }}
-
-variable "redis_remote_state_path" {
-  description = "The path to Redis' remote state. This path does not need to include the region or VPC name. Example: data-stores/redis/terraform.tfstate."
-  type        = string
-  default     = "data-stores/redis/terraform.tfstate"
+variable "sns_topic_arns" {
+  type = bool
 }
-{{- end }}
 
-{{- if .IncludeMemcachedUrl }}
-
-variable "memcached_remote_state_path" {
-  description = "The path to Memcached remote state. This path does not need to include the region or VPC name. Example: data-stores/memcached/terraform.tfstate."
-  type        = string
-  default     = "data-stores/memcached/terraform.tfstate"
+variable "vpn_security_group_ids" {
+  type = list(string)
 }
-{{- end }}
 
-{{- if .IncludeMongoDbUrl }}
-
-variable "mongodb_remote_state_path" {
-  description = "The path to MongoDb remote state. This path does not need to include the region or VPC name. Example: data-stores/mongodb/terraform.tfstate."
-  type        = string
-  default     = "data-stores/mongodb/terraform.tfstate"
+variable "user_data" {
+  type    = string
+  default = null
 }
-{{- end }}
 
-{{- if .IncludeElasticsearchUrl }}
-
-variable "elasticsearch_remote_state_path" {
-  description = "The path to Elasticsearch remote state. This path does not need to include the region or VPC name. Example: data-stores/elasticsearch/terraform.tfstate."
-  type        = string
-  default     = "data-stores/elasticsearch/terraform.tfstate"
+variable "vpc_private_subnet_ids" {
+  type = list(string)
 }
-{{- end }}
+
+variable "vpc_id" {
+  type = string
+}
+
+variable "hosted_zone_id" {
+  type = string
+}
+
+variable "original_alb_dns_name" {
+  type = string
+}
+
+variable "alb_hosted_zone_id" {
+  type = string
+}
+
+variable "alb_security_groups" {
+  type = list(string)
+}
+
+//{{- if .IncludeDatabaseUrl }}
+//
+//variable "db_remote_state_path" {
+//  description = "The path to the DB's remote state. This path does not need to include the region or VPC name. Example: data-stores/rds/terraform.tfstate."
+//  type        = string
+//  default     = "data-stores/rds/terraform.tfstate"
+//}
+//{{- end }}
+//
+//{{- if .IncludeRedisUrl }}
+//
+//variable "redis_remote_state_path" {
+//  description = "The path to Redis' remote state. This path does not need to include the region or VPC name. Example: data-stores/redis/terraform.tfstate."
+//  type        = string
+//  default     = "data-stores/redis/terraform.tfstate"
+//}
+//{{- end }}
+//
+//{{- if .IncludeMemcachedUrl }}
+//
+//variable "memcached_remote_state_path" {
+//  description = "The path to Memcached remote state. This path does not need to include the region or VPC name. Example: data-stores/memcached/terraform.tfstate."
+//  type        = string
+//  default     = "data-stores/memcached/terraform.tfstate"
+//}
+//{{- end }}
+//
+//{{- if .IncludeMongoDbUrl }}
+//
+//variable "mongodb_remote_state_path" {
+//  description = "The path to MongoDb remote state. This path does not need to include the region or VPC name. Example: data-stores/mongodb/terraform.tfstate."
+//  type        = string
+//  default     = "data-stores/mongodb/terraform.tfstate"
+//}
+//{{- end }}
+//
+//{{- if .IncludeElasticsearchUrl }}
+//
+//variable "elasticsearch_remote_state_path" {
+//  description = "The path to Elasticsearch remote state. This path does not need to include the region or VPC name. Example: data-stores/elasticsearch/terraform.tfstate."
+//  type        = string
+//  default     = "data-stores/elasticsearch/terraform.tfstate"
+//}
+//{{- end }}
 
 variable "create_route53_entry" {
   description = "Set to true to create a DNS A record in Route 53 for this service."
@@ -195,6 +257,6 @@ variable "force_destroy" {
 
 variable "terraform_state_kms_master_key" {
   description = "Path base name of the kms master key to use. This should reflect what you have in your infrastructure-live folder."
-  type = string
-  default = "kms-master-key"
+  type        = string
+  default     = "kms-master-key"
 }
