@@ -45,4 +45,14 @@ locals {
   office_cidr_blocks = [
     "1.2.3.0/24",
   ]
+
+  # Information used to generate the CA certificate used by OpenVPN in each account
+  ca_cert_fields = {
+    ca_country  = "US"
+    ca_state    = "Arizona"
+    ca_locality = "Phoenix"
+    ca_org      = "Gruntwork"
+    ca_org_unit = "IT"
+    ca_email    = "info@gruntwork.com"
+  }
 }
