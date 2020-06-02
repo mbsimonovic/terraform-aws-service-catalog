@@ -82,7 +82,7 @@ module "iam_user_password_policy" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "guardduty" {
-  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/guardduty-multi-region?ref=v0.32.0"
+  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/guardduty-multi-region?ref=v0.32.1"
   aws_account_id = var.aws_account_id
   seed_region    = var.aws_region
 
@@ -98,20 +98,18 @@ module "guardduty" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "cloudtrail" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cloudtrail?ref=v0.32.0"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cloudtrail?ref=v0.32.1"
 
   is_multi_region_trail = true
   cloudtrail_trail_name = var.name_prefix
   s3_bucket_name        = var.cloudtrail_s3_bucket_name != null ? var.cloudtrail_s3_bucket_name : "${var.name_prefix}-cloudtrail"
 
+  kms_key_already_exists = true
+  kms_key_arn            = var.cloudtrail_kms_key_arn
+
   num_days_after_which_archive_log_data = var.cloudtrail_num_days_after_which_archive_log_data
   num_days_after_which_delete_log_data  = var.cloudtrail_num_days_after_which_delete_log_data
 
-  # Note that users with IAM permissions to CloudTrail can still view the last 7 days of data in the AWS Web Console
-  kms_key_already_exists           = var.cloudtrail_kms_key_arn != null
-  kms_key_arn                      = var.cloudtrail_kms_key_arn
-  kms_key_user_iam_arns            = var.cloudtrail_kms_key_user_iam_arns
-  kms_key_administrator_iam_arns   = var.cloudtrail_kms_key_administrator_iam_arns
   allow_cloudtrail_access_with_iam = var.allow_cloudtrail_access_with_iam
 
   # If you're writing CloudTrail logs to an existing S3 bucket in another AWS account, set this to true

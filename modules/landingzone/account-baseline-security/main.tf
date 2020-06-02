@@ -134,7 +134,7 @@ module "guardduty" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "cloudtrail" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cloudtrail?ref=v0.32.0"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cloudtrail?ref=v0.32.1"
 
   is_multi_region_trail = true
   cloudtrail_trail_name = var.name_prefix
