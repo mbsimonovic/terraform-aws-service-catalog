@@ -41,11 +41,12 @@ inputs = {
 
   public_zones = {
     "${local.stage_account_primary_domain_name}" = {
-      zone_id                        = "ZHH8IZKJV3DNR"
       comment                        = "HostedZone created by Route53 Registrar"
       tags                           = {}
       force_destroy                  = false
       provision_wildcard_certificate = true
+      created_outside_terraform      = true
+      base_domain_name_tags          = {}
     }
   }
 }
