@@ -53,11 +53,18 @@ IGNORE_SUFFIX_LIST = [
     'README.adoc',
     'core-concepts.md',
 
+    # Ignore docker for ECS runner as it is included in the EcsDeployRunner test
+    'Dockerfile',
+    'known_hosts',
+
     # Ignore test helpers changes, as that will trigger all tests and thus defeats the purpose of this pre-commit hook.
     'test_helpers.go',
 
     # Ignore html files
     '.html',
+
+    # Ignore the helpers for the ECS deploy runner
+    'ecs_deploy_runner_test_helpers.go',
 ]
 
 
