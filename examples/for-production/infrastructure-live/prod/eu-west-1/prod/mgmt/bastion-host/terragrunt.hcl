@@ -65,8 +65,6 @@ inputs = {
   # TODO: Set up an SNS topic for alarms and use a dependency to pass it in
   # alarms_sns_topic_arn   = []
 
-  # TODO: We'd normally use a dependency block to pull in the hosted zone ID, but we haven't converted the route 53
-  # modules to the new service catalog format yet, so for now, we just hard-code the ID.
-  hosted_zone_id = "Z2AJ7S3R6G9UYJ"
-  domain_name    = "gruntwork.in"
+  # The root domain name that the bastion server will use to construct its own DNS A record via Route 53 in order to make the server publicly addressable. 
+  domain_name = local.common_vars.locals.domain_names.prod
 }

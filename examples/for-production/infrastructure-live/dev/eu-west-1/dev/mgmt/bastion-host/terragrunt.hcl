@@ -11,7 +11,7 @@
 
 # TODO: replace ref once bastion host lookup PR is merged
 terraform {
-  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/mgmt/bastion-host?ref=extend-bastion-host-dynamic-lookups"
+  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/mgmt/bastion-host?ref=master"
 }
 
 # Include all settings from the root terragrunt.hcl file
@@ -67,5 +67,6 @@ inputs = {
   # TODO: Set up an SNS topic for alarms and use a dependency to pass it in
   # alarms_sns_topic_arn   = []
 
+  # The primary domain name for the environment 
   domain_name = local.common_vars.locals.domain_names.dev
 }

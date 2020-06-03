@@ -104,10 +104,9 @@ inputs = {
   pod_execution_iam_role_arn                 = dependency.eks_cluster.outputs.eks_default_fargate_execution_role_arn
 
   # Configuration for external-dns
-  # TODO: We'd normally use a dependency block to pull in the hosted zone ID, but we haven't converted the route 53
-  # modules to the new service catalog format yet, so for now, we just hard-code the ID.
-  external_dns_route53_hosted_zone_id_filters = ["Z2AJ7S3R6G9UYJ"]
-
+  # The route53-public module creates AWS hosted zones which are containers for DNS records for a given domain. 
+  # Passing this list of route53 hosted zone IDs will allow external-dns to create records into all zones managed by terraform 
+  external_dns_route53_hosted_zone_domain_filters = [local.common_vars.locals.domain_names.prod]
   # Configure services for routing to databases
   service_dns_mappings = {
     rds = {

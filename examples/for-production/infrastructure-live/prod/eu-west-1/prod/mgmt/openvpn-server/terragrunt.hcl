@@ -44,6 +44,8 @@ locals {
 
   # Automatically load account-level variables
   account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
+
+  openvpn_backup_bucket_name = "${local.common_vars.locals.name_prefix}-openvpn-backup-bucket-${local.account_vars.locals.account_name}"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -66,8 +68,12 @@ inputs = {
   # TODO: Set up an SNS topic for alarms and use a dependency to pass it in
   # alarms_sns_topic_arn   = []
 
-  # TODO: We'd normally use a dependency block to pull in the hosted zone ID, but we haven't converted the route 53
-  # modules to the new service catalog format yet, so for now, we just hard-code the ID.
-  hosted_zone_id = "Z2AJ7S3R6G9UYJ"
-  domain_name    = "gruntwork.in"
+  backup_bucket_name = local.openvpn_backup_bucket_name
+
+  ca_cert_fields = local.common_vars.locals.ca_cert_fields
+
+  # The primary domain name for the environment - the openvpn server will prepend "vpn." to this
+  # domain name and create a route 53 A record in the correct hosted zone so that the vpn server is
+  # publicly addressable
+  domain_name = local.common_vars.locals.domain_names.prod
 }
