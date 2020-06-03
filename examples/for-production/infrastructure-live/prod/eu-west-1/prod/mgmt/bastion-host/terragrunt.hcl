@@ -66,5 +66,5 @@ inputs = {
   # alarms_sns_topic_arn   = []
 
   # The root domain name that the bastion server will use to construct its own DNS A record via Route 53 in order to make the server publicly addressable. 
-  domain_name    = local.common_vars.locals.domain_names.prod
+  domain_name = local.common_vars.locals.domain_names.prod
 }
