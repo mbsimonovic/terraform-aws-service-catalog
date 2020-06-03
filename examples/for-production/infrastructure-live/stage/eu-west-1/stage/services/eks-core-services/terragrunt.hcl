@@ -19,17 +19,6 @@ include {
 
 # Pull in outputs from these modules to compute inputs. These modules will also be added to the dependency list for
 # xxx-all commands.
-dependency "route53_public" {
-  config_path = "../../../../_global/route53-public"
-
-  mock_outputs = {
-    public_hosted_zone_map = {
-      "refarch-sbox-stage-mock.com" = "mock-zone-id"
-    }
-  }
-  mock_outputs_allowed_terraform_commands = ["validate"]
-}
-
 dependency "vpc" {
   config_path = "../../networking/vpc"
 
@@ -115,8 +104,7 @@ inputs = {
   pod_execution_iam_role_arn                 = dependency.eks_cluster.outputs.eks_default_fargate_execution_role_arn
 
   # Configuration for external-dns
-  external_dns_route53_hosted_zone_id_filters = values(dependency.route53_public.outputs.public_hosted_zone_map)
-
+  external_dns_route53_hosted_zone_domain_filters = [local.common_vars.locals.domain_names.stage]
   # Configure services for routing to databases
   service_dns_mappings = {
     rds = {

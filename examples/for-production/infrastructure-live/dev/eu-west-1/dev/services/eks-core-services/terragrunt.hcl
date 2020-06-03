@@ -107,7 +107,7 @@ inputs = {
 
   # The route53-public module creates AWS hosted zones which are containers for DNS records for a given domain.
   # Passing this list of route53 hosted zone domain names will allow external-dns to create records into all zones managed by terraform
-  external_dns_route53_hosted_zone_domain_filters = var.route53_hosted_zone_domain_filters
+  external_dns_route53_hosted_zone_domain_filters = [local.common_vars.locals.domain_names.dev]
   # Configure services for routing to databases
   service_dns_mappings = {
     rds = {
