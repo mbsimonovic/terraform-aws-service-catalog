@@ -1,7 +1,6 @@
 package test
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"os"
@@ -9,7 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-redis/redis/v8"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/k8s"
@@ -109,37 +107,6 @@ func smokeTestMysqlWithKubernetes(t *testing.T, kubectlOptions *k8s.KubectlOptio
 	)
 	resp := strings.Split(out, "\n")
 	assert.Equal(t, resp[len(resp)-1], "2")
-}
-
-type RedisInfo struct {
-	Endpoint string
-	Port     string
-}
-
-// smokeTestRedis makes a SET/GET query over the redis protocol to the provided redis database.
-func smokeTestRedis(t *testing.T, serverInfo RedisInfo) {
-	connString := fmt.Sprintf(
-		"%s:%s",
-		serverInfo.Endpoint,
-		serverInfo.Port,
-	)
-	client := redis.NewClient(&redis.Options{
-		Addr:     connString,
-		Password: "", // no password set
-		DB:       0,  // use default DB
-	})
-
-	ctx := context.TODO()
-	_, connErr := client.Ping(ctx).Result()
-	require.NoError(t, connErr)
-	defer client.Close()
-
-	setErr := client.Set(ctx, "key", "foo", 0).Err()
-	require.NoError(t, setErr)
-
-	val, getErr := client.Get(ctx, "key").Result()
-	require.NoError(t, getErr)
-	require.Equal(t, val, "foo")
 }
 
 // Some of the tests need to run against Organization root account. This method overrides the default AWS_* environment variables

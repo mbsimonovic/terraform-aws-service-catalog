@@ -48,14 +48,8 @@ func TestRedis(t *testing.T) {
 
 	test_structure.RunTestStage(t, "validate", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
-		cacheEndpoint := terraform.OutputRequired(t, terraformOptions, "primary_endpoint")
-		cachePort := terraform.OutputRequired(t, terraformOptions, "cache_port")
-
-		info := RedisInfo{
-			Endpoint: cacheEndpoint,
-			Port:     cachePort,
-		}
-		smokeTestRedis(t, info)
+		terraform.OutputRequired(t, terraformOptions, "primary_endpoint")
+		terraform.OutputRequired(t, terraformOptions, "cache_port")
 	})
 }
 
