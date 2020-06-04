@@ -104,10 +104,8 @@ module "cloudtrail" {
   cloudtrail_trail_name = var.name_prefix
   s3_bucket_name        = var.cloudtrail_s3_bucket_name != null ? var.cloudtrail_s3_bucket_name : "${var.name_prefix}-cloudtrail"
 
-  kms_key_already_exists         = true
-  kms_key_arn                    = var.cloudtrail_kms_key_arn
-  kms_key_administrator_iam_arns = var.cloudtrail_kms_key_administrator_iam_arns
-  kms_key_user_iam_arns          = var.cloudtrail_kms_key_user_iam_arns
+  kms_key_already_exists = true
+  kms_key_arn            = var.cloudtrail_kms_key_arn
 
   num_days_after_which_archive_log_data = var.cloudtrail_num_days_after_which_archive_log_data
   num_days_after_which_delete_log_data  = var.cloudtrail_num_days_after_which_delete_log_data

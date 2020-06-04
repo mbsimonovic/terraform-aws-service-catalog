@@ -34,8 +34,8 @@ module "app_baseline" {
   auto_deploy_permissions = var.auto_deploy_permissions
   dev_permitted_services  = var.dev_permitted_services
 
-  cloudtrail_kms_key_administrator_iam_arns = var.cloudtrail_kms_key_administrator_iam_arns
-  cloudtrail_s3_bucket_name                 = var.cloudtrail_s3_bucket_name
+  cloudtrail_s3_bucket_name = var.cloudtrail_s3_bucket_name
+  cloudtrail_kms_key_arn    = module.cloudtrail_cmk.key_arn[local.cloudtrail_cmk_name]
 
   # Create a single global CMK for general use in the account
   kms_customer_master_keys = {
@@ -49,6 +49,39 @@ module "app_baseline" {
   }
 
   sns_topic_name = var.sns_topic_name
+}
+
+# Create a dedicated KMS key for use with cloudtrail
+module "cloudtrail_cmk" {
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-master-key?ref=v0.32.1"
+  customer_master_keys = {
+    (local.cloudtrail_cmk_name) = {
+      cmk_administrator_iam_arns = ["arn:aws:cloudtrail:*:${data.aws_caller_identity.current.account_id}:root"]
+      cmk_user_iam_arns          = []
+      cmk_service_principals = [
+        {
+          name    = "cloudtrail.amazonaws.com"
+          actions = ["kms:GenerateDataKey*"]
+          conditions = [{
+            test     = "StringLike"
+            variable = "kms:EncryptionContext:aws:cloudtrail:arn"
+            values = concat([
+              "arn:aws:cloudtrail:*:${data.aws_caller_identity.current.account_id}:trail/${var.name_prefix}"
+              ],
+            )
+          }]
+        },
+        {
+          name    = "cloudtrail.amazonaws.com"
+          actions = ["kms:DescribeKey"]
+        },
+      ]
+    }
+  }
+}
+
+locals {
+  cloudtrail_cmk_name = "cmk-${var.name_prefix}-cloudtrail"
 }
 
 data "aws_caller_identity" "current" {}

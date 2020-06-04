@@ -258,20 +258,6 @@ variable "guardduty_opt_in_regions" {
 # and you can instead inline the values directly in main.tf.
 # ---------------------------------------------------------------------------------------------------------------------
 
-variable "cloudtrail_kms_key_administrator_iam_arns" {
-  description = "All CloudTrail Logs will be encrypted with a KMS Key (a Customer Master Key) that governs access to write API calls older than 7 days and all read API calls. The IAM Users specified in this list will have rights to change who can access this extended log data."
-  type        = list(string)
-  # example = ["arn:aws:iam::<aws-account-id>:user/<iam-user-name>"]
-  default = []
-}
-
-variable "cloudtrail_kms_key_user_iam_arns" {
-  description = "All CloudTrail Logs will be encrypted with a KMS Key (a Customer Master Key) that governs access to write API calls older than 7 days and all read API calls. The IAM Users specified in this list will have read-only access to this extended log data."
-  type        = list(string)
-  # example = ["arn:aws:iam::<aws-account-id>:user/<iam-user-name>"]
-  default = []
-}
-
 variable "cloudtrail_num_days_after_which_archive_log_data" {
   description = "After this number of days, log files should be transitioned from S3 to Glacier. Enter 0 to never archive log data."
   type        = number
