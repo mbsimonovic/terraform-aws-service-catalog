@@ -147,8 +147,8 @@ module "cloudtrail" {
   # user vars to empty list.
   kms_key_already_exists         = true
   kms_key_arn                    = module.cloudtrail_cmk.key_arn[local.cloudtrail_cmk_name]
-  kms_key_administrator_iam_arns = var.kms_key_administrator_iam_arns
-  kms_key_user_iam_arns          = var.kms_key_user_iam_arns
+  kms_key_administrator_iam_arns = var.cloudtrail_kms_key_administrator_iam_arns
+  kms_key_user_iam_arns          = var.cloudtrail_kms_key_user_iam_arns
 
   # Note that users with IAM permissions to CloudTrail can still view the last 7 days of data in the AWS Web Console
   allow_cloudtrail_access_with_iam = var.allow_cloudtrail_access_with_iam
