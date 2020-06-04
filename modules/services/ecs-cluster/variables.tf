@@ -43,11 +43,6 @@ variable "cluster_instance_keypair_name" {
   type        = string
 }
 
-variable "vpc_name" {
-  description = "The name of the VPC in which to run the ECS cluster (e.g. stage, prod)"
-  type        = string
-}
-
 variable "terraform_state_aws_region" {
   description = "The AWS region of the S3 bucket used to store Terraform remote state"
   type        = string
@@ -64,14 +59,17 @@ variable "allow_requests_from_public_alb" {
   default     = false
 }
 
-{{- if .IncludeInternalAlb }}
+variable "include_internal_alb" {
+ description "Set to true to if you want to put an internal application load balancer in front of the ECS cluster"
+ type = bool 
+ default = false 
+}
 
 variable "allow_requests_from_internal_alb" {
-  description = "Set to true to allow inbound requests to this ECS cluster from the internal ALB (if you're using one)"
+  description = "Set to true to allow inbound requests to this ECS cluster from the internal ALB. Only used if var.include_internal_alb is set to true"
   type        = bool
   default     = false
 }
-{{- end }}
 
 variable "tenancy" {
   description = "The tenancy of this server. Must be one of: default, dedicated, or host."
@@ -121,46 +119,52 @@ variable "external_account_ssh_grunt_role_arn" {
 }
 {{- end }}
 
-{{- if .InstallCloudWatchMonitoring }}
+variable "install_cloudwatch_monitoring" {
+  description = "Set to true to install Cloudwatch monitoring in the cluster"
+  type = bool 
+  default = false 
+}
 
 variable "high_cpu_utilization_threshold" {
-  description = "Trigger an alarm if the ECS Cluster has a CPU utilization percentage above this threshold"
+  description = "Trigger an alarm if the ECS Cluster has a CPU utilization percentage above this threshold. Only used if var.install_cloudwatch_monitoring is set to true"
   type        = number
 }
 
 variable "high_cpu_utilization_period" {
-  description = "The period, in seconds, over which to measure the CPU utilization percentage"
+  description = "The period, in seconds, over which to measure the CPU utilization percentage. Only used if var.install_cloudwatch_monitoring is set to true"
   type        = number
 }
 
 variable "high_memory_utilization_threshold" {
-  description = "Trigger an alarm if the ECS Cluster has a memory utilization percentage above this threshold"
+  description = "Trigger an alarm if the ECS Cluster has a memory utilization percentage above this threshold. Only used if var.install_cloudwatch_monitoring is set to true"
   type        = number
 }
 
 variable "high_memory_utilization_period" {
-  description = "The period, in seconds, over which to measure the memory utilization percentage"
+  description = "The period, in seconds, over which to measure the memory utilization percentage. Only used if var.install_cloudwatch_monitoring is set to true"
   type        = number
 }
 
 variable "high_disk_utilization_threshold" {
-  description = "Trigger an alarm if the EC2 instances in the ECS Cluster have a disk utilization percentage above this threshold"
+  description = "Trigger an alarm if the EC2 instances in the ECS Cluster have a disk utilization percentage above this threshold. Only used if var.install_cloudwatch_monitoring is set to true"
   type        = number
 }
 
 variable "high_disk_utilization_period" {
-  description = "The period, in seconds, over which to measure the disk utilization percentage"
+  description = "The period, in seconds, over which to measure the disk utilization percentage. Only used if var.install_cloudwatch_monitoring is set to true"
   type        = number
 }
-{{- end }}
 
-{{- if .RunDataDogEcsTask }}
+variable "run_data_dog_ecs_task" {
+  description = "Set to true to run Datadog to monitor the ECS cluster"
+  type = bool 
+  default = false 
+}
 
 variable "data_dog_api_key_encrypted" {
-  description = "Your DataDog API Key, encrypted with KMS"
+  description = "Your DataDog API Key, encrypted with KMS. Only required if var.run_data_dog_ecs_task is set to true"
   type        = string
 }
-{{- end }}
 
 variable "terraform_state_kms_master_key" {
   description = "Path base name of the kms master key to use. This should reflect what you have in your infrastructure-live folder."
