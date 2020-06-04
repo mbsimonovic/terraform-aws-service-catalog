@@ -3,11 +3,13 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  required_version = "~> 0.12.6"
-
   required_providers {
     aws = "~> 2.6"
   }
+
+  # Require at least 0.12.6, which added for_each support; make sure we don't accidentally pull in 0.13.x, as that may
+  # have backwards incompatible changes when it comes out.
+  required_version = "~> 0.12.6"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -146,7 +148,7 @@ data "aws_iam_policy_document" "access_kms_master_key" {
   statement {
     effect    = "Allow"
     actions   = ["kms:Decrypt"]
-    resources = var.sns_topic_arns
+    resources = var.alarms_sns_topic_arn
   }
 }
 
@@ -253,13 +255,13 @@ resource "aws_route53_record" "service" {
 module "cloudwatch_metrics" {
   source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-custom-metrics-iam-policy?ref=v0.21.2"
 
-  create_resources = var.install_cloudwatch_monitoring
+  create_resources = var.enable_cloudwatch_metrics
 
   name_prefix = var.name
 }
 
 resource "aws_iam_policy_attachment" "attach_cloudwatch_metrics_policy" {
-  count = var.install_cloudwatch_monitoring ? 1 : 0
+  count = var.enable_cloudwatch_metrics ? 1 : 0
 
   name       = "attach-cloudwatch-metrics-policy"
   roles      = [aws_iam_role.instance_role.id]
@@ -273,13 +275,13 @@ resource "aws_iam_policy_attachment" "attach_cloudwatch_metrics_policy" {
 module "cloudwatch_log_aggregation" {
   source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/logs/cloudwatch-log-aggregation-iam-policy?ref=v0.21.2"
 
-  create_resources = var.install_cloudwatch_monitoring
+  create_resources = var.enable_cloudwatch_log_aggregation
 
   name_prefix = var.name
 }
 
 resource "aws_iam_policy_attachment" "attach_cloudwatch_log_aggregation_policy" {
-  count = var.install_cloudwatch_monitoring ? 1 : 0
+  count = var.enable_cloudwatch_log_aggregation ? 1 : 0
 
   name = "attach-cloudwatch-log-aggregation-policy"
 
@@ -294,33 +296,33 @@ resource "aws_iam_policy_attachment" "attach_cloudwatch_log_aggregation_policy" 
 module "asg_high_cpu_usage_alarms" {
   source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/asg-cpu-alarms?ref=v0.21.2"
 
-  create_resources = var.install_cloudwatch_monitoring
+  create_resources = var.enable_cloudwatch_alarms
 
   asg_names            = [module.asg.asg_name]
   num_asg_names        = 1
-  alarm_sns_topic_arns = var.sns_topic_arns
+  alarm_sns_topic_arns = var.alarms_sns_topic_arn
 }
 
 module "asg_high_memory_usage_alarms" {
   source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/asg-memory-alarms?ref=v0.21.2"
 
-  create_resources = var.install_cloudwatch_monitoring
+  create_resources = var.enable_cloudwatch_alarms
 
   asg_names            = [module.asg.asg_name]
   num_asg_names        = 1
-  alarm_sns_topic_arns = var.sns_topic_arns
+  alarm_sns_topic_arns = var.alarms_sns_topic_arn
 }
 
 module "asg_high_disk_usage_alarms" {
   source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/asg-disk-alarms?ref=v0.21.2"
 
-  create_resources = var.install_cloudwatch_monitoring
+  create_resources = var.enable_cloudwatch_alarms
 
   asg_names            = [module.asg.asg_name]
   num_asg_names        = 1
   file_system          = "/dev/xvda1"
   mount_path           = "/"
-  alarm_sns_topic_arns = var.sns_topic_arns
+  alarm_sns_topic_arns = var.alarms_sns_topic_arn
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -332,7 +334,7 @@ module "asg_high_disk_usage_alarms" {
 module "route53_health_check" {
   source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/route53-health-check-alarms?ref=v0.21.2"
 
-  create_resources = var.install_cloudwatch_monitoring
+  create_resources = var.enable_cloudwatch_alarms
 
   domain                         = var.domain_name
   alarm_sns_topic_arns_us_east_1 = [] // ?? [data.terraform_remote_state.sns_us_east_1.outputs.arn]

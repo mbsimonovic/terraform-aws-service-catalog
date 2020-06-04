@@ -18,11 +18,6 @@ variable "name" {
   type        = string
 }
 
-variable "vpc_name" {
-  description = "The name of the VPC in which all the resources should be deployed (e.g. stage, prod)"
-  type        = string
-}
-
 variable "ami" {
   description = "The ID of the AMI to run on each EC2 Instance in the ASG."
   type        = string
@@ -151,12 +146,28 @@ variable "enable_route53_health_check" {
   default     = false
 }
 
-variable "install_cloudwatch_monitoring" {
-  type = bool
+variable "enable_cloudwatch_metrics" {
+  description = "Set to true to add IAM permissions to send custom metrics to CloudWatch. This is useful in combination with https://github.com/gruntwork-io/module-aws-monitoring/tree/master/modules/metrics/cloudwatch-memory-disk-metrics-scripts to get memory and disk metrics in CloudWatch for your Auto Scaling Group"
+  type        = bool
+  default     = true
 }
 
-variable "sns_topic_arns" {
-  type = bool
+variable "enable_cloudwatch_alarms" {
+  description = "Set to true to enable several basic CloudWatch alarms around CPU usage, memory usage, and disk space usage. If set to true, make sure to specify SNS topics to send notifications to using var.alarms_sns_topic_arn."
+  type        = bool
+  default     = true
+}
+
+variable "enable_cloudwatch_log_aggregation" {
+  description = "Set to true to add AIM permissions to send logs to CloudWatch. This is useful in combination with https://github.com/gruntwork-io/module-aws-monitoring/tree/master/modules/logs/cloudwatch-log-aggregation-scripts to do log aggregation in CloudWatch."
+  type        = bool
+  default     = true
+}
+
+variable "alarms_sns_topic_arn" {
+  description = "The ARNs of SNS topics where CloudWatch alarms (e.g., for CPU, memory, and disk space usage) should send notifications. Also used for the alarms if the Jenkins backup job fails."
+  type        = list(string)
+  default     = []
 }
 
 variable "vpn_security_group_ids" {
@@ -173,11 +184,13 @@ variable "vpc_private_subnet_ids" {
 }
 
 variable "vpc_id" {
-  type = string
+  description = "The ID of the VPC in which to deploy the Auto Scaling Group"
+  type        = string
 }
 
 variable "hosted_zone_id" {
-  type = string
+  description = "The ID of the Route 53 Hosted Zone in which to create a DNS A record for the Auto Scaling Group."
+  type        = string
 }
 
 variable "original_alb_dns_name" {
