@@ -3,16 +3,6 @@
 # These variables are expected to be passed in by the operator
 # ---------------------------------------------------------------------------------------------------------------------
 
-variable "aws_region" {
-  description = "The AWS region in which all resources will be created"
-  type        = string
-}
-
-variable "aws_account_id" {
-  description = "The ID of the AWS Account in which to create resources."
-  type        = string
-}
-
 variable "name" {
   description = "The name for the ASG and all other resources created by these templates."
   type        = string
@@ -56,16 +46,6 @@ variable "desired_capacity" {
 variable "server_port" {
   description = "The port the EC2 instances listen on for HTTP requests"
   type        = number
-}
-
-variable "terraform_state_aws_region" {
-  description = "The AWS region of the S3 bucket used to store Terraform remote state"
-  type        = string
-}
-
-variable "terraform_state_s3_bucket" {
-  description = "The name of the S3 bucket used to store Terraform remote state"
-  type        = string
 }
 
 variable "alb_listener_rule_configs" {
@@ -179,7 +159,7 @@ variable "user_data" {
   default = null
 }
 
-variable "vpc_private_subnet_ids" {
+variable "subnet_ids" {
   type = list(string)
 }
 

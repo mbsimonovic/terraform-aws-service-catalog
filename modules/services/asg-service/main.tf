@@ -19,9 +19,9 @@ terraform {
 module "asg" {
   source = "git::git@github.com:gruntwork-io/module-asg.git//modules/asg-rolling-deploy?ref=v0.8.7"
 
-  aws_region                = var.aws_region
+  aws_region                = data.aws_region.current.name
   launch_configuration_name = aws_launch_configuration.launch_configuration.name
-  vpc_subnet_ids            = var.vpc_private_subnet_ids
+  vpc_subnet_ids            = var.subnet_ids
   target_group_arns         = [aws_alb_target_group.service.arn]
 
   min_size         = var.min_size
@@ -139,6 +139,8 @@ data "aws_iam_policy_document" "instance_role" {
 # GIVE THIS SERVICE ACCESS TO THE KMS MASTER KEY SO IT CAN USE IT TO DECRYPT SECRETS IN CONFIG FILES
 # ---------------------------------------------------------------------------------------------------------------------
 
+
+// TODO REMOVE
 resource "aws_iam_policy" "access_kms_master_key" {
   name   = "access-kms-master-key-${var.name}"
   policy = data.aws_iam_policy_document.access_kms_master_key.json
@@ -153,7 +155,7 @@ data "aws_iam_policy_document" "access_kms_master_key" {
 }
 
 resource "aws_iam_policy_attachment" "attach_access_kms_master_key" {
-  name       = "attach-access-kms-master-key-${var.name}"
+  name       = "attach-access-kms-master-key-${var.name}" // TODO another kms key, remove
   roles      = [aws_iam_role.instance_role.name]
   policy_arn = aws_iam_policy.access_kms_master_key.arn
 }
@@ -167,7 +169,7 @@ resource "aws_iam_policy_attachment" "attach_access_kms_master_key" {
 module "iam_policies" {
   source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-policies?ref=v0.32.0"
 
-  aws_account_id = var.aws_account_id
+  aws_account_id = data.aws_caller_identity.current.account_id
 
   # ssh-grunt is an automated app, so we can't use MFA with it
   iam_policy_should_require_mfa   = false
@@ -222,10 +224,10 @@ resource "aws_alb_listener_rule" "paths_to_route_to_this_service" {
     target_group_arn = aws_alb_target_group.service.arn
   }
 
-  // TODO some warn here
   condition {
-    field  = "path-pattern"
-    values = [var.alb_listener_rule_configs[count.index]["path"]]
+    path_pattern {
+      values = [var.alb_listener_rule_configs[count.index]["path"]]
+    }
   }
 }
 
@@ -515,3 +517,14 @@ module "route53_health_check" {
 //    key    = "_global/route53-public/terraform.tfstate"
 //  }
 //}
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# DATA SOURCES
+# These resources must already exist.
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# Grab the current region as a data source so the operator only needs to set it on the provider
+data "aws_region" "current" {}
+
+data "aws_caller_identity" "current" {}
