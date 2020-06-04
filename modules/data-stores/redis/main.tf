@@ -1,0 +1,71 @@
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# LAUNCH AN ELASTICACHE REPLICATION GROUP WITH REDIS
+# This template creates a replication group of 1 or more redis cache clusters using ElastiCache.
+# This module can be used to deploy an Amazon ElastiCache replication group with Redis. It creates the following resources:
+#
+# - An replication group with 1 or more Redis cache clusters using ElastiCache.
+# - CloudWatch alarms for monitoring performance issues with the Redis cache cluster.
+#
+# Note: AWS ElastiCache terminology is confusing for Redis. A single Redis node is known as a "cache cluster". You can
+# group many cache clusters into a single group known as a "replication group." This means that one of the cache
+# clusters will serve as the "primary node", which means all write traffic will be directed to it. The other cache
+# clusters will be "read replicas", and will receive the data written to the primary node asynchronously.
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+terraform {
+  # Require at least 0.12.6, which added for_each support; make sure we don't accidentally pull in 0.13.x, as that may
+  # have backwards incompatible changes when it comes out.
+  required_version = "~> 0.12.6"
+
+  required_providers {
+    aws = "~> 2.6"
+  }
+}
+
+# ----------------------------------------------------------------------------------------------------------------------
+# DEPLOY THE ELASTICACHE CLUSTER
+# ----------------------------------------------------------------------------------------------------------------------
+
+module "redis" {
+  source = "git::git@github.com:gruntwork-io/module-cache.git//modules/redis?ref=v0.9.2"
+
+  name = var.name
+
+  instance_type          = var.instance_type
+  replication_group_size = var.replication_group_size
+  redis_version          = var.redis_version
+  port                   = var.port
+
+  # Run in the private persistence subnets and only allow incoming connections from the private app subnets
+  vpc_id                                 = var.vpc_id
+  subnet_ids                             = var.subnet_ids
+  allow_connections_from_cidr_blocks     = var.allow_connections_from_cidr_blocks
+  allow_connections_from_security_groups = var.allow_connections_from_security_groups
+
+  enable_automatic_failover = var.enable_automatic_failover
+
+  snapshot_retention_limit = var.snapshot_retention_limit
+  snapshot_window          = var.snapshot_window
+  apply_immediately        = var.apply_immediately
+  maintenance_window       = var.maintenance_window
+
+  sns_topic_for_notifications = var.sns_topic_for_notifications
+
+  enable_at_rest_encryption = var.enable_at_rest_encryption
+  enable_transit_encryption = var.enable_transit_encryption
+  cluster_mode              = var.cluster_mode
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# ADD CLOUDWATCH ALARMS FOR THE ELASTICACHE CLUSTER
+# ---------------------------------------------------------------------------------------------------------------------
+
+module "redis_alarms" {
+  source           = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/elasticache-redis-alarms?ref=v0.19.4"
+  create_resources = var.enable_cloudwatch_alarms
+
+  cache_cluster_ids    = module.redis.cache_cluster_ids
+  num_cluster_ids      = var.replication_group_size
+  cache_node_id        = module.redis.cache_node_id
+  alarm_sns_topic_arns = var.alarms_sns_topic_arns
+}

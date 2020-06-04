@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/aws/aws-sdk-go v1.27.1
+	github.com/go-redis/redis/v8 v8.0.0-beta.2
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/gruntwork-io/gruntwork-cli v0.6.1
 	github.com/gruntwork-io/terratest v0.26.0
