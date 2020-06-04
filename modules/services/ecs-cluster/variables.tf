@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------------------------------------------------
-# MODULE PARAMETERS
+# REQUIRED MODULE PARAMETERS
 # These variables are expected to be passed in by the operator
 # ---------------------------------------------------------------------------------------------------------------------
 
@@ -15,6 +15,11 @@ variable "aws_account_id" {
 
 variable "cluster_name" {
   description = "The name of the ECS cluster"
+  type        = string
+}
+
+variable "vpc_id" {
+  description = "The ID of the VPC in which the ECS cluster should be launched"
   type        = string
 }
 
@@ -60,10 +65,38 @@ variable "allow_requests_from_public_alb" {
 }
 
 variable "include_internal_alb" {
- description "Set to true to if you want to put an internal application load balancer in front of the ECS cluster"
- type = bool 
- default = false 
+  description = "Set to true to if you want to put an internal application load balancer in front of the ECS cluster"
+  type        = bool
+  default     = false
 }
+
+variable "docker_auth_type" {
+  description = "The docker authentication strategy to use for pulling Docker images. MUST be one of: (docker-hub, docker-other, docker-gitlab)"
+  type        = string
+}
+
+variable "run_data_dog_ecs_task" {
+  description = "Set to true to run Datadog to monitor the ECS cluster"
+  type        = bool
+  default     = false
+}
+
+variable "install_cloudwatch_monitoring" {
+  description = "Set to true to install Cloudwatch monitoring in the cluster"
+  type        = bool
+  default     = false
+}
+
+variable "vpc_subnet_ids" {
+  description = "The list of IDs of subnets that ECS resources should be launched into"
+  type        = list(string)
+  default     = []
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# OPTIONAL MODULE PARAMETERS
+# These variables will be set to their default values if not passed in by the operator
+# ---------------------------------------------------------------------------------------------------------------------
 
 variable "allow_requests_from_internal_alb" {
   description = "Set to true to allow inbound requests to this ECS cluster from the internal ALB. Only used if var.include_internal_alb is set to true"
@@ -78,52 +111,57 @@ variable "tenancy" {
 }
 
 variable "allow_ssh" {
-  description = "Set to true to allow SSH access to this ECS cluster from the {{ if .UsingOpenVpn }}OpenVPN server{{ else }}bastion host{{ end }}."
+  description = "Set to true to allow SSH access to this ECS cluster from either the openvpn server or bastion-host, depending upon which you are using"
   type        = bool
   default     = true
 }
 
-{{- if or (eq .DockerAuthType "docker-hub") (eq .DockerAuthType "docker-gitlab") (eq .DockerAuthType "docker-other") }}
-
 # For info on how ECS authenticates to private Docker registries, see:
 # http://docs.aws.amazon.com/AmazonECS/latest/developerguide/private-auth.html
 variable "docker_repo_auth" {
-  description = "The Docker auth value, encrypted with a KMS master key, that can be used to download your private images from Docker Hub. This is not your password! To get the auth value, run 'docker login', enter a machine user's credentials, and when you're done, copy the 'auth' value from ~/.docker/config.json. To encrypt the value with KMS, use gruntkms with a master key. Note that these instances will use gruntkms to decrypt the data, so the IAM role of these instances must be granted permission to access the KMS master key you use to encrypt this data!"
+  description = "The Docker auth value, encrypted with a KMS master key, that can be used to download your private images from Docker Hub. This is not your password! To get the auth value, run 'docker login', enter a machine user's credentials, and when you're done, copy the 'auth' value from ~/.docker/config.json. To encrypt the value with KMS, use gruntkms with a master key. Note that these instances will use gruntkms to decrypt the data, so the IAM role of these instances must be granted permission to access the KMS master key you use to encrypt this data! Used if var.docker_auth_type is set to docker-hub, docker-gitlab or docker-other"
   type        = string
 }
-{{- end }}
-
-{{- if or (eq .DockerAuthType "docker-gitlab") }}
 
 variable "docker_registry_url" {
-  description = "The URL of your Docker Registry"
+  description = "The URL of your Docker Registry. Only used if var.docker_auth_type is set to docker-gitlab"
   type        = string
 }
-{{- end }}
 
-{{- if or (eq .DockerAuthType "docker-hub") (eq .DockerAuthType "docker-other") }}
+
+variable "docker_auth_type" {
+  description = "The docker authentication strategy to use for pulling Docker images. MUST be one of: (docker-hub, docker-other, docker-gitlab)"
+  type        = string
+}
 
 # For info on how ECS authenticates to private Docker registries, see:
 # http://docs.aws.amazon.com/AmazonECS/latest/developerguide/private-auth.html
 variable "docker_repo_email" {
-  description = "The Docker email address that can be used used to download your private images from Docker Hub."
+  description = "The Docker email address that can be used used to download your private images from Docker Hub. Only used if var.docker_auth_type is set to docker-hub or docker-other"
   type        = string
+  default     = ""
 }
-{{- end }}
 
-{{- if .IamUsersDefinedInSeparateAccount }}
+# ---------------------------------------------------------------------------------------------------------------------
+# SSH GRUNT VARIABLES
+# These variables optionally enable and configure access via ssh-grunt. See: https://github.com/gruntwork-io/module-security/tree/master/modules/ssh-grunt for more info.
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "enable_external_account_ssh_grunt" {
+  description = "Set to true to allow ssh-grunt to obtain access to the ECS cluster resources via a cross-account IAM role"
+  type        = bool
+  default     = false
+}
 
 variable "external_account_ssh_grunt_role_arn" {
   description = "Since our IAM users are defined in a separate AWS account, this variable is used to specify the ARN of an IAM role that allows ssh-grunt to retrieve IAM group and public SSH key info from that account."
   type        = string
 }
-{{- end }}
 
-variable "install_cloudwatch_monitoring" {
-  description = "Set to true to install Cloudwatch monitoring in the cluster"
-  type = bool 
-  default = false 
-}
+# ---------------------------------------------------------------------------------------------------------------------
+# CLOUDWATCH MONITORING VARIABLES
+# These variables optionally configure access via ssh-grunt. See: https://github.com/gruntwork-io/module-security/tree/master/modules/ssh-grunt for more info.
+# ---------------------------------------------------------------------------------------------------------------------
 
 variable "high_cpu_utilization_threshold" {
   description = "Trigger an alarm if the ECS Cluster has a CPU utilization percentage above this threshold. Only used if var.install_cloudwatch_monitoring is set to true"
@@ -155,12 +193,6 @@ variable "high_disk_utilization_period" {
   type        = number
 }
 
-variable "run_data_dog_ecs_task" {
-  description = "Set to true to run Datadog to monitor the ECS cluster"
-  type = bool 
-  default = false 
-}
-
 variable "data_dog_api_key_encrypted" {
   description = "Your DataDog API Key, encrypted with KMS. Only required if var.run_data_dog_ecs_task is set to true"
   type        = string
@@ -168,7 +200,7 @@ variable "data_dog_api_key_encrypted" {
 
 variable "terraform_state_kms_master_key" {
   description = "Path base name of the kms master key to use. This should reflect what you have in your infrastructure-live folder."
-  type = string
-  default = "kms-master-key"
+  type        = string
+  default     = "kms-master-key"
 }
 
