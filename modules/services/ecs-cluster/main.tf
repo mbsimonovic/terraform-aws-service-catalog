@@ -84,22 +84,13 @@ resource "aws_iam_policy_attachment" "attach_cloudwatch_log_aggregation_policy" 
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# ADD IAM POLICY THAT ALLOWS THE ECS CLUSTER TO ACCESS THE KMS MASTER KEY TO DECRYPT SECRETS
+# ADD AWS SECRETS MANAGER PERMISSIONS 
 # ---------------------------------------------------------------------------------------------------------------------
 
-resource "aws_iam_role_policy" "access_kms_master_key" {
-  name   = "access-kms-master-key"
-  role   = module.ecs_cluster.ecs_instance_iam_role_name
-  policy = data.aws_iam_policy_document.access_kms_master_key.json
-}
+# TODO: The IAM permissions to use the KMS master key was removed per step 5 of these instructions
+# It seems we were granting the ecs_instance_iam_role decrypt permissions on the key 
+# Figure out which secrets in particular the ecs docker containers actually need and grant them access explicitly via AWS secrets manager permissions
 
-data "aws_iam_policy_document" "access_kms_master_key" {
-  statement {
-    effect    = "Allow"
-    actions   = ["kms:Decrypt"]
-    resources = [var.kms_master_key_arn]
-  }
-}
 
 # ---------------------------------------------------------------------------------------------------------------------
 # ADD IAM POLICY THAT ALLOWS READING AND WRITING CLOUDWATCH METRICS
