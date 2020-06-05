@@ -97,14 +97,19 @@ resource "aws_iam_policy_attachment" "attach_cloudwatch_log_aggregation_policy" 
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "cloudwatch_metrics" {
-  source      = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-custom-metrics-iam-policy?ref=v0.13.2"
+  source      = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-custom-metrics-iam-policy?ref=v0.18.3
+  "
   name_prefix = var.cluster_name
+
+  # We set this to false so that the cloudwatch-custom-metrics-iam policy generates JSON for the policy, but does not create a standalone IAM policy with that JSON. We'll instead add that JSON to the ECS cluster IAM role. 
+  create_resources = false 
 }
 
-resource "aws_iam_policy_attachment" "attach_cloudwatch_metrics_policy" {
-  name       = "attach-cloudwatch-metrics-policy"
-  roles      = [module.ecs_cluster.ecs_instance_iam_role_name]
-  policy_arn = module.cloudwatch_metrics.cloudwatch_metrics_policy_arn
+resource "aws_iam_role_policy" "custom_cloudwatch_metrics" {
+  count = var.enable_cloudwatch_metrics ? 1 : 0 
+  name = "custom-cloudwatch-metrics"
+  role = module.ecs_cluster.ecs_instance_iam_role_name
+  policy = module.cloudwatch_metrics.cloudwatch_metrics_read_write_permissions.json
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -186,5 +191,4 @@ resource "aws_iam_role_policy" "ssh_grunt_permissions" {
   role   = module.ecs_cluster.ecs_instance_iam_role_name
   policy = module.iam_policies.allow_access_to_other_accounts[0]
 }
-
 
