@@ -21,7 +21,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_cluster" {
-  source = "git::git@github.com:gruntwork-io/module-ecs.git//modules/ecs-cluster?ref=v0.16.0"
+  source = "git::git@github.com:gruntwork-io/module-ecs.git//modules/ecs-cluster?ref=v0.20.1"
 
   cluster_name     = var.cluster_name
   cluster_min_size = var.cluster_min_size
@@ -75,7 +75,7 @@ data "template_file" "user_data" {
 module "cloudwatch_log_aggregation" {
   # TODO - replace correct ref after branch is merged 
   # source      = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/logs/cloudwatch-log-aggregation-iam-policy?ref=v0.13.2"
-  source      = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/logs/cloudwatch-log-aggregation-iam-policy?ref=add-ecs-instance-role-id-output"
+  source      = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/logs/cloudwatch-log-aggregation-iam-policy?ref=v0.21.2"
   name_prefix = var.cluster_name
 
   # not create a standalone IAM policy with that JSON. We'll instead add that JSON to the ECS cluster IAM role.
@@ -103,7 +103,7 @@ resource "aws_iam_role_policy" "custom_cloudwatch_logging" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "cloudwatch_metrics" {
-  source      = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-custom-metrics-iam-policy?ref=v0.18.3"
+  source      = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-custom-metrics-iam-policy?ref=v0.21.2"
   name_prefix = var.cluster_name
 
   # We set this to false so that the cloudwatch-custom-metrics-iam policy generates JSON for the policy, but does not create a standalone IAM policy with that JSON. We'll instead add that JSON to the ECS cluster IAM role. 
