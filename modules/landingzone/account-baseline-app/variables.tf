@@ -28,10 +28,9 @@ variable "cloudtrail_s3_bucket_name" {
   type        = string
 }
 
-variable "cloudtrail_kms_key_administrator_iam_arns" {
-  description = "All CloudTrail Logs will be encrypted with a KMS Key (a Customer Master Key) that governs access to write API calls older than 7 days and all read API calls. The IAM Users specified in this list will have rights to change who can access this extended log data."
-  type        = list(string)
-  # example = ["arn:aws:iam::<aws-account-id>:user/<iam-user-name>"]
+variable "cloudtrail_kms_key_arn" {
+  description = "The ARN of a KMS key to use to encrypt CloudTrail logs."
+  type        = string
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -271,21 +270,8 @@ variable "cloudtrail_num_days_after_which_delete_log_data" {
   default     = 365
 }
 
-variable "cloudtrail_kms_key_arn" {
-  description = "If you wish to specify a custom KMS key, then specify the key arn using this variable. This is especially useful when using CloudTrail with multiple AWS accounts, so the logs are all encrypted using the same key."
-  type        = string
-  default     = null
-}
-
-variable "cloudtrail_kms_key_user_iam_arns" {
-  description = "All CloudTrail Logs will be encrypted with a KMS Key (a Customer Master Key) that governs access to write API calls older than 7 days and all read API calls. The IAM Users specified in this list will have read-only access to this extended log data."
-  type        = list(string)
-  # example = ["arn:aws:iam::<aws-account-id>:user/<iam-user-name>"]
-  default = []
-}
-
 variable "allow_cloudtrail_access_with_iam" {
-  description = "If true, an IAM Policy that grants access to CloudTrail will be honored. If false, only the ARNs listed in var.kms_key_user_iam_arns will have access to CloudTrail and any IAM Policy grants will be ignored. (true or false)"
+  description = "If true, an IAM Policy that grants access to CloudTrail will be honored."
   type        = bool
   default     = true
 }
