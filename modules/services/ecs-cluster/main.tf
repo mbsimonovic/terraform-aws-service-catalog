@@ -2,10 +2,6 @@
 # DEPLOY AN ECS CLUSTER TO RUN DOCKER CONTAINERS
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# ---------------------------------------------------------------------------------------------------------------------
-# CONFIGURE REMOTE STATE STORAGE
-# ---------------------------------------------------------------------------------------------------------------------
-
 terraform {
   # Require at least 0.12.6, which added for_each support; make sure we don't accidentally pull in 0.13.x, as that may
   # have backwards incompatible changes when it comes out.
