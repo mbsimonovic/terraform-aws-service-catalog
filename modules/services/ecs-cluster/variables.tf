@@ -81,8 +81,8 @@ variable "run_data_dog_ecs_task" {
   default     = false
 }
 
-variable "enable_cloudwatch_metrics" {
-  description = "Set to true to install Cloudwatch monitoring in the cluster"
+variable "enable_cloudwatch_alarms" {
+  description = "Set to true to install Cloudwatch monitoring and alerts in the cluster"
   type        = bool
   default     = false
 }
@@ -160,36 +160,36 @@ variable "external_account_ssh_grunt_role_arn" {
 
 # ---------------------------------------------------------------------------------------------------------------------
 # CLOUDWATCH MONITORING VARIABLES
-# These variables optionally configure access via ssh-grunt. See: https://github.com/gruntwork-io/module-security/tree/master/modules/ssh-grunt for more info.
+# These variables optionally configure Cloudwatch alarms to monitor resource usage in the ECS cluster and raise alerts when defined thresholds are exceeded 
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "high_cpu_utilization_threshold" {
-  description = "Trigger an alarm if the ECS Cluster has a CPU utilization percentage above this threshold. Only used if var.enable_cloudwatch_metrics is set to true"
+  description = "Trigger an alarm if the ECS Cluster has a CPU utilization percentage above this threshold. Only used if var.enable_cloudwatch_alarms is set to true"
   type        = number
 }
 
 variable "high_cpu_utilization_period" {
-  description = "The period, in seconds, over which to measure the CPU utilization percentage. Only used if var.enable_cloudwatch_metrics is set to true"
+  description = "The period, in seconds, over which to measure the CPU utilization percentage. Only used if var.enable_cloudwatch_alarms is set to true"
   type        = number
 }
 
 variable "high_memory_utilization_threshold" {
-  description = "Trigger an alarm if the ECS Cluster has a memory utilization percentage above this threshold. Only used if var.enable_cloudwatch_metrics is set to true"
+  description = "Trigger an alarm if the ECS Cluster has a memory utilization percentage above this threshold. Only used if var.enable_cloudwatch_alarms is set to true"
   type        = number
 }
 
 variable "high_memory_utilization_period" {
-  description = "The period, in seconds, over which to measure the memory utilization percentage. Only used if var.enable_cloudwatch_metrics is set to true"
+  description = "The period, in seconds, over which to measure the memory utilization percentage. Only used if var.enable_cloudwatch_alarms is set to true"
   type        = number
 }
 
 variable "high_disk_utilization_threshold" {
-  description = "Trigger an alarm if the EC2 instances in the ECS Cluster have a disk utilization percentage above this threshold. Only used if var.enable_cloudwatch_metrics is set to true"
+  description = "Trigger an alarm if the EC2 instances in the ECS Cluster have a disk utilization percentage above this threshold. Only used if var.enable_cloudwatch_alarms is set to true"
   type        = number
 }
 
 variable "high_disk_utilization_period" {
-  description = "The period, in seconds, over which to measure the disk utilization percentage. Only used if var.enable_cloudwatch_metrics is set to true"
+  description = "The period, in seconds, over which to measure the disk utilization percentage. Only used if var.enable_cloudwatch_alarms is set to true"
   type        = number
 }
 
