@@ -122,6 +122,18 @@ variable "allow_ssh" {
   default     = true
 }
 
+variable "allow_ssh_from_cidr_blocks" {
+  description = "The IP address ranges in CIDR format from which to allow incoming SSH requests to the ECS instances. Only used if var.allow_ssh is set to true"
+  type        = list(string)
+  default     = []
+}
+
+variable "allow_ssh_from_security_group_ids" {
+  description = "The IDs of security groups from which to allow incoming SSH requests to the ECS instances. Only used if var.allow_ssh is set to true"
+  type        = list(string)
+  default     = []
+}
+
 # For info on how ECS authenticates to private Docker registries, see:
 # http://docs.aws.amazon.com/AmazonECS/latest/developerguide/private-auth.html
 variable "docker_repo_auth" {

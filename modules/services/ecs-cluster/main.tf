@@ -32,11 +32,11 @@ module "ecs_cluster" {
   cluster_instance_keypair_name = var.cluster_instance_keypair_name
   cluster_instance_user_data    = data.template_file.user_data.rendered
 
-  vpc_id                           = var.vpc_id
-  vpc_subnet_ids                   = var.vpc_subnet_ids
-  tenancy                          = var.tenancy
-  allow_ssh                        = var.allow_ssh
-  allow_ssh_from_security_group_id = var.openvpn_server_security_group_id
+  vpc_id                            = var.vpc_id
+  vpc_subnet_ids                    = var.vpc_subnet_ids
+  tenancy                           = var.tenancy
+  allow_ssh                         = var.allow_ssh
+  allow_ssh_from_security_group_ids = [var.openvpn_server_security_group_id]
 
   alb_security_group_ids     = compact(concat(data.template_file.alb_public_security_group_ids.*.rendered, data.template_file.alb_internal_security_group_ids.*.rendered))
   num_alb_security_group_ids = (var.allow_requests_from_public_alb ? 1 : 0) + (var.allow_requests_from_internal_alb ? 1 : 0)
@@ -73,10 +73,11 @@ data "template_file" "user_data" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "cloudwatch_log_aggregation" {
-  source      = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/logs/cloudwatch-log-aggregation-iam-policy?ref=v0.13.2"
+  # TODO - replace correct ref after branch is merged 
+  # source      = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/logs/cloudwatch-log-aggregation-iam-policy?ref=v0.13.2"
+  source      = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/logs/cloudwatch-log-aggregation-iam-policy?ref=add-ecs-instance-role-id-output"
   name_prefix = var.cluster_name
 
-  # We set this to false so that the cloudwatch-log-aggregation-iam-policy generates the JSON for the policy, but does
   # not create a standalone IAM policy with that JSON. We'll instead add that JSON to the ECS cluster IAM role.
   create_resources = false
 }
@@ -176,10 +177,10 @@ module "metric_widget_ecs_cluster_memory_usage" {
 # data.
 # ---------------------------------------------------------------------------------------------------------------------
 
-module "iam_policies" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-policies?ref=v0.22.0"
+module "ssh_grunt_policies" {
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-policies?ref=v0.25.1"
 
-  aws_account_id = var.aws_account_id
+  aws_account_id = data.aws_caller_identity.current.account_id
 
   # ssh-grunt is an automated app, so we can't use MFA with it
   iam_policy_should_require_mfa   = false
@@ -191,8 +192,10 @@ module "iam_policies" {
 }
 
 resource "aws_iam_role_policy" "ssh_grunt_permissions" {
+  count  = var.enable_ssh_grunt ? 1 : 0
   name   = "ssh-grunt-permissions"
-  role   = module.ecs_cluster.ecs_instance_iam_role_name
-  policy = module.iam_policies.allow_access_to_other_accounts[0]
+  role   = module.ecs_cluster.ecs_instance_iam_role_id
+  policy = var.external_account_ssh_grunt_role_arn == "" ? module.ssh_grunt_policies.ssh_grunt_permissions : module.ssh_grunt_policies.allow_access_to_other_accounts[0]
 }
+
 
