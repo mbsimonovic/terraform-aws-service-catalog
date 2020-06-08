@@ -87,6 +87,12 @@ variable "enable_cloudwatch_alarms" {
   default     = false
 }
 
+variable "enable_cloudwatch_log_aggregation" {
+  description = "Set to true to enable Cloudwatch log aggregation for the ECS cluster"
+  type        = bool
+  default     = false
+}
+
 variable "vpc_subnet_ids" {
   description = "The list of IDs of subnets that ECS resources should be launched into"
   type        = list(string)

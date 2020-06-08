@@ -75,12 +75,17 @@ data "template_file" "user_data" {
 module "cloudwatch_log_aggregation" {
   source      = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/logs/cloudwatch-log-aggregation-iam-policy?ref=v0.13.2"
   name_prefix = var.cluster_name
+
+  # We set this to false so that the cloudwatch-log-aggregation-iam-policy generates the JSON for the policy, but does
+  # not create a standalone IAM policy with that JSON. We'll instead add that JSON to the ECS cluster IAM role.
+  create_resources = false
 }
 
-resource "aws_iam_policy_attachment" "attach_cloudwatch_log_aggregation_policy" {
-  name       = "attach-cloudwatch-log-aggregation-policy"
-  roles      = [module.ecs_cluster.ecs_instance_iam_role_name]
-  policy_arn = module.cloudwatch_log_aggregation.cloudwatch_log_aggregation_policy_arn
+resource "aws_iam_role_policy" "custom_cloudwatch_logging" {
+  count      = var.enable_cloudwatch_log_aggregation ? 1 : 0
+  name       = "cloudwatch-log-aggregation"
+  role       = module.ecs_cluster.ecs_instance_iam_role_id
+  policy_arn = module.cloudwatch_metrics
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -97,18 +102,17 @@ resource "aws_iam_policy_attachment" "attach_cloudwatch_log_aggregation_policy" 
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "cloudwatch_metrics" {
-  source      = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-custom-metrics-iam-policy?ref=v0.18.3
-  "
+  source      = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-custom-metrics-iam-policy?ref=v0.18.3"
   name_prefix = var.cluster_name
 
   # We set this to false so that the cloudwatch-custom-metrics-iam policy generates JSON for the policy, but does not create a standalone IAM policy with that JSON. We'll instead add that JSON to the ECS cluster IAM role. 
-  create_resources = false 
+  create_resources = false
 }
 
 resource "aws_iam_role_policy" "custom_cloudwatch_metrics" {
-  count = var.enable_cloudwatch_metrics ? 1 : 0 
-  name = "custom-cloudwatch-metrics"
-  role = module.ecs_cluster.ecs_instance_iam_role_name
+  count  = var.enable_cloudwatch_metrics ? 1 : 0
+  name   = "custom-cloudwatch-metrics"
+  role   = module.ecs_cluster.ecs_instance_iam_role_name
   policy = module.cloudwatch_metrics.cloudwatch_metrics_read_write_permissions.json
 }
 
@@ -119,7 +123,7 @@ resource "aws_iam_role_policy" "custom_cloudwatch_metrics" {
 module "ecs_cluster_cpu_memory_alarms" {
   source               = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/ecs-cluster-alarms?ref=v0.13.2"
   ecs_cluster_name     = var.cluster_name
-  alarm_sns_topic_arns = [var.sns_region_arn]
+  alarm_sns_topic_arns = [var.alarms_sns_topic_arn]
 
   # These alarms will go off if CPU or memory usage is over 90 percent during a 5 minute period
   high_cpu_utilization_threshold    = var.high_cpu_utilization_threshold
@@ -132,7 +136,7 @@ module "ecs_cluster_disk_memory_alarms" {
   source               = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/asg-disk-alarms?ref=v0.13.2"
   asg_names            = [module.ecs_cluster.ecs_cluster_asg_name]
   num_asg_names        = 1
-  alarm_sns_topic_arns = [data.terraform_remote_state.sns_region.outputs.arn]
+  alarm_sns_topic_arns = [var.alarms_sns_topic_arn]
 
   file_system = "/dev/xvda1"
   mount_path  = "/"
