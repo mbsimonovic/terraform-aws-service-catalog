@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "cluster_instance_ami_id" {
-  description = "The ID of the AMI to run for the EKS workers. Should be built from the Packer template in modules/services/ecs-cluster/packer/ecs-node.json"
+  description = "The ID of the AMI to run for the ECS instances. Should be built from the Packer template in modules/services/ecs-cluster/packer/ecs-node.json"
   type = string 
 }
 
