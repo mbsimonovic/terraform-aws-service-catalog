@@ -3,23 +3,8 @@
 # These variables are expected to be passed in by the operator
 # ---------------------------------------------------------------------------------------------------------------------
 
-variable "aws_region" {
-  description = "The AWS region in which all resources will be created"
-  type        = string
-}
-
-variable "aws_account_id" {
-  description = "The ID of the AWS Account in which to create resources."
-  type        = string
-}
-
 variable "cluster_name" {
   description = "The name of the ECS cluster"
-  type        = string
-}
-
-variable "vpc_id" {
-  description = "The ID of the VPC in which the ECS cluster should be launched"
   type        = string
 }
 
@@ -43,19 +28,31 @@ variable "cluster_instance_ami" {
   type        = string
 }
 
-variable "cluster_instance_keypair_name" {
-  description = "The name of the Key Pair that can be used to SSH to each instance in the ECS cluster"
+
+
+variable "vpc_id" {
+  description = "The ID of the VPC in which the ECS cluster should be launched"
   type        = string
 }
 
-variable "terraform_state_aws_region" {
-  description = "The AWS region of the S3 bucket used to store Terraform remote state"
-  type        = string
+variable "vpc_subnet_ids" {
+  description = "The IDs of the subnets in which to deploy the ECS cluster instances"
+  type        = list(string)
 }
 
-variable "terraform_state_s3_bucket" {
-  description = "The name of the S3 bucket used to store Terraform remote state"
-  type        = string
+# ---------------------------------------------------------------------------------------------------------------------
+# OPTIONAL PARAMETERS
+# Generally, these values won't need to be changed.
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "cloud_init_parts" {
+  description = "Cloud init scripts to run on the ECS cluster instances during boot. See the part blocks in https://www.terraform.io/docs/providers/template/d/cloudinit_config.html for syntax"
+  type = map(object({
+    filename     = string
+    content_type = string
+    content      = string
+  }))
+  default = {}
 }
 
 variable "allow_requests_from_public_alb" {
@@ -64,10 +61,28 @@ variable "allow_requests_from_public_alb" {
   default     = false
 }
 
+variable "public_alb_sg_ids" {
+  description = "The Security Group ID for the public ALB"
+  type        = list(string)
+  default     = []
+}
+
+variable "internal_alb_sg_ids" {
+  description = "The Security Group ID for the internal ALB"
+  type        = list(string)
+  default     = []
+}
+
 variable "include_internal_alb" {
   description = "Set to true to if you want to put an internal application load balancer in front of the ECS cluster"
   type        = bool
   default     = false
+}
+
+variable "cluster_instance_keypair_name" {
+  description = "The name of the Key Pair that can be used to SSH to each instance in the ECS cluster"
+  type        = string
+  default     = null
 }
 
 variable "docker_auth_type" {
@@ -93,11 +108,7 @@ variable "enable_cloudwatch_log_aggregation" {
   default     = false
 }
 
-variable "vpc_subnet_ids" {
-  description = "The list of IDs of subnets that ECS resources should be launched into"
-  type        = list(string)
-  default     = []
-}
+
 
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL MODULE PARAMETERS
@@ -134,6 +145,18 @@ variable "allow_ssh_from_security_group_ids" {
   default     = []
 }
 
+variable "enable_fail2ban" {
+  description = "Enable fail2ban to block brute force log in attempts. Defaults to true"
+  type        = bool
+  default     = true
+}
+
+variable "enable_ip_lockdown" {
+  description = "Enable ip-lockdown to block access to the instance metadata. Defaults to true"
+  type        = bool
+  default     = true
+}
+
 # For info on how ECS authenticates to private Docker registries, see:
 # http://docs.aws.amazon.com/AmazonECS/latest/developerguide/private-auth.html
 variable "docker_repo_auth" {
@@ -165,10 +188,22 @@ variable "docker_repo_email" {
 # These variables optionally enable and configure access via ssh-grunt. See: https://github.com/gruntwork-io/module-security/tree/master/modules/ssh-grunt for more info.
 # ---------------------------------------------------------------------------------------------------------------------
 
-variable "enable_external_account_ssh_grunt" {
-  description = "Set to true to allow ssh-grunt to obtain access to the ECS cluster resources via a cross-account IAM role"
+variable "enable_ssh_grunt" {
+  description = "Set to true to add IAM permissions for ssh-grunt (https://github.com/gruntwork-io/module-security/tree/master/modules/ssh-grunt), which will allow you to manage SSH access via IAM groups."
   type        = bool
-  default     = false
+  default     = true
+}
+
+variable "ssh_grunt_iam_group" {
+  description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to the ECS nodes. To omit this variable, set it to an empty string (do NOT use null, or Terraform will complain)."
+  type        = string
+  default     = ""
+}
+
+variable "ssh_grunt_iam_group_sudo" {
+  description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to the ECS nodes with sudo permissions. To omit this variable, set it to an empty string (do NOT use null, or Terraform will complain)."
+  type        = string
+  default     = ""
 }
 
 variable "external_account_ssh_grunt_role_arn" {
@@ -177,9 +212,68 @@ variable "external_account_ssh_grunt_role_arn" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
+# CLUSTER VARIABLES
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "enable_autoscaling" {
+  description = "Set to true to enable autoscaling for the ECS cluster based on CPU utilization."
+  type        = bool
+  default     = true
+}
+
+variable "enable_cluster_access_ports" {
+  description = "Specify a list of ECS Cluster ports which should be accessible from the security groups given in cluster_access_from_sgs"
+  type        = list
+  default     = []
+}
+
+variable "cluster_access_from_sgs" {
+  description = "Specify a list of Security Groups that will have access to the ECS cluster. Only used if var.enable_cluster_access_ports is set to true"
+  type        = list
+  default     = []
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# DATADOG INTEGRATION
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "enable_datadog_task" {
+  description = "Set to true to run the DataDog agent as an ECS task on each EC2 instance in the ECS cluster."
+  type        = bool
+  default     = false
+}
+
+variable "datadog_task_arn" {
+  description = "The ARN of the Datadog agent task definition"
+  type        = string
+  default     = null
+}
+
+variable "datadog_api_key_secret" {
+  description = "The ARN of an AWS Secrets Manager secret containing your Datadog API Key"
+  type        = string
+  default     = null
+}
+
+variable "data_dog_api_key_encrypted" {
+  description = "Your DataDog API Key, encrypted with KMS. Only required if var.run_data_dog_ecs_task is set to true"
+  type        = string
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
 # CLOUDWATCH MONITORING VARIABLES
 # These variables optionally configure Cloudwatch alarms to monitor resource usage in the ECS cluster and raise alerts when defined thresholds are exceeded 
 # ---------------------------------------------------------------------------------------------------------------------
+
+variable "enable_ecs_cloudwatch_alarms" {
+  description = "Set to true to enable several basic Cloudwatch alarms around CPU usage, memory usage, and disk space usage. If set to true, make sure to specify SNS topics to send notifications to using var.alarms_sns_topic_arn"
+}
+
+variable "alarms_sns_topic_arn" {
+  description = "The ARNs of SNS topics where CloudWatch alarms (e.g., for CPU, memory, and disk space usage) should send notifications"
+  type        = list(string)
+  default     = []
+}
 
 variable "high_cpu_utilization_threshold" {
   description = "Trigger an alarm if the ECS Cluster has a CPU utilization percentage above this threshold. Only used if var.enable_cloudwatch_alarms is set to true"
@@ -209,16 +303,5 @@ variable "high_disk_utilization_threshold" {
 variable "high_disk_utilization_period" {
   description = "The period, in seconds, over which to measure the disk utilization percentage. Only used if var.enable_cloudwatch_alarms is set to true"
   type        = number
-}
-
-variable "data_dog_api_key_encrypted" {
-  description = "Your DataDog API Key, encrypted with KMS. Only required if var.run_data_dog_ecs_task is set to true"
-  type        = string
-}
-
-variable "terraform_state_kms_master_key" {
-  description = "Path base name of the kms master key to use. This should reflect what you have in your infrastructure-live folder."
-  type        = string
-  default     = "kms-master-key"
 }
 
