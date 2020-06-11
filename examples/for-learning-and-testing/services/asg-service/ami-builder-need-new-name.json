@@ -1,7 +1,7 @@
 {
   "variables": {
     "version_tag": "1",
-    "aws_region": "us-west-2",
+    "aws_region": "eu-central-1",
     "ami_name": "asg-example-rename-me",
     "encrypt_boot": "false"
   },
@@ -31,10 +31,11 @@
   "provisioners": [{
     "type": "shell",
     "inline": [
-      "export DEBIAN_FRONTEND=noninteractive",
-      "sudo apt-get update",
-      "sudo apt-get -y upgrade",
-      "echo \"Hello, World!\" > index.html && nohup busybox httpd -f -p \"8080\" 2>&1"
-    ]
+      "sudo DEBIAN_FRONTEND=noninteractive apt-get update",
+      "sudo DEBIAN_FRONTEND=noninteractive apt-get -y upgrade",
+      "sudo DEBIAN_FRONTEND=noninteractive apt-get -y autoclean",
+      "sudo DEBIAN_FRONTEND=noninteractive apt-get -y install busybox"
+    ],
+    "pause_before": "30s"
   }]
 }
