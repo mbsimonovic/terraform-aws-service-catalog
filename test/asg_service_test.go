@@ -26,7 +26,7 @@ func TestAsgService(t *testing.T) {
 	//os.Setenv("SKIP_cleanup", "true")
 	//os.Setenv("SKIP_cleanup_ami", "true")
 
-	testFolder := "../examples/for-learning-and-testing/services/eks-cluster"
+	testFolder := "../examples/for-learning-and-testing/services/asg-service"
 
 	defer test_structure.RunTestStage(t, "cleanup_ami", func() {
 		amiId := test_structure.LoadArtifactID(t, testFolder)

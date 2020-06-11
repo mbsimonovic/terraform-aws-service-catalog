@@ -177,7 +177,7 @@ module "iam_policies" {
 
   # Since our IAM users are defined in a separate AWS account, we need to give ssh-grunt permission to make API calls to
   # that account.
-  allow_access_to_other_account_arns = var.iam_users_defined_in_separate_account ? [var.external_account_ssh_grunt_role_arn] : null
+  allow_access_to_other_account_arns = var.iam_users_defined_in_separate_account ?  { ssh_grunt = [var.external_account_ssh_grunt_role_arn] } : {}
 }
 
 resource "aws_iam_role_policy" "ssh_grunt_permissions" {
@@ -216,7 +216,7 @@ resource "aws_alb_target_group" "service" {
 resource "aws_alb_listener_rule" "paths_to_route_to_this_service" {
   count = length(var.alb_listener_rule_configs)
 
-  listener_arn = null // ???? data.terraform_remote_state.alb.outputs.listener_arns[var.alb_listener_rule_configs[count.index]["port"]]
+  listener_arn = var.alb_listener_arn
   priority     = var.alb_listener_rule_configs[count.index]["priority"]
 
   action {
@@ -336,12 +336,10 @@ module "asg_high_disk_usage_alarms" {
 module "route53_health_check" {
   source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/route53-health-check-alarms?ref=v0.21.2"
 
-  create_resources = var.enable_cloudwatch_alarms
+  create_resources = var.enable_route53_health_check
 
   domain                         = var.domain_name
   alarm_sns_topic_arns_us_east_1 = [] // ?? [data.terraform_remote_state.sns_us_east_1.outputs.arn]
-
-  enabled = var.enable_route53_health_check
 
   path = var.health_check_path
   type = var.health_check_protocol

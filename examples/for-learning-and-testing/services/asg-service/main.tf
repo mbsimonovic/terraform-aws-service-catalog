@@ -19,8 +19,6 @@ module "asg" {
   desired_capacity = 2
   min_elb_capacity = 2
 
-  load_balancers = [aws_elb.load_balancer.name]
-
   server_port = 80
   alb_security_groups = []
 
@@ -36,7 +34,8 @@ module "asg" {
   create_route53_entry = false // creates the dns A for cname
 
   alb_hosted_zone_id = ""
-  alb_listener_rule_configs = ""
+  alb_listener_rule_configs = []
+  alb_listener_arn = ""
 
   hosted_zone_id = ""
 
@@ -56,7 +55,7 @@ module "vpc" {
   aws_region           = var.aws_region
   cidr_block           = "10.0.0.0/16"
   num_nat_gateways     = 1
-  vpc_name             = "vpc-" + var.name
+  vpc_name             = var.name
   create_flow_logs     = false
 }
 

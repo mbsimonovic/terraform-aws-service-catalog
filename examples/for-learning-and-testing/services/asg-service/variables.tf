@@ -2,6 +2,9 @@ variable "aws_region" {
 
 }
 
-variable "name" {}
+variable "name" {
+  type = string
+  default = "marina-testing"
+}
 
 variable "ami" {}

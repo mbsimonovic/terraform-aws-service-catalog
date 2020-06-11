@@ -80,6 +80,10 @@ variable "using_end_to_end_encryption" {
   type = bool
 }
 
+variable "alb_listener_arn" {
+
+}
+
 //variable "include_elasticsearch_url" {
 //  type = bool
 //}
