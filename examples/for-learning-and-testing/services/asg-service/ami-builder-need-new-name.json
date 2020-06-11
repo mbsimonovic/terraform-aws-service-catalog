@@ -1,0 +1,40 @@
+{
+  "variables": {
+    "version_tag": "1",
+    "aws_region": "us-west-2",
+    "ami_name": "asg-example-rename-me",
+    "encrypt_boot": "false"
+  },
+  "builders": [{
+    "ami_name": "{{user `ami_name`}}-{{isotime | clean_resource_name}}",
+    "ami_description": "An Ubuntu AMI that is meant to be run as a busybox server.",
+    "region": "{{user `aws_region`}}",
+    "instance_type": "t3.micro",
+    "type": "amazon-ebs",
+    "source_ami_filter": {
+      "filters": {
+        "virtualization-type": "hvm",
+        "architecture": "x86_64",
+        "name": "ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*",
+        "block-device-mapping.volume-type": "gp2",
+        "root-device-type": "ebs"
+      },
+      "owners": ["099720109477"],
+      "most_recent": true
+    },
+    "ssh_username": "ubuntu",
+    "encrypt_boot": "{{user `encrypt_boot`}}",
+    "tags": {
+      "version": "{{user `version_tag`}}"
+    }
+  }],
+  "provisioners": [{
+    "type": "shell",
+    "inline": [
+      "export DEBIAN_FRONTEND=noninteractive",
+      "sudo apt-get update",
+      "sudo apt-get -y upgrade",
+      "echo \"Hello, World!\" > index.html && nohup busybox httpd -f -p \"8080\" 2>&1"
+    ]
+  }]
+}

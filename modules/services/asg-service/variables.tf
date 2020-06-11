@@ -76,10 +76,6 @@ variable "min_elb_capacity" {
   type        = number
 }
 
-variable "using_open_vpn" {
-  type = bool
-}
-
 variable "using_end_to_end_encryption" {
   type = bool
 }
