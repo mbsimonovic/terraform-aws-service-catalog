@@ -23,10 +23,6 @@ module "redis" {
   vpc_id     = data.aws_vpc.default.id
   subnet_ids = data.aws_subnet_ids.default.ids
 
-  # To make this example simple to test, we allow incoming connections from any IP, but in real-world usage, you should
-  # lock this down to the IPs of trusted servers
-  allow_connections_from_cidr_blocks = ["0.0.0.0/0"]
-
   enable_cloudwatch_alarms = false
 
   # Since this is just an example, we are using a small ElastiCache instance with only 10GB of storage, no standby, no replicas,
