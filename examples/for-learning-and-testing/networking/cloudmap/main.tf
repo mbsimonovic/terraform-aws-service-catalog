@@ -53,23 +53,13 @@ resource "aws_instance" "bastion" {
   vpc_security_group_ids      = [aws_security_group.bastion.id]
   iam_instance_profile        = aws_iam_instance_profile.test_profile.name
   associate_public_ip_address = true
-  user_data                   = <<EOF
-#!/bin/bash
-# Send the log output from this script to user-data.log, syslog, and the console
-# From: https://alestic.com/2010/12/ec2-user-data-output/
-exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
-
-instance_ipv4="$(curl http://169.254.169.254/latest/meta-data/public-ipv4)"
-instance_id="$(curl http://169.254.169.254/latest/meta-data/instance-id)"
-service_id="${aws_service_discovery_service.bastion.id}"
-echo "Registering $instance_ipv4 to service $service_id as $instance_id"
-
-aws servicediscovery register-instance \
-  --region ${var.aws_region} \
-  --service-id  "$service_id" \
-  --instance-id "$instance_id" \
-  --attributes AWS_INSTANCE_IPV4="$instance_ipv4"
-EOF
+  user_data = templatefile(
+    "${path.module}/user-data.sh",
+    {
+      aws_region = var.aws_region
+      service_id = aws_service_discovery_service.bastion.id
+    },
+  )
 
   tags = {
     Name = var.test_instance_name
