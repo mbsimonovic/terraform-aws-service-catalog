@@ -48,10 +48,9 @@ NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-cat
 reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
 sure to read link:/core-concepts.md[How to use the Gruntwork Service Catalog]!
 
+* link:core-concepts.md#should-i-use-route53-or-cloud-map[Should you use AWS Route 53 or CloudMap for your DNS entries?]
 * https://docs.aws.amazon.com/cloud-map/latest/dg/what-is-cloud-map.html[AWS Cloud Map Documentation]: Amazon's docs for
   AWS Cloud Map that cover core concepts and configuration.
-* https://docs.aws.amazon.com/route53/[Route 53 Documentation]: Amazon's docs for Route 53 that cover core concepts and
-  configuration.
 * https://docs.aws.amazon.com/route53/[Route 53 Documentation]: Amazon's docs for Route 53 that cover core concepts and
   configuration.
 
