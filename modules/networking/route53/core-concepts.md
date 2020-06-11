@@ -26,4 +26,3 @@ Here is a summary of the capabilities:
 | DNS based service discovery  | Yes      | Yes                                |
 | Automatic resource discovery | No       | Yes                                |
 | Quick propagation            | No       | Yes                                |
-|------------------------------|----------|------------------------------------|
