@@ -27,7 +27,8 @@ endif::[]
 image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
 image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
 
-This folder contains code to deploy https://aws.amazon.com/route53/[Route 53 Hosted Zones] on AWS.
+This folder contains code to deploy https://aws.amazon.com/route53/[Route 53 Hosted Zones] and
+https://aws.amazon.com/cloud-map/[AWS Cloud Map Namespaces] on AWS.
 
 image::../../../_docs/route53-architecture.png?raw=true[Route 53 architecture]
 
@@ -36,8 +37,8 @@ toc::[]
 
 == Features
 
-* Manage DNS entries using AWS Route 53 
-* Optionally order and automatically verify ACM wildcard certificates for public zones 
+* Manage DNS entries using AWS Route 53 or AWS Cloud Map
+* Optionally order and automatically verify ACM wildcard certificates for public zones
 * Automatic health checks to route traffic only to healthy endpoints
 * Automatic integration with other AWS services, such as ELBs
 
@@ -47,7 +48,11 @@ NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-cat
 reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
 sure to read link:/core-concepts.md[How to use the Gruntwork Service Catalog]!
 
-* https://docs.aws.amazon.com/route53/[Route 53 Documentation]: Amazon's docs for Route 53 that cover core concepts and configuration
+* link:core-concepts.md#should-i-use-route53-or-cloud-map[Should you use AWS Route 53 or CloudMap for your DNS entries?]
+* https://docs.aws.amazon.com/cloud-map/latest/dg/what-is-cloud-map.html[AWS Cloud Map Documentation]: Amazon's docs for
+  AWS Cloud Map that cover core concepts and configuration.
+* https://docs.aws.amazon.com/route53/[Route 53 Documentation]: Amazon's docs for Route 53 that cover core concepts and
+  configuration.
 
 
 
