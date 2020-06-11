@@ -36,7 +36,6 @@ module "redis" {
   redis_version          = var.redis_version
   port                   = var.port
 
-  # Run in the private persistence subnets and only allow incoming connections from the private app subnets
   vpc_id                                 = var.vpc_id
   subnet_ids                             = var.subnet_ids
   allow_connections_from_cidr_blocks     = var.allow_connections_from_cidr_blocks

@@ -8,11 +8,11 @@ variable "name" {
   type        = string
 }
 
-# For a list of instance types, see https://aws.amazon.com/elasticache/details/#Available_Cache_Node_Types
-# - Note that snapshotting functionality is not compatible with t2 instance types.
-# - Note that automatic failover (Multi-AZ) is not supported for T1 and T2 instance node types.
+# For a list of instance types, see https://aws.amazon.com/elasticache/pricing/
+# - Note that snapshotting functionality is not compatible with T2 instance types.
+# - Note that automatic failover (Multi-AZ) is not supported for T2 and T3 instance node types.
 variable "instance_type" {
-  description = "The compute and memory capacity of the nodes (e.g. cache.m3.medium)."
+  description = "The compute and memory capacity of the nodes (e.g. cache.m4.large)."
   type        = string
 }
 
@@ -23,40 +23,6 @@ variable "replication_group_size" {
 
 variable "enable_automatic_failover" {
   description = "Indicates whether Multi-AZ is enabled. When Multi-AZ is enabled, a read-only replica is automatically promoted to a read-write primary cluster if the existing primary cluster fails. If you specify true, you must specify a value greater than 1 for replication_group_size."
-  type        = bool
-}
-
-# For a list of versions, see: https://docs.aws.amazon.com/AmazonElastiCache/latest/UserGuide/SelectEngine.html
-variable "redis_version" {
-  description = "Version number of redis to use (e.g. 5.0.6)."
-  type        = string
-}
-
-variable "port" {
-  description = "The port number on which each of the cache nodes will accept connections (e.g. 6379)."
-  type        = number
-  default     = 6379
-}
-
-variable "snapshot_retention_limit" {
-  description = "The number of days for which ElastiCache will retain automatic cache cluster snapshots before deleting them. Set to 0 to disable snapshots."
-  type        = number
-}
-
-# By default, run backups from 2-3am EST, which is 6-7am UTC
-variable "snapshot_window" {
-  description = "The daily time range during which automated backups are created (e.g. 04:00-09:00). Time zone is UTC. Performance may be degraded while a backup runs. Set to empty string to disable snapshots."
-  type        = string
-}
-
-# By default, do maintenance from 3-4am EST on Saturday, which is 7-8am UTC.
-variable "maintenance_window" {
-  description = "Specifies the weekly time range for when maintenance on the cache cluster is performed (e.g. sun:05:00-sun:09:00). The format is ddd:hh24:mi-ddd:hh24:mi (24H Clock UTC). The minimum maintenance window is a 60 minute period."
-  type        = string
-}
-
-variable "apply_immediately" {
-  description = "Specifies whether any modifications are applied immediately, or during the next maintenance window."
   type        = bool
 }
 
@@ -75,14 +41,56 @@ variable "subnet_ids" {
 # Generally, these values won't need to be changed.
 # ---------------------------------------------------------------------------------------------------------------------
 
+# For a list of versions, see: https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/supported-engine-versions.html
+variable "redis_version" {
+  description = "Version number of redis to use (e.g. 5.0.6)."
+  type        = string
+  default     = "5.0.6"
+}
+
+variable "port" {
+  description = "The port number on which each of the cache nodes will accept connections (e.g. 6379)."
+  type        = number
+  default     = 6379
+}
+
+# We enable at-rest encryption and in-transit encryption by default, however this can have a performance impact
+# during operations. You should benchmark your data with and without encryption to determine the performance
+# impact for your use cases. For more information, see: https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/at-rest-encryption.html
 variable "enable_at_rest_encryption" {
   description = "Whether to enable encryption at rest."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "enable_transit_encryption" {
   description = "Whether to enable encryption in transit."
+  type        = bool
+  default     = true
+}
+
+# By default, run backups from 2-3am EST, which is 6-7am UTC
+variable "snapshot_window" {
+  description = "The daily time range during which automated backups are created (e.g. 04:00-09:00). Time zone is UTC. Performance may be degraded while a backup runs. Set to empty string to disable snapshots."
+  type        = string
+  default     = "06:00-07:00"
+}
+
+variable "snapshot_retention_limit" {
+  description = "The number of days for which ElastiCache will retain automatic cache cluster snapshots before deleting them. Set to 0 to disable snapshots."
+  type        = number
+  default     = 7
+}
+
+# By default, do maintenance from 3-4am EST on Saturday, which is 7-8am UTC.
+variable "maintenance_window" {
+  description = "Specifies the weekly time range for when maintenance on the cache cluster is performed (e.g. sun:05:00-sun:09:00). The format is ddd:hh24:mi-ddd:hh24:mi (24H Clock UTC). The minimum maintenance window is a 60 minute period."
+  type        = string
+  default     = "sat:07:00-sat:08:00"
+}
+
+variable "apply_immediately" {
+  description = "Specifies whether any modifications are applied immediately, or during the next maintenance window."
   type        = bool
   default     = false
 }
