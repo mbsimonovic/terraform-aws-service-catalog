@@ -2,7 +2,6 @@ package test
 
 import (
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 	"time"
@@ -20,11 +19,11 @@ func TestEcsCluster(t *testing.T) {
 	// Uncomment the items below to skip certain parts of the test
 	// os.Setenv("TERRATEST_REGION", "eu-west-1")
 	// os.Setenv("SKIP_build_ami", "true")
-	os.Setenv("SKIP_deploy_terraform", "true")
-	os.Setenv("SKIP_validate_cluster", "true")
-	os.Setenv("SKIP_cleanup", "true")
-	os.Setenv("SKIP_cleanup_keypairs", "true")
-	os.Setenv("SKIP_cleanup_ami", "true")
+	// os.Setenv("SKIP_deploy_terraform", "true")
+	// os.Setenv("SKIP_validate_cluster", "true")
+	// os.Setenv("SKIP_cleanup", "true")
+	// os.Setenv("SKIP_cleanup_keypairs", "true")
+	// os.Setenv("SKIP_cleanup_ami", "true")
 
 	t.Parallel()
 
@@ -52,7 +51,7 @@ func TestEcsCluster(t *testing.T) {
 }
 
 func buildAmi(t *testing.T, testFolder string) {
-	awsRegion := aws.GetRandomStableRegion(t, nil, nil)
+	awsRegion := aws.GetRandomStableRegion(t, []string{"us-west-1"}, nil)
 	test_structure.SaveString(t, testFolder, "region", awsRegion)
 
 	branchName := git.GetCurrentBranchName(t)
