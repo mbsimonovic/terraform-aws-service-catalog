@@ -90,12 +90,6 @@ variable "docker_auth_type" {
   type        = string
 }
 
-variable "run_data_dog_ecs_task" {
-  description = "Set to true to run Datadog to monitor the ECS cluster"
-  type        = bool
-  default     = false
-}
-
 variable "enable_cloudwatch_alarms" {
   description = "Set to true to install Cloudwatch monitoring and alerts in the cluster"
   type        = bool
@@ -235,33 +229,6 @@ variable "cluster_access_from_sgs" {
   description = "Specify a list of Security Groups that will have access to the ECS cluster. Only used if var.enable_cluster_access_ports is set to true"
   type        = list
   default     = []
-}
-
-# ---------------------------------------------------------------------------------------------------------------------
-# DATADOG INTEGRATION
-# ---------------------------------------------------------------------------------------------------------------------
-
-variable "enable_datadog_task" {
-  description = "Set to true to run the DataDog agent as an ECS task on each EC2 instance in the ECS cluster."
-  type        = bool
-  default     = false
-}
-
-variable "datadog_task_arn" {
-  description = "The ARN of the Datadog agent task definition"
-  type        = string
-  default     = null
-}
-
-variable "datadog_api_key_secret" {
-  description = "The ARN of an AWS Secrets Manager secret containing your Datadog API Key"
-  type        = string
-  default     = null
-}
-
-variable "data_dog_api_key_encrypted" {
-  description = "Your DataDog API Key, encrypted with KMS. Only required if var.run_data_dog_ecs_task is set to true"
-  type        = string
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
