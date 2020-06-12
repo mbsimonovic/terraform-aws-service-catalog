@@ -27,7 +27,7 @@ endif::[]
 image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
 image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
 
-This folder contains code to deploy an Amazon ElastiCache for Redis Replication Group. The replication group is managed by AWS and automatically handles standby failover, read replicas, backups, patching, and encryption.
+This folder contains code to deploy a Redis Cluster using Amazon ElastiCache. The cluster is managed by AWS and automatically handles standby failover, read replicas, backups, patching, and encryption.
 
 image::/_docs/elasticache-redis-architecture.png?raw=true[ElastiCache for Redis architecture]
 
