@@ -46,50 +46,30 @@ module "ecs_cluster" {
 locals {
   # Default cloud init script for this module 
   cloud_init = {
-    filename = "ecs-cluster-default-cloud-init"
+    filename     = "ecs-cluster-default-cloud-init"
     content_type = "text/x-shellscript"
-    content = data.template_file.user_data.rendered
+    content      = data.template_file.user_data.rendered
   }
 
   # Merge in all the cloud init scripts the user has passed in 
-  cloud_init_parts = merge({ default: local.cloud_init }, var.cloud_init_parts)
+  cloud_init_parts = merge({ default : local.cloud_init }, var.cloud_init_parts)
 }
 
 data "template_file" "user_data" {
   template = file("${path.module}/user-data.sh")
 
   vars = {
-    log_group_name = var.cluster_name 
-    enable_cloudwatch_log_aggregation = var.enable_cloudwatch_log_aggregation
-    enable_ssh_grunt = var.enable_ssh_grunt 
-    enable_fail2ban = var.enable_fail2ban
-    enable_ip_lockdown = var.enable_ip_lockdown
-    ssh_grunt_iam_group = var.ssh_grunt_iam_group 
-    ssh_grunt_iam_group_sudo = var.ssh_grunt_iam_group_sudo
+    log_group_name                      = var.cluster_name
+    enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
+    enable_ssh_grunt                    = var.enable_ssh_grunt
+    enable_fail2ban                     = var.enable_fail2ban
+    enable_ip_lockdown                  = var.enable_ip_lockdown
+    ssh_grunt_iam_group                 = var.ssh_grunt_iam_group
+    ssh_grunt_iam_group_sudo            = var.ssh_grunt_iam_group_sudo
     external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
-    enable_datadog_task = var.enable_datadog_task
-    datadog_task_arn = var.data_dog_task_arn 
-    datadog_api_key_secret = var.data_dog_api_key_secret
-  }
-}
-
-# ---------------------------------------------------------------------------------------------------------------------
-# ADD IAM POLICY THAT ALLOWS EACH ECS NODE TO LAUNCH THE DATA DOG AGENT 
-# ---------------------------------------------------------------------------------------------------------------------
-
-resource "aws_iam_role_policy" "data_dog_iam_permissions" {
-  count = var.enable_datadog_task ? 1 : 0 
-
-  name = "data-dog-iam-permissions"
-  role = module.ecs_cluster.ecs_instance_iam_role_name 
-  policy = data.aws_iam_policy_document.data_dog_iam_permissions.json
-}
-
-data "aws_iam_policy_document" "data_dog_iam_permissions" {
-  statement {
-    effect = "Allow"
-    actions = ["ecs:StartTask"]
-    resources = ["*"]
+    enable_datadog_task                 = var.enable_datadog_task
+    datadog_task_arn                    = var.data_dog_task_arn
+    datadog_api_key_secret              = var.data_dog_api_key_secret
   }
 }
 
@@ -200,14 +180,14 @@ module "metric_widget_ecs_cluster_memory_usage" {
 module "ec2_baseline" {
   source = "../../base/ec2-baseline"
 
-  name = var.cluster_name
-  enable_ssh_grunt = var.enable_ssh_grunt 
-  external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn 
-  enable_cloudwatch_log_aggregation = var.enable_cloudwatch_log_aggregation
+  name                                = var.cluster_name
+  enable_ssh_grunt                    = var.enable_ssh_grunt
+  external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
+  enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
   # We use custom metrics for ECS, as specified above 
   enable_cloudwatch_metrics = false
-  iam_role_arn = module.ecs_cluster.ecs_instance_iam_role_name
-  cloud_init_parts = local.cloud_init_parts
+  iam_role_arn              = module.ecs_cluster.ecs_instance_iam_role_name
+  cloud_init_parts          = local.cloud_init_parts
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -215,47 +195,47 @@ module "ec2_baseline" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_autoscaling_policy" "scale_out" {
-  count = var.enable_autoscaling ? 1 : 0 
+  count = var.enable_autoscaling ? 1 : 0
 
-  name = "${var.cluster_name}-scale-out"
-  autoscaling_group_name = module.ecs_cluster.ecs_cluster_asg_name 
-  adjustment_type = "ChangeInCapacity"
-  policy_type = "StepScaling"
-  estimated_instance_warmup = 200 
+  name                      = "${var.cluster_name}-scale-out"
+  autoscaling_group_name    = module.ecs_cluster.ecs_cluster_asg_name
+  adjustment_type           = "ChangeInCapacity"
+  policy_type               = "StepScaling"
+  estimated_instance_warmup = 200
 
   # Each of the step_adjustment values below defines what to do if the metric is a given amount above the alarm 
   # threshold. Since our threshold is set at 75, the values below define what to do for CPU usage between 75 and 85% 
   # and then anything above 85% 
-  
+
   step_adjustment {
     metric_interval_lower_bound = 0.0
     metric_interval_upper_bound = 10.0
-    scaling_adjustment = 1 
+    scaling_adjustment          = 1
   }
 
   step_adjustment {
-    metric_interval_lower_bound = 10.0 
-    scaling_adjustment = 2 
+    metric_interval_lower_bound = 10.0
+    scaling_adjustment          = 2
   }
 }
 
 resource "aws_cloudwatch_metric_alarm" "high_cpu_utilization" {
-  count = var.enable_autoscaling ? 1 : 0 
+  count = var.enable_autoscaling ? 1 : 0
 
-  alarm_name = "${var.cluster_name}-high-cpu-utilization"
+  alarm_name        = "${var.cluster_name}-high-cpu-utilization"
   alarm_description = "An alarm that goes off if the CPU usage in the ${var.cluster_name} ECS cluster is high"
-  namespace = "AWS/EC2"
-  metric_name = "CPUUtilization"
+  namespace         = "AWS/EC2"
+  metric_name       = "CPUUtilization"
   dimensions = {
-    AutoScalingGroupName = module.ecs_cluster.ecs_cluster_asg_name 
+    AutoScalingGroupName = module.ecs_cluster.ecs_cluster_asg_name
   }
   comparison_operator = "GreaterThanOrEqualToThreshold"
-  evaluation_periods = "3"
-  period = "60"
-  statistic = "Average"
-  threshold = "75"
-  unit = "Percent"
-  alarm_actions = [aws_autoscaling_policy.scale_out.arn]
+  evaluation_periods  = "3"
+  period              = "60"
+  statistic           = "Average"
+  threshold           = "75"
+  unit                = "Percent"
+  alarm_actions       = [aws_autoscaling_policy.scale_out.arn]
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -263,33 +243,33 @@ resource "aws_cloudwatch_metric_alarm" "high_cpu_utilization" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_autoscaling_policy" "scale_in" {
-  count = var.enable_autoscaling ? 1 : 0 
+  count = var.enable_autoscaling ? 1 : 0
 
-  name = "${var.cluster_name}-scale-in"
-  autoscaling_group_name = module.ecs_cluster.ecs_cluster_asg_name 
-  adjustment_type = "ChangeInCapacity"
-  policy_type = "SimpleScaling"
-  scaling_adjustment = -1
-  cooldown = 200
+  name                   = "${var.cluster_name}-scale-in"
+  autoscaling_group_name = module.ecs_cluster.ecs_cluster_asg_name
+  adjustment_type        = "ChangeInCapacity"
+  policy_type            = "SimpleScaling"
+  scaling_adjustment     = -1
+  cooldown               = 200
 }
 
 resource "aws_cloudwatch_metric_alarm" "low_cpu_utilization" {
   count = var.enable_autoscaling ? 1 : 0
-  
-  alarm_name = "${var.cluster_name}-low-cpu-utilization"
+
+  alarm_name        = "${var.cluster_name}-low-cpu-utilization"
   alarm_description = "An alarm that goes off if the CPU usage in the ${var.cluster_name} ECS cluster is low"
-  namespace = "AWS/EC2"
-  metric_name = "CPUUtilization"
+  namespace         = "AWS/EC2"
+  metric_name       = "CPUUtilization"
   dimensions = {
     AutoScalingGroup = module.ecs_cluster.ecs_cluster_asg_name
   }
   comparison_operator = "LessThanThreshold"
-  evaluation_periods = "10"
-  period = "60"
-  statistic = "Average"
-  threshold = "50"
-  unit = "Percent"
-  alarm_actions = [aws_autoscaling_policy.scale_in.arn]
+  evaluation_periods  = "10"
+  period              = "60"
+  statistic           = "Average"
+  threshold           = "50"
+  unit                = "Percent"
+  alarm_actions       = [aws_autoscaling_policy.scale_in.arn]
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -299,12 +279,12 @@ resource "aws_cloudwatch_metric_alarm" "low_cpu_utilization" {
 resource "aws_security_group_rule" "cluster_access" {
   count = length(var.enable_cluster_access_ports) * length(var.cluster_access_from_sgs)
 
-  type = "ingress"
-  from_port = local.product[count.index][0]
-  to_port = local.product[count.index][0]
-  protocol = "tcp"
+  type                     = "ingress"
+  from_port                = local.product[count.index][0]
+  to_port                  = local.product[count.index][0]
+  protocol                 = "tcp"
   source_security_group_id = local.product[count.index][1]
-  security_group_id = module.ecs_cluster.ecs_instance_security_group_id
+  security_group_id        = module.ecs_cluster.ecs_instance_security_group_id
 }
 
 locals {
