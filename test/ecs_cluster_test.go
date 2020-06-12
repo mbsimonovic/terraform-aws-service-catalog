@@ -23,7 +23,7 @@ func TestEcsCluster(t *testing.T) {
 	os.Setenv("SKIP_deploy_terraform", "true")
 	os.Setenv("SKIP_validate_cluster", "true")
 	os.Setenv("SKIP_cleanup", "true")
-	os.Setenv("SKIP_cleanup_keypair", "true")
+	os.Setenv("SKIP_cleanup_keypairs", "true")
 	os.Setenv("SKIP_cleanup_ami", "true")
 
 	t.Parallel()
@@ -36,7 +36,7 @@ func TestEcsCluster(t *testing.T) {
 		aws.DeleteAmiAndAllSnapshots(t, awsRegion, amiID)
 	})
 
-	defer test_structure.RunTestStage(t, "cleanup_ami", func() {
+	defer test_structure.RunTestStage(t, "cleanup_keypairs", func() {
 		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
 		aws.DeleteEC2KeyPair(t, awsKeyPair)
 	})
