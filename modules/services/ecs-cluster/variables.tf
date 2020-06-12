@@ -162,17 +162,20 @@ variable "enable_ip_lockdown" {
 variable "docker_repo_auth" {
   description = "The Docker auth value, encrypted with a KMS master key, that can be used to download your private images from Docker Hub. This is not your password! To get the auth value, run 'docker login', enter a machine user's credentials, and when you're done, copy the 'auth' value from ~/.docker/config.json. To encrypt the value with KMS, use gruntkms with a master key. Note that these instances will use gruntkms to decrypt the data, so the IAM role of these instances must be granted permission to access the KMS master key you use to encrypt this data! Used if var.docker_auth_type is set to docker-hub, docker-gitlab or docker-other"
   type        = string
+  default     = null
 }
 
 variable "docker_registry_url" {
   description = "The URL of your Docker Registry. Only used if var.docker_auth_type is set to docker-gitlab"
   type        = string
+  default     = null
 }
 
 
 variable "docker_auth_type" {
   description = "The docker authentication strategy to use for pulling Docker images. MUST be one of: (docker-hub, docker-other, docker-gitlab)"
   type        = string
+  default     = null
 }
 
 # For info on how ECS authenticates to private Docker registries, see:
@@ -180,7 +183,7 @@ variable "docker_auth_type" {
 variable "docker_repo_email" {
   description = "The Docker email address that can be used used to download your private images from Docker Hub. Only used if var.docker_auth_type is set to docker-hub or docker-other"
   type        = string
-  default     = ""
+  default     = null
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -197,18 +200,19 @@ variable "enable_ssh_grunt" {
 variable "ssh_grunt_iam_group" {
   description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to the ECS nodes. To omit this variable, set it to an empty string (do NOT use null, or Terraform will complain)."
   type        = string
-  default     = ""
+  default     = null
 }
 
 variable "ssh_grunt_iam_group_sudo" {
   description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to the ECS nodes with sudo permissions. To omit this variable, set it to an empty string (do NOT use null, or Terraform will complain)."
   type        = string
-  default     = ""
+  default     = null
 }
 
 variable "external_account_ssh_grunt_role_arn" {
   description = "Since our IAM users are defined in a separate AWS account, this variable is used to specify the ARN of an IAM role that allows ssh-grunt to retrieve IAM group and public SSH key info from that account."
   type        = string
+  default     = null
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
