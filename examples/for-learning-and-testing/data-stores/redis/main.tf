@@ -23,6 +23,8 @@ module "redis" {
   vpc_id     = data.aws_vpc.default.id
   subnet_ids = data.aws_subnet_ids.default.ids
 
+  # Since this is just an example, we don't deploy any CloudWatch resources in order to make it faster to deploy, however in
+  # production you'll probably want to enable this feature.
   enable_cloudwatch_alarms = false
 
   # Since this is just an example, we are using a small ElastiCache instance with only 10GB of storage, no standby, no replicas,

@@ -1,15 +1,9 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# LAUNCH AN ELASTICACHE REPLICATION GROUP WITH REDIS
-# This template creates a replication group of 1 or more redis cache clusters using ElastiCache.
-# This module can be used to deploy an Amazon ElastiCache replication group with Redis. It creates the following resources:
+# LAUNCH A REDIS CLUSTER WITH AMAZON ELASTICACHE
+# This module can be used to deploy a Redis Cluster using Amazon ElastiCache . It creates the following resources:
 #
 # - An replication group with 1 or more Redis cache clusters using ElastiCache.
 # - CloudWatch alarms for monitoring performance issues with the Redis cache cluster.
-#
-# Note: AWS ElastiCache terminology is confusing for Redis. A single Redis node is known as a "cache cluster". You can
-# group many cache clusters into a single group known as a "replication group." This means that one of the cache
-# clusters will serve as the "primary node", which means all write traffic will be directed to it. The other cache
-# clusters will be "read replicas", and will receive the data written to the primary node asynchronously.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
