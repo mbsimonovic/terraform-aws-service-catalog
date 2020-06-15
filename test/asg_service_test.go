@@ -1,7 +1,7 @@
 package test
 
 import (
-	"os"
+	"github.com/gruntwork-io/terratest/modules/random"
 	"testing"
 	"time"
 
@@ -17,12 +17,10 @@ func TestAsgService(t *testing.T) {
 	t.Parallel()
 
 	// Uncomment the items below to skip certain parts of the test
-	os.Setenv("TERRATEST_REGION", "eu-central-1")
-	os.Setenv("SKIP_build_ami", "true")
+	//os.Setenv("TERRATEST_REGION", "eu-central-1")
+	//os.Setenv("SKIP_build_ami", "true")
 	//os.Setenv("SKIP_deploy_terraform", "true")
-	//os.Setenv("SKIP_validate_cluster", "true")
-	//os.Setenv("SKIP_deploy_core_services", "true")
-	//os.Setenv("SKIP_validate_external_dns", "true")
+	//os.Setenv("SKIP_validate_asg", "true")
 	//os.Setenv("SKIP_cleanup", "true")
 	//os.Setenv("SKIP_cleanup_ami", "true")
 
@@ -75,19 +73,21 @@ func buildASGAmi(t *testing.T, testFolder string) {
 	amiId := packer.BuildArtifact(t, packerOptions)
 	test_structure.SaveArtifactID(t, testFolder, amiId)
 
-	//awsKeyPair := aws.CreateAndImportEC2KeyPair(t, awsRegion, uniqueID)
-	//test_structure.SaveEc2KeyPair(t, testFolder, awsKeyPair)
+	uniqueID := random.UniqueId()
+	awsKeyPair := aws.CreateAndImportEC2KeyPair(t, awsRegion, uniqueID)
+	test_structure.SaveEc2KeyPair(t, testFolder, awsKeyPair)
 }
 
 func deployASG(t *testing.T, testFolder string) {
-	amiId := "ami-0e342d72b12109f91" // test_structure.LoadArtifactID(t, testFolder) // Ubuntu Server 18.04 LTS (HVM), SSD Volume Type
-	awsRegion := "eu-central-1" //test_structure.LoadString(t, testFolder, "region")
-	//awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
+	amiId := test_structure.LoadArtifactID(t, testFolder)
+	awsRegion := test_structure.LoadString(t, testFolder, "region")
+	awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
 
 	terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
 	terraformOptions.Vars["ami"] = amiId
 	terraformOptions.Vars["name"] = "marina-testing"
 	terraformOptions.Vars["aws_region"] = awsRegion
+	terraformOptions.Vars["key_pair_name"] = awsKeyPair
 
 	test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
 	terraform.InitAndApply(t, terraformOptions)
@@ -95,8 +95,8 @@ func deployASG(t *testing.T, testFolder string) {
 
 func validateASG(t *testing.T, testFolder string) {
 	terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
-	eksClusterArn := terraform.OutputRequired(t, terraformOptions, "eks_cluster_arn")
+	validation := terraform.OutputRequired(t, terraformOptions, "TODO")
 
-	assert.Equal(t, eksClusterArn, "TODO")
+	assert.Equal(t, validation, "TODO")
 }
 
