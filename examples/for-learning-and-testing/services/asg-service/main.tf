@@ -9,9 +9,9 @@ module "asg" {
   # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/alb?ref=v1.0.8"
   source = "../../../../modules/services/asg-service"
 
-  name = "oie TODO" // var.name
+  name = var.name
 
-  instance_type = "t3.micro"
+  instance_type = "t3.small"
   ami = var.ami
 
   min_size = 2
@@ -29,13 +29,20 @@ module "asg" {
   // output from vpn, [data.terraform_remote_state.openvpn_server.outputs.security_group_id]
 
   health_check_protocol = "HTTP"
-  health_check_path = "/health"
+  health_check_path = "/"
 
   create_route53_entry = false // creates the dns A for cname
 
-  alb_hosted_zone_id = ""
-  alb_listener_rule_configs = []
-  alb_listener_arn = ""
+  alb_hosted_zone_id = module.alb.alb_hosted_zone_id
+  alb_listener_rule_configs = [
+    {
+      port     = 80
+      path     = "/*"
+      priority = 90
+    }
+  ]
+
+  alb_listener_arn = module.alb.listener_arns[80] // alb_listener_rule_configs[0].port
 
   hosted_zone_id = ""
 
@@ -43,10 +50,17 @@ module "asg" {
   init_script_path = ""
   is_internal_alb = false
 
-  keypair_name = "marina.pem"
+  key_pair_name = "marina"
   mgmt_vpc_name = "" //??
   original_alb_dns_name = ""
   using_end_to_end_encryption = false
+
+  user_data = <<-EOF
+              #!/bin/bash
+              echo "=========== marina =================================="
+              echo "Hello, World" > index.html
+              nohup busybox httpd -f -p 8080 &
+              EOF
 }
 
 module "vpc" {
@@ -59,3 +73,16 @@ module "vpc" {
   create_flow_logs     = false
 }
 
+module "alb" {
+  source = "../../../../modules/networking/alb"
+
+  alb_name = "marina-testing"
+  is_internal_alb = false // ???
+  num_days_after_which_archive_log_data = 0
+  num_days_after_which_delete_log_data = 0
+
+  http_listener_ports = [80]
+
+  vpc_id = module.vpc.vpc_id
+  vpc_subnet_ids = module.vpc.public_subnet_ids
+}

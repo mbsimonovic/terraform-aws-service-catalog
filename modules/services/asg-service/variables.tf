@@ -23,7 +23,7 @@ variable "instance_type" {
   type        = string
 }
 
-variable "keypair_name" {
+variable "key_pair_name" {
   description = "The name of a Key Pair that can be used to SSH to the EC2 Instances in the ASG. Set to null if you don't want to enable Key Pair auth."
   type        = string
 }

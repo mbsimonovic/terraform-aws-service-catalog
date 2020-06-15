@@ -40,9 +40,6 @@ func TestAsgService(t *testing.T) {
 	})
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
-		kubectlOptions := test_structure.LoadKubectlOptions(t, testFolder)
-		os.Remove(kubectlOptions.ConfigPath)
-
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
 		terraform.Destroy(t, terraformOptions)
 	})
@@ -89,7 +86,7 @@ func deployASG(t *testing.T, testFolder string) {
 
 	terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
 	terraformOptions.Vars["ami"] = amiId
-	terraformOptions.Vars["name"] = "marina"
+	terraformOptions.Vars["name"] = "marina-testing"
 	terraformOptions.Vars["aws_region"] = awsRegion
 
 	test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)

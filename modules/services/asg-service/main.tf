@@ -39,7 +39,7 @@ resource "aws_launch_configuration" "launch_configuration" {
   image_id             = var.ami
   instance_type        = var.instance_type
   iam_instance_profile = aws_iam_instance_profile.instance_profile.name
-  key_name             = var.keypair_name
+  key_name             = var.key_pair_name
   security_groups      = [aws_security_group.lc_security_group.id]
   user_data            = var.user_data
 
@@ -82,10 +82,11 @@ resource "aws_security_group" "lc_security_group" {
 
   # Inbound SSH from the bastion host
   ingress {
-    from_port       = 22
-    to_port         = 22
-    protocol        = "tcp"
-    security_groups = var.vpn_security_group_ids
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    //    security_groups = var.vpn_security_group_ids
   }
 
   # aws_launch_configuration.launch_configuration in this module sets create_before_destroy to true, which means
@@ -141,24 +142,24 @@ data "aws_iam_policy_document" "instance_role" {
 
 
 // TODO REMOVE
-resource "aws_iam_policy" "access_kms_master_key" {
-  name   = "access-kms-master-key-${var.name}"
-  policy = data.aws_iam_policy_document.access_kms_master_key.json
-}
+//resource "aws_iam_policy" "access_kms_master_key" {
+//  name   = "access-kms-master-key-marina" // "access-kms-master-key-${var.name}"
+//  policy = data.aws_iam_policy_document.access_kms_master_key.json
+//}
+//
+//data "aws_iam_policy_document" "access_kms_master_key" {
+//  statement {
+//    effect    = "Allow"
+//    actions   = ["kms:Decrypt"]
+//    resources = var.alarms_sns_topic_arn
+//  }
+//}
 
-data "aws_iam_policy_document" "access_kms_master_key" {
-  statement {
-    effect    = "Allow"
-    actions   = ["kms:Decrypt"]
-    resources = var.alarms_sns_topic_arn
-  }
-}
-
-resource "aws_iam_policy_attachment" "attach_access_kms_master_key" {
-  name       = "attach-access-kms-master-key-${var.name}" // TODO another kms key, remove
-  roles      = [aws_iam_role.instance_role.name]
-  policy_arn = aws_iam_policy.access_kms_master_key.arn
-}
+//resource "aws_iam_policy_attachment" "attach_access_kms_master_key" {
+//  name       = "attach-access-kms-master-key-marina" // "attach-access-kms-master-key-${var.name}" // TODO another kms key, remove
+//  roles      = [aws_iam_role.instance_role.name]
+//  policy_arn = aws_iam_policy.access_kms_master_key.arn
+//}
 
 # ---------------------------------------------------------------------------------------------------------------------
 # GIVE SSH-GRUNT PERMISSIONS TO TALK TO IAM
@@ -177,7 +178,7 @@ module "iam_policies" {
 
   # Since our IAM users are defined in a separate AWS account, we need to give ssh-grunt permission to make API calls to
   # that account.
-  allow_access_to_other_account_arns = var.iam_users_defined_in_separate_account ?  { ssh_grunt = [var.external_account_ssh_grunt_role_arn] } : {}
+  allow_access_to_other_account_arns = var.iam_users_defined_in_separate_account ? { ssh_grunt = [var.external_account_ssh_grunt_role_arn] } : {}
 }
 
 resource "aws_iam_role_policy" "ssh_grunt_permissions" {
