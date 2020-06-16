@@ -26,6 +26,7 @@ variable "instance_type" {
 variable "key_pair_name" {
   description = "The name of a Key Pair that can be used to SSH to the EC2 Instances in the ASG. Set to null if you don't want to enable Key Pair auth."
   type        = string
+  default = null
 }
 
 variable "min_size" {
@@ -39,8 +40,9 @@ variable "max_size" {
 }
 
 variable "desired_capacity" {
-  description = "The desired number of EC2 Instances to run in the ASG initially. Note that auto scaling policies may change this value."
+  description = "The desired number of EC2 Instances to run in the ASG initially. Note that auto scaling policies may change this value. If you're using auto scaling policies to dynamically resize the cluster, you should actually leave this value as null."
   type        = number
+  default     = null
 }
 
 variable "server_port" {
@@ -84,26 +86,15 @@ variable "alb_listener_arn" {
 
 }
 
-//variable "include_elasticsearch_url" {
-//  type = bool
-//}
-
 variable "iam_users_defined_in_separate_account" {
   type = bool
 }
 
-variable "mgmt_vpc_name" {
-  type = string
+variable "external_account_auto_deploy_iam_role_arns" {
+  description = "A list of IAM role ARNs in other AWS accounts that ASG will be able to assume to do automated deployment in those accounts."
+  type        = list(string)
+  default     = []
 }
-
-//{{- if .IamUsersDefinedInSeparateAccount }}
-
-variable "external_account_ssh_grunt_role_arn" {
-  description = "Since our IAM users are defined in a separate AWS account, this variable is used to specify the ARN of an IAM role that allows ssh-grunt to retrieve IAM group and public SSH key info from that account."
-  type        = string
-  default     = null
-}
-//{{- end }}
 
 variable "is_internal_alb" {
   description = "If set to true, create only private DNS entries. We should be able to compute this from the ALB automatically, but can't, due to a Terraform limitation (https://goo.gl/gq5Qyk)."
@@ -136,6 +127,11 @@ variable "enable_cloudwatch_alarms" {
   description = "Set to true to enable several basic CloudWatch alarms around CPU usage, memory usage, and disk space usage. If set to true, make sure to specify SNS topics to send notifications to using var.alarms_sns_topic_arn."
   type        = bool
   default     = true
+}
+
+variable "alarm_sns_topic_arns_us_east_1" {
+  description = "A list of SNS topic ARNs to notify when the health check changes to ALARM, OK, or INSUFFICIENT_DATA state. Note: these SNS topics MUST be in us-east-1! This is because Route 53 only sends CloudWatch metrics to us-east-1, so we must create the alarm in that region, and therefore, can only notify SNS topics in that region."
+  type        = list(string)
 }
 
 variable "enable_cloudwatch_log_aggregation" {
@@ -185,51 +181,6 @@ variable "alb_security_groups" {
   type = list(string)
 }
 
-//{{- if .IncludeDatabaseUrl }}
-//
-//variable "db_remote_state_path" {
-//  description = "The path to the DB's remote state. This path does not need to include the region or VPC name. Example: data-stores/rds/terraform.tfstate."
-//  type        = string
-//  default     = "data-stores/rds/terraform.tfstate"
-//}
-//{{- end }}
-//
-//{{- if .IncludeRedisUrl }}
-//
-//variable "redis_remote_state_path" {
-//  description = "The path to Redis' remote state. This path does not need to include the region or VPC name. Example: data-stores/redis/terraform.tfstate."
-//  type        = string
-//  default     = "data-stores/redis/terraform.tfstate"
-//}
-//{{- end }}
-//
-//{{- if .IncludeMemcachedUrl }}
-//
-//variable "memcached_remote_state_path" {
-//  description = "The path to Memcached remote state. This path does not need to include the region or VPC name. Example: data-stores/memcached/terraform.tfstate."
-//  type        = string
-//  default     = "data-stores/memcached/terraform.tfstate"
-//}
-//{{- end }}
-//
-//{{- if .IncludeMongoDbUrl }}
-//
-//variable "mongodb_remote_state_path" {
-//  description = "The path to MongoDb remote state. This path does not need to include the region or VPC name. Example: data-stores/mongodb/terraform.tfstate."
-//  type        = string
-//  default     = "data-stores/mongodb/terraform.tfstate"
-//}
-//{{- end }}
-//
-//{{- if .IncludeElasticsearchUrl }}
-//
-//variable "elasticsearch_remote_state_path" {
-//  description = "The path to Elasticsearch remote state. This path does not need to include the region or VPC name. Example: data-stores/elasticsearch/terraform.tfstate."
-//  type        = string
-//  default     = "data-stores/elasticsearch/terraform.tfstate"
-//}
-//{{- end }}
-
 variable "create_route53_entry" {
   description = "Set to true to create a DNS A record in Route 53 for this service."
   type        = bool
@@ -246,10 +197,4 @@ variable "force_destroy" {
   description = "A boolean that indicates whether the access logs bucket should be destroyed, even if there are files in it, when you run Terraform destroy. Unless you are using this bucket only for test purposes, you'll want to leave this variable set to false."
   type        = bool
   default     = false
-}
-
-variable "terraform_state_kms_master_key" {
-  description = "Path base name of the kms master key to use. This should reflect what you have in your infrastructure-live folder."
-  type        = string
-  default     = "kms-master-key"
 }

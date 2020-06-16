@@ -3,15 +3,19 @@ provider "aws" {
   region = var.aws_region
 }
 
+locals {
+  server_port = 8080
+}
+
 module "asg" {
   # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
   # to a specific version of the modules, such as the following example:
-  # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/alb?ref=v1.0.8"
+  # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/services/asg-service?ref=v1.0.8"
   source = "../../../../modules/services/asg-service"
 
   name = var.name
 
-  instance_type = "t3.small"
+  instance_type = "t3.micro"
   ami = var.ami
 
   min_size = 2
@@ -19,11 +23,11 @@ module "asg" {
   desired_capacity = 2
   min_elb_capacity = 2
 
-  server_port = 80
+  server_port = local.server_port
   alb_security_groups = []
 
-  vpc_id = module.vpc.vpc_id
-  subnet_ids = module.vpc.public_subnet_ids
+  vpc_id = data.aws_vpc.default.id
+  subnet_ids = data.aws_subnet_ids.default.ids // module.vpc.public_subnet_ids
 
   vpn_security_group_ids = [] // TODO ?? allow ALL or allow cidr_blocks ?
   // output from vpn, [data.terraform_remote_state.openvpn_server.outputs.security_group_id]
@@ -36,7 +40,7 @@ module "asg" {
   alb_hosted_zone_id = module.alb.alb_hosted_zone_id
   alb_listener_rule_configs = [
     {
-      port     = 80
+      port     = local.server_port
       path     = "/*"
       priority = 90
     }
@@ -50,7 +54,7 @@ module "asg" {
   init_script_path = ""
   is_internal_alb = false
 
-  key_pair_name = "marina"
+  key_pair_name = var.key_pair_name
   mgmt_vpc_name = "" //??
   original_alb_dns_name = ""
   using_end_to_end_encryption = false
@@ -58,25 +62,18 @@ module "asg" {
   user_data = <<-EOF
               #!/bin/bash
               echo "Hello, World" > index.html
-              nohup busybox httpd -f -p 8080 &
+              nohup busybox httpd -f -p ${local.server_port} &
               EOF
-}
-
-module "vpc" {
-  source = "../../../../modules/networking/vpc"
-
-  aws_region           = var.aws_region
-  cidr_block           = "10.0.0.0/16"
-  num_nat_gateways     = 1
-  vpc_name             = var.name
-  create_flow_logs     = false
 }
 
 module "alb" {
   source = "../../../../modules/networking/alb"
 
   alb_name = "marina-testing"
-  is_internal_alb = false // ???
+
+  // For public, user-facing services (i.e., those accessible from the public Internet), this should be set to false.
+  is_internal_alb = false
+
   num_days_after_which_archive_log_data = 0
   num_days_after_which_delete_log_data = 0
 
@@ -84,4 +81,12 @@ module "alb" {
 
   vpc_id = module.vpc.vpc_id
   vpc_subnet_ids = module.vpc.public_subnet_ids
+}
+
+data "aws_vpc" "default" {
+  default = true
+}
+
+data "aws_subnet_ids" "default" {
+  vpc_id = data.aws_vpc.default.id
 }

@@ -172,19 +172,18 @@ module "iam_policies" {
 
   aws_account_id = data.aws_caller_identity.current.account_id
 
-  # ssh-grunt is an automated app, so we can't use MFA with it
+  # ASG is an automated app, so we can't use MFA with it
   iam_policy_should_require_mfa   = false
   trust_policy_should_require_mfa = false
 
-  # Since our IAM users are defined in a separate AWS account, we need to give ssh-grunt permission to make API calls to
-  # that account.
-  allow_access_to_other_account_arns = var.iam_users_defined_in_separate_account ? { ssh_grunt = [var.external_account_ssh_grunt_role_arn] } : {}
+  allow_access_to_other_account_arns = var.external_account_auto_deploy_iam_role_arns
 }
 
 resource "aws_iam_role_policy" "ssh_grunt_permissions" {
-  name   = "ssh-grunt-permissions"
+  count  = length(var.external_account_auto_deploy_iam_role_arns) > 0 ? 1 : 0
+  name   = "deploy-other-accounts-permissions"
   role   = aws_iam_role.instance_role.id
-  policy = var.iam_users_defined_in_separate_account ? module.iam_policies.allow_access_to_other_accounts[0] : module.iam_policies.ssh_grunt_permissions
+  policy = module.iam_policies.allow_access_from_other_accounts
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -340,7 +339,7 @@ module "route53_health_check" {
   create_resources = var.enable_route53_health_check
 
   domain                         = var.domain_name
-  alarm_sns_topic_arns_us_east_1 = [] // ?? [data.terraform_remote_state.sns_us_east_1.outputs.arn]
+  alarm_sns_topic_arns_us_east_1 = var.alarm_sns_topic_arns_us_east_1
 
   path = var.health_check_path
   type = var.health_check_protocol
