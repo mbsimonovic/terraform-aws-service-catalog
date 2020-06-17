@@ -249,30 +249,36 @@ variable "alarms_sns_topic_arn" {
 variable "high_cpu_utilization_threshold" {
   description = "Trigger an alarm if the ECS Cluster has a CPU utilization percentage above this threshold. Only used if var.enable_cloudwatch_alarms is set to true"
   type        = number
+  default     = 90
 }
 
 variable "high_cpu_utilization_period" {
   description = "The period, in seconds, over which to measure the CPU utilization percentage. Only used if var.enable_cloudwatch_alarms is set to true"
   type        = number
+  default     = 300
 }
 
 variable "high_memory_utilization_threshold" {
   description = "Trigger an alarm if the ECS Cluster has a memory utilization percentage above this threshold. Only used if var.enable_cloudwatch_alarms is set to true"
   type        = number
+  default     = 90
 }
 
 variable "high_memory_utilization_period" {
   description = "The period, in seconds, over which to measure the memory utilization percentage. Only used if var.enable_cloudwatch_alarms is set to true"
   type        = number
+  default     = 300
 }
 
 variable "high_disk_utilization_threshold" {
   description = "Trigger an alarm if the EC2 instances in the ECS Cluster have a disk utilization percentage above this threshold. Only used if var.enable_cloudwatch_alarms is set to true"
   type        = number
+  default     = 90
 }
 
 variable "high_disk_utilization_period" {
   description = "The period, in seconds, over which to measure the disk utilization percentage. Only used if var.enable_cloudwatch_alarms is set to true"
   type        = number
+  default     = 300
 }
 
