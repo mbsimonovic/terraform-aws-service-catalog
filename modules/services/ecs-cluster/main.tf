@@ -33,7 +33,7 @@ module "ecs_cluster" {
   tenancy                           = var.tenancy
   allow_ssh_from_security_group_ids = var.allow_ssh_from_security_group_ids
 
-  alb_security_group_ids     = compact(concat(var.internal_alb_sg_id, var.public_alb_sg_id))
+  alb_security_group_ids     = compact(concat(var.internal_alb_sg_ids, var.public_alb_sg_ids))
   num_alb_security_group_ids = (var.allow_requests_from_public_alb ? 1 : 0) + (var.allow_requests_from_internal_alb ? 1 : 0)
 }
 
