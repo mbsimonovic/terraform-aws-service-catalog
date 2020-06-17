@@ -86,10 +86,10 @@ module "cloudwatch_log_aggregation" {
 }
 
 resource "aws_iam_role_policy" "custom_cloudwatch_logging" {
-  count      = var.enable_cloudwatch_log_aggregation ? 1 : 0
-  name       = "cloudwatch-log-aggregation"
-  role       = module.ecs_cluster.ecs_instance_iam_role_id
-  policy_arn = module.cloudwatch_metrics
+  count  = var.enable_cloudwatch_log_aggregation ? 1 : 0
+  name   = "cloudwatch-log-aggregation"
+  role   = module.ecs_cluster.ecs_instance_iam_role_id
+  policy = module.ec2_baseline.cloudwatch_logs_permissions_json
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
