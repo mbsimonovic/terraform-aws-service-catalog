@@ -1,0 +1,31 @@
+# Static assets boilerplate template
+#
+# This folder contains a boilerplate template that can be used to create an S3 bucket, with an optional CloudFront CDN,
+# to host a static website.
+
+variables:
+  - name: IncludeCloudFront
+    description: If set to true, a CloudFront distribution will be deployed in front of the S3 bucket
+    type: bool
+
+  - name: PackageStaticAssetsVersion
+    description: What version of package-static-assets should we use?
+
+  - name: CompanyName
+    description: What is the name of the company?
+
+  - name: CompanyLogoUrl
+    description: "The URL of the logo for this company. Used in a the example static website. If you can't find a logo, you can use Grunty: http://www.gruntwork.io/assets/img/logo/grunt-logo-outline.png"
+
+  - name: MoreInfoUrl
+    description: The URL of a link that will show more info to the user. This will be shown on the example static website.
+
+  - name: DemoPageText
+    description: The text to show on the index page of the demo app
+    default: "This is an example static website deployed via S3 / CloudFront."
+
+  - name: TerraformRequiredVersion
+    description: "The version of Terraform the customer should use. This should be a version expression such as '= 10.5.7.'"
+
+  - name: AWSProviderVersion
+    description: "The version of the AWS provider the customer should use. This should be a version expression, such as '~> 2.0`"
