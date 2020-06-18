@@ -34,7 +34,7 @@
       "sudo DEBIAN_FRONTEND=noninteractive apt-get update",
       "sudo DEBIAN_FRONTEND=noninteractive apt-get -y upgrade",
       "sudo DEBIAN_FRONTEND=noninteractive apt-get -y autoclean",
-      "sudo DEBIAN_FRONTEND=noninteractive apt-get -y install busybox"
+      "sudo DEBIAN_FRONTEND=noninteractive apt-get -y install busybox jq curl"
     ],
     "pause_before": "30s"
   }]

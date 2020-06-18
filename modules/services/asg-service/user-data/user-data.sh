@@ -1,7 +1,4 @@
 #!/bin/bash
-#
-# A script run in User Data that can be used to configure each EC2 Instance in the ASG. It runs the initialization
-# script specified by the user.
 
 set -e
 
@@ -9,3 +6,17 @@ set -e
 # From: https://alestic.com/2010/12/ec2-user-data-output/
 exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
 
+# Include common functions
+source /etc/user-data/user-data-common.sh
+
+start_ec2_baseline \
+  "${enable_cloudwatch_log_aggregation}" \
+  "${enable_ssh_grunt}" \
+  "${enable_fail2ban}" \
+  "${enable_ip_lockdown}" \
+  "${ssh_grunt_iam_group}" \
+  "${ssh_grunt_iam_group_sudo}" \
+  "${log_group_name}" \
+  "${external_account_ssh_grunt_role_arn}" \
+  "${default_user}" \
+  "${owner}"
