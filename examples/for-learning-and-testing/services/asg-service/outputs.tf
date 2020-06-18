@@ -14,8 +14,8 @@ output "security_group_id" {
   value = module.asg.security_group_id
 }
 
-output "alb_listener_rule_ids" {
-  value = module.asg.alb_listener_rule_ids
+output "lb_listener_rule_ids" {
+  value = module.asg.lb_listener_rule_ids
 }
 
 output "launch_configuration_id" {

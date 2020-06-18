@@ -184,7 +184,7 @@ resource "aws_alb_target_group" "service" {
 # domain names (the condition block) to the Target Group that contains this ASG service.
 # ---------------------------------------------------------------------------------------------------------------------
 
-resource "aws_alb_listener_rule" "paths_to_route_to_this_service" {
+resource "aws_lb_listener_rule" "paths_to_route_to_this_service" {
   count = length(var.alb_listener_rule_configs)
 
   listener_arn = var.alb_listener_arn
