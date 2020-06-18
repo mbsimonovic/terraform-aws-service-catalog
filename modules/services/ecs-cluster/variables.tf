@@ -23,12 +23,10 @@ variable "cluster_instance_type" {
   type        = string
 }
 
-variable "cluster_instance_ami" {
+variable "cluster_instance_ami_id" {
   description = "The AMI to run on each instance in the ECS cluster. You can build the AMI using the Packer template under packer/build.json."
   type        = string
 }
-
-
 
 variable "vpc_id" {
   description = "The ID of the VPC in which the ECS cluster should be launched"
@@ -85,13 +83,14 @@ variable "cluster_instance_keypair_name" {
   default     = null
 }
 
-variable "docker_auth_type" {
-  description = "The docker authentication strategy to use for pulling Docker images. MUST be one of: (docker-hub, docker-other, docker-gitlab)"
-  type        = string
-}
-
 variable "enable_cloudwatch_alarms" {
   description = "Set to true to install Cloudwatch monitoring and alerts in the cluster"
+  type        = bool
+  default     = false
+}
+
+variable "enable_cloudwatch_metrics" {
+  description = "Set to true to enable Cloudwatch metrics collection for the ECS cluster"
   type        = bool
   default     = false
 }
@@ -101,8 +100,6 @@ variable "enable_cloudwatch_log_aggregation" {
   type        = bool
   default     = false
 }
-
-
 
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL MODULE PARAMETERS

@@ -23,7 +23,7 @@ module "ecs_cluster" {
   cluster_min_size = var.cluster_min_size
   cluster_max_size = var.cluster_max_size
 
-  cluster_instance_ami          = var.cluster_instance_ami
+  cluster_instance_ami          = var.cluster_instance_ami_id
   cluster_instance_type         = var.cluster_instance_type
   cluster_instance_keypair_name = var.cluster_instance_keypair_name
   cluster_instance_user_data    = data.template_file.user_data.rendered
@@ -33,8 +33,8 @@ module "ecs_cluster" {
   tenancy                           = var.tenancy
   allow_ssh_from_security_group_ids = var.allow_ssh_from_security_group_ids
 
-  alb_security_group_ids     = compact(concat(var.internal_alb_sg_ids, var.public_alb_sg_ids))
-  num_alb_security_group_ids = (var.allow_requests_from_public_alb ? 1 : 0) + (var.allow_requests_from_internal_alb ? 1 : 0)
+  alb_security_group_ids = compact(concat(var.internal_alb_sg_ids, var.public_alb_sg_ids))
+
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -67,9 +67,6 @@ data "template_file" "user_data" {
     ssh_grunt_iam_group                 = var.ssh_grunt_iam_group
     ssh_grunt_iam_group_sudo            = var.ssh_grunt_iam_group_sudo
     external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
-    enable_datadog_task                 = var.enable_datadog_task
-    datadog_task_arn                    = var.data_dog_task_arn
-    datadog_api_key_secret              = var.data_dog_api_key_secret
   }
 }
 
@@ -93,15 +90,6 @@ resource "aws_iam_role_policy" "custom_cloudwatch_logging" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# ADD AWS SECRETS MANAGER PERMISSIONS 
-# ---------------------------------------------------------------------------------------------------------------------
-
-# TODO: The IAM permissions to use the KMS master key was removed per step 5 of these instructions
-# It seems we were granting the ecs_instance_iam_role decrypt permissions on the key 
-# Figure out which secrets in particular the ecs docker containers actually need and grant them access explicitly via AWS secrets manager permissions
-
-
-# ---------------------------------------------------------------------------------------------------------------------
 # ADD IAM POLICY THAT ALLOWS READING AND WRITING CLOUDWATCH METRICS
 # ---------------------------------------------------------------------------------------------------------------------
 
@@ -117,7 +105,7 @@ resource "aws_iam_role_policy" "custom_cloudwatch_metrics" {
   count  = var.enable_cloudwatch_metrics ? 1 : 0
   name   = "custom-cloudwatch-metrics"
   role   = module.ecs_cluster.ecs_instance_iam_role_name
-  policy = module.cloudwatch_metrics.cloudwatch_metrics_read_write_permissions.json
+  policy = module.ec2_baseline.cloudwatch_metrics_read_write_permissions_json
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -125,6 +113,8 @@ resource "aws_iam_role_policy" "custom_cloudwatch_metrics" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_cluster_cpu_memory_alarms" {
+  create_resources = var.enable_ecs_cloudwatch_alarms
+
   source               = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/ecs-cluster-alarms?ref=v0.21.2"
   ecs_cluster_name     = var.cluster_name
   alarm_sns_topic_arns = var.alarms_sns_topic_arn
@@ -136,10 +126,12 @@ module "ecs_cluster_cpu_memory_alarms" {
 }
 
 module "ecs_cluster_disk_memory_alarms" {
+  create_resources = var.enable_ecs_cloudwatch_alarms
+
   source               = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/asg-disk-alarms?ref=v0.21.2"
   asg_names            = [module.ecs_cluster.ecs_cluster_asg_name]
   num_asg_names        = 1
-  alarm_sns_topic_arns = [var.alarms_sns_topic_arn]
+  alarm_sns_topic_arns = var.alarms_sns_topic_arn
 
   file_system = "/dev/xvda1"
   mount_path  = "/"
@@ -149,6 +141,7 @@ module "ecs_cluster_disk_memory_alarms" {
 }
 
 module "metric_widget_ecs_cluster_cpu_usage" {
+
   source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.21.2"
 
   period = 60
@@ -235,7 +228,7 @@ resource "aws_cloudwatch_metric_alarm" "high_cpu_utilization" {
   statistic           = "Average"
   threshold           = "75"
   unit                = "Percent"
-  alarm_actions       = [aws_autoscaling_policy.scale_out.arn]
+  alarm_actions       = [aws_autoscaling_policy.scale_out[count.index].arn]
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -269,7 +262,7 @@ resource "aws_cloudwatch_metric_alarm" "low_cpu_utilization" {
   statistic           = "Average"
   threshold           = "50"
   unit                = "Percent"
-  alarm_actions       = [aws_autoscaling_policy.scale_in.arn]
+  alarm_actions       = [aws_autoscaling_policy.scale_in[count.index].arn]
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

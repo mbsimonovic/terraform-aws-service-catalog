@@ -48,6 +48,10 @@ func TestEcsCluster(t *testing.T) {
 	test_structure.RunTestStage(t, "build_ami", func() {
 		buildAmi(t, testFolder)
 	})
+
+	test_structure.RunTestStage(t, "deploy_terraform", func() {
+		deployECSCluster(t, testFolder)
+	})
 }
 
 func buildAmi(t *testing.T, testFolder string) {
@@ -77,4 +81,32 @@ func buildAmi(t *testing.T, testFolder string) {
 
 	awsKeyPair := aws.CreateAndImportEC2KeyPair(t, awsRegion, uniqueID)
 	test_structure.SaveEc2KeyPair(t, testFolder, awsKeyPair)
+}
+
+func deployECSCluster(t *testing.T, testFolder string) {
+	amiID := test_structure.LoadArtifactID(t, testFolder)
+	awsRegion := test_structure.LoadString(t, testFolder, "region")
+	clusterName := test_structure.LoadString(t, testFolder, "clusterName")
+	awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
+
+	defaultVpc := aws.GetDefaultVpc(t, awsRegion)
+	vpcSubnets := aws.GetSubnetsForVpc(t, defaultVpc.Id, awsRegion)
+	var vpcSubnetIDs []string
+	for _, sn := range vpcSubnets {
+		vpcSubnetIDs = append(vpcSubnetIDs, sn.Id)
+	}
+
+	terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
+	terraformOptions.Vars["cluster_name"] = clusterName
+	terraformOptions.Vars["cluster_min_size"] = 1
+	terraformOptions.Vars["cluster_max_size"] = 3
+	terraformOptions.Vars["cluster_instance_type"] = "t2.medium"
+	terraformOptions.Vars["cluster_instance_ami_id"] = amiID
+	terraformOptions.Vars["vpc_id"] = defaultVpc.Id
+	terraformOptions.Vars["vpc_subnet_ids"] = vpcSubnetIDs
+	terraformOptions.Vars["cluster_instance_keypair_name"] = awsKeyPair.Name
+	terraformOptions.Vars["enable_ecs_cloudwatch_alarms"] = true
+
+	test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
+	terraform.InitAndApply(t, terraformOptions)
 }
