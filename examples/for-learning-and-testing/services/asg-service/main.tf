@@ -47,9 +47,7 @@ module "asg" {
 
   alb_listener_arn = module.alb.listener_arns[80] // alb_listener_rule_configs[0].port
 
-  iam_users_defined_in_separate_account = false
   init_script_path                      = ""
-  is_internal_alb                       = false
 
   key_pair_name         = var.key_pair_name
   original_alb_dns_name = ""
