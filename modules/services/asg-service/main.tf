@@ -184,6 +184,10 @@ resource "aws_alb_target_group" "service" {
     port                = "traffic-port"
     path                = var.health_check_path
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
