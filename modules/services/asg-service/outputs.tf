@@ -14,8 +14,8 @@ output "security_group_id" {
   value = aws_security_group.lc_security_group.id
 }
 
-output "alb_listener_rule_id" {
-  value = aws_alb_listener_rule.paths_to_route_to_this_service.id
+output "alb_listener_rule_ids" {
+  value = aws_alb_listener_rule.paths_to_route_to_this_service.*.id
 }
 
 output "launch_configuration_id" {

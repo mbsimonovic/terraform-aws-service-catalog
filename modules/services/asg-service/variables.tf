@@ -26,7 +26,7 @@ variable "instance_type" {
 variable "key_pair_name" {
   description = "The name of a Key Pair that can be used to SSH to the EC2 Instances in the ASG. Set to null if you don't want to enable Key Pair auth."
   type        = string
-  default = null
+  default     = null
 }
 
 variable "min_size" {
@@ -79,22 +79,8 @@ variable "min_elb_capacity" {
 }
 
 variable "alb_listener_arn" {
-
-}
-
-variable "iam_users_defined_in_separate_account" {
-  type = bool
-}
-
-variable "external_account_auto_deploy_iam_role_arns" {
-  description = "A list of IAM role ARNs in other AWS accounts that ASG will be able to assume to do automated deployment in those accounts."
-//  type        = list(string)
-  default     = {ssh_grunt: []}
-}
-
-variable "is_internal_alb" {
-  description = "If the ALB should only accept traffic from within the VPC, set this to true. If it should accept traffic from the public Internet, set it to false."
-  type        = bool
+  description = "The ARN of the ALB listener."
+  type        = string
 }
 
 variable "health_check_path" {
@@ -105,6 +91,153 @@ variable "health_check_path" {
 variable "health_check_protocol" {
   description = "The protocol to use for health checks. Should be one of HTTP, HTTPS."
   type        = string
+}
+
+variable "vpn_security_group_ids" {
+  type = list(string)
+}
+
+variable "user_data" {
+  type    = string
+  default = null
+}
+
+variable "vpc_id" {
+  description = "The ID of the VPC in which to deploy the Auto Scaling Group"
+  type        = string
+}
+
+variable "subnet_ids" {
+  description = "The list of IDs of the subnets in which to deploy ASG. The list must only contain subnets in var.vpc_id."
+  type        = list(string)
+}
+
+variable "alb_security_groups" {
+  type = list(string)
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# OPTIONAL PARAMETERS
+# Generally, these values won't need to be changed.
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "create_route53_entry" {
+  description = "Set to true to create a DNS A record in Route 53 for this service."
+  type        = bool
+  default     = false
+}
+
+variable "hosted_zone_id" {
+  description = "The ID of the Route 53 Hosted Zone in which to create a DNS A record for the Auto Scaling Group. Optional if create_route53_entry = false."
+  type        = string
+  default     = null
+}
+
+variable "original_alb_dns_name" {
+  type    = string
+  default = null
+}
+
+variable "alb_hosted_zone_id" {
+  description = "The ID of the Route 53 Hosted Zone in which to create a DNS A record for the Auto Scaling Group. Optional if create_route53_entry = false."
+  type        = string
+  default     = null
+}
+
+variable "domain_name" {
+  description = "The domain name to register in var.hosted_zone_id (e.g. foo.example.com). Only used if var.create_route53_entry is true."
+  type        = string
+  default     = null
+}
+
+variable "force_destroy" {
+  description = "A boolean that indicates whether the access logs bucket should be destroyed, even if there are files in it, when you run Terraform destroy. Unless you are using this bucket only for test purposes, you'll want to leave this variable set to false."
+  type        = bool
+  default     = false
+}
+
+variable "termination_policies" {
+  description = "A list of policies to decide how the instances in the auto scale group should be terminated. The allowed values are OldestInstance, NewestInstance, OldestLaunchConfiguration, ClosestToNextInstanceHour, Default."
+  type        = list(string)
+  default     = []
+}
+
+variable "load_balancers" {
+  description = "A list of Elastic Load Balancer (ELB) names to associate with this ASG. If you're using the Application Load Balancer (ALB), see var.target_group_arns."
+  type        = list(string)
+  default     = []
+}
+
+variable "use_elb_health_checks" {
+  description = "Whether or not ELB or ALB health checks should be enabled. If set to true, the load_balancers or target_groups_arns variable should be set depending on the load balancer type you are using. Useful for testing connectivity before health check endpoints are available."
+  type        = bool
+  default     = true
+}
+
+variable "health_check_grace_period" {
+  description = "Time, in seconds, after an EC2 Instance comes into service before checking health."
+  type        = number
+  default     = 300
+}
+
+variable "wait_for_capacity_timeout" {
+  description = "A maximum duration that Terraform should wait for the EC2 Instances to be healthy before timing out."
+  type        = string
+  default     = "10m"
+}
+
+variable "availability_zones" {
+  description = "A list of availability zones the ASG should use. The subnets in var.vpc_subnet_ids must reside in these Availability Zones."
+  type        = list(string)
+  default     = []
+}
+
+variable "enabled_metrics" {
+  description = "A list of metrics the ASG should enable for monitoring all instances in a group. The allowed values are GroupMinSize, GroupMaxSize, GroupDesiredCapacity, GroupInServiceInstances, GroupPendingInstances, GroupStandbyInstances, GroupTerminatingInstances, GroupTotalInstances."
+  type        = list(string)
+  default     = []
+
+  # Example:
+  # enabled_metrics = [
+  #    "GroupDesiredCapacity",
+  #    "GroupInServiceInstances",
+  #    "GroupMaxSize",
+  #    "GroupMinSize",
+  #    "GroupPendingInstances",
+  #    "GroupStandbyInstances",
+  #    "GroupTerminatingInstances",
+  #    "GroupTotalInstances"
+  #  ]
+}
+
+variable "tag_asg_id_key" {
+  description = "The key for the tag that will be used to associate a unique identifier with this ASG. This identifier will persist between redeploys of the ASG, even though the underlying ASG is being deleted and replaced with a different one."
+  type        = string
+  default     = "AsgId"
+}
+
+variable "custom_tags" {
+  description = "A list of custom tags to apply to the EC2 Instances in this ASG. Each item in this list should be a map with the parameters key, value, and propagate_at_launch."
+  type = list(object({
+    key                 = string
+    value               = string
+    propagate_at_launch = bool
+  }))
+  default = []
+
+  # Example:
+  # default = [
+  #   {
+  #     key = "foo"
+  #     value = "bar"
+  #     propagate_at_launch = true
+  #   },
+  #   {
+  #     key = "baz"
+  #     value = "blah"
+  #     propagate_at_launch = true
+  #   }
+  # ]
 }
 
 variable "enable_route53_health_check" {
@@ -128,7 +261,7 @@ variable "enable_cloudwatch_alarms" {
 variable "alarm_sns_topic_arns_us_east_1" {
   description = "A list of SNS topic ARNs to notify when the health check changes to ALARM, OK, or INSUFFICIENT_DATA state. Note: these SNS topics MUST be in us-east-1! This is because Route 53 only sends CloudWatch metrics to us-east-1, so we must create the alarm in that region, and therefore, can only notify SNS topics in that region."
   type        = list(string)
-  default = []
+  default     = []
 }
 
 variable "enable_cloudwatch_log_aggregation" {
@@ -141,62 +274,4 @@ variable "alarms_sns_topic_arn" {
   description = "The ARNs of SNS topics where CloudWatch alarms (e.g., for CPU, memory, and disk space usage) should send notifications. Also used for the alarms if the Jenkins backup job fails."
   type        = list(string)
   default     = []
-}
-
-variable "vpn_security_group_ids" {
-  type = list(string)
-}
-
-variable "user_data" {
-  type    = string
-  default = null
-}
-
-variable "subnet_ids" {
-  type = list(string)
-}
-
-variable "vpc_id" {
-  description = "The ID of the VPC in which to deploy the Auto Scaling Group"
-  type        = string
-}
-
-
-variable "original_alb_dns_name" {
-  type = string
-}
-
-
-variable "alb_security_groups" {
-  type = list(string)
-}
-
-variable "create_route53_entry" {
-  description = "Set to true to create a DNS A record in Route 53 for this service."
-  type        = bool
-  default     = false
-}
-
-variable "hosted_zone_id" {
-  description = "The ID of the Route 53 Hosted Zone in which to create a DNS A record for the Auto Scaling Group. Optional if create_route53_entry = false."
-  type        = string
-  default = null
-}
-
-variable "alb_hosted_zone_id" {
-  description = "The ID of the Route 53 Hosted Zone in which to create a DNS A record for the Auto Scaling Group. Optional if create_route53_entry = false."
-  type = string
-  default = null
-}
-
-variable "domain_name" {
-  description = "The domain name to register in var.hosted_zone_id (e.g. foo.example.com). Only used if var.create_route53_entry is true."
-  type        = string
-  default     = null
-}
-
-variable "force_destroy" {
-  description = "A boolean that indicates whether the access logs bucket should be destroyed, even if there are files in it, when you run Terraform destroy. Unless you are using this bucket only for test purposes, you'll want to leave this variable set to false."
-  type        = bool
-  default     = false
 }

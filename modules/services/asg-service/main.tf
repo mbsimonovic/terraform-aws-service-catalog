@@ -27,6 +27,19 @@ module "asg" {
   max_size         = var.max_size
   desired_capacity = var.desired_capacity
   min_elb_capacity = var.min_elb_capacity
+
+  termination_policies = var.termination_policies
+  load_balancers       = var.load_balancers
+  availability_zones   = var.availability_zones
+
+  use_elb_health_checks = var.use_elb_health_checks
+  enabled_metrics       = var.enabled_metrics
+
+  health_check_grace_period = var.health_check_grace_period
+  wait_for_capacity_timeout = var.wait_for_capacity_timeout
+
+  tag_asg_id_key = var.tag_asg_id_key
+  custom_tags    = var.custom_tags
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -83,12 +96,12 @@ resource "aws_security_group_rule" "egress_all" {
 
 # Inbound HTTP from the ALB
 resource "aws_security_group_rule" "ingress_alb" {
-  type              = "ingress"
-  from_port         = var.server_port
-  to_port           = var.server_port
-  protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
-//  security_groups   = var.alb_security_groups
+  type        = "ingress"
+  from_port   = var.server_port
+  to_port     = var.server_port
+  protocol    = "tcp"
+  cidr_blocks = ["0.0.0.0/0"]
+  //  security_groups   = var.alb_security_groups
   security_group_id = aws_security_group.lc_security_group.id
 }
 
@@ -180,8 +193,8 @@ resource "aws_alb_target_group" "service" {
     unhealthy_threshold = 2
     timeout             = 3
     interval            = 10
-    protocol            = var.health_check_protocol
     port                = "traffic-port"
+    protocol            = var.health_check_protocol
     path                = var.health_check_path
   }
 
