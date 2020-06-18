@@ -14,7 +14,9 @@ terraform {
   required_version = "~> 0.12.6"
 
   required_providers {
-    aws = "~> 2.6"
+    # Pin to this specific version to work around a bug introduced in 2.63.0
+    # Exact issue is not known, but possibly: https://github.com/terraform-providers/terraform-provider-aws/pull/13360
+    aws = "= 2.62.0"
 
     # Pin to this specific version to work around a bug introduced in 1.11.0:
     # https://github.com/terraform-providers/terraform-provider-kubernetes/issues/759
