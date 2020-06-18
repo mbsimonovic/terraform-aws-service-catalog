@@ -154,31 +154,6 @@ data "aws_iam_policy_document" "instance_role" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# GIVE SSH-GRUNT PERMISSIONS TO TALK TO IAM
-# We add an IAM policy to each EC2 Instance that allows ssh-grunt to make API calls to IAM to fetch IAM user and group
-# data.
-# ---------------------------------------------------------------------------------------------------------------------
-
-module "iam_policies" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-policies?ref=v0.32.0"
-
-  aws_account_id = data.aws_caller_identity.current.account_id
-
-  # ASG is an automated app, so we can't use MFA with it
-  iam_policy_should_require_mfa   = false
-  trust_policy_should_require_mfa = false
-
-  allow_access_to_other_account_arns = var.external_account_auto_deploy_iam_role_arns
-}
-
-resource "aws_iam_role_policy" "ssh_grunt_permissions" {
-  count  = length(var.external_account_auto_deploy_iam_role_arns) > 0 ? 1 : 0
-  name   = "deploy-other-accounts-permissions"
-  role   = aws_iam_role.instance_role.id
-  policy = module.iam_policies.ssh_grunt_permissions // from or to ?
-}
-
-# ---------------------------------------------------------------------------------------------------------------------
 # CREATE AN ALB TARGET GROUP AND LISTENER RULE TO RECEIVE TRAFFIC FROM THE ALB FOR CERTAIN PATHS
 # ---------------------------------------------------------------------------------------------------------------------
 
