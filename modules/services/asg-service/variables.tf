@@ -307,18 +307,29 @@ variable "enable_ssh_grunt" {
 variable "ssh_grunt_iam_group" {
   description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to the instances. To omit this variable, set it to an empty string (do NOT use null, or Terraform will complain)."
   type        = string
-  default     = null
+  default     = ""
 }
 
 variable "ssh_grunt_iam_group_sudo" {
   description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to the instances with sudo permissions. To omit this variable, set it to an empty string (do NOT use null, or Terraform will complain)."
   type        = string
-  default     = null
+  default     = ""
 }
 
 variable "external_account_ssh_grunt_role_arn" {
   description = "Since our IAM users are defined in a separate AWS account, this variable is used to specify the ARN of an IAM role that allows ssh-grunt to retrieve IAM group and public SSH key info from that account."
   type        = string
   default     = ""
+}
+
+variable "default_user" {
+  description = "The default OS user for the Jenkins AMI. For AWS Ubuntu AMIs, which is what the Packer template in jenkins-ubunutu.json uses, the default OS user is 'ubuntu'."
+  type        = string
+  default     = "ubuntu"
+}
+
+variable "owner" { // TODO better name??
+  type        = string
+  default     = "ec2-user"
 }
 
