@@ -85,7 +85,6 @@ func buildAmi(t *testing.T, testFolder string) {
 
 func deployECSCluster(t *testing.T, testFolder string) {
 	amiID := test_structure.LoadArtifactID(t, testFolder)
-	uniqueID := test_structure.LoadString(t, testFolder, "uniqueID")
 	awsRegion := test_structure.LoadString(t, testFolder, "region")
 	clusterName := test_structure.LoadString(t, testFolder, "clusterName")
 	awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
@@ -108,11 +107,9 @@ func deployECSCluster(t *testing.T, testFolder string) {
 	terraformOptions.Vars["cluster_instance_keypair_name"] = awsKeyPair.Name
 	terraformOptions.Vars["enable_cloudwatch_log_aggregation"] = true
 	terraformOptions.Vars["enable_ecs_cloudwatch_alarms"] = true
-	terraformOptions.Vars["enable_ssh_grunt"] = true
+	terraformOptions.Vars["enable_ssh_grunt"] = false
 	terraformOptions.Vars["enable_fail2ban"] = true
 	terraformOptions.Vars["enable_ip_lockdown"] = true
-	terraformOptions.Vars["ssh_grunt_iam_group"] = fmt.Sprintf("ssh-grunt-iam-group-%s", uniqueID)
-	terraformOptions.Vars["ssh_grunt_iam_group_sudo"] = fmt.Sprintf("ssh-grunt-iam-group-sudo-%s", uniqueID)
 
 	test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
 	terraform.InitAndApply(t, terraformOptions)
