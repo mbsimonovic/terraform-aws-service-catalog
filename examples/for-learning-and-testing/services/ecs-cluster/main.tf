@@ -30,6 +30,12 @@ module "ecs_cluster" {
   vpc_id         = module.vpc.vpc_id
   vpc_subnet_ids = module.vpc.private_app_subnet_ids
 
+  # cloud-init / user-data variables 
+  enable_cloudwatch_log_aggregation = var.enable_cloudwatch_log_aggregation
+
+  enable_fail2ban    = var.enable_fail2ban
+  enable_ip_lockdown = var.enable_ip_lockdown
+
 }
 
 # ----------------------------------------------------------------------------------------------------------------------

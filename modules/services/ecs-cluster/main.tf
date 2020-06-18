@@ -284,35 +284,6 @@ locals {
   product = setproduct(var.enable_cluster_access_ports, var.cluster_access_from_sgs)
 }
 
-
-# ---------------------------------------------------------------------------------------------------------------------
-# GIVE SSH-GRUNT PERMISSIONS TO TALK TO IAM
-# We add an IAM policy to our ECS nodes that allows ssh-grunt to make API calls to IAM to fetch IAM user and group
-# data.
-# ---------------------------------------------------------------------------------------------------------------------
-
-module "ssh_grunt_policies" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-policies?ref=v0.25.1"
-
-  aws_account_id = data.aws_caller_identity.current.account_id
-
-  # ssh-grunt is an automated app, so we can't use MFA with it
-  iam_policy_should_require_mfa   = false
-  trust_policy_should_require_mfa = false
-
-  # Since our IAM users are defined in a separate AWS account, we need to give ssh-grunt permission to make API calls to
-  # that account.
-  allow_access_to_other_account_arns = [var.external_account_ssh_grunt_role_arn]
-}
-
-resource "aws_iam_role_policy" "ssh_grunt_permissions" {
-  count  = var.enable_ssh_grunt ? 1 : 0
-  name   = "ssh-grunt-permissions"
-  role   = module.ecs_cluster.ecs_instance_iam_role_id
-  policy = var.external_account_ssh_grunt_role_arn == "" ? module.ssh_grunt_policies.ssh_grunt_permissions : module.ssh_grunt_policies.allow_access_to_other_accounts[0]
-}
-
-
 # ---------------------------------------------------------------------------------------------------------------------
 # GET INFO ABOUT CURRENT USER/ACCOUNT/REGION
 # ---------------------------------------------------------------------------------------------------------------------
