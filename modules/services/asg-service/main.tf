@@ -115,6 +115,25 @@ resource "aws_security_group_rule" "ingress_alb" {
 //}
 
 # ---------------------------------------------------------------------------------------------------------------------
+# BASE RESOURCES
+# Includes resources common to all EC2 instances in the Service Catalog, including permissions for ssh-grunt, CloudWatch Logs aggregation, CloudWatch metrics, and CloudWatch alarms
+# ---------------------------------------------------------------------------------------------------------------------
+
+module "ec2_baseline" {
+  source = "../../base/ec2-baseline"
+
+  name                                = var.name
+  enable_ssh_grunt                    = var.enable_ssh_grunt
+  external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
+  enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
+  enable_cloudwatch_metrics           = false
+  iam_role_arn                        = aws_iam_role.instance_role.id// TODO is this the right value?
+  asg_names                           = [module.asg.asg_name]
+  num_asg_names                       = 1
+  cloud_init_parts                    = local.cloud_init_parts
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
 # CREATE IAM ROLE AND POLICY THAT ARE ATTACHED TO EACH EC2 INSTANCE IN THE ASG
 # ---------------------------------------------------------------------------------------------------------------------
 
@@ -318,6 +337,39 @@ module "route53_health_check" {
 
   failure_threshold = 2
   request_interval  = 30
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# CREATE THE USER DATA SCRIPT THAT WILL RUN ON EACH INSTANCE IN THE ECS CLUSTER
+# This script will configure each instance so it registers in the right ECS cluster and authenticates to the proper
+# Docker registry.
+# ---------------------------------------------------------------------------------------------------------------------
+
+locals {
+  # Default cloud init script for this module
+  cloud_init = {
+    filename     = "ecs-cluster-default-cloud-init"
+    content_type = "text/x-shellscript"
+    content      = data.template_file.user_data.rendered
+  }
+
+  # Merge in all the cloud init scripts the user has passed in
+  cloud_init_parts = merge({ default : local.cloud_init }, var.cloud_init_parts)
+}
+
+data "template_file" "user_data" {
+  template = file("${path.module}/user-data/user-data.sh")
+
+  vars = {
+    log_group_name                      = var.name
+    enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
+    enable_ssh_grunt                    = var.enable_ssh_grunt
+    enable_fail2ban                     = var.enable_fail2ban
+    enable_ip_lockdown                  = var.enable_ip_lockdown
+    ssh_grunt_iam_group                 = var.ssh_grunt_iam_group
+    ssh_grunt_iam_group_sudo            = var.ssh_grunt_iam_group_sudo
+    external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
+  }
 }
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

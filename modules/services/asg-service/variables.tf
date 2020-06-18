@@ -275,3 +275,50 @@ variable "alarms_sns_topic_arn" {
   type        = list(string)
   default     = []
 }
+
+variable "cloud_init_parts" {
+  description = "Cloud init scripts to run on the ASG instances during boot. See the part blocks in https://www.terraform.io/docs/providers/template/d/cloudinit_config.html for syntax"
+  type = map(object({
+    filename     = string
+    content_type = string
+    content      = string
+  }))
+  default = {}
+}
+
+variable "enable_fail2ban" {
+  description = "Enable fail2ban to block brute force log in attempts. Defaults to true"
+  type        = bool
+  default     = true
+}
+
+variable "enable_ip_lockdown" {
+  description = "Enable ip-lockdown to block access to the instance metadata. Defaults to true"
+  type        = bool
+  default     = true
+}
+
+variable "enable_ssh_grunt" {
+  description = "Set to true to add IAM permissions for ssh-grunt (https://github.com/gruntwork-io/module-security/tree/master/modules/ssh-grunt), which will allow you to manage SSH access via IAM groups."
+  type        = bool
+  default     = true
+}
+
+variable "ssh_grunt_iam_group" {
+  description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to the instances. To omit this variable, set it to an empty string (do NOT use null, or Terraform will complain)."
+  type        = string
+  default     = null
+}
+
+variable "ssh_grunt_iam_group_sudo" {
+  description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to the instances with sudo permissions. To omit this variable, set it to an empty string (do NOT use null, or Terraform will complain)."
+  type        = string
+  default     = null
+}
+
+variable "external_account_ssh_grunt_role_arn" {
+  description = "Since our IAM users are defined in a separate AWS account, this variable is used to specify the ARN of an IAM role that allows ssh-grunt to retrieve IAM group and public SSH key info from that account."
+  type        = string
+  default     = ""
+}
+
