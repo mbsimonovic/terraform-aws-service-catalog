@@ -17,9 +17,8 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "asg" {
-  source = "git::git@github.com:gruntwork-io/module-asg.git//modules/asg-rolling-deploy?ref=v0.8.7"
+  source = "git::git@github.com:gruntwork-io/module-asg.git//modules/asg-rolling-deploy?ref=v0.9.0"
 
-  aws_region                = data.aws_region.current.name
   launch_configuration_name = aws_launch_configuration.launch_configuration.name
   vpc_subnet_ids            = var.subnet_ids
   target_group_arns         = [aws_alb_target_group.service.arn]
@@ -64,31 +63,6 @@ resource "aws_security_group" "lc_security_group" {
   description = "Security group for the ${var.name} launch configuration"
   vpc_id      = var.vpc_id
 
-  # Outbound everything
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # Inbound HTTP from the ALB
-  ingress {
-    from_port       = var.server_port
-    to_port         = var.server_port
-    protocol        = "tcp"
-    security_groups = var.alb_security_groups
-  }
-
-  # Inbound SSH from the bastion host
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    //    security_groups = var.vpn_security_group_ids
-  }
-
   # aws_launch_configuration.launch_configuration in this module sets create_before_destroy to true, which means
   # everything it depends on, including this resource, must set it as well, or you'll get cyclic dependency errors
   # when you try to do a terraform destroy.
@@ -96,6 +70,36 @@ resource "aws_security_group" "lc_security_group" {
     create_before_destroy = true
   }
 }
+
+# Outbound everything
+resource "aws_security_group_rule" "egress_all" {
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.lc_security_group.id
+}
+
+# Inbound HTTP from the ALB
+resource "aws_security_group_rule" "ingress_alb" {
+  type              = "ingress"
+  from_port         = var.server_port
+  to_port           = var.server_port
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+//  security_groups   = var.alb_security_groups
+  security_group_id = aws_security_group.lc_security_group.id
+}
+
+//resource "aws_security_group_rule" "ingress_ssh" {
+//  type              = "ingress"
+//  from_port         = 22
+//  to_port           = 22
+//  protocol          = "tcp"
+//  cidr_blocks       = ["0.0.0.0/0"]
+//  security_group_id = aws_security_group.lc_security_group.id
+//}
 
 # ---------------------------------------------------------------------------------------------------------------------
 # CREATE IAM ROLE AND POLICY THAT ARE ATTACHED TO EACH EC2 INSTANCE IN THE ASG
@@ -137,31 +141,6 @@ data "aws_iam_policy_document" "instance_role" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# GIVE THIS SERVICE ACCESS TO THE KMS MASTER KEY SO IT CAN USE IT TO DECRYPT SECRETS IN CONFIG FILES
-# ---------------------------------------------------------------------------------------------------------------------
-
-
-// TODO REMOVE
-//resource "aws_iam_policy" "access_kms_master_key" {
-//  name   = "access-kms-master-key-marina" // "access-kms-master-key-${var.name}"
-//  policy = data.aws_iam_policy_document.access_kms_master_key.json
-//}
-//
-//data "aws_iam_policy_document" "access_kms_master_key" {
-//  statement {
-//    effect    = "Allow"
-//    actions   = ["kms:Decrypt"]
-//    resources = var.alarms_sns_topic_arn
-//  }
-//}
-
-//resource "aws_iam_policy_attachment" "attach_access_kms_master_key" {
-//  name       = "attach-access-kms-master-key-marina" // "attach-access-kms-master-key-${var.name}" // TODO another kms key, remove
-//  roles      = [aws_iam_role.instance_role.name]
-//  policy_arn = aws_iam_policy.access_kms_master_key.arn
-//}
-
-# ---------------------------------------------------------------------------------------------------------------------
 # GIVE SSH-GRUNT PERMISSIONS TO TALK TO IAM
 # We add an IAM policy to each EC2 Instance that allows ssh-grunt to make API calls to IAM to fetch IAM user and group
 # data.
@@ -183,7 +162,7 @@ resource "aws_iam_role_policy" "ssh_grunt_permissions" {
   count  = length(var.external_account_auto_deploy_iam_role_arns) > 0 ? 1 : 0
   name   = "deploy-other-accounts-permissions"
   role   = aws_iam_role.instance_role.id
-  policy = module.iam_policies.allow_access_from_other_accounts
+  policy = module.iam_policies.ssh_grunt_permissions // from or to ?
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -343,7 +322,7 @@ module "route53_health_check" {
 
   path = var.health_check_path
   type = var.health_check_protocol
-  port = var.health_check_protocol == "HTTP" ? 80 : 443
+  port = var.server_port
 
   failure_threshold = 2
   request_interval  = 30

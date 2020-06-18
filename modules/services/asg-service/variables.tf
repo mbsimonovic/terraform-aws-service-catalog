@@ -78,10 +78,6 @@ variable "min_elb_capacity" {
   type        = number
 }
 
-variable "using_end_to_end_encryption" {
-  type = bool
-}
-
 variable "alb_listener_arn" {
 
 }
@@ -92,12 +88,12 @@ variable "iam_users_defined_in_separate_account" {
 
 variable "external_account_auto_deploy_iam_role_arns" {
   description = "A list of IAM role ARNs in other AWS accounts that ASG will be able to assume to do automated deployment in those accounts."
-  type        = list(string)
-  default     = []
+//  type        = list(string)
+  default     = {ssh_grunt: []}
 }
 
 variable "is_internal_alb" {
-  description = "If set to true, create only private DNS entries. We should be able to compute this from the ALB automatically, but can't, due to a Terraform limitation (https://goo.gl/gq5Qyk)."
+  description = "If the ALB should only accept traffic from within the VPC, set this to true. If it should accept traffic from the public Internet, set it to false."
   type        = bool
 }
 
@@ -132,6 +128,7 @@ variable "enable_cloudwatch_alarms" {
 variable "alarm_sns_topic_arns_us_east_1" {
   description = "A list of SNS topic ARNs to notify when the health check changes to ALARM, OK, or INSUFFICIENT_DATA state. Note: these SNS topics MUST be in us-east-1! This is because Route 53 only sends CloudWatch metrics to us-east-1, so we must create the alarm in that region, and therefore, can only notify SNS topics in that region."
   type        = list(string)
+  default = []
 }
 
 variable "enable_cloudwatch_log_aggregation" {
@@ -164,18 +161,11 @@ variable "vpc_id" {
   type        = string
 }
 
-variable "hosted_zone_id" {
-  description = "The ID of the Route 53 Hosted Zone in which to create a DNS A record for the Auto Scaling Group."
-  type        = string
-}
 
 variable "original_alb_dns_name" {
   type = string
 }
 
-variable "alb_hosted_zone_id" {
-  type = string
-}
 
 variable "alb_security_groups" {
   type = list(string)
@@ -185,6 +175,18 @@ variable "create_route53_entry" {
   description = "Set to true to create a DNS A record in Route 53 for this service."
   type        = bool
   default     = false
+}
+
+variable "hosted_zone_id" {
+  description = "The ID of the Route 53 Hosted Zone in which to create a DNS A record for the Auto Scaling Group. Optional if create_route53_entry = false."
+  type        = string
+  default = null
+}
+
+variable "alb_hosted_zone_id" {
+  description = "The ID of the Route 53 Hosted Zone in which to create a DNS A record for the Auto Scaling Group. Optional if create_route53_entry = false."
+  type = string
+  default = null
 }
 
 variable "domain_name" {
