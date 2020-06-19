@@ -4,7 +4,9 @@
 
 terraform {
   required_providers {
-    aws = "~> 2.6"
+    # There is a regression in autoscaling groups tags introduced in 2.64.0 that consistently cause "inconsistent final
+    # plan" errors, so we lock the version to 2.63.0 until that is resolved.
+    aws = "= 2.63.0"
   }
 
   # Require at least 0.12.6, which added for_each support; make sure we don't accidentally pull in 0.13.x, as that may
@@ -101,7 +103,6 @@ resource "aws_security_group_rule" "ingress_alb" {
   to_port     = var.server_port
   protocol    = "tcp"
   cidr_blocks = ["0.0.0.0/0"]
-  //  security_groups   = var.alb_security_groups
   security_group_id = aws_security_group.lc_security_group.id
 }
 

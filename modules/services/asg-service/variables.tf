@@ -13,11 +13,6 @@ variable "ami" {
   type        = string
 }
 
-variable "init_script_path" {
-  description = "The path to an initialization script to execute in User Data while each Instance is booting. This should be a script that's built into var.ami and used to start your service. Terraform will pass several variables to this script, including AWS region, VPC name, and ASG name."
-  type        = string
-}
-
 variable "instance_type" {
   description = "The type of instance to run in the ASG (e.g. t3.medium)"
   type        = string
@@ -43,6 +38,11 @@ variable "desired_capacity" {
   description = "The desired number of EC2 Instances to run in the ASG initially. Note that auto scaling policies may change this value. If you're using auto scaling policies to dynamically resize the cluster, you should actually leave this value as null."
   type        = number
   default     = null
+}
+
+variable "min_elb_capacity" {
+  description = "Wait for this number of EC2 Instances to show up healthy in the load balancer on creation."
+  type        = number
 }
 
 variable "server_port" {
@@ -73,11 +73,6 @@ variable "alb_listener_rule_configs" {
   # ]
 }
 
-variable "min_elb_capacity" {
-  description = "Wait for this number of EC2 Instances to show up healthy in the load balancer on creation."
-  type        = number
-}
-
 variable "alb_listener_arn" {
   description = "The ARN of the ALB listener."
   type        = string
@@ -93,10 +88,6 @@ variable "health_check_protocol" {
   type        = string
 }
 
-variable "vpn_security_group_ids" {
-  type = list(string)
-}
-
 variable "user_data" {
   type    = string
   default = null
@@ -110,10 +101,6 @@ variable "vpc_id" {
 variable "subnet_ids" {
   description = "The list of IDs of the subnets in which to deploy ASG. The list must only contain subnets in var.vpc_id."
   type        = list(string)
-}
-
-variable "alb_security_groups" {
-  type = list(string)
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -148,12 +135,6 @@ variable "domain_name" {
   description = "The domain name to register in var.hosted_zone_id (e.g. foo.example.com). Only used if var.create_route53_entry is true."
   type        = string
   default     = null
-}
-
-variable "force_destroy" {
-  description = "A boolean that indicates whether the access logs bucket should be destroyed, even if there are files in it, when you run Terraform destroy. Unless you are using this bucket only for test purposes, you'll want to leave this variable set to false."
-  type        = bool
-  default     = false
 }
 
 variable "termination_policies" {

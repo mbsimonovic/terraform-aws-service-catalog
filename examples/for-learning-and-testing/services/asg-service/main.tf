@@ -27,7 +27,7 @@ module "asg" {
   alb_security_groups = []
 
   vpc_id     = data.aws_vpc.default.id
-  subnet_ids = data.aws_subnet_ids.default.ids // module.vpc.public_subnet_ids
+  subnet_ids = data.aws_subnet_ids.default.ids
 
   vpn_security_group_ids = [] // TODO ?? allow ALL or allow cidr_blocks ?
   // output from vpn, [data.terraform_remote_state.openvpn_server.outputs.security_group_id]
@@ -65,13 +65,16 @@ module "alb" {
   # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/alb?ref=v1.2.3"
   source = "../../../../modules/networking/alb"
 
-  alb_name = "marina-testing-2"
+  alb_name = var.name
 
   // For public, user-facing services (i.e., those accessible from the public Internet), this should be set to false.
   is_internal_alb = false
 
   num_days_after_which_archive_log_data = 0
   num_days_after_which_delete_log_data  = 0
+
+  // For testing, we are allowing ALL but for production, you should limit just for the servers you want to trust
+  allow_inbound_from_cidr_blocks = ["0.0.0.0/0"]
 
   http_listener_ports = [80]
 
