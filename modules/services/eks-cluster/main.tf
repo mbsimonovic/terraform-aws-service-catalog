@@ -14,7 +14,9 @@ terraform {
   required_version = "~> 0.12.6"
 
   required_providers {
-    aws = "~> 2.6"
+    # There is a regression in autoscaling groups tags introduced in 2.64.0 that consistently cause "inconsistent final
+    # plan" errors, so we lock the version to 2.63.0 until that is resolved.
+    aws = "= 2.63.0"
 
     # Pin to this specific version to work around a bug introduced in 1.11.0:
     # https://github.com/terraform-providers/terraform-provider-kubernetes/issues/759
