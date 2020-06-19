@@ -45,7 +45,7 @@ function include_ec2_baseline {
 function install_ecs_cluster {
   # Read from env vars to make it easy to set these in a Packer template (without super-wide --module-param foo=bar code).
   # Fallback to default version if the env var is not set.
-  local ecs_cluster_version="${ecs_cluster_version:-DEFAULT_ECS_CLUSTER_VERSION}"
+  local ecs_cluster_version="${ecs_cluster_version:-$DEFAULT_ECS_CLUSTER_VERSION}"
   
   while [[ $# > 0 ]]; do
     local key="$1"
