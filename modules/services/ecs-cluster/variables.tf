@@ -101,11 +101,6 @@ variable "enable_cloudwatch_log_aggregation" {
   default     = false
 }
 
-# ---------------------------------------------------------------------------------------------------------------------
-# OPTIONAL MODULE PARAMETERS
-# These variables will be set to their default values if not passed in by the operator
-# ---------------------------------------------------------------------------------------------------------------------
-
 variable "allow_requests_from_internal_alb" {
   description = "Set to true to allow inbound requests to this ECS cluster from the internal ALB. Only used if var.include_internal_alb is set to true"
   type        = bool
