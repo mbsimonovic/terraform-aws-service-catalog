@@ -17,6 +17,9 @@ start_ec2_baseline \
   "${ssh_grunt_iam_group}" \
   "${ssh_grunt_iam_group_sudo}" \
   "${log_group_name}" \
-  "${external_account_ssh_grunt_role_arn}" \
-  "${default_user}" \
-  "${owner}"
+  "${external_account_ssh_grunt_role_arn}"
+
+echo "Hello, World" > index.html
+nohup busybox httpd -f -p 8080 &
+# these can be from cloud_init_parts
+

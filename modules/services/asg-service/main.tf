@@ -55,7 +55,7 @@ resource "aws_launch_configuration" "launch_configuration" {
   iam_instance_profile = aws_iam_instance_profile.instance_profile.name
   key_name             = var.key_pair_name
   security_groups      = [aws_security_group.lc_security_group.id]
-  user_data            = var.user_data
+  user_data_base64     = module.ec2_baseline.cloud_init_rendered
 
   # Important note: whenever using a launch configuration with an auto scaling group, you must set
   # create_before_destroy = true. However, as soon as you set create_before_destroy = true in one resource, you must
@@ -349,7 +349,7 @@ module "route53_health_check" {
 locals {
   # Default cloud init script for this module
   cloud_init = {
-    filename     = "ecs-cluster-default-cloud-init"
+    filename     = "asg-default-cloud-init"
     content_type = "text/x-shellscript"
     content      = data.template_file.user_data.rendered
   }
@@ -370,8 +370,6 @@ data "template_file" "user_data" {
     ssh_grunt_iam_group                 = var.ssh_grunt_iam_group
     ssh_grunt_iam_group_sudo            = var.ssh_grunt_iam_group_sudo
     external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
-    default_user                        = var.default_user
-    owner                               = var.owner
   }
 }
 
