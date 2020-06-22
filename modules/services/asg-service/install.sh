@@ -36,3 +36,6 @@ function include_ec2_baseline {
 }
 
 include_ec2_baseline
+
+install_user_data \
+    "${EC2_BASELINE_PATH}/user-data-common.sh"
