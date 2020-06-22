@@ -24,13 +24,9 @@ module "asg" {
   min_elb_capacity = 2
 
   server_port         = local.server_port
-  alb_security_groups = []
 
   vpc_id     = data.aws_vpc.default.id
   subnet_ids = data.aws_subnet_ids.default.ids
-
-  vpn_security_group_ids = [] // TODO ?? allow ALL or allow cidr_blocks ?
-  // output from vpn, [data.terraform_remote_state.openvpn_server.outputs.security_group_id]
 
   health_check_protocol = "HTTP"
   health_check_path     = "/"
@@ -46,8 +42,6 @@ module "asg" {
   ]
 
   alb_listener_arn = module.alb.listener_arns[80] // alb_listener_rule_configs[0].port
-
-  init_script_path                      = ""
 
   key_pair_name         = var.key_pair_name
   original_alb_dns_name = ""
