@@ -23,7 +23,10 @@ module "eks_cluster" {
 
   # For this simple example, use a regular key pair instead of ssh-grunt
   cluster_instance_keypair_name = var.keypair_name
-  enable_ssh_grunt              = false
+
+  # When these groups are blank, ssh-grunt is disabled
+  ssh_grunt_iam_group      = ""
+  ssh_grunt_iam_group_sudo = ""
 
   vpc_id                       = module.vpc.vpc_id
   control_plane_vpc_subnet_ids = module.vpc.private_app_subnet_ids
