@@ -25,9 +25,9 @@ module "bastion" {
   subnet_id = local.bastion_subnet
 
   # Configure a host name for the bastion
-  create_dns_record = true
-  hosted_zone_id    = data.aws_route53_zone.zone.id
-  domain_name       = "${var.name}.${var.domain_name}"
+  create_dns_record     = true
+  domain_name           = var.domain_name
+  base_domain_name_tags = var.base_domain_name_tags
 
   # To keep this example simple, we allow incoming SSH connections from anywhere. In production, you should limit
   # access to a specific set of source CIDR ranges, like the addresses of your offices.

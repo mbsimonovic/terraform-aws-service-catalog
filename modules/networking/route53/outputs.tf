@@ -34,3 +34,27 @@ output "public_hosted_zone_map" {
     domain => zone.created_outside_terraform ? data.aws_route53_zone.selected[domain].zone_id : aws_route53_zone.public_zones[domain].id
   }
 }
+
+output "service_discovery_public_namespaces" {
+  description = "A map of domains to resource arns and hosted zones of the created Service Discovery Public Namespaces."
+  value = {
+    for domain, namespace in aws_service_discovery_public_dns_namespace.namespaces :
+    domain => {
+      id             = namespace.id
+      arn            = namespace.arn
+      hosted_zone_id = namespace.hosted_zone
+    }
+  }
+}
+
+output "service_discovery_private_namespaces" {
+  description = "A map of domains to resource arns and hosted zones of the created Service Discovery Private Namespaces."
+  value = {
+    for domain, namespace in aws_service_discovery_private_dns_namespace.namespaces :
+    domain => {
+      id             = namespace.id
+      arn            = namespace.arn
+      hosted_zone_id = namespace.hosted_zone
+    }
+  }
+}
