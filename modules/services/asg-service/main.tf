@@ -124,7 +124,7 @@ module "ec2_baseline" {
   source = "../../base/ec2-baseline"
 
   name                                = var.name
-  enable_ssh_grunt                    = var.enable_ssh_grunt
+  enable_ssh_grunt                    = local.enable_ssh_grunt
   external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
   enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
   enable_cloudwatch_metrics           = false
@@ -356,6 +356,8 @@ locals {
 
   # Merge in all the cloud init scripts the user has passed in
   cloud_init_parts = merge({ default : local.cloud_init }, var.cloud_init_parts)
+
+  enable_ssh_grunt = var.ssh_grunt_iam_group == "" && var.ssh_grunt_iam_group_sudo == "" ? false : true
 }
 
 data "template_file" "user_data" {
@@ -364,7 +366,7 @@ data "template_file" "user_data" {
   vars = {
     log_group_name                      = var.name
     enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
-    enable_ssh_grunt                    = var.enable_ssh_grunt
+    enable_ssh_grunt                    = local.enable_ssh_grunt
     enable_fail2ban                     = var.enable_fail2ban
     enable_ip_lockdown                  = var.enable_ip_lockdown
     ssh_grunt_iam_group                 = var.ssh_grunt_iam_group
