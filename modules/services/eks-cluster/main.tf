@@ -253,7 +253,7 @@ module "ec2_baseline" {
 
   name                                = var.cluster_name
   external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
-  enable_ssh_grunt                    = var.enable_ssh_grunt
+  enable_ssh_grunt                    = local.enable_ssh_grunt
   iam_role_arn                        = module.eks_workers.eks_worker_iam_role_name
   enable_cloudwatch_metrics           = var.enable_cloudwatch_metrics
   enable_asg_cloudwatch_alarms        = var.enable_cloudwatch_alarms
@@ -280,6 +280,7 @@ locals {
 
   # Merge in all the cloud init scripts the user has passed in
   cloud_init_parts = merge({ default : local.cloud_init }, var.cloud_init_parts)
+  enable_ssh_grunt = var.ssh_grunt_iam_group == "" && var.ssh_grunt_iam_group_sudo == "" ? false : true
 }
 
 data "template_file" "user_data" {
@@ -291,7 +292,7 @@ data "template_file" "user_data" {
     eks_endpoint              = module.eks_cluster.eks_cluster_endpoint
     eks_certificate_authority = module.eks_cluster.eks_cluster_certificate_authority
 
-    enable_ssh_grunt                    = var.enable_ssh_grunt
+    enable_ssh_grunt                    = local.enable_ssh_grunt
     enable_fail2ban                     = var.enable_fail2ban
     ssh_grunt_iam_group                 = var.ssh_grunt_iam_group
     ssh_grunt_iam_group_sudo            = var.ssh_grunt_iam_group_sudo
