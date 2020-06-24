@@ -22,7 +22,7 @@ provider "aws" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 terraform {
-  # Require at least 0.12.26.
+  # Require at least 0.12.26. TODO: explain why
   required_version = "~> 0.12.26"
 
   required_providers {

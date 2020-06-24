@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------------------------------------------------
-# DEPLOY A STATIC WEBSITE WITH CLOUDFRONT
+# DEPLOY A STATIC WEBSITE WITH A CLOUDFRONT DISTRIBUTION IN FRONT OF IT AS A CDN.
 # ----------------------------------------------------------------------------------------------------------------------
 provider "aws" {
   region = var.aws_region
@@ -13,10 +13,8 @@ module "static_website" {
   aws_account_id                = "087285199408"
   website_domain_name           = "acme-stage-static.gruntwork.in"
   create_route53_entry          = true
-  terraform_state_region        = "us-east-1"
-  terraform_state_s3_bucket     = "rho-test-static-website_state"
   terraform_state_aws_region    = "us-east-1"
-  terraform_state_aws_s3_bucket = "rho-test-static-website"
+  terraform_state_s3_bucket     = "rho-test-static-website_state"
   acm_certificate_domain_name   = "*.gruntwork.in"
   hosted_zone_id                = "Z1Y6DCUKW424UT"
 
@@ -31,7 +29,3 @@ module "static_website" {
 # before running 'destroy'!
   force_destroy = true
 }
-
-# Should this example use ../../networking/route53?
-# No, because we don't need this example to create the hosted zones.
-# We only need it to use the existing ones.

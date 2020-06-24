@@ -8,10 +8,8 @@ inputs = {
   aws_account_id                = "087285199408"
   website_domain_name           = "acme-stage-static.gruntwork.in"
   create_route53_entry          = true
-  terraform_state_region        = "us-east-1"
-  terraform_state_s3_bucket     = "rho-test-static-website_state"
   terraform_state_aws_region    = "us-east-1"
-  terraform_state_aws_s3_bucket = "rho-test-static-website"
+  terraform_state_s3_bucket     = "rho-test-static-website_state"
   acm_certificate_domain_name   = "*.gruntwork.in"
   hosted_zone_id                = "Z1Y6DCUKW424UT"
 
