@@ -30,6 +30,8 @@ image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
 This folder contains code to deploy a Memcached Cluster using Amazon ElastiCache. The cluster is managed by AWS and automatically handles automatic node
 discovery, recovery from failures, patching and the ability to scale to large clusters of nodes.
 
+image::/_docs/elasticache-memcached-architecture.png?raw=true[ElastiCache for Memcached architecture]
+
 toc::[]
 
 == Features
