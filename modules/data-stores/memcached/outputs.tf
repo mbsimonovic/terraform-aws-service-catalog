@@ -1,5 +1,5 @@
 output "cache_addresses" {
-  description = "The list of DNS names of the Memcached nodes without the port appended."
+  description = "The list of addresses of the Memcached nodes without the port appended."
   value       = module.memcached.cache_addresses
 }
 

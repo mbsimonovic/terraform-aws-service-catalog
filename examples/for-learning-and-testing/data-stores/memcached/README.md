@@ -15,5 +15,5 @@ If you want to deploy this module directly in production, check out the [example
    the ways you can set Terraform variables).
 1. Run `terraform init`.
 1. Run `terraform apply`.
-1. The module will output the endpoint and port for your primary ElastiCache instance.
+1. The module will output a comma-separated list of addresses of the Memcached nodes.
 1. When you're done testing, to undeploy everything, run `terraform destroy`.
