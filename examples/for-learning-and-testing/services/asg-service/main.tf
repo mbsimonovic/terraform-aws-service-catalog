@@ -75,11 +75,3 @@ module "alb" {
   vpc_id         = data.aws_vpc.default.id
   vpc_subnet_ids = data.aws_subnet_ids.default.ids
 }
-
-data "aws_vpc" "default" {
-  default = true
-}
-
-data "aws_subnet_ids" "default" {
-  vpc_id = data.aws_vpc.default.id
-}
