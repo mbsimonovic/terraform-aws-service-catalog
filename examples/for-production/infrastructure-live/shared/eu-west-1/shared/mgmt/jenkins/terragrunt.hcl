@@ -37,6 +37,10 @@ locals {
 
   # Automatically load account-level variables
   account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
+
+  # Version tag to use when looking up AMI. By separating out into its own local, we can update this with
+  # terraform-update-variable.
+  ami_version_tag = "v1.0.0"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -58,7 +62,7 @@ inputs = {
       },
       {
         name   = "tag:version"
-        values = ["v1.0.0"]
+        values = [local.ami_version_tag]
       },
     ]
   }
