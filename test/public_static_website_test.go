@@ -1,7 +1,7 @@
 package test
 
 import (
-	"fmt"
+	"os"
 	"strings"
 	"testing"
 
@@ -15,10 +15,10 @@ func TestPublicStaticWebsite(t *testing.T) {
 	t.Parallel()
 
 	// Uncomment the items below to skip certain parts of the test
-	//os.Setenv("TERRATEST_REGION", "us-west-2")
-	//os.Setenv("SKIP_setup", "true")
-	//os.Setenv("SKIP_deploy_terraform", "true")
-	//os.Setenv("SKIP_validate", "true")
+	//os.Setenv("TERRATEST_REGION", "us-east-1")
+	os.Setenv("SKIP_setup", "true")
+	os.Setenv("SKIP_deploy_terraform", "true")
+	os.Setenv("SKIP_validate", "true")
 	//os.Setenv("SKIP_cleanup", "true")
 
 	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../", "examples/for-learning-and-testing/services/public-static-website")
@@ -40,7 +40,7 @@ func TestPublicStaticWebsite(t *testing.T) {
 		awsRegion := test_structure.LoadString(t, testFolder, "region")
 		uniqueID := test_structure.LoadString(t, testFolder, "uniqueID")
 
-		terraformOptions := createRedisTerraformOptions(t, testFolder, awsRegion, uniqueID)
+		terraformOptions := createStaticWebsiteTerraformOptions(t, testFolder, awsRegion, uniqueID)
 		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
 
 		terraform.InitAndApply(t, terraformOptions)
@@ -48,19 +48,27 @@ func TestPublicStaticWebsite(t *testing.T) {
 
 	test_structure.RunTestStage(t, "validate", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
-		terraform.OutputRequired(t, terraformOptions, "primary_endpoint")
-		terraform.OutputRequired(t, terraformOptions, "cache_port")
+		terraform.OutputRequired(t, terraformOptions, "cloudfront_domain_names")
+		terraform.OutputRequired(t, terraformOptions, "cloudfront_id")
+		terraform.OutputRequired(t, terraformOptions, "website_s3_bucket_arn")
+		terraform.OutputRequired(t, terraformOptions, "website_access_logs_bucket_arn")
+		terraform.OutputRequired(t, terraformOptions, "cloudfront_access_logs_bucket_arn")
 	})
 }
 
-func createRedisTerraformOptions(
+func createStaticWebsiteTerraformOptions(
 	t *testing.T,
 	terraformDir string,
 	awsRegion string,
 	uniqueID string,
 ) *terraform.Options {
-	name := fmt.Sprintf("test-redis-%s", uniqueID)
 	terraformOptions := createBaseTerraformOptions(t, terraformDir, awsRegion)
-	terraformOptions.Vars["name"] = name
+	terraformOptions.Vars["hosted_zone_id"] = "Z2AJ7S3R6G9UYJ"
+	terraformOptions.Vars["aws_region"] = "us-east-1"
+	terraformOptions.Vars["aws_account_id"] = "087285199408"
+	terraformOptions.Vars["website_domain_name"] = "acme-stage.gruntwork.in"
+	terraformOptions.Vars["terraform_state_aws_region"] = "us-east-1"
+	terraformOptions.Vars["terraform_state_s3_bucket"] = "acme-test-static-website_state"
+	terraformOptions.Vars["acm_certificate_domain_name"] = "*.gruntwork.in"
 	return terraformOptions
 }

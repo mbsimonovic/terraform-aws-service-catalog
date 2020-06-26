@@ -8,7 +8,7 @@ provider "aws" {
 }
 
 module "static_website" {
-  source = "../../../../modules/services/static-website"
+  source = "../../../../modules/services/public-static-website"
 
   aws_region                    = var.aws_region
   aws_account_id                = var.aws_account_id
