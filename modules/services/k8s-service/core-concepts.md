@@ -61,7 +61,7 @@ To access the `Service` within the Kubernetes cluster for any of the modes, you 
 `$APPLICATION_NAME-$APPLICATION_NAME.$NAMESPACE.svc.cluster.local`.
 
 
-## Configration and Secrets Management
+## Configuration and Secrets Management
 
 Kubernetes provides a built in mechanism for configuration and secrets management of applications in the form of
 `ConfigMap` and `Secrets` resources. Both resources behave similarly in that they both provide a key-value store that
@@ -93,6 +93,43 @@ Then, you can debug the generated yaml files using the `helm template` command:
 ```
 helm template $APPLICATION_NAME gruntwork/k8s-service --debug -f $VALUES_FILE_PATH
 ```
+
+## How do I configure health checks on my application load balancer?
+
+Use [ingress annotations](https://kubernetes-sigs.github.io/aws-alb-ingress-controller/guide/ingress/annotation/#health-check) to set up health checks on the target group. For example:
+
+```
+ingress_annotations = {
+  "alb.ingress.kubernetes.io/healthcheck-protocol" : "HTTPS",
+  "alb.ingress.kubernetes.io/healthcheck-port" : "traffic-port",
+  "alb.ingress.kubernetes.io/healthcheck-path" : "/health",
+  "alb.ingress.kubernetes.io/healthcheck-success-codes" : "200",
+}
+```
+
+## How do I configure an ACM certification on my application load balancer?
+
+Certificates are also configured with an annotation.
+
+```
+ingress_annotations = {
+  "alb.ingress.kubernetes.io/certificate-arn" : "arn:aws:acm:us-east-1:0123456789012:certificate/example47-712e-4612-bd1e-534caf103d51"
+}
+```
+
+## How do I assign IAM permissions to a service?
+
+This module supports the [IAM roles for service accounts](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) feature. You can use this feature to create an IAM role with a policy and map it to a service account, or map an existing role. 
+
+To create a new role: 
+
+* Set `iam_role_exists=false`
+* Provide an `iam_role_name` that conforms to the [IAM Name Requirements](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_iam-quotas.html)
+* Provide a `service_account_name`
+* Provide an `iam_policy`. Note that this only supports simple policies with a list of actions, resources, and an effect. For more complex policies, create the role and attach the policies in a separate module.
+* In `eks_iam_role_for_service_accounts_config`, provide OpenID Connect Provider details
+
+To use an existing role, simply set `iam_role_exists=false` and provide the existing role in `iam_role_name`.
 
 ## How do I create a canary deployment?
 
