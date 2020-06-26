@@ -49,7 +49,20 @@ locals {
 inputs = {
   vpc_id    = dependency.vpc.outputs.vpc_id
   subnet_id = dependency.vpc.outputs.public_subnet_ids[0]
-  ami       = "ami-abcd1234"
+  ami       = null
+  ami_filters = {
+    owners = ["self"]
+    filters = [
+      {
+        name   = "tag:service"
+        values = ["openvpn-server"]
+      },
+      {
+        name   = "tag:version"
+        values = ["v1.0.0"]
+      },
+    ]
+  }
 
   # Access to the vpn should be limited to specific, known CIDR blocks
   allow_ssh_from_cidr_list = ["1.2.3.0/24"]

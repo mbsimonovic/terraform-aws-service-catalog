@@ -56,7 +56,20 @@ locals {
 inputs = {
   vpc_id    = dependency.vpc.outputs.vpc_id
   subnet_id = dependency.vpc.outputs.public_subnet_ids[0]
-  ami       = "ami-1234abcd"
+  ami       = null
+  ami_filters = {
+    owners = ["self"]
+    filters = [
+      {
+        name   = "tag:service"
+        values = ["bastion-host"]
+      },
+      {
+        name   = "tag:version"
+        values = ["v1.0.0"]
+      },
+    ]
+  }
 
   # Access to the bastion should be limited to specific, known CIDR blocks
   allow_ssh_from_cidr_list = local.common_vars.locals.office_cidr_blocks

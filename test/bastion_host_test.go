@@ -25,6 +25,7 @@ func TestBastionHost(t *testing.T) {
 	// os.Setenv("SKIP_cleanup_ami", "true")
 
 	testFolder := "../examples/for-learning-and-testing/mgmt/bastion-host"
+	branchName := git.GetCurrentBranchName(t)
 
 	defer test_structure.RunTestStage(t, "cleanup_ami", func() {
 		amiId := test_structure.LoadArtifactID(t, testFolder)
@@ -40,7 +41,6 @@ func TestBastionHost(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "build_ami", func() {
-		branchName := git.GetCurrentBranchName(t)
 		awsRegion := aws.GetRandomStableRegion(t, regionsForEc2Tests, nil)
 
 		packerOptions := &packer.Options{
@@ -61,7 +61,6 @@ func TestBastionHost(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "deploy_terraform", func() {
-		amiId := test_structure.LoadArtifactID(t, testFolder)
 		name := fmt.Sprintf("bastion-host-%s", random.UniqueId())
 		awsRegion := test_structure.LoadString(t, testFolder, "region")
 		uniqueId := random.UniqueId()
@@ -70,7 +69,7 @@ func TestBastionHost(t *testing.T) {
 		terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
 		terraformOptions.Vars["aws_region"] = awsRegion
 		terraformOptions.Vars["name"] = name
-		terraformOptions.Vars["ami_id"] = amiId
+		terraformOptions.Vars["ami_version_tag"] = branchName
 		terraformOptions.Vars["domain_name"] = baseDomainForTest
 		terraformOptions.Vars["base_domain_name_tags"] = domainNameTagsForTest
 		terraformOptions.Vars["keypair_name"] = awsKeyPair.Name

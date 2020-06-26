@@ -31,7 +31,7 @@ module "openvpn" {
   name = var.name
 
   instance_type    = var.instance_type
-  ami              = var.ami_id
+  ami              = local.use_ami_lookup ? data.aws_ami.openvpn[0].image_id : var.ami
   user_data_base64 = module.ec2_baseline.cloud_init_rendered
 
   request_queue_name    = var.request_queue_name

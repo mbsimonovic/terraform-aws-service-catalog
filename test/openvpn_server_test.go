@@ -30,6 +30,7 @@ func TestOpenvpnServer(t *testing.T) {
 	//os.Setenv("SKIP_cleanup_ami", "true")
 
 	testFolder := "../examples/for-learning-and-testing/mgmt/openvpn-server"
+	branchName := git.GetCurrentBranchName(t)
 
 	defer test_structure.RunTestStage(t, "cleanup_ami", func() {
 		amiId := test_structure.LoadArtifactID(t, testFolder)
@@ -48,7 +49,6 @@ func TestOpenvpnServer(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "build_ami", func() {
-		branchName := git.GetCurrentBranchName(t)
 		awsRegion := aws.GetRandomStableRegion(t, regionsForEc2Tests, nil)
 		uniqueId := random.UniqueId()
 		name := fmt.Sprintf("openvpn-server-%s", uniqueId)
@@ -76,7 +76,6 @@ func TestOpenvpnServer(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "deploy_terraform", func() {
-		amiId := test_structure.LoadArtifactID(t, testFolder)
 		awsRegion := test_structure.LoadString(t, testFolder, "region")
 		s3BucketName := test_structure.LoadString(t, testFolder, "s3BucketName")
 		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
@@ -88,7 +87,7 @@ func TestOpenvpnServer(t *testing.T) {
 			Vars: map[string]interface{}{
 				"aws_region":            awsRegion,
 				"name":                  name,
-				"ami_id":                amiId,
+				"ami_version_tag":       branchName,
 				"domain_name":           "gruntwork.in",
 				"base_domain_name_tags": domainNameTagsForTest,
 				"keypair_name":          awsKeyPair.Name,

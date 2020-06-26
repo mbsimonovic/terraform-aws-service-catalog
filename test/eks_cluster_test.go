@@ -151,14 +151,14 @@ func buildWorkerAmi(t *testing.T, testFolder string) {
 }
 
 func deployEKSCluster(t *testing.T, testFolder string) {
-	amiId := test_structure.LoadArtifactID(t, testFolder)
+	branchName := git.GetCurrentBranchName(t)
 	awsRegion := test_structure.LoadString(t, testFolder, "region")
 	clusterName := test_structure.LoadString(t, testFolder, "clusterName")
 	awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
 
 	terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
 	terraformOptions.Vars["cluster_name"] = clusterName
-	terraformOptions.Vars["cluster_instance_ami_id"] = amiId
+	terraformOptions.Vars["cluster_instance_ami_version_tag"] = branchName
 	terraformOptions.Vars["keypair_name"] = awsKeyPair.Name
 
 	test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)

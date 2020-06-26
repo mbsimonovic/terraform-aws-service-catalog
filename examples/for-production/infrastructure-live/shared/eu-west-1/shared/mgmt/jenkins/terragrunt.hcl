@@ -46,9 +46,22 @@ locals {
 
 inputs = {
   name          = "ref-arch-lite-${local.account_vars.locals.account_name}-jenkins"
-  ami           = "ami-abcd1234"
   instance_type = "t3.micro"
   memory        = "512m"
+  ami           = null
+  ami_filters = {
+    owners = ["self"]
+    filters = [
+      {
+        name   = "tag:service"
+        values = ["jenkins-server"]
+      },
+      {
+        name   = "tag:version"
+        values = ["v1.0.0"]
+      },
+    ]
+  }
 
   vpc_id            = dependency.vpc.outputs.vpc_id
   jenkins_subnet_id = dependency.vpc.outputs.private_app_subnet_ids[0]

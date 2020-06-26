@@ -49,8 +49,21 @@ locals {
 
 inputs = {
   cluster_name          = "ref-arch-lite-${local.account_vars.locals.account_name}"
-  cluster_instance_ami  = "ami-abcd1234"
   cluster_instance_type = "t3.small"
+  cluster_instance_ami  = null
+  cluster_instance_ami_filters = {
+    owners = ["self"]
+    filters = [
+      {
+        name   = "tag:service"
+        values = ["eks-cluster-workers"]
+      },
+      {
+        name   = "tag:version"
+        values = ["v1.0.0"]
+      },
+    ]
+  }
 
   # We deploy EKS into the App VPC, inside the private app tier.
   vpc_id                       = dependency.vpc.outputs.vpc_id
