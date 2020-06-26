@@ -1,6 +1,6 @@
 output "cloudfront_domain_names" {
   description = ""
-  value = [module.static_website.cloudfront_domain_names]
+  value = module.static_website.cloudfront_domain_names
 }
 
 output "cloudfront_id" {
