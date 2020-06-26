@@ -144,6 +144,17 @@ variable "num_days_after_which_delete_ingress_log_data" {
   default     = 0
 }
 
+variable "ingress_annotations" {
+  description = "A list of custom ingress annotations to add to the Helm chart."
+  type        = map(string)
+  default     = {}
+
+  # Example:
+  # {
+  #   "alb.ingress.kubernetes.io/healthcheck-protocol" : "HTTPS"
+  # }
+}
+
 # Route 53 / DNS Info
 
 variable "create_route53_entry" {
@@ -288,6 +299,62 @@ variable "secrets_as_env_vars" {
   # {
   #   mysecret = {
   #     foo = "MY_SECRET"
+  #   }
+  # }
+}
+
+# IAM role for IRSA
+
+variable "iam_role_exists" {
+  description = "Whether or not the IAM role passed in `iam_role_name` already exists. Set to true if it exists, or false if it needs to be created. Defaults to false."
+  type        = bool
+  default     = false
+}
+
+variable "iam_role_name" {
+  description = "The name of an IAM role that will be used by the pod to access the AWS API. If `iam_role_exists` is set to false, this role will be created. Leave as an empty string if you do not wish to use IAM role with Service Accounts."
+  type        = string
+  default     = ""
+}
+
+variable "service_account_name" {
+  description = "The name of a service account to create for use with the pod. This service account will be mapped to the IAM role defined in `var.iam_role_name` to give the pod permissions to access the AWS API. Must be unique in this namespace. Leave as an empty string if you do not wish to use IAM role with Service Accounts."
+  type        = string
+  default     = ""
+}
+
+variable "eks_iam_role_for_service_accounts_config" {
+  description = "Configuration for using the IAM role with Service Accounts feature to provide permissions to the applications. This expects a map with two properties: `openid_connect_provider_arn` and `openid_connect_provider_url`. The `openid_connect_provider_arn` is the ARN of the OpenID Connect Provider for EKS to retrieve IAM credentials, while `openid_connect_provider_url` is the URL. Leave as an empty string if you do not wish to use IAM role with Service Accounts."
+  type = object({
+    openid_connect_provider_arn = string
+    openid_connect_provider_url = string
+  })
+  default = {
+    openid_connect_provider_arn = ""
+    openid_connect_provider_url = ""
+  }
+}
+
+variable "iam_policy" {
+  description = "An object defining the policy to attach to `iam_role_name` if the IAM role is going to be created. Accepts a map of objects, where the map keys are sids for IAM policy statements, and the object fields are the resources, actions, and the effect (\"Allow\" or \"Deny\") of the statement. Ignored if `iam_role_arn` is provided. Leave as null if you do not wish to use IAM role with Service Accounts."
+  type = map(object({
+    resources = list(string)
+    actions   = list(string)
+    effect    = string
+  }))
+  default = null
+
+  # Example:
+  # iam_policy = {
+  #   S3Access = {
+  #     actions = ["s3:*"]
+  #     resources = ["arn:aws:s3:::mybucket"]
+  #     effect = "Allow"
+  #   },
+  #   SecretsManagerAccess = {
+  #     actions = ["secretsmanager:GetSecretValue"],
+  #     resources = ["arn:aws:secretsmanager:us-east-1:0123456789012:secret:mysecert"]
+  #     effect = "Allow"
   #   }
   # }
 }

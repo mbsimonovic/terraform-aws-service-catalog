@@ -104,6 +104,30 @@ locals {
     },
   )
 
+  iam_role = var.iam_role_name != "" ? var.iam_role_exists ? data.aws_iam_role.existing_role[0].arn : aws_iam_role.new_role[0].arn : ""
+
+  # Assemble a complete map of ingress annotations 
+  ingress_annotations = merge(
+    {
+      "kubernetes.io/ingress.class"      = "alb"
+      "alb.ingress.kubernetes.io/scheme" = var.expose_type == "external" ? "internet-facing" : "internal"
+      # We manually construct the list as a string here to avoid the values being converted as string, as opposed to
+      # ints
+      "alb.ingress.kubernetes.io/listen-ports"             = "[${join(",", data.template_file.ingress_listener_protocol_ports.*.rendered)}]"
+      "alb.ingress.kubernetes.io/backend-protocol"         = var.ingress_backend_protocol
+      "alb.ingress.kubernetes.io/load-balancer-attributes" = "access_logs.s3.enabled=true,access_logs.s3.bucket=${module.alb_access_logs_bucket.s3_bucket_name},access_logs.s3.prefix=${var.application_name}"
+    },
+    try(
+      var.ingress_configure_ssl_redirect
+      ? {
+        "alb.ingress.kubernetes.io/actions.ssl-redirect" : "{\"Type\": \"redirect\", \"RedirectConfig\": { \"Protocol\": \"HTTPS\", \"Port\": \"443\", \"StatusCode\": \"HTTP_301\"}}",
+      }
+      : tomap(false),
+      {},
+    ),
+    var.ingress_annotations,
+  )
+
   # Refer to the values.yaml file for helm-kubernetes-services/k8s-service for more information on the available input
   # parameters:
   # https://github.com/gruntwork-io/helm-kubernetes-services/blob/master/charts/k8s-service/values.yaml
@@ -156,30 +180,21 @@ locals {
       }
     }
 
+    serviceAccount = {
+      create    = var.service_account_name != "" ? true : false
+      name      = var.service_account_name
+      namespace = var.namespace
+      annotations = {
+        "eks.amazonaws.com/role-arn" = local.iam_role
+      }
+    }
+
     ingress = {
       enabled     = var.expose_type != "cluster-internal"
       path        = "'${var.ingress_path}'"
       hosts       = var.create_route53_entry ? [var.domain_name] : []
       servicePort = "app"
-      annotations = merge(
-        {
-          "kubernetes.io/ingress.class"      = "alb"
-          "alb.ingress.kubernetes.io/scheme" = var.expose_type == "external" ? "internet-facing" : "internal"
-          # We manually construct the list as a string here to avoid the values being converted as string, as opposed to
-          # ints
-          "alb.ingress.kubernetes.io/listen-ports"             = "[${join(",", data.template_file.ingress_listener_protocol_ports.*.rendered)}]"
-          "alb.ingress.kubernetes.io/backend-protocol"         = var.ingress_backend_protocol
-          "alb.ingress.kubernetes.io/load-balancer-attributes" = "access_logs.s3.enabled=true,access_logs.s3.bucket=${module.alb_access_logs_bucket.s3_bucket_name},access_logs.s3.prefix=${var.application_name}"
-        },
-        try(
-          var.ingress_configure_ssl_redirect
-          ? {
-            "alb.ingress.kubernetes.io/actions.ssl-redirect" : "{\"Type\": \"redirect\", \"RedirectConfig\": { \"Protocol\": \"HTTPS\", \"Port\": \"443\", \"StatusCode\": \"HTTP_301\"}}",
-          }
-          : tomap(false),
-          {},
-        ),
-      )
+      annotations = local.ingress_annotations
       # Only configure the redirect path if using ssl redirect
       additionalPathsHigherPriority = (
         var.ingress_configure_ssl_redirect
@@ -267,11 +282,68 @@ locals {
 
 
 # ---------------------------------------------------------------------------------------------------------------------
+# SET UP IAM ROLE FOR SERVICE ACCOUNT
+# Set up IRSA if a service account and IAM role are configured.
+# ---------------------------------------------------------------------------------------------------------------------
+
+resource "aws_iam_role" "new_role" {
+  count              = var.iam_role_name != "" && var.iam_role_exists == false ? 1 : 0
+  name               = var.iam_role_name
+  assume_role_policy = module.service_account_assume_role_policy.assume_role_policy_json
+}
+
+module "service_account_assume_role_policy" {
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-iam-role-assume-role-policy-for-service-account?ref=v0.20.3"
+
+  eks_openid_connect_provider_arn = var.eks_iam_role_for_service_accounts_config.openid_connect_provider_arn
+  eks_openid_connect_provider_url = var.eks_iam_role_for_service_accounts_config.openid_connect_provider_url
+  namespaces                      = []
+  service_accounts = [{
+    name      = var.service_account_name
+    namespace = var.namespace
+  }]
+}
+
+resource "aws_iam_role_policy_attachment" "irsa" {
+  count      = var.iam_role_name != "" ? 1 : 0
+  policy_arn = aws_iam_policy.service_policy[0].arn
+  role       = var.iam_role_exists ? var.iam_role_name : aws_iam_role.new_role[0].name
+}
+
+resource "aws_iam_policy" "service_policy" {
+  count       = var.iam_role_name != "" && var.iam_role_exists == false ? 1 : 0
+  name        = "${var.iam_role_name}-policy"
+  description = "A policy for the IAM role ${var.iam_role_name}."
+  policy      = data.aws_iam_policy_document.service_policy[0].json
+}
+
+data "aws_iam_policy_document" "service_policy" {
+  count = var.iam_role_name != "" ? 1 : 0
+
+  dynamic "statement" {
+    for_each = var.iam_policy == null ? {} : var.iam_policy
+
+    content {
+      sid       = statement.key
+      effect    = statement.value.effect
+      actions   = statement.value.actions
+      resources = statement.value.resources
+    }
+  }
+}
+
+data "aws_iam_role" "existing_role" {
+  count = var.iam_role_exists ? 1 : 0
+  name  = var.iam_role_name
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
 # EMIT HELM CHART VALUES TO DISK FOR DEBUGGING
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "local_file" "debug_values" {
-  count    = var.values_file_path != null ? 1 : 0
-  content  = yamlencode(local.helm_chart_input)
-  filename = var.values_file_path
+  count           = var.values_file_path != null ? 1 : 0
+  content         = yamlencode(local.helm_chart_input)
+  filename        = var.values_file_path
+  file_permission = "0644"
 }
