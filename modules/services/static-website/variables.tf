@@ -18,11 +18,6 @@ variable "website_domain_name" {
   type        = string
 }
 
-variable "create_route53_entry" {
-  description = "If set to true, create a DNS A Record in Route 53 with the domain name in var.website_domain_name."
-  type        = bool
-}
-
 variable "terraform_state_aws_region" {
   description = "The AWS region of the S3 bucket used to store Terraform remote state"
   type        = string
@@ -47,6 +42,12 @@ variable "hosted_zone_id" {
 # OPTIONAL MODULE PARAMETERS
 # These variables have defaults, but may be overridden by the operator.
 # ---------------------------------------------------------------------------------------------------------------------
+
+variable "create_route53_entry" {
+  description = "If set to true, create a DNS A Record in Route 53 with the domain name in var.website_domain_name."
+  type        = bool
+  default     = true
+}
 
 variable "index_document" {
   description = "The path to the index document in the S3 bucket (e.g. index.html)."
