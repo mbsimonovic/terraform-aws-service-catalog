@@ -1,7 +1,7 @@
 package test
 
 import (
-	"os"
+	//"os"
 	"strings"
 	"testing"
 
@@ -16,9 +16,9 @@ func TestPublicStaticWebsite(t *testing.T) {
 
 	// Uncomment the items below to skip certain parts of the test
 	//os.Setenv("TERRATEST_REGION", "us-east-1")
-	os.Setenv("SKIP_setup", "true")
-	os.Setenv("SKIP_deploy_terraform", "true")
-	os.Setenv("SKIP_validate", "true")
+	//os.Setenv("SKIP_setup", "true")
+	//os.Setenv("SKIP_deploy_terraform", "true")
+	//os.Setenv("SKIP_validate", "true")
 	//os.Setenv("SKIP_cleanup", "true")
 
 	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../", "examples/for-learning-and-testing/services/public-static-website")
