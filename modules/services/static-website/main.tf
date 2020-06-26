@@ -18,7 +18,7 @@ provider "aws" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# CONFIGURE REMOTE STATE STORAGE
+# CONFIGURE TERRAFORM AND PROVIDER REQUIRED VERSIONS
 # ---------------------------------------------------------------------------------------------------------------------
 
 terraform {
@@ -99,19 +99,4 @@ data "aws_acm_certificate" "cert" {
 
   domain   = var.acm_certificate_domain_name
   statuses = ["ISSUED"]
-}
-
-# ---------------------------------------------------------------------------------------------------------------------
-# UPLOAD AN EXAMPLE STATIC WEBSITE
-# This is used solely to demonstrate that S3/CloudFront are working. When you go to deploy your real static content,
-# you should remove this!
-# ---------------------------------------------------------------------------------------------------------------------
-
-resource "aws_s3_bucket_object" "example_website" {
-  bucket       = var.website_domain_name
-  key          = "index.html"
-  source       = "${path.module}/example-website/index.html"
-  content_type = "text/html"
-
-  depends_on = [module.static_website]
 }
