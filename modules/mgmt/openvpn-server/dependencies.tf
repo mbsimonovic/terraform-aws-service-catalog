@@ -13,8 +13,8 @@ data "aws_ami" "openvpn" {
     for_each = var.ami_filters.filters
 
     content {
-      name   = each.value.name
-      values = each.value.values
+      name   = filter.value.name
+      values = filter.value.values
     }
   }
 }

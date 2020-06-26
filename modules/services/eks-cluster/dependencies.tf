@@ -13,8 +13,8 @@ data "aws_ami" "worker" {
     for_each = var.cluster_instance_ami_filters.filters
 
     content {
-      name   = each.value.name
-      values = each.value.values
+      name   = filter.value.name
+      values = filter.value.values
     }
   }
 }
