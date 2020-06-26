@@ -216,7 +216,7 @@ locals {
       var.enable_liveness_probe
       ? {
         httpGet = {
-          port   = "liveness"
+          port   = var.liveness_probe_port
           path   = var.liveness_probe_path
           scheme = var.liveness_probe_protocol
         }
@@ -230,7 +230,7 @@ locals {
       var.enable_readiness_probe
       ? {
         httpGet = {
-          port   = "readiness"
+          port   = var.readiness_probe_port
           path   = var.readiness_probe_path
           scheme = var.readiness_probe_protocol
         }
