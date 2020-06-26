@@ -127,9 +127,9 @@ To create a new role:
 * Provide an `iam_role_name` that conforms to the [IAM Name Requirements](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_iam-quotas.html)
 * Provide a `service_account_name`
 * Provide an `iam_policy`. Note that this only supports simple policies with a list of actions, resources, and an effect. For more complex policies, create the role and attach the policies in a separate module.
-* In `eks_iam_role_for_service_accounts_config`, provide OpenID Connect Provider details
+* In `eks_iam_role_for_service_accounts_config`, provide OpenID Connect Provider details. See the variable description for more information.
 
-To use an existing role, simply set `iam_role_exists=false` and provide the existing role in `iam_role_name`.
+To use an existing role, set `iam_role_exists=false` and provide the existing role in `iam_role_name`. You won't need to set `iam_policy`, but the other steps above remain the same.
 
 ## How do I create a canary deployment?
 
