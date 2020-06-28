@@ -29,7 +29,7 @@ module "eks_cluster" {
       },
       {
         name   = "tag:version"
-        values = [var.ami_version_tag]
+        values = [var.cluster_instance_ami_version_tag]
       },
     ]
   }
