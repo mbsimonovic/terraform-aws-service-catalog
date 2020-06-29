@@ -25,7 +25,7 @@ module "eks_cluster" {
     filters = [
       {
         name   = "tag:service"
-        values = ["eks-cluster-workers"]
+        values = ["eks-workers"]
       },
       {
         name   = "tag:version"
