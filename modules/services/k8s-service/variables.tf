@@ -145,7 +145,7 @@ variable "num_days_after_which_delete_ingress_log_data" {
 }
 
 variable "ingress_annotations" {
-  description = "A list of custom ingress annotations to add to the Helm chart."
+  description = "A list of custom ingress annotations, such as health checks and TLS certificates, to add to the Helm chart. See: https://kubernetes-sigs.github.io/aws-alb-ingress-controller/guide/ingress/annotation/"
   type        = map(string)
   default     = {}
 

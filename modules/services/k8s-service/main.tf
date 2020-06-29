@@ -104,7 +104,15 @@ locals {
     },
   )
 
-  iam_role = var.iam_role_name != "" ? var.iam_role_exists ? data.aws_iam_role.existing_role[0].arn : aws_iam_role.new_role[0].arn : ""
+  iam_role = (
+    var.iam_role_name != ""
+    ? (
+      var.iam_role_exists
+      ? data.aws_iam_role.existing_role[0].arn
+      : aws_iam_role.new_role[0].arn
+    )
+    : ""
+  )
 
   # Assemble a complete map of ingress annotations 
   ingress_annotations = merge(
@@ -181,12 +189,10 @@ locals {
     }
 
     serviceAccount = {
-      create    = var.service_account_name != "" ? true : false
-      name      = var.service_account_name
-      namespace = var.namespace
-      annotations = {
-        "eks.amazonaws.com/role-arn" = local.iam_role
-      }
+      create      = var.service_account_name == ""
+      name        = var.service_account_name
+      namespace   = var.namespace
+      annotations = local.iam-role == "" ? {} : { "eks.amazonaws.com/role-arn" = local.iam_role }
     }
 
     ingress = {
@@ -304,17 +310,11 @@ module "service_account_assume_role_policy" {
   }]
 }
 
-resource "aws_iam_role_policy_attachment" "irsa" {
-  count      = var.iam_role_name != "" ? 1 : 0
-  policy_arn = aws_iam_policy.service_policy[0].arn
-  role       = var.iam_role_exists ? var.iam_role_name : aws_iam_role.new_role[0].name
-}
-
-resource "aws_iam_policy" "service_policy" {
-  count       = var.iam_role_name != "" && var.iam_role_exists == false ? 1 : 0
-  name        = "${var.iam_role_name}-policy"
-  description = "A policy for the IAM role ${var.iam_role_name}."
-  policy      = data.aws_iam_policy_document.service_policy[0].json
+resource "aws_iam_role_policy" "service_policy" {
+  count  = var.iam_role_name != "" && var.iam_role_exists == false ? 1 : 0
+  name   = "${var.iam_role_name}-policy"
+  role   = local.iam_role
+  policy = data.aws_iam_policy_document.service_policy[0].json
 }
 
 data "aws_iam_policy_document" "service_policy" {
