@@ -11,6 +11,7 @@ import (
 	"github.com/gruntwork-io/terratest/modules/packer"
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/terraform"
+	"github.com/stretchr/testify/assert"
 
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 )
@@ -24,7 +25,6 @@ func TestEcsCluster(t *testing.T) {
 	// os.Setenv("SKIP_cleanup", "true")
 	// os.Setenv("SKIP_cleanup_keypairs", "true")
 	// os.Setenv("SKIP_cleanup_ami", "true")
-
 	t.Parallel()
 
 	testFolder := "../examples/for-learning-and-testing/services/ecs-cluster"
@@ -51,6 +51,10 @@ func TestEcsCluster(t *testing.T) {
 
 	test_structure.RunTestStage(t, "deploy_terraform", func() {
 		deployECSCluster(t, testFolder)
+	})
+
+	test_structure.RunTestStage(t, "validate_cluster", func() {
+		validateECSCluster(t, testFolder)
 	})
 }
 
@@ -113,4 +117,11 @@ func deployECSCluster(t *testing.T, testFolder string) {
 
 	test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
 	terraform.InitAndApply(t, terraformOptions)
+}
+
+func validateECSCluster(t *testing.T, testFolder string) {
+	terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
+	ecsClusterArn := terraform.OutputRequired(t, terraformOptions, "ecs_cluster_arn")
+
+	assert.NotEmpty(t, ecsClusterArn)
 }
