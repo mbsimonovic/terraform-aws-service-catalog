@@ -151,7 +151,7 @@ variable "ingress_annotations" {
 
   # Example:
   # {
-  #   "alb.ingress.kubernetes.io/healthcheck-protocol" : "HTTPS"
+  #   "alb.ingress.kubernetes.io/shield-advanced-protection" : "true"
   # }
 }
 
@@ -186,7 +186,7 @@ variable "liveness_probe_port" {
 }
 
 variable "liveness_probe_protocol" {
-  description = "Protocol (HTTP or HTTPS) that the liveness probe should use to connect to the application contianer."
+  description = "Protocol (HTTP or HTTPS) that the liveness probe should use to connect to the application container."
   type        = string
   default     = "HTTP"
 }
@@ -224,7 +224,7 @@ variable "readiness_probe_port" {
 }
 
 variable "readiness_probe_protocol" {
-  description = "Protocol (HTTP or HTTPS) that the readiness probe should use to connect to the application contianer."
+  description = "Protocol (HTTP or HTTPS) that the readiness probe should use to connect to the application container."
   type        = string
   default     = "HTTP"
 }
@@ -245,6 +245,58 @@ variable "readiness_probe_interval_seconds" {
   description = "The approximate amount of time, in seconds, between liveness checks of an individual Target."
   type        = number
   default     = 30
+}
+
+## ALB health checks
+
+variable "alb_health_check_protocol" {
+  description = "Protocol (HTTP or HTTPS) that the ALB health check should use to connect to the application container."
+  type        = string
+  default     = "HTTP"
+}
+
+variable "alb_health_check_port" {
+  description = "String value specifying the port that the ALB health check should probe. By default, this will be set to the traffic port."
+  type        = string
+  default     = "traffic-port"
+}
+
+variable "alb_health_check_path" {
+  description = "URL path for the endpoint that the ALB health check should ping. Defaults to /."
+  type        = string
+  default     = "/"
+}
+
+variable "alb_health_check_interval" {
+  description = "Interval between ALB health checks in seconds."
+  type        = number
+  default     = 30
+}
+
+variable "alb_health_check_timeout" {
+  description = "The timeout, in seconds, during which no response from a target means a failed health check."
+  type        = number
+  default     = 10
+}
+
+variable "alb_health_check_healthy_threshold" {
+  description = "The number of consecutive health check successes required before considering an unhealthy target healthy."
+  type        = number
+  default     = 2
+}
+
+variable "alb_health_check_success_codes" {
+  description = "The HTTP status code that should be expected when doing health checks against the specified health check path. Accepts a single value (200), multiple values (200,201), or a range of values (200-300)."
+  type        = string
+  default     = "200"
+}
+
+## ALB ACM certificate
+
+variable "alb_acm_certificate_arns" {
+  description = "A list of ACM certificate ARNs to attach to the ALB. The first certificate in the list will be added as default certificate."
+  type        = list(string)
+  default     = []
 }
 
 # Docker options

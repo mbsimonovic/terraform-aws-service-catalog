@@ -114,6 +114,16 @@ locals {
     : ""
   )
 
+  alb_health_check = {
+    "alb.ingress.kubernetes.io/healthcheck-port"             = var.alb_health_check_port
+    "alb.ingress.kubernetes.io/healthcheck-protocol"         = var.alb_health_check_protocol
+    "alb.ingress.kubernetes.io/healthcheck-path"             = var.alb_health_check_path
+    "alb.ingress.kubernetes.io/healthcheck-interval-seconds" = var.alb_health_check_interval
+    "alb.ingress.kubernetes.io/healthcheck-timeout-seconds"  = var.alb_health_check_timeout
+    "alb.ingress.kubernetes.io/healthy-threshold-count"      = var.alb_health_check_healthy_threshold
+    "alb.ingress.kubernetes.io/success-codes"                = var.alb_health_check_success_codes
+  }
+
   # Assemble a complete map of ingress annotations 
   ingress_annotations = merge(
     {
@@ -133,7 +143,12 @@ locals {
       : tomap(false),
       {},
     ),
+    {
+      "alb.ingress.kubernetes.io/certificate-arn" : join(",", var.acm_alb_certificate_arns),
+    },
+    local.alb_health_check,
     var.ingress_annotations,
+
   )
 
   # Refer to the values.yaml file for helm-kubernetes-services/k8s-service for more information on the available input

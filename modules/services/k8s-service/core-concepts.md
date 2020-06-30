@@ -94,29 +94,6 @@ Then, you can debug the generated yaml files using the `helm template` command:
 helm template $APPLICATION_NAME gruntwork/k8s-service --debug -f $VALUES_FILE_PATH
 ```
 
-## How do I configure health checks on my application load balancer?
-
-Use [ingress annotations](https://kubernetes-sigs.github.io/aws-alb-ingress-controller/guide/ingress/annotation/#health-check) to set up health checks on the target group. For example:
-
-```
-ingress_annotations = {
-  "alb.ingress.kubernetes.io/healthcheck-protocol" : "HTTPS",
-  "alb.ingress.kubernetes.io/healthcheck-port" : "traffic-port",
-  "alb.ingress.kubernetes.io/healthcheck-path" : "/health",
-  "alb.ingress.kubernetes.io/healthcheck-success-codes" : "200",
-}
-```
-
-## How do I configure an ACM certification on my application load balancer?
-
-Certificates are also configured with an annotation.
-
-```
-ingress_annotations = {
-  "alb.ingress.kubernetes.io/certificate-arn" : "arn:aws:acm:us-east-1:0123456789012:certificate/example47-712e-4612-bd1e-534caf103d51"
-}
-```
-
 ## How do I assign IAM permissions to a service?
 
 This module supports the [IAM roles for service accounts](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) feature. You can use this feature to create an IAM role with a policy and map it to a service account, or map an existing role. 
