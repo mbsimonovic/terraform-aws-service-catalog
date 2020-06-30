@@ -192,7 +192,7 @@ locals {
       create      = var.service_account_name == ""
       name        = var.service_account_name
       namespace   = var.namespace
-      annotations = local.iam-role == "" ? {} : { "eks.amazonaws.com/role-arn" = local.iam_role }
+      annotations = local.iam_role == "" ? {} : { "eks.amazonaws.com/role-arn" = local.iam_role }
     }
 
     ingress = {
