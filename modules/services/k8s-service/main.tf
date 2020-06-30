@@ -204,7 +204,7 @@ locals {
     }
 
     serviceAccount = {
-      create      = var.service_account_name == ""
+      create      = var.service_account_name != ""
       name        = var.service_account_name
       namespace   = var.namespace
       annotations = local.iam_role == "" ? {} : { "eks.amazonaws.com/role-arn" = local.iam_role }
