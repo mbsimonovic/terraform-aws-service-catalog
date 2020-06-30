@@ -118,9 +118,9 @@ locals {
     "alb.ingress.kubernetes.io/healthcheck-port"             = var.alb_health_check_port
     "alb.ingress.kubernetes.io/healthcheck-protocol"         = var.alb_health_check_protocol
     "alb.ingress.kubernetes.io/healthcheck-path"             = var.alb_health_check_path
-    "alb.ingress.kubernetes.io/healthcheck-interval-seconds" = var.alb_health_check_interval
-    "alb.ingress.kubernetes.io/healthcheck-timeout-seconds"  = var.alb_health_check_timeout
-    "alb.ingress.kubernetes.io/healthy-threshold-count"      = var.alb_health_check_healthy_threshold
+    "alb.ingress.kubernetes.io/healthcheck-interval-seconds" = tostring(var.alb_health_check_interval)
+    "alb.ingress.kubernetes.io/healthcheck-timeout-seconds"  = tostring(var.alb_health_check_timeout)
+    "alb.ingress.kubernetes.io/healthy-threshold-count"      = tostring(var.alb_health_check_healthy_threshold)
     "alb.ingress.kubernetes.io/success-codes"                = var.alb_health_check_success_codes
   }
 
@@ -327,7 +327,7 @@ module "service_account_assume_role_policy" {
 
 resource "aws_iam_role_policy" "service_policy" {
   count  = var.iam_role_name != "" && var.iam_role_exists == false ? 1 : 0
-  name   = "${var.iam_role_name}-policy"
+  name   = "${var.iam_role_name}Policy"
   role   = local.iam_role
   policy = data.aws_iam_policy_document.service_policy[0].json
 }
