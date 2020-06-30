@@ -1,10 +1,10 @@
 :type: service
-:name: Route 53 Hosted Zones
-:description: Manage DNS entries using https://aws.amazon.com/route53/:Amazon Route 53
-:icon: /_docs/route53-icon.png
-:category: networking
+:name: Amazon ElastiCache for Redis
+:description: Deploy and manage Amazon ElastiCache for Redis
+:icon: /_docs/elasticache-icon.png
+:category: nosql
 :cloud: aws
-:tags: route53, dns, networking
+:tags: data, database, nosql, redis, elasticache
 :license: gruntwork
 :built-with: terraform
 
@@ -22,39 +22,41 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
-= Route 53 Hosted Zones
+= Amazon ElastiCache for Redis
 
 image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
 image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
 
-This folder contains code to deploy https://aws.amazon.com/route53/[Route 53 Hosted Zones] and
-https://aws.amazon.com/cloud-map/[AWS Cloud Map Namespaces] on AWS.
+This folder contains code to deploy a Redis Cluster using Amazon ElastiCache. The cluster is managed by AWS and automatically handles standby failover, read replicas, backups, patching, and encryption.
 
-image::../../../_docs/route53-architecture.png?raw=true[Route 53 architecture]
+image::/_docs/elasticache-redis-architecture.png?raw=true[ElastiCache for Redis architecture]
 
 toc::[]
 
-
 == Features
 
-* Manage DNS entries using AWS Route 53 or AWS Cloud Map
-* Optionally order and automatically verify ACM wildcard certificates for public zones
-* Automatic health checks to route traffic only to healthy endpoints
-* Automatic integration with other AWS services, such as ELBs
+* Deploy a fully-managed Redis cluster
+* Automatic failover to a standby in another availability zone
+* Read replicas
+* Automatic nightly snapshots
+* Automatic cross account snapshots
+* Automatic scaling of storage
+* CloudWatch Alarms for alerting when CPU, memory, and disk metrics exceed certain thresholds
+* Integrate with Kubernetes Service Discovery
 
 == Learn
 
-NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog//[Gruntwork Service Catalog], a collection of
+NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog/[Gruntwork Service Catalog], a collection of
 reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
-sure to read link:/core-concepts.md[How to use the Gruntwork Service Catalog]!
+sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catallog/[How to use the Gruntwork
+Service Catalog]!
 
-* link:core-concepts.md#should-i-use-route53-or-cloud-map[Should you use AWS Route 53 or CloudMap for your DNS entries?]
-* https://docs.aws.amazon.com/cloud-map/latest/dg/what-is-cloud-map.html[AWS Cloud Map Documentation]: Amazon's docs for
-  AWS Cloud Map that cover core concepts and configuration.
-* https://docs.aws.amazon.com/route53/[Route 53 Documentation]: Amazon's docs for Route 53 that cover core concepts and
-  configuration.
-
-
+* https://github.com/gruntwork-io/module-cache/tree/master/modules/redis#what-is-amazon-elasticache[What is Amazon ElastiCache?]
+* https://github.com/gruntwork-io/module-cache/tree/master/modules/redis#common-gotchas[Common gotchas with ElastiCache]
+* https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/WhatIs.html[Amazon ElastiCache for Redis documentation]: Amazon's ElastiCache for Redis docs that
+  cover core concepts such as the options and versions supported, security, backup & restore, and monitoring.
+* _https://dataintensive.net[Designing Data Intensive Applications]_: the best book we've found for understanding data
+  systems, including relational databases, NoSQL, replication, sharding, consistency, and so on.
 
 == Deploy
 
@@ -75,15 +77,15 @@ If you want to deploy this repo in production, check out the following resources
   https://gruntwork.io/reference-architecture/:[Gruntwork Reference Architecture], and it shows you how we build an
   end-to-end, integrated tech stack on top of the Gruntwork Service Catalog.
 
-
-
 == Operate
 
-* https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/Welcome.html[Route 53 Developer Guide]
+=== Day-to-day operations
 
-
-
-
+* https://github.com/gruntwork-io/module-cache/tree/master/modules/redis#how-do-you-connect-to-the-redis-cluster[How to connect to a Redis cluster]
+* https://github.com/gruntwork-io/module-cache/tree/master/modules/redis#structure-of-an-elasticache-redis-deployment[Structure of an ElastiCache Redis deployment]
+* https://github.com/gruntwork-io/module-cache/tree/master/modules/redis#how-do-you-scale-the-redis-cluster[How to scale the Redis cluster]
+* link:core-concepts.md#how-do-i-use-kubernetes-service-discovery-with-the-elasticache-redis-cluster[How do I use Kubernetes Service
+  Discovery with the ElastiCache Redis Cluster?]
 
 == Support
 
@@ -91,9 +93,6 @@ If you need help with this repo or anything else related to infrastructure or De
 https://gruntwork.io/support/[Commercial Support] via Slack, email, and phone/video. If you're already a Gruntwork
 customer, hop on Slack and ask away! If not, https://www.gruntwork.io/pricing/[subscribe now]. If you're not sure,
 feel free to email us at link:mailto:support@gruntwork.io[support@gruntwork.io].
-
-
-
 
 == Contributions
 
@@ -104,9 +103,6 @@ through our automated test suite.
 Please see
 https://gruntwork.io/guides/foundations/how-to-use-gruntwork-infrastructure-as-code-library#_contributing_to_the_gruntwork_infrastructure_as_code_library[Contributing to the Gruntwork Service Catalog]
 for instructions.
-
-
-
 
 == License
 

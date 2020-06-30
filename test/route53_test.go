@@ -3,11 +3,15 @@ package test
 import (
 	"fmt"
 	"testing"
+	"time"
 
+	awsgo "github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/servicediscovery"
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/random"
+	"github.com/gruntwork-io/terratest/modules/retry"
+	"github.com/gruntwork-io/terratest/modules/ssh"
 	"github.com/gruntwork-io/terratest/modules/terraform"
-
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -165,4 +169,157 @@ func TestRoute53ProvisionWildcardCertPlan(t *testing.T) {
 		assert.Equal(t, resourceCount.Change, 0)
 		assert.Equal(t, resourceCount.Destroy, 0)
 	})
+}
+
+func TestRoute53CloudMap(t *testing.T) {
+	t.Parallel()
+
+	// Uncomment the items below to skip certain parts of the test
+	//os.Setenv("SKIP_setup_keypair", "true")
+	//os.Setenv("SKIP_setup", "true")
+	//os.Setenv("SKIP_deploy_terraform", "true")
+	//os.Setenv("SKIP_validate", "true")
+	//os.Setenv("SKIP_cleanup", "true")
+
+	testFolder := "../examples/for-learning-and-testing/networking/cloudmap"
+
+	defer test_structure.RunTestStage(t, "cleanup", func() {
+		awsRegion := test_structure.LoadString(t, testFolder, "region")
+		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
+
+		serviceDiscoveryServiceName := terraform.Output(t, terraformOptions, "test_instance_service_discovery_service_name")
+		serviceDiscoveryServiceID := terraform.Output(t, terraformOptions, "test_instance_service_discovery_service_id")
+		serviceDiscoveryNamespace := terraformOptions.Vars["test_instance_namespace"].(string)
+		deregisterAllInstancesFromService(t, awsRegion, serviceDiscoveryNamespace, serviceDiscoveryServiceName, serviceDiscoveryServiceID)
+
+		terraform.Destroy(t, terraformOptions)
+
+		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
+		aws.DeleteEC2KeyPair(t, awsKeyPair)
+	})
+
+	test_structure.RunTestStage(t, "setup_keypair", func() {
+		awsRegion := aws.GetRandomRegion(t, []string{"us-west-1"}, nil)
+		test_structure.SaveString(t, testFolder, "region", awsRegion)
+
+		uniqueID := random.UniqueId()
+		test_structure.SaveString(t, testFolder, "uniqueID", uniqueID)
+
+		awsKeyPair := aws.CreateAndImportEC2KeyPair(t, awsRegion, uniqueID)
+		test_structure.SaveEc2KeyPair(t, testFolder, awsKeyPair)
+	})
+
+	test_structure.RunTestStage(t, "setup", func() {
+		awsRegion := test_structure.LoadString(t, testFolder, "region")
+		uniqueID := test_structure.LoadString(t, testFolder, "uniqueID")
+		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
+
+		defaultVPC := aws.GetDefaultVpc(t, awsRegion)
+
+		privateDomainName := fmt.Sprintf("gruntwork-test-%s.xyz", uniqueID)
+		publicDomainName := fmt.Sprintf("gruntwork-test-%s.com", uniqueID)
+		privateSDNamespaces := map[string]interface{}{
+			privateDomainName: map[string]interface{}{
+				"description": "This is an optional test description",
+				"vpc_id":      defaultVPC.Id,
+			},
+		}
+
+		publicSDNamespaces := map[string]interface{}{
+			publicDomainName: map[string]interface{}{
+				"description":                    "This is another optional test comment",
+				"provision_wildcard_certificate": false,
+			},
+		}
+
+		terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
+		terraformOptions.Vars["service_discovery_private_namespaces"] = privateSDNamespaces
+		terraformOptions.Vars["service_discovery_public_namespaces"] = publicSDNamespaces
+
+		terraformOptions.Vars["test_instance_namespace"] = privateDomainName
+		terraformOptions.Vars["test_instance_name"] = fmt.Sprintf("test-cloud-map-%s", uniqueID)
+		terraformOptions.Vars["test_instance_vpc_subnet_id"] = defaultVPC.Subnets[0].Id
+		terraformOptions.Vars["test_instance_key_pair"] = awsKeyPair.Name
+
+		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
+	})
+
+	test_structure.RunTestStage(t, "deploy_terraform", func() {
+		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
+		terraform.InitAndApply(t, terraformOptions)
+	})
+
+	test_structure.RunTestStage(t, "validate", func() {
+		awsRegion := test_structure.LoadString(t, testFolder, "region")
+		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
+		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
+
+		serviceDiscoveryServiceName := terraform.Output(t, terraformOptions, "test_instance_service_discovery_service_name")
+		serviceDiscoveryNamespace := terraformOptions.Vars["test_instance_namespace"].(string)
+
+		// Test if we can query the service discovery service and retrieve a registered EC2 instance.
+		clt := serviceDiscoveryClient(t, awsRegion)
+		ipv4 := retry.DoWithRetry(
+			t,
+			"lookup registered instances",
+			60,
+			10*time.Second,
+			func() (string, error) {
+				resp, err := clt.DiscoverInstances(&servicediscovery.DiscoverInstancesInput{
+					NamespaceName: awsgo.String(serviceDiscoveryNamespace),
+					ServiceName:   awsgo.String(serviceDiscoveryServiceName),
+				})
+				if err != nil {
+					return "", err
+				}
+				if len(resp.Instances) == 0 {
+					return "", fmt.Errorf("No instances registered yet")
+				}
+				instance := resp.Instances[0]
+				ipv4, hasIP := instance.Attributes["AWS_INSTANCE_IPV4"]
+				if !hasIP {
+					return "", fmt.Errorf("Does not have IPv4 address")
+				}
+				return awsgo.StringValue(ipv4), nil
+			},
+		)
+
+		// Test if the IP is for the instance we registered by attemping SSH with the keypair we created in this test.
+		host := ssh.Host{
+			Hostname:    ipv4,
+			SshUserName: "ec2-user",
+			SshKeyPair:  awsKeyPair.KeyPair,
+		}
+		assert.Equal(t, ssh.CheckSshCommand(t, host, "echo -n \"Hello, World\""), "Hello, World")
+	})
+}
+
+func deregisterAllInstancesFromService(
+	t *testing.T,
+	region string,
+	serviceDiscoveryNamespace string,
+	serviceDiscoveryServiceName string,
+	serviceDiscoveryServiceID string,
+) {
+	clt := serviceDiscoveryClient(t, region)
+
+	resp, err := clt.DiscoverInstances(&servicediscovery.DiscoverInstancesInput{
+		NamespaceName: awsgo.String(serviceDiscoveryNamespace),
+		ServiceName:   awsgo.String(serviceDiscoveryServiceName),
+	})
+	require.NoError(t, err)
+
+	for _, inst := range resp.Instances {
+		_, err := clt.DeregisterInstance(&servicediscovery.DeregisterInstanceInput{
+			InstanceId: inst.InstanceId,
+			ServiceId:  awsgo.String(serviceDiscoveryServiceID),
+		})
+		require.NoError(t, err)
+	}
+}
+
+func serviceDiscoveryClient(t *testing.T, region string) *servicediscovery.ServiceDiscovery {
+	sess, err := aws.NewAuthenticatedSession(region)
+	require.NoError(t, err)
+	return servicediscovery.New(sess)
 }

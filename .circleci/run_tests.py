@@ -35,6 +35,7 @@ DIRECT_TEST_MAP = {
     'ec2-baseline': ['TestBastionHost', 'TestJenkins', 'TestOpenvpnServer'],
     'eks-core-services': ['TestEksCluster'],
     'k8s-service': ['TestK8SService', 'TestEksCluster'],
+    'cloudmap': ['TestRoute53.*'],
     'test_helpers.go': ['.*'],
     'k8s_test_helpers.go': ['TestK8SNamespace', 'TestK8SService', 'TestEksCluster'],
     'for_production_smoke_test.go': [TERRAGRUNT_SMOKE_TEST],

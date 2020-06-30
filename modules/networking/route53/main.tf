@@ -85,6 +85,25 @@ data "aws_route53_zone" "selected" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
+# CREATE AWS CLOUD MAP NAMESPACES
+# ---------------------------------------------------------------------------------------------------------------------
+
+# Public
+resource "aws_service_discovery_public_dns_namespace" "namespaces" {
+  for_each    = var.service_discovery_public_namespaces
+  name        = each.key
+  description = each.value.description
+}
+
+# Private
+resource "aws_service_discovery_private_dns_namespace" "namespaces" {
+  for_each    = var.service_discovery_private_namespaces
+  name        = each.key
+  vpc         = each.value.vpc_id
+  description = each.value.description
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
 # CREATE AMAZON CERTIFICATE MANAGER (ACM) TLS CERTIFICATES
 # ---------------------------------------------------------------------------------------------------------------------
 
@@ -101,7 +120,10 @@ module "acm-tls-certificates" {
   # This effectively draws an explicit dependency between the public 
   # and private zones managed here and the ACM certificates that will be optionally 
   # provisioned for them 
-  dependencies = flatten([values(aws_route53_zone.public_zones).*.name_servers])
+  dependencies = flatten(concat([
+    values(aws_route53_zone.public_zones).*.name_servers,
+    values(aws_service_discovery_public_dns_namespace.namespaces).*.id,
+  ]))
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -110,20 +132,15 @@ module "acm-tls-certificates" {
 
 locals {
 
-  # For public zones with their `provision_wildcard_certificate` attribute set to true, build a map that will 
-  # be provided as input to the acm-tls-certificates module 
-  acm_tls_certificates = {
+  # For public zones and namespaces with their `provision_wildcard_certificate` attribute set to true, build a map that
+  # will be provided as input to the acm-tls-certificates module 
+  route53_acm_tls_certificates = {
     for domain, zone in var.public_zones :
-    # These certificates that are going to be
-    # automatically issued and verified for
-    # public Route53 zones, so we prefix them
-    # with *. to denote we are requesting
-    # "wildcard" certificates
+    # These certificates that are going to be automatically issued and verified for public Route53 zones, so we prefix
+    # them with *. to denote we are requesting "wildcard" certificates
 
-    # A wildcard certificate for example.com,
-    # requested with a domain of *.example.com,
-    # will protect all one-level subdomains of example.com,
-    # such as mail.example.com, admin.example.com, etc
+    # A wildcard certificate for example.com, requested with a domain of *.example.com, will protect all one-level
+    # subdomains of example.com, such as mail.example.com, admin.example.com, etc
     "*.${domain}" => {
       tags                       = zone.tags
       subject_alternative_names  = []
@@ -131,11 +148,28 @@ locals {
       verify_certificate         = true
       # If the created_outside_terraform attribute is set to true, the zone ID will be looked up dynamically 
       hosted_zone_id = zone.created_outside_terraform ? data.aws_route53_zone.selected[domain].zone_id : ""
-      # Only issue wildcard certificates for those zones 
-      # where they were requested 
+      # Only issue wildcard certificates for those zones where they were requested
     } if zone.provision_wildcard_certificate
   }
+  service_discovery_namespace_acm_tls_certificates = {
+    for domain, config in var.service_discovery_public_namespaces :
+    # These certificates that are going to be automatically issued and verified for public Route53 zones, so we prefix
+    # them with *. to denote we are requesting "wildcard" certificates
 
+    # A wildcard certificate for example.com, requested with a domain of *.example.com, will protect all one-level
+    # subdomains of example.com, such as mail.example.com, admin.example.com, etc
+    "*.${domain}" => {
+      tags                       = {}
+      subject_alternative_names  = []
+      create_verification_record = true
+      verify_certificate         = true
+      hosted_zone_id             = ""
+      # Only issue wildcard certificates for those zones where they were requested
+    } if config.provision_wildcard_certificate
+  }
+  acm_tls_certificates = merge(local.route53_acm_tls_certificates, local.service_discovery_namespace_acm_tls_certificates)
+
+  # The zones that should be pulled in via data sources as opposed to created and managed by this module.
   existing_zones_to_lookup = {
     for domain, zone in var.public_zones :
     domain => zone if zone.created_outside_terraform
