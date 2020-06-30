@@ -144,6 +144,17 @@ variable "num_days_after_which_delete_ingress_log_data" {
   default     = 0
 }
 
+variable "ingress_annotations" {
+  description = "A list of custom ingress annotations, such as health checks and TLS certificates, to add to the Helm chart. See: https://kubernetes-sigs.github.io/aws-alb-ingress-controller/guide/ingress/annotation/"
+  type        = map(string)
+  default     = {}
+
+  # Example:
+  # {
+  #   "alb.ingress.kubernetes.io/shield-advanced-protection" : "true"
+  # }
+}
+
 # Route 53 / DNS Info
 
 variable "create_route53_entry" {
@@ -175,7 +186,7 @@ variable "liveness_probe_port" {
 }
 
 variable "liveness_probe_protocol" {
-  description = "Protocol (HTTP or HTTPS) that the liveness probe should use to connect to the application contianer."
+  description = "Protocol (HTTP or HTTPS) that the liveness probe should use to connect to the application container."
   type        = string
   default     = "HTTP"
 }
@@ -213,7 +224,7 @@ variable "readiness_probe_port" {
 }
 
 variable "readiness_probe_protocol" {
-  description = "Protocol (HTTP or HTTPS) that the readiness probe should use to connect to the application contianer."
+  description = "Protocol (HTTP or HTTPS) that the readiness probe should use to connect to the application container."
   type        = string
   default     = "HTTP"
 }
@@ -234,6 +245,58 @@ variable "readiness_probe_interval_seconds" {
   description = "The approximate amount of time, in seconds, between liveness checks of an individual Target."
   type        = number
   default     = 30
+}
+
+## ALB health checks
+
+variable "alb_health_check_protocol" {
+  description = "Protocol (HTTP or HTTPS) that the ALB health check should use to connect to the application container."
+  type        = string
+  default     = "HTTP"
+}
+
+variable "alb_health_check_port" {
+  description = "String value specifying the port that the ALB health check should probe. By default, this will be set to the traffic port."
+  type        = string
+  default     = "traffic-port"
+}
+
+variable "alb_health_check_path" {
+  description = "URL path for the endpoint that the ALB health check should ping. Defaults to /."
+  type        = string
+  default     = "/"
+}
+
+variable "alb_health_check_interval" {
+  description = "Interval between ALB health checks in seconds."
+  type        = number
+  default     = 30
+}
+
+variable "alb_health_check_timeout" {
+  description = "The timeout, in seconds, during which no response from a target means a failed health check."
+  type        = number
+  default     = 10
+}
+
+variable "alb_health_check_healthy_threshold" {
+  description = "The number of consecutive health check successes required before considering an unhealthy target healthy."
+  type        = number
+  default     = 2
+}
+
+variable "alb_health_check_success_codes" {
+  description = "The HTTP status code that should be expected when doing health checks against the specified health check path. Accepts a single value (200), multiple values (200,201), or a range of values (200-300)."
+  type        = string
+  default     = "200"
+}
+
+## ALB ACM certificate
+
+variable "alb_acm_certificate_arns" {
+  description = "A list of ACM certificate ARNs to attach to the ALB. The first certificate in the list will be added as default certificate."
+  type        = list(string)
+  default     = []
 }
 
 # Docker options
@@ -288,6 +351,62 @@ variable "secrets_as_env_vars" {
   # {
   #   mysecret = {
   #     foo = "MY_SECRET"
+  #   }
+  # }
+}
+
+# IAM role for IRSA
+
+variable "iam_role_exists" {
+  description = "Whether or not the IAM role passed in `iam_role_name` already exists. Set to true if it exists, or false if it needs to be created. Defaults to false."
+  type        = bool
+  default     = false
+}
+
+variable "iam_role_name" {
+  description = "The name of an IAM role that will be used by the pod to access the AWS API. If `iam_role_exists` is set to false, this role will be created. Leave as an empty string if you do not wish to use IAM role with Service Accounts."
+  type        = string
+  default     = ""
+}
+
+variable "service_account_name" {
+  description = "The name of a service account to create for use with the pod. This service account will be mapped to the IAM role defined in `var.iam_role_name` to give the pod permissions to access the AWS API. Must be unique in this namespace. Leave as an empty string if you do not wish to use IAM role with Service Accounts."
+  type        = string
+  default     = ""
+}
+
+variable "eks_iam_role_for_service_accounts_config" {
+  description = "Configuration for using the IAM role with Service Accounts feature to provide permissions to the applications. This expects a map with two properties: `openid_connect_provider_arn` and `openid_connect_provider_url`. The `openid_connect_provider_arn` is the ARN of the OpenID Connect Provider for EKS to retrieve IAM credentials, while `openid_connect_provider_url` is the URL. Leave as an empty string if you do not wish to use IAM role with Service Accounts."
+  type = object({
+    openid_connect_provider_arn = string
+    openid_connect_provider_url = string
+  })
+  default = {
+    openid_connect_provider_arn = ""
+    openid_connect_provider_url = ""
+  }
+}
+
+variable "iam_policy" {
+  description = "An object defining the policy to attach to `iam_role_name` if the IAM role is going to be created. Accepts a map of objects, where the map keys are sids for IAM policy statements, and the object fields are the resources, actions, and the effect (\"Allow\" or \"Deny\") of the statement. Ignored if `iam_role_arn` is provided. Leave as null if you do not wish to use IAM role with Service Accounts."
+  type = map(object({
+    resources = list(string)
+    actions   = list(string)
+    effect    = string
+  }))
+  default = null
+
+  # Example:
+  # iam_policy = {
+  #   S3Access = {
+  #     actions = ["s3:*"]
+  #     resources = ["arn:aws:s3:::mybucket"]
+  #     effect = "Allow"
+  #   },
+  #   SecretsManagerAccess = {
+  #     actions = ["secretsmanager:GetSecretValue"],
+  #     resources = ["arn:aws:secretsmanager:us-east-1:0123456789012:secret:mysecert"]
+  #     effect = "Allow"
   #   }
   # }
 }
