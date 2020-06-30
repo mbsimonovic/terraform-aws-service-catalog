@@ -328,7 +328,7 @@ module "service_account_assume_role_policy" {
 resource "aws_iam_role_policy" "service_policy" {
   count  = var.iam_role_name != "" && var.iam_role_exists == false ? 1 : 0
   name   = "${var.iam_role_name}Policy"
-  role   = var.iam_role_name
+  role   = var.iam_role_name != "" && var.iam_role_exists == false ? aws_iam_role.new_role.name : data.aws_iam_role.existing_role.name
   policy = data.aws_iam_policy_document.service_policy[0].json
 }
 
