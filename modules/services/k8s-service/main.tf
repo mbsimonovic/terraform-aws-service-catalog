@@ -144,7 +144,7 @@ locals {
       {},
     ),
     {
-      "alb.ingress.kubernetes.io/certificate-arn" : join(",", var.acm_alb_certificate_arns),
+      "alb.ingress.kubernetes.io/certificate-arn" : join(",", var.alb_acm_certificate_arns),
     },
     local.alb_health_check,
     var.ingress_annotations,
