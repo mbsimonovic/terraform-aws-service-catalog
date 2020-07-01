@@ -40,6 +40,7 @@ resource "aws_s3_bucket_object" "example_website" {
   key          = "index.html"
   source       = "${path.module}/example-website/index.html"
   content_type = "text/html"
+  acl          = "public-read"
 
   depends_on = [module.static_website]
 }

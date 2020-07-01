@@ -1,10 +1,12 @@
 package test
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/aws"
+	http_helper "github.com/gruntwork-io/terratest/modules/http-helper"
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
@@ -52,6 +54,19 @@ func TestPublicStaticWebsite(t *testing.T) {
 		terraform.OutputRequired(t, terraformOptions, "website_s3_bucket_arn")
 		terraform.OutputRequired(t, terraformOptions, "website_access_logs_bucket_arn")
 		terraform.OutputRequired(t, terraformOptions, "cloudfront_access_logs_bucket_arn")
+		err := http_helper.HttpGetWithRetryWithCustomValidationE(
+			t,
+			fmt.Sprintf("http://%v", terraformOptions.Vars["website_domain_name"]),
+			nil,
+			3,
+			1,
+			func(statusCode int, body string) bool {
+				return statusCode == 200 && strings.Contains(body, "example static website")
+			},
+		)
+		if err != nil {
+			t.Fatalf("Timed out waiting for example website to be available: %s", err)
+		}
 	})
 }
 
