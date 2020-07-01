@@ -91,7 +91,7 @@ module "eks_workers" {
   autoscaling_group_configurations  = var.autoscaling_group_configurations
   include_autoscaler_discovery_tags = var.autoscaling_group_include_autoscaler_discovery_tags
 
-  cluster_instance_ami              = local.use_ami_lookup ? data.aws_ami.worker[0].image_id : var.cluster_instance_ami
+  cluster_instance_ami              = local.use_ami_lookup ? module.ec2_baseline.existing_ami : var.cluster_instance_ami
   cluster_instance_type             = var.cluster_instance_type
   cluster_instance_keypair_name     = var.cluster_instance_keypair_name
   cluster_instance_user_data_base64 = module.ec2_baseline.cloud_init_rendered
@@ -126,6 +126,10 @@ resource "aws_security_group_rule" "allow_inbound_ssh_from_cidr_blocks" {
   protocol          = "tcp"
   security_group_id = module.eks_workers.eks_worker_security_group_id
   cidr_blocks       = var.allow_inbound_ssh_from_cidr_blocks
+}
+
+locals {
+  use_ami_lookup = var.cluster_instance_ami == null && length(var.autoscaling_group_configurations) > 0
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -261,6 +265,7 @@ module "ec2_baseline" {
   num_asg_names                       = length(var.autoscaling_group_configurations)
   alarms_sns_topic_arn                = var.alarms_sns_topic_arn
   cloud_init_parts                    = local.cloud_init_parts
+  ami_filters                         = var.cluster_instance_ami_filters
 
   // CloudWatch log aggregation is handled separately in EKS
   enable_cloudwatch_log_aggregation = false

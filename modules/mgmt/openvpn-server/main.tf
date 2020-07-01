@@ -31,7 +31,7 @@ module "openvpn" {
   name = var.name
 
   instance_type    = var.instance_type
-  ami              = local.use_ami_lookup ? data.aws_ami.openvpn[0].image_id : var.ami
+  ami              = local.use_ami_lookup ? module.ec2_baseline.existing_ami : var.ami
   user_data_base64 = module.ec2_baseline.cloud_init_rendered
 
   request_queue_name    = var.request_queue_name
@@ -51,6 +51,10 @@ module "openvpn" {
   allow_ssh_from_cidr      = true
 
   backup_bucket_force_destroy = var.force_destroy
+}
+
+locals {
+  use_ami_lookup = var.ami == null
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -143,6 +147,7 @@ module "ec2_baseline" {
   num_asg_names                       = 1
   alarms_sns_topic_arn                = var.alarms_sns_topic_arn
   cloud_init_parts                    = local.cloud_init_parts
+  ami_filters                         = var.ami_filters
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

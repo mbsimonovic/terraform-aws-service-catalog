@@ -150,6 +150,28 @@ data "template_cloudinit_config" "cloud_init" {
   }
 }
 
+
+# ---------------------------------------------------------------------------------------------------------------------
+# LOOKUP EXISTING AMI USING PROVIDED FILTERS
+# ---------------------------------------------------------------------------------------------------------------------
+
+data "aws_ami" "existing" {
+  count = var.ami_filters != null ? 1 : 0
+
+  most_recent = true
+  owners      = var.ami_filters.owners
+
+  dynamic "filter" {
+    for_each = var.ami_filters.filters
+
+    content {
+      name   = filter.value.name
+      values = filter.value.values
+    }
+  }
+}
+
+
 # ---------------------------------------------------------------------------------------------------------------------
 # GET INFO ABOUT CURRENT ACCOUNT
 # ---------------------------------------------------------------------------------------------------------------------
