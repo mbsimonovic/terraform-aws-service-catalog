@@ -93,14 +93,6 @@ resource "aws_iam_role_policy" "custom_cloudwatch_logging" {
 # ADD IAM POLICY THAT ALLOWS READING AND WRITING CLOUDWATCH METRICS
 # ---------------------------------------------------------------------------------------------------------------------
 
-module "cloudwatch_metrics" {
-  source      = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-custom-metrics-iam-policy?ref=v0.21.2"
-  name_prefix = var.cluster_name
-
-  # We set this to false so that the cloudwatch-custom-metrics-iam policy generates JSON for the policy, but does not create a standalone IAM policy with that JSON. We'll instead add that JSON to the ECS cluster IAM role. 
-  create_resources = false
-}
-
 resource "aws_iam_role_policy" "custom_cloudwatch_metrics" {
   count  = var.enable_cloudwatch_metrics ? 1 : 0
   name   = "custom-cloudwatch-metrics"
