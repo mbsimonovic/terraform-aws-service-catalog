@@ -369,8 +369,14 @@ variable "iam_role_name" {
   default     = ""
 }
 
+variable "service_account_exists" {
+  description = "When true, and service_account_name is not blank, lookup and assign an existing ServiceAccount in the Namespace to the Pods."
+  type        = bool
+  default     = false
+}
+
 variable "service_account_name" {
-  description = "The name of a service account to create for use with the pod. This service account will be mapped to the IAM role defined in `var.iam_role_name` to give the pod permissions to access the AWS API. Must be unique in this namespace. Leave as an empty string if you do not wish to use IAM role with Service Accounts."
+  description = "The name of a service account to create for use with the Pods. This service account will be mapped to the IAM role defined in `var.iam_role_name` to give the pod permissions to access the AWS API. Must be unique in this namespace. Leave as an empty string if you do not wish to assign a Service Account to the Pods."
   type        = string
   default     = ""
 }
