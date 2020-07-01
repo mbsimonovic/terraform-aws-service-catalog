@@ -204,7 +204,10 @@ locals {
     }
 
     serviceAccount = {
-      create      = var.service_account_name != ""
+      # Create a new service account if service_account_name is not blank and it is not referring to an existing Service
+      # Account
+      create = (! var.service_account_exists) && var.service_account_name != ""
+
       name        = var.service_account_name
       namespace   = var.namespace
       annotations = local.iam_role == "" ? {} : { "eks.amazonaws.com/role-arn" = local.iam_role }
