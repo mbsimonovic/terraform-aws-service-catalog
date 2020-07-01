@@ -13,8 +13,6 @@ module "static_website" {
   aws_region                    = var.aws_region
   aws_account_id                = var.aws_account_id
   website_domain_name           = var.website_domain_name
-  terraform_state_aws_region    = var.terraform_state_aws_region
-  terraform_state_s3_bucket     = var.terraform_state_s3_bucket
   acm_certificate_domain_name   = var.acm_certificate_domain_name
   hosted_zone_id                = var.hosted_zone_id
 

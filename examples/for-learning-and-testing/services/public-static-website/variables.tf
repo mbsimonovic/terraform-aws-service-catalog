@@ -18,16 +18,6 @@ variable "website_domain_name" {
   type        = string
 }
 
-variable "terraform_state_aws_region" {
-  description = "The AWS region of the S3 bucket used to store Terraform remote state"
-  type        = string
-}
-
-variable "terraform_state_s3_bucket" {
-  description = "The name of the S3 bucket used to store Terraform remote state"
-  type        = string
-}
-
 variable "acm_certificate_domain_name" {
   description = "The domain name for which an ACM cert has been issues (e.g. *.foo.com).  Only used if var.create_route53_entry is true. Set to blank otherwise."
   type        = string
