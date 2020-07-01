@@ -3,21 +3,6 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # ---------------------------------------------------------------------------------------------------------------------
-# CONFIGURE OUR AWS CONNECTION
-# ---------------------------------------------------------------------------------------------------------------------
-
-provider "aws" {
-  # The AWS region in which all resources will be created
-  region = var.aws_region
-
-  # Provider version 2.X series is the latest, but has breaking changes with 1.X series.
-  version = "~> 2.6"
-
-  # Only these AWS Account IDs may be operated on by this template
-  allowed_account_ids = [var.aws_account_id]
-}
-
-# ---------------------------------------------------------------------------------------------------------------------
 # CONFIGURE TERRAFORM AND PROVIDER REQUIRED VERSIONS
 # ---------------------------------------------------------------------------------------------------------------------
 
