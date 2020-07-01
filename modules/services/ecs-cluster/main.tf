@@ -106,21 +106,6 @@ module "ecs_cluster_cpu_memory_alarms" {
   high_memory_utilization_period    = var.high_memory_utilization_period
 }
 
-module "ecs_cluster_disk_memory_alarms" {
-  create_resources = var.enable_ecs_cloudwatch_alarms
-
-  source               = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/asg-disk-alarms?ref=v0.21.2"
-  asg_names            = [module.ecs_cluster.ecs_cluster_asg_name]
-  num_asg_names        = 1
-  alarm_sns_topic_arns = var.alarms_sns_topic_arn
-
-  file_system = "/dev/xvda1"
-  mount_path  = "/"
-
-  high_disk_utilization_threshold = var.high_disk_utilization_threshold
-  high_disk_utilization_period    = var.high_disk_utilization_period
-}
-
 module "metric_widget_ecs_cluster_cpu_usage" {
 
   source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.21.2"
