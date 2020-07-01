@@ -90,17 +90,6 @@ resource "aws_iam_role_policy" "custom_cloudwatch_logging" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# ADD IAM POLICY THAT ALLOWS READING AND WRITING CLOUDWATCH METRICS
-# ---------------------------------------------------------------------------------------------------------------------
-
-resource "aws_iam_role_policy" "custom_cloudwatch_metrics" {
-  count  = var.enable_cloudwatch_metrics ? 1 : 0
-  name   = "custom-cloudwatch-metrics"
-  role   = module.ecs_cluster.ecs_instance_iam_role_name
-  policy = module.ec2_baseline.cloudwatch_metrics_read_write_permissions_json
-}
-
-# ---------------------------------------------------------------------------------------------------------------------
 # ADD CLOUDWATCH ALARMS THAT GO OFF IF THE CLUSTER'S CPU, MEMORY, OR DISK SPACE USAGE GET TOO HIGH
 # ---------------------------------------------------------------------------------------------------------------------
 
