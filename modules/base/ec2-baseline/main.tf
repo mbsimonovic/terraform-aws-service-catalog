@@ -156,7 +156,7 @@ data "template_cloudinit_config" "cloud_init" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 data "aws_ami" "existing" {
-  count = var.ami_filters != null ? 1 : 0
+  count = local.use_ami_lookup ? 1 : 0
 
   most_recent = true
   owners      = var.ami_filters.owners
@@ -169,6 +169,10 @@ data "aws_ami" "existing" {
       values = filter.value.values
     }
   }
+}
+
+locals {
+  use_ami_lookup = var.ami_filters != null
 }
 
 

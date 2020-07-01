@@ -89,6 +89,12 @@ variable "cloud_init_parts" {
   default = {}
 }
 
+variable "ami" {
+  description = "The ID of an AMI to use for deploying servers. This provides a convenience function for choosing between looking up an AMI with filters, or returning a hard coded AMI ID. Used if var.ami_filters is null."
+  type        = string
+  default     = null
+}
+
 variable "ami_filters" {
   description = "Properties on the AMI that can be used to lookup a prebuilt AMI."
   type = object({

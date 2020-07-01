@@ -31,7 +31,7 @@ module "jenkins" {
   aws_region     = data.aws_region.current.name
   aws_account_id = data.aws_caller_identity.current.account_id
 
-  ami           = local.use_ami_lookup ? module.ec2_baseline.existing_ami : var.ami
+  ami           = module.ec2_baseline.existing_ami
   instance_type = var.instance_type
 
   user_data_base64  = module.ec2_baseline.cloud_init_rendered
@@ -63,10 +63,6 @@ module "jenkins" {
   ebs_volume_encrypted = var.jenkins_volume_encrypted
 }
 
-locals {
-  use_ami_lookup = var.ami == null
-}
-
 # ---------------------------------------------------------------------------------------------------------------------
 # BASE RESOURCES
 # Includes resources common to all EC2 instances in the Service Catalog, including permissions
@@ -87,6 +83,7 @@ module "ec2_baseline" {
   num_asg_names                       = 1
   alarms_sns_topic_arn                = var.alarms_sns_topic_arn
   cloud_init_parts                    = local.cloud_init_parts
+  ami                                 = var.ami
   ami_filters                         = var.ami_filters
 }
 

@@ -49,6 +49,6 @@ output "cloud_init_rendered" {
 }
 
 output "existing_ami" {
-  description = "The ID of an existing AMI that was retrieved using ami_filters."
-  value       = var.ami_filters != null ? data.aws_ami.existing[0].id : null
+  description = "The ID of an existing AMI that was retrieved using ami_filters, or provided as input."
+  value       = local.use_ami_lookup ? data.aws_ami.existing[0].id : var.ami
 }
