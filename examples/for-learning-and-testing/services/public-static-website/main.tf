@@ -34,3 +34,12 @@ module "static_website" {
   # before running 'destroy'!
   force_destroy                 = var.force_destroy
 }
+
+resource "aws_s3_bucket_object" "example_website" {
+  bucket       = var.website_domain_name
+  key          = "index.html"
+  source       = "${path.module}/example-website/index.html"
+  content_type = "text/html"
+
+  depends_on = [module.static_website]
+}
