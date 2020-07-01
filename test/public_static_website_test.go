@@ -65,7 +65,8 @@ func createStaticWebsiteTerraformOptions(
 	terraformOptions.Vars["hosted_zone_id"] = "Z2AJ7S3R6G9UYJ"
 	terraformOptions.Vars["aws_region"] = "us-east-1"
 	terraformOptions.Vars["aws_account_id"] = "087285199408"
-	terraformOptions.Vars["website_domain_name"] = "acme-stage.gruntwork.in"
+	terraformOptions.Vars["website_domain_name"] = "acme-stage-static.gruntwork.in"
 	terraformOptions.Vars["acm_certificate_domain_name"] = "*.gruntwork.in"
+	terraformOptions.Vars["force_destroy"] = true
 	return terraformOptions
 }

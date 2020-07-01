@@ -3,16 +3,6 @@
 # These variables must be passed in by the operator.
 # ---------------------------------------------------------------------------------------------------------------------
 
-variable "aws_region" {
-  description = "The AWS region in which all resources will be created"
-  type        = string
-}
-
-variable "aws_account_id" {
-  description = "The ID of the AWS Account in which to create resources."
-  type        = string
-}
-
 variable "website_domain_name" {
   description = "The name of the website and the S3 bucket to create (e.g. static.foo.com)."
   type        = string

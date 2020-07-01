@@ -7,8 +7,7 @@
 # ---------------------------------------------------------------------------------------------------------------------
 
 terraform {
-  # Require at least 0.12.26. TODO: explain why
-  required_version = "~> 0.12.26"
+  required_version = "~> 0.12.6"
 
   required_providers {
     aws = "~> 2.6"
