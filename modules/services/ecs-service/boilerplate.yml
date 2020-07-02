@@ -1,0 +1,61 @@
+# ECS service module boilerplate template
+#
+# This folder contains a boilerplate template that can be used to create a reusable module for a single ECS service
+
+variables:
+  - name: EcsServiceModuleName
+    description: What is the name of this ECS Service Module? e.g. ecs-service
+
+  - name: InstallCloudWatchMonitoring
+    description: Should we install the CloudWatch Monitoring and Alarms Package (true or false)?
+    type: bool
+
+  - name: ConfigureCanaryDeployment
+    description: Should we configure canary deployment for this service? This creates a second ECS Service of size 1 that can be used to deploy a single Task with a new version of the app before doing a full roll out.
+    type: bool
+    default: false
+
+  - name: ModuleEcsVersion
+    description: What version of module-ecs should we use?
+
+  - name: ModuleAwsMonitoringVersion
+    description: What version of module-aws-monitoring should we use?
+
+  - name: IncludeAutoScalingExample
+    description: Should we include an example of how to auto scaling the service based on CPU usage (true or false)?
+    type: bool
+    default: false
+
+  - name: UseCustomDockerRunCommand
+    description: Should the user be allowed to define a custom Docker run command (true or false)?
+    type: bool
+    default: false
+
+  - name: ExposeEcsServiceToOtherEcsNodes
+    description: Should we expose all of this ECS Service's host ports to other ECS Nodes? This is useful for any "mesh" services like NATS where node A wants to connect directly to Node B. (true or false)
+    type: bool
+    default: false
+
+  - name: IncludeDatabaseUrl
+    description: Does this service need a database URL passed in as a Terraform variable and exposed as an environment variable in User Data (true or false)?
+    type: bool
+    default: false
+
+  - name: CustomerUsesAurora
+    description: Set to true if the customer uses Aurora. Set to false if they use any other RDS DB. Only used if IncludeDatabaseUrl is true.
+    type: bool
+    default: false
+
+  - name: ModuleTerraformUtilitiesVersion
+    description: What versino of package-terraform-utilities should we use?
+
+  - name: KmsKeyIsGlobal
+    description: Set to true if the kms-master-key module defined in an _global folder (i.e. there is just one CMK in this account, which is common for multi-account setups). Set it to false if there is one KMS key per region (which is common for single-account setups).
+    type: bool
+    default: false
+
+  - name: TerraformRequiredVersion
+    description: "The version of Terraform the customer should use. This should be a version expression such as '= 10.5.7.'"
+
+  - name: AWSProviderVersion
+    description: "The version of the AWS provider the customer should use. This should be a version expression, such as '~> 2.0`"
