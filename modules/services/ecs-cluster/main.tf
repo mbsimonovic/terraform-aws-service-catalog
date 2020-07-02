@@ -188,12 +188,12 @@ resource "aws_cloudwatch_metric_alarm" "high_cpu_utilization" {
   dimensions = {
     AutoScalingGroupName = module.ecs_cluster.ecs_cluster_asg_name
   }
-  comparison_operator = "GreaterThanOrEqualToThreshold"
-  evaluation_periods  = "3"
-  period              = "60"
-  statistic           = "Average"
-  threshold           = "75"
-  unit                = "Percent"
+  comparison_operator = var.high_cpu_utilization_comparison_operator
+  evaluation_periods  = var.high_cpu_utilization_evaluation_periods
+  period              = var.high_cpu_utilization_period
+  statistic           = var.high_cpu_utilization_statistic
+  threshold           = var.high_cpu_utilization_threshold
+  unit                = var.high_cpu_utilization_unit
   alarm_actions       = [aws_autoscaling_policy.scale_out[count.index].arn]
 }
 
@@ -222,12 +222,12 @@ resource "aws_cloudwatch_metric_alarm" "low_cpu_utilization" {
   dimensions = {
     AutoScalingGroup = module.ecs_cluster.ecs_cluster_asg_name
   }
-  comparison_operator = "LessThanThreshold"
-  evaluation_periods  = "10"
-  period              = "60"
-  statistic           = "Average"
-  threshold           = "50"
-  unit                = "Percent"
+  comparison_operator = var.low_cpu_utilization_comparison_operator
+  evaluation_periods  = var.low_cpu_utilization_evaluation_periods
+  period              = var.low_cpu_utilization_period
+  statistic           = var.low_cpu_utilization_statistic
+  threshold           = var.low_cpu_utilization_threshold
+  unit                = var.low_cpu_utilization_unit
   alarm_actions       = [aws_autoscaling_policy.scale_in[count.index].arn]
 }
 

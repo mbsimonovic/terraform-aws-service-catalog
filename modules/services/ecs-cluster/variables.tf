@@ -238,10 +238,35 @@ variable "alarms_sns_topic_arn" {
   default     = []
 }
 
+variable "high_cpu_utilization_comparison_operator" {
+  description = "The arithmetic operation to use when comparing the specified Statistic and Threshold. The specified Statistic value is used as the first operand. Either of the following is supported: GreaterThanOrEqualToThreshold, GreaterThanThreshold, LessThanThreshold, LessThanOrEqualToThreshold"
+  type        = string
+  default     = "GreaterThanOrEqualToThreshold"
+}
+
+variable "high_cpu_utilization_evaluation_periods" {
+  description = "The number of periods over which data is compared to the specified threshold"
+  type        = number
+  default     = 3
+}
+
 variable "high_cpu_utilization_threshold" {
   description = "Trigger an alarm if the ECS Cluster has a CPU utilization percentage above this threshold. Only used if var.enable_cloudwatch_alarms is set to true"
   type        = number
   default     = 90
+}
+
+variable "high_cpu_utilization_statistic" {
+  description = "The statistic to apply to the alarm's high CPU metric. Either of the following is supported: SampleCount, Average, Sum, Minimum, Maximum"
+  type        = string
+  default     = "Average"
+}
+
+variable "high_cpu_utilization_unit" {
+  description = "The unit for the alarm's high CPU metric"
+  type        = string
+  default     = "Percent"
+
 }
 
 variable "high_cpu_utilization_period" {
@@ -250,6 +275,42 @@ variable "high_cpu_utilization_period" {
   default     = 300
 }
 
+variable "low_cpu_utilization_comparison_operator" {
+  description = "The arithmetic operation to use when comparing the specified Statistic and Threshold. The specified Statistic value is used as the first operand. Either of the following is supported: GreaterThanOrEqualToThreshold, GreaterThanThreshold, LessThanThreshold, LessThanOrEqualToThreshold"
+  type        = string
+  default     = "LessThanThreshold"
+}
+
+variable "low_cpu_utilization_evaluation_periods" {
+  description = "The number of periods over which data is compared to the specified threshold"
+  type        = number
+  default     = 3
+}
+
+variable "low_cpu_utilization_threshold" {
+  description = "Trigger an alarm if the ECS Cluster has a CPU utilization percentage above this threshold. Only used if var.enable_cloudwatch_alarms is set to true"
+  type        = number
+  default     = 90
+}
+
+variable "low_cpu_utilization_statistic" {
+  description = "The statistic to apply to the alarm's high CPU metric. Either of the following is supported: SampleCount, Average, Sum, Minimum, Maximum"
+  type        = string
+  default     = "Average"
+}
+
+variable "low_cpu_utilization_unit" {
+  description = "The unit for the alarm's high CPU metric"
+  type        = string
+  default     = "Percent"
+
+}
+
+variable "low_cpu_utilization_period" {
+  description = "The period, in seconds, over which to measure the CPU utilization percentage. Only used if var.enable_cloudwatch_alarms is set to true"
+  type        = number
+  default     = 300
+}
 variable "high_memory_utilization_threshold" {
   description = "Trigger an alarm if the ECS Cluster has a memory utilization percentage above this threshold. Only used if var.enable_cloudwatch_alarms is set to true"
   type        = number
