@@ -23,11 +23,11 @@ module "static_website" {
   source = "git::git@github.com:rhoboat/package-static-assets.git//modules/s3-static-website?ref=1f20d731"
   #source = "/Users/rhozen/Development/Go/src/package-static-assets/modules/s3-static-website"
 
-  website_domain_name      = var.website_domain_name
-  index_document           = var.index_document
-  error_document           = var.error_document
-  base_domain_name         = var.base_domain_name
-  base_domain_name_tags    = var.base_domain_name_tags
+  website_domain_name   = var.website_domain_name
+  index_document        = var.index_document
+  error_document        = var.error_document
+  base_domain_name      = var.base_domain_name
+  base_domain_name_tags = var.base_domain_name_tags
 
   force_destroy_website            = var.force_destroy
   force_destroy_redirect           = var.force_destroy
@@ -46,16 +46,16 @@ module "cloudfront" {
   s3_bucket_is_public_website = true
   bucket_website_endpoint     = module.static_website.website_bucket_endpoint
 
-  index_document     = var.index_document
+  index_document = var.index_document
 
   min_ttl     = var.min_ttl
   max_ttl     = var.max_ttl
   default_ttl = var.default_ttl
 
-  create_route53_entries   = var.create_route53_entry
-  domain_names             = [var.website_domain_name]
-  base_domain_name         = var.base_domain_name
-  base_domain_name_tags    = var.base_domain_name_tags
+  create_route53_entries = var.create_route53_entry
+  domain_names           = [var.website_domain_name]
+  base_domain_name       = var.base_domain_name
+  base_domain_name_tags  = var.base_domain_name_tags
 
   # If var.create_route53_entry is false, the aws_acm_certificate data source won't be created. Ideally, we'd just use
   # a conditional to only use that data source if var.create_route53_entry is true, but Terraform's conditionals are
@@ -74,7 +74,7 @@ module "cloudfront" {
 
 # Note that ACM certs for CloudFront MUST be in us-east-1!
 provider "aws" {
-  alias = "east"
+  alias  = "east"
   region = "us-east-1"
 
   # Provider version 2.X series is the latest, but has breaking changes with 1.X series.
@@ -82,7 +82,7 @@ provider "aws" {
 }
 
 data "aws_acm_certificate" "cert" {
-  count = var.create_route53_entry ? 1 : 0
+  count    = var.create_route53_entry ? 1 : 0
   provider = aws.east
 
   domain   = var.acm_certificate_domain_name

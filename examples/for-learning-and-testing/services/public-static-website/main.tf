@@ -19,15 +19,15 @@ module "static_website" {
   # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/services/public-static-website?ref=v1.2.3"
   source = "../../../../modules/services/public-static-website"
 
-  website_domain_name           = var.website_domain_name
-  acm_certificate_domain_name   = var.acm_certificate_domain_name
-  base_domain_name              = var.base_domain_name
-  base_domain_name_tags         = var.base_domain_name_tags
+  website_domain_name         = var.website_domain_name
+  acm_certificate_domain_name = var.acm_certificate_domain_name
+  base_domain_name            = var.base_domain_name
+  base_domain_name_tags       = var.base_domain_name_tags
 
   # Only set this to true if, when running 'terragrunt destroy,' you want to delete the contents of the S3 buckets that
   # store the website, redirects, and access logs. Note that you must set this to true and run 'terragrunt apply' FIRST,
   # before running 'destroy'!
-  force_destroy                 = var.force_destroy
+  force_destroy = var.force_destroy
 }
 
 resource "aws_s3_bucket_object" "example_website" {

@@ -9,7 +9,8 @@
 # locally, you can use --terragrunt-source /path/to/local/checkout/of/module to override the source parameter to a
 # local check out of the module for faster iteration.
 terraform {
-  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/services/public-static-website?ref=master"
+  #source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/services/public-static-website?ref=master"
+  source = "/Users/rhozen/Development/aws-service-catalog/modules/services/public-static-website"
 }
 
 # Include all settings from the root terragrunt.hcl file
@@ -23,10 +24,10 @@ include {
 # ---------------------------------------------------------------------------------------------------------------------
 
 inputs = {
-	aws_region                   = "us-east-1"
-	aws_account_id               = "087285199408"
-	website_domain_name          = "acme-stage-static.gruntwork.in"
-  base_domain_name             = "gruntwork.in"
-  base_domain_name_tags        = {"original": "true"}
-	acm_certificate_domain_name  = "*.gruntwork.in"
+  aws_region                  = "us-east-1"
+  aws_account_id              = "087285199408"
+  website_domain_name         = "acme-stage-static.gruntwork.in"
+  base_domain_name            = "gruntwork.in"
+  base_domain_name_tags       = { "original" : "true" }
+  acm_certificate_domain_name = "*.gruntwork.in"
 }
