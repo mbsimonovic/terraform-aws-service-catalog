@@ -13,15 +13,19 @@ variable "acm_certificate_domain_name" {
   type        = string
 }
 
-variable "hosted_zone_id" {
-  description = "The hosted zone ID for the domain name managed by AWS Route 53 where the static website is hosted."
-  type        = string
-}
-
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL MODULE PARAMETERS
 # These variables have defaults, but may be overridden by the operator.
 # ---------------------------------------------------------------------------------------------------------------------
+variable "base_domain_name" {
+  type        = string
+  default     = ""
+}
+
+variable "base_domain_name_tags" {
+  type        = map
+  default     = {}
+}
 
 variable "create_route53_entry" {
   description = "If set to true, create a DNS A Record in Route 53 with the domain name in var.website_domain_name."

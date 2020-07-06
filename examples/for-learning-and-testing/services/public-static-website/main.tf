@@ -18,7 +18,8 @@ module "static_website" {
 
   website_domain_name           = var.website_domain_name
   acm_certificate_domain_name   = var.acm_certificate_domain_name
-  hosted_zone_id                = var.hosted_zone_id
+  base_domain_name              = var.base_domain_name
+  base_domain_name_tags         = var.base_domain_name_tags
 
   # Default values
   # --------------

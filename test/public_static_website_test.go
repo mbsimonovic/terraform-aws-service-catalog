@@ -7,19 +7,21 @@ import (
 
 	"github.com/gruntwork-io/terratest/modules/aws"
 	http_helper "github.com/gruntwork-io/terratest/modules/http-helper"
+	"github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPublicStaticWebsite(t *testing.T) {
 	t.Parallel()
 
 	// Uncomment the items below to skip certain parts of the test
-	//os.Setenv("TERRATEST_REGION", "us-east-1")
-	//os.Setenv("SKIP_setup", "true")
-	//os.Setenv("SKIP_deploy_terraform", "true")
-	//os.Setenv("SKIP_validate", "true")
+	// os.Setenv("TERRATEST_REGION", "us-east-1")
+	// os.Setenv("SKIP_setup", "true")
+	// os.Setenv("SKIP_deploy_terraform", "true")
+	// os.Setenv("SKIP_validate", "true")
 	//os.Setenv("SKIP_cleanup", "true")
 
 	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../", "examples/for-learning-and-testing/services/public-static-website")
@@ -49,6 +51,8 @@ func TestPublicStaticWebsite(t *testing.T) {
 
 	test_structure.RunTestStage(t, "validate", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
+		logger.Log(t, "%s")
+
 		terraform.OutputRequired(t, terraformOptions, "cloudfront_domain_names")
 		terraform.OutputRequired(t, terraformOptions, "cloudfront_id")
 		terraform.OutputRequired(t, terraformOptions, "website_s3_bucket_arn")
@@ -64,9 +68,7 @@ func TestPublicStaticWebsite(t *testing.T) {
 				return statusCode == 200 && strings.Contains(body, "example static website")
 			},
 		)
-		if err != nil {
-			t.Fatalf("Timed out waiting for example website to be available: %s", err)
-		}
+		require.NoError(t, err)
 	})
 }
 
@@ -77,11 +79,13 @@ func createStaticWebsiteTerraformOptions(
 	uniqueID string,
 ) *terraform.Options {
 	terraformOptions := createBaseTerraformOptions(t, terraformDir, awsRegion)
-	terraformOptions.Vars["hosted_zone_id"] = "Z2AJ7S3R6G9UYJ"
+	//terraformOptions.Vars["hosted_zone_id"] = "Z2AJ7S3R6G9UYJ"
 	terraformOptions.Vars["aws_region"] = "us-east-1"
 	terraformOptions.Vars["aws_account_id"] = "087285199408"
-	terraformOptions.Vars["website_domain_name"] = "acme-stage-static.gruntwork.in"
-	terraformOptions.Vars["acm_certificate_domain_name"] = "*.gruntwork.in"
+	terraformOptions.Vars["website_domain_name"] = fmt.Sprintf("acme-stage-static.%s", baseDomainForTest)
+	terraformOptions.Vars["acm_certificate_domain_name"] = acmDomainForTest
+	terraformOptions.Vars["base_domain_name"] = baseDomainForTest
+	terraformOptions.Vars["base_domain_name_tags"] = domainNameTagsForTest
 	terraformOptions.Vars["force_destroy"] = true
 	return terraformOptions
 }

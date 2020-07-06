@@ -19,11 +19,15 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "static_website" {
-  source = "git::git@github.com:gruntwork-io/package-static-assets.git//modules/s3-static-website?ref=v0.6.3"
+  #source = "git::git@github.com:gruntwork-io/package-static-assets.git//modules/s3-static-website?ref=v0.6.3"
+  source = "git::git@github.com:rhoboat/package-static-assets.git//modules/s3-static-website?ref=1f20d731"
+  #source = "/Users/rhozen/Development/Go/src/package-static-assets/modules/s3-static-website"
 
-  website_domain_name = var.website_domain_name
-  index_document      = var.index_document
-  error_document      = var.error_document
+  website_domain_name      = var.website_domain_name
+  index_document           = var.index_document
+  error_document           = var.error_document
+  base_domain_name         = var.base_domain_name
+  base_domain_name_tags    = var.base_domain_name_tags
 
   force_destroy_website            = var.force_destroy
   force_destroy_redirect           = var.force_destroy
@@ -35,7 +39,9 @@ module "static_website" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "cloudfront" {
-  source = "git::git@github.com:gruntwork-io/package-static-assets.git//modules/s3-cloudfront?ref=v0.6.3"
+  #source = "git::git@github.com:gruntwork-io/package-static-assets.git//modules/s3-cloudfront?ref=v0.6.3"
+  #source = "/Users/rhozen/Development/Go/src/package-static-assets/modules/s3-cloudfront"
+  source = "git::git@github.com:rhoboat/package-static-assets.git//modules/s3-cloudfront?ref=1f20d731"
 
   bucket_name                 = var.website_domain_name
   s3_bucket_is_public_website = true
@@ -47,9 +53,10 @@ module "cloudfront" {
   max_ttl     = var.max_ttl
   default_ttl = var.default_ttl
 
-  create_route53_entries = var.create_route53_entry
-  domain_names           = [var.website_domain_name]
-  hosted_zone_id         = var.hosted_zone_id
+  create_route53_entries   = var.create_route53_entry
+  domain_names             = [var.website_domain_name]
+  base_domain_name         = var.base_domain_name
+  base_domain_name_tags    = var.base_domain_name_tags
 
   # If var.create_route53_entry is false, the aws_acm_certificate data source won't be created. Ideally, we'd just use
   # a conditional to only use that data source if var.create_route53_entry is true, but Terraform's conditionals are
