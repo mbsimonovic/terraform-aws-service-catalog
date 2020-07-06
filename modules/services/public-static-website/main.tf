@@ -40,7 +40,6 @@ module "static_website" {
 
 module "cloudfront" {
   #source = "git::git@github.com:gruntwork-io/package-static-assets.git//modules/s3-cloudfront?ref=v0.6.3"
-  #source = "/Users/rhozen/Development/Go/src/package-static-assets/modules/s3-cloudfront"
   source = "git::git@github.com:rhoboat/package-static-assets.git//modules/s3-cloudfront?ref=1f20d731"
 
   bucket_name                 = var.website_domain_name

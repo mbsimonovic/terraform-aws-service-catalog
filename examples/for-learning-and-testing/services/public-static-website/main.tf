@@ -14,21 +14,15 @@ provider "aws" {
 }
 
 module "static_website" {
+  # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
+  # to a specific version of the modules, such as the following example:
+  # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/services/public-static-website?ref=v1.2.3"
   source = "../../../../modules/services/public-static-website"
 
   website_domain_name           = var.website_domain_name
   acm_certificate_domain_name   = var.acm_certificate_domain_name
   base_domain_name              = var.base_domain_name
   base_domain_name_tags         = var.base_domain_name_tags
-
-  # Default values
-  # --------------
-  # create_route53_entry          = true
-  #
-  # CloudFront cache settings
-  # default_ttl                   = 30
-  # max_ttl                       = 60
-  # min_ttl                       = 0
 
   # Only set this to true if, when running 'terragrunt destroy,' you want to delete the contents of the S3 buckets that
   # store the website, redirects, and access logs. Note that you must set this to true and run 'terragrunt apply' FIRST,

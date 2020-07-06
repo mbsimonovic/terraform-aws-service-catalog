@@ -9,7 +9,7 @@ variable "website_domain_name" {
 }
 
 variable "acm_certificate_domain_name" {
-  description = "The domain name for which an ACM cert has been issues (e.g. *.foo.com).  Only used if var.create_route53_entry is true. Set to blank otherwise."
+  description = "The domain name for which an ACM cert has been issued (e.g. *.foo.com). Only used if var.create_route53_entry is true. Set to blank otherwise."
   type        = string
 }
 
@@ -18,11 +18,13 @@ variable "acm_certificate_domain_name" {
 # These variables have defaults, but may be overridden by the operator.
 # ---------------------------------------------------------------------------------------------------------------------
 variable "base_domain_name" {
+  description = "The domain name associated with a hosted zone in Route 53. Usually the base domain name of var.website_domain_name (e.g. foo.com). This is used to find the hosted zone that will be used for the CloudFront distribution."
   type        = string
   default     = ""
 }
 
 variable "base_domain_name_tags" {
+  description = "The tags associated with var.base_domain_name. If there are multiple hosted zones for the same base_domain_name, this will help filter the hosted zones so that the correct hosted zone is found."
   type        = map
   default     = {}
 }

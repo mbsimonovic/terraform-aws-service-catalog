@@ -25,9 +25,8 @@ include {
 inputs = {
 	aws_region                   = "us-east-1"
 	aws_account_id               = "087285199408"
-	website_domain_name          = "acme-stage.gruntwork.in"
-	terraform_state_aws_region   = "us-east-1"
-	terraform_state_s3_bucket    = "acme-test-static-website_state"
+	website_domain_name          = "acme-stage-static.gruntwork.in"
+  base_domain_name             = "gruntwork.in"
+  base_domain_name_tags        = {"original": "true"}
 	acm_certificate_domain_name  = "*.gruntwork.in"
-	hosted_zone_id               = "Z2AJ7S3R6G9UYJ"
 }

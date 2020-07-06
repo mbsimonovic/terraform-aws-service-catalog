@@ -22,7 +22,7 @@ func TestPublicStaticWebsite(t *testing.T) {
 	// os.Setenv("SKIP_setup", "true")
 	// os.Setenv("SKIP_deploy_terraform", "true")
 	// os.Setenv("SKIP_validate", "true")
-	//os.Setenv("SKIP_cleanup", "true")
+	// os.Setenv("SKIP_cleanup", "true")
 
 	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../", "examples/for-learning-and-testing/services/public-static-website")
 
