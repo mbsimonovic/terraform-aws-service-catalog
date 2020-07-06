@@ -23,9 +23,25 @@ variable "cluster_instance_type" {
   type        = string
 }
 
-variable "cluster_instance_ami_id" {
-  description = "The AMI to run on each instance in the ECS cluster. You can build the AMI using the Packer template under packer/build.json."
+variable "cluster_instance_ami" {
+  description = "The AMI to run on each instance in the ECS cluster. You can build the AMI using the Packer template ecs-node-al2.json. One of var.cluster_instance_ami or var.cluster_instance_ami_filters is required."
   type        = string
+}
+
+variable "cluster_instance_ami_filters" {
+  description = "Properties on the AMI that can be used to lookup a prebuilt AMI for use with ECS workers. You can build the AMI using the Packer template ecs-node-al2.json. Only used if var.cluster_instance_ami is null. One of var.cluster_instance_ami or var.cluster_instance_ami_filters is required. Set to null if cluster_instance_ami is set."
+  type = object({
+    # List of owners to limit the search. Set to null if you do not wish to limit the search by AMI owners.
+    owners = list(string)
+
+    # Name/Value pairs to filter the AMI off of. There are several valid keys, for a full reference, check out the
+    # documentation for describe-images in the AWS CLI reference
+    # (https://docs.aws.amazon.com/cli/latest/reference/ec2/describe-images.html).
+    filters = list(object({
+      name   = string
+      values = list(string)
+    }))
+  })
 }
 
 variable "vpc_id" {

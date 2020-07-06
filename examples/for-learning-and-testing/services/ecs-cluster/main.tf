@@ -14,9 +14,23 @@ module "ecs_cluster" {
   # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/services/ecs-cluster?ref=1.0.8"
   source = "../../../../modules/services/ecs-cluster"
 
-  cluster_name            = var.cluster_name
-  cluster_instance_ami_id = var.cluster_instance_ami_id
-  cluster_instance_type   = "t3.small"
+  cluster_name          = var.cluster_name
+  cluster_instance_type = "t3.small"
+  cluster_instance_ami  = null
+  cluster_instance_ami_filters = {
+    owners = ["self"]
+    filters = [
+      {
+        name   = "tag:service"
+        values = ["eks-cluster-instance"]
+      },
+      {
+        name   = "tag:version"
+        values = [var.cluster_instance_ami_version_tag]
+      },
+    ]
+  }
+
 
   cluster_max_size = var.cluster_max_size
   cluster_min_size = var.cluster_min_size

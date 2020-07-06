@@ -64,7 +64,7 @@ func buildAmi(t *testing.T, testFolder string) {
 
 	branchName := git.GetCurrentBranchName(t)
 	packerOptions := &packer.Options{
-		Template: "../modules/services/ecs-cluster/packer/ecs-node.json",
+		Template: "../modules/services/ecs-cluster/ecs-node-al2.json",
 		Vars: map[string]string{
 			"aws_region":          awsRegion,
 			"service_catalog_ref": branchName,
@@ -88,7 +88,7 @@ func buildAmi(t *testing.T, testFolder string) {
 }
 
 func deployECSCluster(t *testing.T, testFolder string) {
-	amiID := test_structure.LoadArtifactID(t, testFolder)
+	branchName := git.GetCurrentBranchName(t)
 	awsRegion := test_structure.LoadString(t, testFolder, "region")
 	clusterName := test_structure.LoadString(t, testFolder, "clusterName")
 	awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
@@ -105,7 +105,7 @@ func deployECSCluster(t *testing.T, testFolder string) {
 	terraformOptions.Vars["cluster_min_size"] = 1
 	terraformOptions.Vars["cluster_max_size"] = 3
 	terraformOptions.Vars["cluster_instance_type"] = "t2.medium"
-	terraformOptions.Vars["cluster_instance_ami_id"] = amiID
+	terraformOptions.Vars["cluster_instance_ami_version_tag"] = branchName
 	terraformOptions.Vars["vpc_id"] = defaultVpc.Id
 	terraformOptions.Vars["vpc_subnet_ids"] = vpcSubnetIDs
 	terraformOptions.Vars["cluster_instance_keypair_name"] = awsKeyPair.Name
