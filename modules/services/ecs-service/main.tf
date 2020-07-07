@@ -2,77 +2,49 @@
 # DEPLOY AN ECS SERVICE
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# ---------------------------------------------------------------------------------------------------------------------
-# CONFIGURE OUR AWS CONNECTION
-# ---------------------------------------------------------------------------------------------------------------------
-
-provider "aws" {
-  # The AWS region in which all resources will be created
-  region = var.aws_region
-
-  # Provider version 2.X series is the latest, but has breaking changes with 1.X series.
-  version = "{{ .AWSProviderVersion }}"
-
-  # Only these AWS Account IDs may be operated on by this template
-  allowed_account_ids = [var.aws_account_id]
-}
-
-# ---------------------------------------------------------------------------------------------------------------------
-# CONFIGURE REMOTE STATE STORAGE
-# ---------------------------------------------------------------------------------------------------------------------
-
 terraform {
-  # The configuration for this backend will be filled in by Terragrunt
-  backend "s3" {}
+  # Require at least 0.12.6, which added for_each support; make sure we don't accidentally pull in 0.13.x, as that may
+  # have backwards incompatible changes when it comes out.
+  required_version = "~> 0.12.6"
 
-  # Only allow this Terraform version. Note that if you upgrade to a newer version, Terraform won't allow you to use an
-  # older version, so when you upgrade, you should upgrade everyone on your team and your CI servers all at once.
-  required_version = "{{ .TerraformRequiredVersion }}"
+  required_providers {
+    aws = "~> 2.6"
+  }
 }
-
 
 # ---------------------------------------------------------------------------------------------------------------------
 # CREATE AN ECS SERVICE
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_service" {
-  source = "git::git@github.com:gruntwork-io/module-ecs.git//modules/ecs-service?ref={{ .ModuleEcsVersion }}"
+  source = "git::git@github.com:gruntwork-io/module-ecs.git//modules/ecs-service?ref=v0.20.4"
 
   service_name     = var.service_name
-  ecs_cluster_arn  = data.terraform_remote_state.ecs_cluster.outputs.ecs_cluster_arn
   environment_name = var.vpc_name
 
-{{- if .ConfigureCanaryDeployment }}
 
-  ecs_task_container_definitions = data.template_file.container_definition.0.rendered
-  desired_number_of_tasks        = var.desired_number_of_tasks
+  ecs_cluster_arn = var.ecs_cluster_arn
 
-  ecs_task_definition_canary            = data.template_file.container_definition.1.rendered
-  desired_number_of_canary_tasks_to_run = var.desired_number_of_canary_tasks
-{{- else }}
+  ecs_task_container_definitions = var.canary_deployment ? data.template_file.container_definition.0.rendered : data.template_file.container_definition.rendered
 
-  ecs_task_container_definitions = data.template_file.container_definition.rendered
-  desired_number_of_tasks        = var.desired_number_of_tasks
-{{- end -}}
+  ecs_task_definition_canary            = var.canary_deployment ? data.template_file.container_definition.1.rendered : null
+  desired_number_of_canary_tasks_to_run = var.canary_deployment ? var.desired_number_of_canary_tasks_to_run : null
 
-{{- if .IncludeAutoScalingExample }}
+  desired_number_of_tasks = var.desired_number_of_tasks
 
   # Tell the ECS Service that we are using auto scaling, so the desired_number_of_tasks setting is only used to control
   # the initial number of Tasks, and auto scaling is used to determine the size after that.
-  use_auto_scaling = true
-  min_number_of_tasks = var.min_number_of_tasks
-  max_number_of_tasks = var.max_number_of_tasks
-{{- end }}
+  use_auto_scaling    = var.use_auto_scaling
+  min_number_of_tasks = var.use_auto_scaling ? var.min_number_of_tasks : null
+  max_number_of_tasks = var.use_auto_scaling ? var.max_number_of_tasks : null
 
   deployment_maximum_percent         = var.deployment_maximum_percent
   deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
 }
 
-{{- if .ExposeEcsServiceToOtherEcsNodes }}
-
 # Update the ECS Node Security Group to allow the ECS Service to be accessed directly from an ECS Node (versus only from the ELB).
 resource "aws_security_group_rule" "custom_permissions" {
-  count = var.num_port_mappings
+  count = var.expose_ecs_service_to_other_ecs_nodes ? var.num_port_mappings : 0
 
   type      = "ingress"
   from_port = element(values(var.port_mappings), count.index)
@@ -82,7 +54,6 @@ resource "aws_security_group_rule" "custom_permissions" {
   source_security_group_id = data.terraform_remote_state.ecs_cluster.outputs.ecs_instance_security_group_id
   security_group_id        = data.terraform_remote_state.ecs_cluster.outputs.ecs_instance_security_group_id
 }
-{{ end -}}
 
 # ---------------------------------------------------------------------------------------------------------------------
 # CREATE THE CONTAINER DEFINITION THAT SPECIFIES WHAT DOCKER CONTAINERS TO RUN AND THE RESOURCES THEY NEED
@@ -90,31 +61,27 @@ resource "aws_security_group_rule" "custom_permissions" {
 
 # Create the "container" portion of the ECS Task definition.
 data "template_file" "container_definition" {
-{{- if .ConfigureCanaryDeployment }}
-  # We create two container definitions: the first one is for normal deployment and the second one is for canary deployment
-  count = 2
-{{- end }}
+  # If var.canary_deployment is set to true, we create two container definitions: the first one is for normal deployment and the second one is for the canary deployment
+  count = var.canary_deployment ? 2 : 1
 
   template = file("${path.module}/container-definition/container-definition.json")
 
   vars = {
     image          = var.image
     container_name = var.service_name
-    version        = {{ if .ConfigureCanaryDeployment }}[var.image_version, var.canary_version][count.index]{{ else }}var.image_version{{ end }}
+    version        = var.canary_deployment ? [var.image_version, var.canary_version][count.index] : var.image_version
     cpu            = var.cpu
     memory         = var.memory
     vpc_name       = var.vpc_name
     port_mappings  = "[${join(",", data.template_file.port_mappings.*.rendered)}]"
     env_vars       = "[${join(",", data.template_file.all_env_vars.*.rendered)}]"
-  {{- if .UseCustomDockerRunCommand }}
-    command        = join(",", formatlist("\"%s\"", var.custom_docker_command))
-  {{- end }}
+    command        = var.use_custom_docker_run_command ? join(",", formatlist("\"%s\"", var.custom_docker_command)) : null
   }
 }
 
 # Convert the maps of ports to the container definition JSON format.
 data "template_file" "port_mappings" {
-  count = length(var.ecs_node_port_mappings)
+  count    = length(var.ecs_node_port_mappings)
   template = <<EOF
 {
   "containerPort": ${var.ecs_node_port_mappings[element(keys(var.ecs_node_port_mappings), count.index)]},
@@ -129,11 +96,8 @@ locals {
   #
   # NOTE: if you add a default env var, make sure to update the count in data.template_file.all_env_vars!!!
   default_env_vars = map(
-    var.vpc_env_var_name, var.vpc_name,
-    var.aws_region_env_var_name, var.aws_region
-    {{- if .IncludeDatabaseUrl }},
-    var.db_url_env_var_name, data.terraform_remote_state.db.outputs.primary_endpoint
-    {{- end }}
+    var.aws_region_env_var_name, var.aws_region,
+    var.db_url_env_var_name, var.db_primary_endpoint,
   )
 
   # Merge the default env vars with any extra env vars passed in by the user into a single map
@@ -144,7 +108,7 @@ locals {
 data "template_file" "all_env_vars" {
   # Terraform does not allow us to depend on modules, data sources, or any other dynamic data in the count parameter,
   # so we have to manually add the number of env vars in var.extra_env_vars and local.default_env_vars.
-  count = var.num_extra_env_vars + {{ if .IncludeDatabaseUrl }}3{{ else }}2{{ end }}}
+  count    = var.num_extra_env_vars + 2
   template = <<EOF
 {
   "name": "${element(keys(local.all_env_vars), count.index)}",
@@ -159,20 +123,19 @@ EOF
 
 # Give this ECS Service access to the KMS Master Key so it can use it to decrypt secrets in config files.
 resource "aws_iam_role_policy" "access_kms_master_key" {
-  name = "access-kms-master-key"
-  role = module.ecs_service.ecs_task_iam_role_name
+  name   = "access-kms-master-key"
+  role   = module.ecs_service.ecs_task_iam_role_name
   policy = data.aws_iam_policy_document.access_kms_master_key.json
 }
 
 # Create an IAM Policy for acessing the KMS Master Key
 data "aws_iam_policy_document" "access_kms_master_key" {
   statement {
-    effect = "Allow"
-    actions = ["kms:Decrypt"]
-    resources = [data.terraform_remote_state.kms_master_key.outputs.key_arn]
+    effect    = "Allow"
+    actions   = ["kms:Decrypt"]
+    resources = [var.kms_master_key_arn]
   }
 }
-{{- if .InstallCloudWatchMonitoring }}
 
 # ---------------------------------------------------------------------------------------------------------------------
 # ADD CLOUDWATCH ALARMS TO ALERT OPERATORS TO IMPORTANT ISSUES
@@ -180,11 +143,12 @@ data "aws_iam_policy_document" "access_kms_master_key" {
 
 # Add CloudWatch Alarms that go off if the ECS Service's CPU or Memory usage gets too high.
 module "ecs_service_cpu_memory_alarms" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/ecs-service-alarms?ref={{ .ModuleAwsMonitoringVersion }}"
+  count  = var.enable_cloudwatch_alarms ? 1 : 0
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/ecs-service-alarms?ref=var.module_aws_monitoring_version"
 
   ecs_service_name     = var.service_name
-  ecs_cluster_name     = data.terraform_remote_state.ecs_cluster.outputs.ecs_cluster_name
-  alarm_sns_topic_arns = [data.terraform_remote_state.sns_region.outputs.arn]
+  ecs_cluster_name     = var.ecs_cluster_name
+  alarm_sns_topic_arns = [var.alarm_sns_topic_arn]
 
   high_cpu_utilization_threshold    = var.high_cpu_utilization_threshold
   high_cpu_utilization_period       = var.high_cpu_utilization_period
@@ -193,7 +157,8 @@ module "ecs_service_cpu_memory_alarms" {
 }
 
 module "metric_widget_ecs_service_cpu_usage" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref={{ .ModuleAwsMonitoringVersion }}"
+  count  = var.enable_cloudwatch_alarms ? 1 : 0
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=var.module_aws_monitoring_version"
 
   period = 60
   stat   = "Average"
@@ -205,7 +170,8 @@ module "metric_widget_ecs_service_cpu_usage" {
 }
 
 module "metric_widget_ecs_service_memory_usage" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref={{ .ModuleAwsMonitoringVersion }}"
+  count  = var.enable_cloudwatch_alarms ? 1 : 0
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=var.module_aws_monitoring_version"
 
   period = 60
   stat   = "Average"
@@ -215,9 +181,6 @@ module "metric_widget_ecs_service_memory_usage" {
     ["AWS/ECS", "MemoryUtilization", "ClusterName", data.terraform_remote_state.ecs_cluster.outputs.ecs_cluster_name, "ServiceName", var.service_name],
   ]
 }
-{{- end }}
-
-{{- if .IncludeAutoScalingExample }}
 
 # ---------------------------------------------------------------------------------------------------------------------
 # ENABLE AUTO SCALING OF THIS ECS SERVICE'S CONTAINERS
@@ -226,6 +189,7 @@ module "metric_widget_ecs_service_memory_usage" {
 
 # Create an Auto Scaling Policy to scale the number of ECS Tasks up in response to load.
 resource "aws_appautoscaling_policy" "scale_out" {
+  count       = var.enable_autoscaling ? 1 : 0
   name        = "${var.service_name}-scale-out"
   resource_id = "service/${data.terraform_remote_state.ecs_cluster.outputs.ecs_cluster_name}/${var.service_name}"
 
@@ -235,7 +199,7 @@ resource "aws_appautoscaling_policy" "scale_out" {
 
   step_adjustment {
     metric_interval_lower_bound = 0
-    scaling_adjustment = 1
+    scaling_adjustment          = 1
   }
 
   # NOTE: due to a Terraform bug, this depends_on does not actually help, and it's possible the auto scaling target has
@@ -248,16 +212,17 @@ resource "aws_appautoscaling_policy" "scale_out" {
 
 # Create an Auto Scaling Policy to scale the number of ECS Tasks down in response to load.
 resource "aws_appautoscaling_policy" "scale_in" {
+  count       = var.enable_autoscaling ? 1 : 0
   name        = "${var.service_name}-scale-in"
   resource_id = "service/${data.terraform_remote_state.ecs_cluster.outputs.ecs_cluster_name}/${var.service_name}"
 
-  adjustment_type = "ChangeInCapacity"
-  cooldown = 60
+  adjustment_type         = "ChangeInCapacity"
+  cooldown                = 60
   metric_aggregation_type = "Average"
 
   step_adjustment {
     metric_interval_lower_bound = 0
-    scaling_adjustment = -1
+    scaling_adjustment          = -1
   }
 
   # NOTE: due to a Terraform bug, this depends_on does not actually help, and it's possible the auto scaling target has
@@ -270,106 +235,40 @@ resource "aws_appautoscaling_policy" "scale_in" {
 
 # Create a CloudWatch Alarm to trigger our Auto Scaling Policies if CPU Utilization gets too high.
 resource "aws_cloudwatch_metric_alarm" "high_cpu_usage" {
+  count             = var.enable_cloudwatch_alarms ? 1 : 0
   alarm_name        = "${var.service_name}-high-cpu-usage"
   alarm_description = "An alarm that triggers auto scaling if the CPU usage for service ${var.service_name} gets too high"
-  namespace = "AWS/ECS"
-  metric_name = "CPUUtilization"
+  namespace         = "AWS/ECS"
+  metric_name       = "CPUUtilization"
   dimensions {
     ClusterName = "${data.terraform_remote_state.ecs_cluster.outputs.ecs_cluster_name}"
     ServiceName = "${var.service_name}"
   }
   comparison_operator = "GreaterThanOrEqualToThreshold"
-  evaluation_periods = "1"
-  period = "60"
-  statistic = "Average"
-  threshold = "90"
-  unit = "Percent"
-  alarm_actions = [aws_appautoscaling_policy.scale_out.arn]
+  evaluation_periods  = "1"
+  period              = "60"
+  statistic           = "Average"
+  threshold           = "90"
+  unit                = "Percent"
+  alarm_actions       = [aws_appautoscaling_policy.scale_out.arn]
 }
 
 # Create a CloudWatch Alarm to trigger our Auto Scaling Policies if CPU Utilization gets sufficiently low.
 resource "aws_cloudwatch_metric_alarm" "low_cpu_usage" {
-  alarm_name = "${var.service_name}-low-cpu-usage"
+  count             = var.enable_cloudwatch_alarms ? 1 : 0
+  alarm_name        = "${var.service_name}-low-cpu-usage"
   alarm_description = "An alarm that triggers auto scaling if the CPU usage for service ${var.service_name} gets too low"
-  namespace = "AWS/ECS"
-  metric_name = "CPUUtilization"
+  namespace         = "AWS/ECS"
+  metric_name       = "CPUUtilization"
   dimensions {
     ClusterName = data.terraform_remote_state.ecs_cluster.outputs.ecs_cluster_name
     ServiceName = var.service_name
   }
   comparison_operator = "LessThanThreshold"
-  evaluation_periods = "1"
-  period = "60"
-  statistic = "Average"
-  threshold = "70"
-  unit = "Percent"
-  alarm_actions = [aws_appautoscaling_policy.scale_in.arn]
+  evaluation_periods  = "1"
+  period              = "60"
+  statistic           = "Average"
+  threshold           = "70"
+  unit                = "Percent"
+  alarm_actions       = [aws_appautoscaling_policy.scale_in.arn]
 }
-{{- end }}
-
-# ---------------------------------------------------------------------------------------------------------------------
-# PULL DATA FROM OTHER TERRAFORM TEMPLATES USING TERRAFORM REMOTE STATE
-# These templates use Terraform remote state to access data from a number of other Terraform templates, all of which
-# store their state in S3 buckets.
-# ---------------------------------------------------------------------------------------------------------------------
-
-data "terraform_remote_state" "vpc" {
-  backend = "s3"
-  config = {
-    region = var.terraform_state_aws_region
-    bucket = var.terraform_state_s3_bucket
-    key    = "${var.aws_region}/${var.vpc_name}/vpc/terraform.tfstate"
-  }
-}
-
-data "terraform_remote_state" "ecs_cluster" {
-  backend = "s3"
-  config = {
-    region = var.terraform_state_aws_region
-    bucket = var.terraform_state_s3_bucket
-    key    = "${var.aws_region}/${var.vpc_name}/services/ecs-cluster/terraform.tfstate"
-  }
-}
-
-{{- if .InstallCloudWatchMonitoring }}
-
-data "terraform_remote_state" "sns_region" {
-  backend = "s3"
-  config = {
-    region = var.terraform_state_aws_region
-    bucket = var.terraform_state_s3_bucket
-    key    = "${var.aws_region}/_global/sns-topics/terraform.tfstate"
-  }
-}
-
-# Route 53 health check alarms can only go to the us-east-1 region
-data "terraform_remote_state" "sns_us_east_1" {
-  backend = "s3"
-  config = {
-    region = "${var.terraform_state_aws_region}"
-    bucket = "${var.terraform_state_s3_bucket}"
-    key = "us-east-1/_global/sns-topics/terraform.tfstate"
-  }
-}
-{{- end }}
-
-data "terraform_remote_state" "kms_master_key" {
-  backend = "s3"
-  config = {
-    region = var.terraform_state_aws_region
-    bucket = var.terraform_state_s3_bucket
-    key    = "${var.aws_region}/{{ if .KmsKeyIsGlobal }}_global{{ else }}${var.vpc_name}{{ end }}/${var.terraform_state_kms_master_key}/terraform.tfstate"
-  }
-}
-
-{{- if .IncludeDatabaseUrl }}
-
-data "terraform_remote_state" "db" {
-  backend = "s3"
-  config = {
-    region = var.terraform_state_aws_region
-    bucket = var.terraform_state_s3_bucket
-    key    = "${var.aws_region}/${var.vpc_name}/${var.db_remote_state_path}"
-  }
-}
-{{- end }}
