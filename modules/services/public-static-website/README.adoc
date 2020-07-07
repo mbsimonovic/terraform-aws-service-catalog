@@ -2,11 +2,11 @@
 :name: Public Static Website
 :description: Deploy your static content and static websites on S3, using a CloudFront CDN. Supports bucket versioning, redirects, and access logging.
 :icon: /_docs/s3.png
-:category: static website
+:category: static-website
 :cloud: aws
 :tags: cloudfront, s3, website, static website
 :license: gruntwork
-:built-with: terraform, bash, python, go
+:built-with: terraform
 
 // AsciiDoc TOC settings
 :toc:
@@ -27,10 +27,9 @@ endif::[]
 image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
 image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
 
-This module creates an AWS S3 bucket that can be used to host a static website. That is, the website can contain static HTML, CSS, JS, and images.
+This module creates a public static website using https://docs.aws.amazon.com/s3/index.html[S3] and https://docs.aws.amazon.com/cloudfront/index.html[CloudFront] on https://aws.amazon.com[AWS]. The website can contain static HTML, CSS, JS, and images.
 
-This module creates a public static website using https://www.terraform.io[Terraform] code. It uses
-https://docs.aws.amazon.com/s3/index.html[S3] and https://docs.aws.amazon.com/cloudfront/index.html[CloudFront] on https://aws.amazon.com[AWS].
+image::../_docs/s3-architecture.png?raw=true[Static S3 Website]
 
 toc::[]
 
