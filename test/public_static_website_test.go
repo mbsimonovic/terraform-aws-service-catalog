@@ -79,7 +79,7 @@ func createStaticWebsiteTerraformOptions(
 	uniqueID string,
 ) *terraform.Options {
 	terraformOptions := createBaseTerraformOptions(t, terraformDir, awsRegion)
-	terraformOptions.Vars["aws_region"] = "ap-southwest-1"
+	terraformOptions.Vars["aws_region"] = "eu-west-1"
 	terraformOptions.Vars["aws_account_id"] = "087285199408"
 	terraformOptions.Vars["website_domain_name"] = fmt.Sprintf("acme-stage-static-%s.%s", uniqueID, baseDomainForTest)
 	terraformOptions.Vars["acm_certificate_domain_name"] = acmDomainForTest
