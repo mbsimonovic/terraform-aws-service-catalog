@@ -23,7 +23,7 @@ include {
 # ---------------------------------------------------------------------------------------------------------------------
 
 inputs = {
-  aws_region                  = "us-east-1"
+  aws_region                  = "eu-west-1"
   aws_account_id              = "087285199408"
   website_domain_name         = "acme-stage-static.gruntwork.in"
   base_domain_name            = "gruntwork.in"
