@@ -22,7 +22,7 @@ module "ecs_cluster" {
     filters = [
       {
         name   = "tag:service"
-        values = ["eks-cluster-instance"]
+        values = ["ecs-cluster-instance"]
       },
       {
         name   = "tag:version"
