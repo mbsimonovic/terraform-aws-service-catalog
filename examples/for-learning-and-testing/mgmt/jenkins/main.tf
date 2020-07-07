@@ -14,8 +14,22 @@ module "jenkins" {
 
   name          = var.name
   instance_type = "t3.small"
-  ami           = var.ami_id
   memory        = "512m"
+  ami           = null
+  ami_filters = {
+    owners = ["self"]
+    filters = [
+      {
+        name   = "tag:service"
+        values = ["jenkins-server"]
+      },
+      {
+        name   = "tag:version"
+        values = [var.ami_version_tag]
+      },
+    ]
+  }
+
 
   # For this simple example, use a regular key pair instead of ssh-grunt
   keypair_name     = var.keypair_name

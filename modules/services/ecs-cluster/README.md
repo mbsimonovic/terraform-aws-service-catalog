@@ -44,14 +44,14 @@ instance:
 ### Build the AMI
 
 Each EC2 instance in the ECS cluster should run an AMI built using the [Packer](https://www.packer.io/) template in
-`packer/ecs-node.json`. To build the AMI:
+`ecs-node-al2.json`. To build the AMI:
 
 1. Install [Packer](https://www.packer.io/).
 1. Set your AWS credentials as the environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
 1. Set your [GitHub access token](https://help.github.com/articles/creating-an-access-token-for-command-line-use/)
    as the environment variable `GITHUB_OAUTH_TOKEN`. Your GitHub account must have access to the Gruntwork GitHub
-   repos mentioned in `packer/ecs-node.json`; if you don't have access to those, email support@gruntwork.io.
-1. Run `packer build ecs-node.json`.
+   repos mentioned in `ecs-node-al2.json`; if you don't have access to those, email support@gruntwork.io.
+1. Run `packer build ecs-node-al2.json`.
 1. When the build completes, it'll output the id of the new AMI.
 
 
@@ -66,10 +66,10 @@ Each EC2 instance in the ECS cluster should run an AMI built using the [Packer](
 
 ## How do you deploy updates to the cluster?
 
-If you want to update the EC2 instances running in the ECS cluster (e.g. roll out a new AMI), you must use the 
-`roll-out-ecs-cluster-update.py` script in the Gruntwork 
+If you want to update the EC2 instances running in the ECS cluster (e.g. roll out a new AMI), you must use the
+`roll-out-ecs-cluster-update.py` script in the Gruntwork
 [ecs-module](https://github.com/gruntwork-io/module-ecs/tree/master/modules/ecs-cluster). Check out the
-[How do you make changes to the EC2 Instances in the 
+[How do you make changes to the EC2 Instances in the
 cluster?](https://github.com/gruntwork-io/module-ecs/tree/master/modules/ecs-cluster#how-do-you-make-changes-to-the-ec2-instances-in-the-cluster)
 documentation for details.
 

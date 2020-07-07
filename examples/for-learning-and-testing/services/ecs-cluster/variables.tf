@@ -1,10 +1,12 @@
 # ---------------------------------------------------------------------------------------------------------------------
 # REQUIRED PARAMETERS
 # ---------------------------------------------------------------------------------------------------------------------
-variable "cluster_instance_ami_id" {
-  description = "The ID of the AMI to run for the ECS instances. Should be built from the Packer template in modules/services/ecs-cluster/packer/ecs-node.json"
+
+variable "cluster_instance_ami_version_tag" {
+  description = "The version string of the AMI to run for the ECS workers built from the template in modules/services/ecs-cluster/ecs-node-al2.json. This corresponds to the value passed in for version_tag in the Packer template."
   type        = string
 }
+
 
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL PARAMETERS 

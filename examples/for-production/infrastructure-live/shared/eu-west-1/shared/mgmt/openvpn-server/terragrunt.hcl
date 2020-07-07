@@ -39,6 +39,10 @@ locals {
   account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
 
   openvpn_backup_bucket_name = "${local.common_vars.locals.name_prefix}-openvpn-backup-bucket-${local.account_vars.locals.account_name}"
+
+  # Version tag to use when looking up AMI. By separating out into its own local, we can update this with
+  # terraform-update-variable.
+  ami_version_tag = "v1.0.0"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -49,7 +53,20 @@ locals {
 inputs = {
   vpc_id    = dependency.vpc.outputs.vpc_id
   subnet_id = dependency.vpc.outputs.public_subnet_ids[0]
-  ami       = "ami-abcd1234"
+  ami       = null
+  ami_filters = {
+    owners = ["self"]
+    filters = [
+      {
+        name   = "tag:service"
+        values = ["openvpn-server"]
+      },
+      {
+        name   = "tag:version"
+        values = [local.ami_version_tag]
+      },
+    ]
+  }
 
   # Access to the vpn should be limited to specific, known CIDR blocks
   allow_ssh_from_cidr_list = ["1.2.3.0/24"]

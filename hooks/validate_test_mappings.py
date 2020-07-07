@@ -39,6 +39,9 @@ IGNORE_PREFIX_LIST = [
 
     # Ignore test fixture changes
     'test/fixtures',
+
+    # Ignore legacy packer file
+    'modules/services/ecs-cluster/packer/ecs-node.json',
 ]
 IGNORE_SUFFIX_LIST = [
     # Ignore go meta files

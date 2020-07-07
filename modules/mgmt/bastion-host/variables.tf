@@ -14,8 +14,24 @@ variable "subnet_id" {
 }
 
 variable "ami" {
-  description = "The AMI to run on the bastion host. This should be built from the Packer template under bastion-host.json."
+  description = "The AMI to run on the bastion host. This should be built from the Packer template under bastion-host.json. One of var.ami or var.ami_filters is required. Set to null if looking up the ami with filters."
   type        = string
+}
+
+variable "ami_filters" {
+  description = "Properties on the AMI that can be used to lookup a prebuilt AMI for use with the Bastion Host. You can build the AMI using the Packer template bastion-host.json. Only used if var.ami is null. One of var.ami or var.ami_filters is required. Set to null if passing the ami ID directly."
+  type = object({
+    # List of owners to limit the search. Set to null if you do not wish to limit the search by AMI owners.
+    owners = list(string)
+
+    # Name/Value pairs to filter the AMI off of. There are several valid keys, for a full reference, check out the
+    # documentation for describe-images in the AWS CLI reference
+    # (https://docs.aws.amazon.com/cli/latest/reference/ec2/describe-images.html).
+    filters = list(object({
+      name   = string
+      values = list(string)
+    }))
+  })
 }
 
 variable "allow_ssh_from_cidr_list" {

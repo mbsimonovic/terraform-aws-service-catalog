@@ -13,8 +13,22 @@ module "openvpn" {
   source = "../../../../modules/mgmt/openvpn-server"
 
   name          = var.name
-  ami_id        = var.ami_id
   instance_type = var.instance_type
+  ami           = null
+  ami_filters = {
+    owners = ["self"]
+    filters = [
+      {
+        name   = "tag:service"
+        values = ["openvpn-server"]
+      },
+      {
+        name   = "tag:version"
+        values = [var.ami_version_tag]
+      },
+    ]
+  }
+
 
   # For this simple example, use a regular key pair instead of ssh-grunt
   # For details on ssh-grunt, see: https://github.com/gruntwork-io/module-security/blob/master/modules/ssh-grunt/README.adoc

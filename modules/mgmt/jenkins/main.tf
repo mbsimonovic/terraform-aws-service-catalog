@@ -31,7 +31,7 @@ module "jenkins" {
   aws_region     = data.aws_region.current.name
   aws_account_id = data.aws_caller_identity.current.account_id
 
-  ami_id        = var.ami
+  ami_id        = module.ec2_baseline.existing_ami
   instance_type = var.instance_type
 
   user_data_base64  = module.ec2_baseline.cloud_init_rendered
@@ -83,6 +83,8 @@ module "ec2_baseline" {
   num_asg_names                       = 1
   alarms_sns_topic_arn                = var.alarms_sns_topic_arn
   cloud_init_parts                    = local.cloud_init_parts
+  ami                                 = var.ami
+  ami_filters                         = var.ami_filters
 }
 
 

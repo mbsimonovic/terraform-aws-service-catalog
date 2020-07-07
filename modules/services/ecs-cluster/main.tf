@@ -23,7 +23,7 @@ module "ecs_cluster" {
   cluster_min_size = var.cluster_min_size
   cluster_max_size = var.cluster_max_size
 
-  cluster_instance_ami          = var.cluster_instance_ami_id
+  cluster_instance_ami          = module.ec2_baseline.existing_ami
   cluster_instance_type         = var.cluster_instance_type
   cluster_instance_keypair_name = var.cluster_instance_keypair_name
   cluster_instance_user_data    = data.template_file.user_data.rendered
@@ -147,6 +147,8 @@ module "ec2_baseline" {
   enable_cloudwatch_metrics = false
   iam_role_arn              = module.ecs_cluster.ecs_instance_iam_role_name
   cloud_init_parts          = local.cloud_init_parts
+  ami                       = var.cluster_instance_ami
+  ami_filters               = var.cluster_instance_ami_filters
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

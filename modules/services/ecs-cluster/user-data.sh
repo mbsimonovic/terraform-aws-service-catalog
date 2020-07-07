@@ -6,7 +6,7 @@
 #
 # Note, this script:
 #
-# 1. Assumes it is running in the AMI built from the ecs-node.json Packer template.
+# 1. Assumes it is running in the AMI built from the ecs-node-al2.json Packer template.
 # 2. Has a number of variables filled in using Terraform interpolation.
 
 set -e
@@ -59,10 +59,8 @@ function configure_ecs_instance {
     "${log_group_name}" \
     "${external_account_ssh_grunt_role_arn}" \
     "${enable_fail2ban}" \
-    "${enable_ip_lockdown}" 
+    "${enable_ip_lockdown}"
 }
 
 # These variables are set by Terraform interpolation
-configure_ecs_instance "${enable_cloudwatch_log_aggregation}" "${enable_ssh_grunt}" "${ssh_grunt_iam_group}" "${ssh_grunt_iam_group_sudo}" "${log_group_name}" "${external_account_ssh_grunt_role_arn}" "${enable_fail2ban}" "${enable_ip_lockdown}" 
-
-
+configure_ecs_instance "${enable_cloudwatch_log_aggregation}" "${enable_ssh_grunt}" "${ssh_grunt_iam_group}" "${ssh_grunt_iam_group_sudo}" "${log_group_name}" "${external_account_ssh_grunt_role_arn}" "${enable_fail2ban}" "${enable_ip_lockdown}"

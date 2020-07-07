@@ -5,9 +5,9 @@
     "aws_region": "us-east-1",
     "ami_name": "ecs-cluster-instance",
     "copy_to_regions": "",
-    "github_auth_token": "{{env `GITHUB_OAUTH_TOKEN`}}", 
+    "github_auth_token": "{{env `GITHUB_OAUTH_TOKEN`}}",
     "encrypt_boot": "false",
-    "vpc_filter_key": "isDefault", 
+    "vpc_filter_key": "isDefault",
     "vpc_filter_value": "true",
     "vpc_subnet_filter_key": "default-for-az",
     "vpc_subnet_filter_value": "true",
@@ -41,7 +41,7 @@
       },
       "owners": ["amazon"],
       "most_recent": true
-    },    
+    },
     "vpc_filter": {
         "filters": {
           "{{user `vpc_filter_key`}}": "{{user `vpc_filter_value`}}"
@@ -55,17 +55,18 @@
     },
     "ssh_username": "ec2-user",
     "encrypt_boot": "{{user `encrypt_boot`}}",
-    "ami_users": "{{user `ami_users`}}", 
+    "ami_users": "{{user `ami_users`}}",
     "ami_regions": "{{user `copy_to_regions`}}",
     "tags": {
-        "version": "{{user `version_tag`}}"
+      "service": "{{ user `ami_name` }}",
+      "version": "{{user `version_tag`}}"
     }
   }],
   "provisioners": [{
     "type": "shell",
     "inline": [
       "sudo yum update -y && sudo yum install -y aws-cli unzip perl-Digest-SHA jq curl",
-      "curl -Ls https://raw.githubusercontent.com/gruntwork-io/gruntwork-installer/master/bootstrap-gruntwork-installer.sh | bash /dev/stdin --version v0.0.22", 
+      "curl -Ls https://raw.githubusercontent.com/gruntwork-io/gruntwork-installer/master/bootstrap-gruntwork-installer.sh | bash /dev/stdin --version v0.0.22",
       "gruntwork-install --module-name services/ecs-cluster --repo https://github.com/gruntwork-io/aws-service-catalog --tag {{user `service_catalog_ref`}}"
     ],
     "environment_vars": [
@@ -81,8 +82,7 @@
       "enable_ssh_grunt={{user `enable_ssh_grunt`}}",
       "enable_cloudwatch_metrics={{user `enable_cloudwatch_metrics`}}",
       "enable_cloudwatch_log_aggregation={{user `enable_cloudwatch_log_aggregation`}}"
-    ], 
+    ],
     "pause_before": "30s"
   }]
 }
-

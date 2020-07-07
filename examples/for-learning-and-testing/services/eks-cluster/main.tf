@@ -17,9 +17,22 @@ module "eks_cluster" {
   source = "../../../../modules/services/eks-cluster"
 
   cluster_name                               = var.cluster_name
-  cluster_instance_ami                       = var.cluster_instance_ami_id
   cluster_instance_type                      = "t3.small"
   schedule_control_plane_services_on_fargate = true
+  cluster_instance_ami                       = null
+  cluster_instance_ami_filters = {
+    owners = ["self"]
+    filters = [
+      {
+        name   = "tag:service"
+        values = ["eks-workers"]
+      },
+      {
+        name   = "tag:version"
+        values = [var.cluster_instance_ami_version_tag]
+      },
+    ]
+  }
 
   # For this simple example, use a regular key pair instead of ssh-grunt
   cluster_instance_keypair_name = var.keypair_name

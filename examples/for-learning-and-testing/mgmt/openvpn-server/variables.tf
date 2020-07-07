@@ -2,8 +2,8 @@
 # REQUIRED PARAMETERS
 # ---------------------------------------------------------------------------------------------------------------------
 
-variable "ami_id" {
-  description = "The ID of the AMI to run for the OpenVPN server. Should be built from the Packer template in modules/mgmt/openvpn-server.json."
+variable "ami_version_tag" {
+  description = "The version string of the AMI to run for the OpenVPN server built from the template in modules/mgmt/openvpn-server/openvpn-server.json. This corresponds to the value passed in for version_tag in the Packer template."
   type        = string
 }
 

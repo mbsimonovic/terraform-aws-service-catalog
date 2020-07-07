@@ -29,6 +29,7 @@ func TestJenkins(t *testing.T) {
 	//os.Setenv("SKIP_cleanup_ami", "true")
 
 	testFolder := "../examples/for-learning-and-testing/mgmt/jenkins"
+	branchName := git.GetCurrentBranchName(t)
 
 	defer test_structure.RunTestStage(t, "cleanup_ami", func() {
 		amiId := test_structure.LoadArtifactID(t, testFolder)
@@ -50,7 +51,6 @@ func TestJenkins(t *testing.T) {
 		awsRegion := aws.GetRandomRegion(t, regionsForEc2Tests, nil)
 		test_structure.SaveString(t, testFolder, "region", awsRegion)
 
-		branchName := git.GetCurrentBranchName(t)
 		packerOptions := &packer.Options{
 			Template: "../modules/mgmt/jenkins/jenkins-ubuntu.json",
 			Vars: map[string]string{
@@ -73,7 +73,6 @@ func TestJenkins(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "deploy_terraform", func() {
-		amiId := test_structure.LoadArtifactID(t, testFolder)
 		awsRegion := test_structure.LoadString(t, testFolder, "region")
 		uniqueId := test_structure.LoadString(t, testFolder, "uniqueId")
 		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
@@ -82,7 +81,7 @@ func TestJenkins(t *testing.T) {
 
 		terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
 		terraformOptions.Vars["name"] = name
-		terraformOptions.Vars["ami_id"] = amiId
+		terraformOptions.Vars["ami_version_tag"] = branchName
 		terraformOptions.Vars["base_domain_name"] = baseDomainForTest
 		terraformOptions.Vars["jenkins_subdomain"] = name
 		terraformOptions.Vars["acm_ssl_certificate_domain"] = acmDomainForTest
