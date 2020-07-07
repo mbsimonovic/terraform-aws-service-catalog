@@ -19,9 +19,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "static_website" {
-  #source = "git::git@github.com:gruntwork-io/package-static-assets.git//modules/s3-static-website?ref=v0.6.3"
-  source = "git::git@github.com:rhoboat/package-static-assets.git//modules/s3-static-website?ref=1f20d731"
-  #source = "/Users/rhozen/Development/Go/src/package-static-assets/modules/s3-static-website"
+  source = "git::git@github.com:gruntwork-io/package-static-assets.git//modules/s3-static-website?ref=v0.6.4"
 
   website_domain_name   = var.website_domain_name
   index_document        = var.index_document
@@ -39,8 +37,7 @@ module "static_website" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "cloudfront" {
-  #source = "git::git@github.com:gruntwork-io/package-static-assets.git//modules/s3-cloudfront?ref=v0.6.3"
-  source = "git::git@github.com:rhoboat/package-static-assets.git//modules/s3-cloudfront?ref=1f20d731"
+  source = "git::git@github.com:gruntwork-io/package-static-assets.git//modules/s3-cloudfront?ref=v0.6.4"
 
   bucket_name                 = var.website_domain_name
   s3_bucket_is_public_website = true
