@@ -22,39 +22,48 @@ func TestEcsCluster(t *testing.T) {
 	// os.Setenv("SKIP_build_ami", "true")
 	// os.Setenv("SKIP_deploy_terraform", "true")
 	// os.Setenv("SKIP_validate_cluster", "true")
+	// os.Setenv("SKIP_deploy_ecs_service, "true")
 	// os.Setenv("SKIP_cleanup", "true")
 	// os.Setenv("SKIP_cleanup_keypairs", "true")
 	// os.Setenv("SKIP_cleanup_ami", "true")
 	t.Parallel()
 
-	testFolder := "../examples/for-learning-and-testing/services/ecs-cluster"
+	ecsClusterTestFolder := "../examples/for-learning-and-testing/services/ecs-cluster"
+	ecsServiceTestFolder := "../examples/for-learning-and-testing/services/ecs-service"
 
 	defer test_structure.RunTestStage(t, "cleanup_ami", func() {
-		amiID := test_structure.LoadArtifactID(t, testFolder)
-		awsRegion := test_structure.LoadString(t, testFolder, "region")
+		amiID := test_structure.LoadArtifactID(t, ecsClusterTestFolder)
+		awsRegion := test_structure.LoadString(t, ecsClusterTestFolder, "region")
 		aws.DeleteAmiAndAllSnapshots(t, awsRegion, amiID)
 	})
 
 	defer test_structure.RunTestStage(t, "cleanup_keypairs", func() {
-		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
+		awsKeyPair := test_structure.LoadEc2KeyPair(t, ecsClusterTestFolder)
 		aws.DeleteEC2KeyPair(t, awsKeyPair)
 	})
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
-		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
+		ecsClusterTerraformOptions := test_structure.LoadTerraformOptions(t, ecsClusterTestFolder)
 		terraform.Destroy(t, terraformOptions)
+
+		ecsServiceTerraformOptions := test_structure.LoadTerraformOptions(t, ecsServiceTestFolder)
+		terraform.Destroy(t, ecsServiceTerraformOptions)
 	})
 
 	test_structure.RunTestStage(t, "build_ami", func() {
-		buildAmi(t, testFolder)
+		buildAmi(t, ecsClusterTestFolder)
 	})
 
 	test_structure.RunTestStage(t, "deploy_terraform", func() {
-		deployECSCluster(t, testFolder)
+		deployECSCluster(t, ecsClusterTestFolder)
 	})
 
 	test_structure.RunTestStage(t, "validate_cluster", func() {
-		validateECSCluster(t, testFolder)
+		validateECSCluster(t, ecsClusterTestFolder)
+	})
+
+	test_structure.RunTestStage(t, "deploy_ecs_service", func() {
+		deployEcsService(t, ecsClusterTestFolder, ecsServiceTestFolder)
 	})
 }
 
@@ -126,10 +135,33 @@ func validateECSCluster(t *testing.T, testFolder string) {
 	assert.NotEmpty(t, ecsClusterArn)
 }
 
-/*func validateEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestFolder string) {
+func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestFolder string) {
 	terraformOptions := test_structure.LoadTerraformOptions(t, ecsClusterTestFolder)
 	clusterName := test_structure.LoadString(t, ecsClusterTestFolder, "clusterName")
 	ecsClusterArn := terraform.OutputRequired(t, terraformOptions, "ecs_cluster_arn")
-	applicationName := test_structure.LoadString(t, ecsServiceTestFolder, "applicationName")
+	uniqueID := test_structure.LoadString(t, ecsClusterTestFolder, "uniqueID")
+	serviceName := fmt.Sprintf("nginx-%s", strings.ToLower(uniqueID))
 
-}*/
+	portMappings := map[string]int{
+		"22":  22,
+		"80":  80,
+		"443": 443,
+	}
+
+	terraformOptions.Vars["service_name"] = serviceName
+	terraformOptions.Vars["ecs_cluster_name"] = clusterName
+	terraformOptions.Vars["ecs_cluster_arn"] = ecsClusterArn
+	// TODO: cleanup the following vars
+	terraformOptions.Vars["aws_region"] = "us-west-1"
+	terraformOptions.Vars["image"] = "nginx"
+	terraformOptions.Vars["image_version"] = "1.17"
+	terraformOptions.Vars["vpc_env_var_name"] = "placeholder"
+	terraformOptions.Vars["ecs_node_port_mappings"] = portMappings
+	terraformOptions.Vars["alarm_sns_topic_arn"] = "TODO"
+	terraformOptions.Vars["kms_master_key_arn"] = "TODO"
+	terraformOptions.Vars["ecs_instance_security_group_id"] = "TODO"
+	terraformOptions.Vars["db_primary_endpoint"] = "https://example.com"
+
+	terraform.InitAndApply(t, terraformOptions)
+
+}
