@@ -1,10 +1,10 @@
 :type: service
-:name: Kubernetes Namespace
-:description: Provision a best practices Kubernetes Namespace on any Kubernetes Cluster.
-:icon: /_docs/k8s-namespace-icon.png
-:category: docker-orchestration
+:name: Public Static Website
+:description: Deploy your static content and static websites on S3, using a CloudFront CDN. Supports bucket versioning, redirects, and access logging.
+:icon: /_docs/s3.png
+:category: static-website
 :cloud: aws
-:tags: docker, orchestration, kubernetes, containers
+:tags: cloudfront, s3, website, static website
 :license: gruntwork
 :built-with: terraform
 
@@ -22,14 +22,14 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
-= Kubernetes Namespace
+= Public Static Website
 
 image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
 image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
 
-This folder contains https://www.terraform.io[Terraform] code to provision a best practices
-https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/[Kubernetes Namespace].
+This module creates a public static website using https://docs.aws.amazon.com/s3/index.html[S3] and https://docs.aws.amazon.com/cloudfront/index.html[CloudFront] on https://aws.amazon.com[AWS]. The website can contain static HTML, CSS, JS, and images.
 
+image::../_docs/s3-architecture.png?raw=true[Static S3 Website]
 
 toc::[]
 
@@ -37,34 +37,43 @@ toc::[]
 
 
 == Features
+* Offload storage and serving of static content (HTML, CSS, JS, images) to a public S3 bucket configured as a website.
+* Create additional buckets to store your website access logs, and your CloudFront access logs.
+* Deploy a CloudFront Distribution in front of the public S3 bucket for your website domain.
+* Optionally:
+    * Create a Route 53 entry in IPV4 and IPV6 formats to route requests to your domain name to the public S3 bucket,
+    * And associate an existing TLS certificate issued by Amazon's Certificate Manager (ACM) for your domain.
 
-* Target any Kubernetes cluster (e.g., EKS, GKE, minikube, etc)
-* Provision a set of default best practices RBAC roles for managing access to the Namespace
-* Optionally configure Fargate Profile to schedule all Pods on EKS Fargate
 
 
 
 == Learn
+
+Serving static content from S3 rather than from your own app server can significantly reduce the load on your server, allowing it to  focus on serving dynamic data. This saves money and makes your website run faster. For even bigger improvements in performance, deploy a CloudFront Content Distribution Network (CDN) in front of the S3 bucket.
 
 NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog/[Gruntwork Service Catalog], a collection of
 reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
 sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/[How to use the Gruntwork
 Service Catalog]!
 
-Under the hood, this is all implemented using Terraform modules from the Gruntwork
-https://github.com/gruntwork-io/module-vpc[module-vpc] repo. If you don't have access to this repo, email
-support@gruntwork.io.
 
 
 === Core concepts
 
-* https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/[Official documentation on Namespace]:
-  learn about the basics of Kubernetes Namespaces including what they are, how to interact with Namespaces, how DNS
-  works, and when to use Namespaces.
-* https://kubernetes.io/docs/reference/access-authn-authz/rbac/[Official documentation on RBAC]: learn about Kubernetes
-  RBAC including what they are, what resources are involved, how they work, how to bind roles to users, and more.
-* https://docs.aws.amazon.com/eks/latest/userguide/fargate.html[Amazon's documentation on Fargate]: learn about AWS EKS
-  Fargate including what they are, how it works, limitations of Fargate, and more.
+This module deploys a public website, so the S3 bucket and objects with it are readable by the public. It also is hosted in a Public Hosted Zone in Route 53. You may provide a `hosted_zone_id` in [variables](./variables.tf), or you may provide the `base_domain_name` associated with your Public Hosted Zone in Route 53, optionally along with any tags that must match that zone in `base_domain_name_tags`. If you do the latter, this module will find the hosted zone id for you.
+
+For more info on why you would use S3 to store static content, why you may want a CDN in front of it, how to access the
+website, and how to configure SSL, check out the documentation for the
+[s3-static-website](https://github.com/gruntwork-io/package-static-assets/tree/master/modules/s3-static-website) and
+[s3-cloudfront](https://github.com/gruntwork-io/package-static-assets/tree/master/modules/s3-cloudfront) modules.
+
+* link:/modules/s3-static-website/core-concepts.md#quick-start[Quick Start]
+* link:/modules/s3-static-website/core-concepts.md#how-to-test-the-website[How to test the website]
+* link:/modules/s3-static-website/core-concepts.md#how-to-configure-http[How to configure HTTPS (SSL) or a CDN?]
+* link:/modules/s3-static-website/core-concepts.md#how-to-handle[How to handle www + root domains]
+* link:/modules/s3-static-website/core-concepts.md#how-do-i-configure-cross-origin-resource-sharing-cors[How do I configure Cross Origin Resource Sharing (CORS)?]
+
+
 
 
 === Repo organization
@@ -84,6 +93,7 @@ If you just want to try this repo out for experimenting and learning, check out 
   `examples/for-learning-and-testing` folder contains standalone sample code optimized for learning, experimenting, and
   testing (but not direct production usage).
 
+
 === Production deployment
 
 If you want to deploy this repo in production, check out the following resources:
@@ -92,6 +102,7 @@ If you want to deploy this repo in production, check out the following resources
   code optimized for direct usage in production. This is code from the
   https://gruntwork.io/reference-architecture/:[Gruntwork Reference Architecture], and it shows you how we build an
   end-to-end, integrated tech stack on top of the Gruntwork Service Catalog.
+
 
 
 
