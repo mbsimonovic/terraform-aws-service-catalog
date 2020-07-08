@@ -75,16 +75,6 @@ dependency "applications_namespace" {
   mock_outputs_allowed_terraform_commands = ["validate"]
 }
 
-# Generate a Kubernetes provider configuration for authenticating against the EKS cluster.
-generate "k8s_helm" {
-  path      = "k8s_helm_provider.tf"
-  if_exists = "overwrite_terragrunt"
-  contents = templatefile(
-    find_in_parent_folders("provider_k8s_helm_for_eks.template.hcl"),
-    { eks_cluster_name = dependency.eks_cluster.outputs.eks_cluster_name },
-  )
-}
-
 # Locals are named constants that are reusable within the configuration.
 locals {
   # Automatically load common variables shared across all accounts
