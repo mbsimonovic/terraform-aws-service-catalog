@@ -87,6 +87,9 @@ generate "k8s_helm" {
 
 # Locals are named constants that are reusable within the configuration.
 locals {
+  # Automatically load common variables shared across all accounts
+  common_vars = read_terragrunt_config(find_in_parent_folders("common.hcl"))
+
   # Automatically load region-level variables
   region_vars = read_terragrunt_config(find_in_parent_folders("region.hcl"))
 }
