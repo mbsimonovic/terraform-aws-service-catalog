@@ -21,46 +21,7 @@ variable "service_name" {
 variable "desired_number_of_tasks" {
   description = "How many instances of the ECS Service to run across the ECS cluster"
   type        = number
-}
-
-variable "desired_number_of_canary_tasks" {
-  description = "How many instances of the ECS Service to run across the ECS cluster for a canary deployment. Typically, only 0 or 1 should be used."
-  type        = number
-}
-
-variable "min_number_of_tasks" {
-  description = "The minimum number of instances of the ECS Service to run. Auto scaling will never scale in below this number."
-  type        = number
-}
-
-variable "max_number_of_tasks" {
-  description = "The maximum number of instances of the ECS Service to run. Auto scaling will never scale out above this number."
-  type        = number
-}
-
-variable "image" {
-  description = "The Docker image to run (e.g. gruntwork/frontend-service)"
-  type        = string
-}
-
-variable "image_version" {
-  description = "Which version (AKA tag) of the var.image Docker image to deploy (e.g. 0.57)"
-  type        = string
-}
-
-variable "canary_version" {
-  description = "Which version of the ECS Service Docker container to deploy as a canary (e.g. 0.57)"
-  type        = string
-}
-
-variable "cpu" {
-  description = "The number of CPU units to allocate to the ECS Service."
-  type        = number
-}
-
-variable "memory" {
-  description = "How much memory, in MB, to give the ECS Service."
-  type        = number
+  default     = 1
 }
 
 variable "vpc_env_var_name" {
@@ -71,26 +32,6 @@ variable "vpc_env_var_name" {
 variable "ecs_node_port_mappings" {
   description = "A map of ports used by the Docker containers on an ECS Node. The key should be the container port and the value should be what host port to map it to."
   type        = map(number)
-}
-
-variable "high_cpu_utilization_threshold" {
-  description = "Trigger an alarm if the ECS Service has a CPU utilization percentage above this threshold"
-  type        = number
-}
-
-variable "high_cpu_utilization_period" {
-  description = "The period, in seconds, over which to measure the CPU utilization percentage"
-  type        = number
-}
-
-variable "high_memory_utilization_threshold" {
-  description = "Trigger an alarm if the ECS Service has a memory utilization percentage above this threshold"
-  type        = number
-}
-
-variable "high_memory_utilization_period" {
-  description = "The period, in seconds, over which to measure the memory utilization percentage"
-  type        = number
 }
 
 variable "alarm_sns_topic_arn" {
@@ -108,20 +49,91 @@ variable "kms_master_key_arn" {
   type        = string
 }
 
-variable "db_primary_endpoint" {
-  description = "The primary db endpoint"
-  type        = string
-}
-
 variable "ecs_instance_security_group_id" {
   description = "The ID of the security group that should be applied to ecs service instances"
   type        = string
 }
 
+variable "image" {
+  description = "The Docker image to run (e.g. gruntwork/frontend-service)"
+  type        = string
+}
+
+variable "image_version" {
+  description = "Which version (AKA tag) of the var.image Docker image to deploy (e.g. 0.57)"
+  type        = string
+}
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL PARAMETERS
 # These values may optionally be overwritten by the calling Terraform code.
 # ---------------------------------------------------------------------------------------------------------------------
+
+variable "db_primary_endpoint" {
+  description = "The primary db endpoint"
+  type        = string
+  default     = null
+}
+
+variable "high_cpu_utilization_threshold" {
+  description = "Trigger an alarm if the ECS Service has a CPU utilization percentage above this threshold"
+  type        = number
+  default     = 90
+}
+
+variable "high_cpu_utilization_period" {
+  description = "The period, in seconds, over which to measure the CPU utilization percentage"
+  type        = number
+  default     = 300
+}
+
+variable "high_memory_utilization_threshold" {
+  description = "Trigger an alarm if the ECS Service has a memory utilization percentage above this threshold"
+  type        = number
+  default     = 90
+}
+
+variable "high_memory_utilization_period" {
+  description = "The period, in seconds, over which to measure the memory utilization percentage"
+  type        = number
+  default     = 300
+}
+
+variable "desired_number_of_canary_tasks" {
+  description = "How many instances of the ECS Service to run across the ECS cluster for a canary deployment. Typically, only 0 or 1 should be used."
+  type        = number
+  default     = 0
+}
+
+variable "min_number_of_tasks" {
+  description = "The minimum number of instances of the ECS Service to run. Auto scaling will never scale in below this number."
+  type        = number
+  default     = 1
+}
+
+variable "max_number_of_tasks" {
+  description = "The maximum number of instances of the ECS Service to run. Auto scaling will never scale out above this number."
+  type        = number
+  default     = 3
+}
+
+variable "canary_version" {
+  description = "Which version of the ECS Service Docker container to deploy as a canary (e.g. 0.57)"
+  type        = string
+  default     = null
+}
+
+variable "cpu" {
+  description = "The number of CPU units to allocate to the ECS Service."
+  type        = number
+  default     = 1
+}
+
+variable "memory" {
+  description = "How much memory, in MB, to give the ECS Service."
+  type        = number
+  default     = 500
+}
+
 variable "use_custom_docker_run_command" {
   description = "Set this to true if you want to pass a custom docker run command. If you set this to true, you must supply var.custom_docker_command"
   type        = bool
