@@ -24,7 +24,7 @@ resource "helm_release" "application" {
   name       = var.application_name
   repository = "https://helmcharts.gruntwork.io"
   chart      = "k8s-service"
-  version    = "v0.1.0"
+  version    = "v0.1.1"
   namespace  = var.namespace
 
   values = [yamlencode(local.helm_chart_input)]
@@ -124,7 +124,7 @@ locals {
     "alb.ingress.kubernetes.io/success-codes"                = var.alb_health_check_success_codes
   }
 
-  # Assemble a complete map of ingress annotations 
+  # Assemble a complete map of ingress annotations
   ingress_annotations = merge(
     {
       "kubernetes.io/ingress.class"      = "alb"
@@ -317,7 +317,7 @@ resource "aws_iam_role" "new_role" {
 }
 
 module "service_account_assume_role_policy" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-iam-role-assume-role-policy-for-service-account?ref=v0.20.3"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-iam-role-assume-role-policy-for-service-account?ref=v0.20.4"
 
   eks_openid_connect_provider_arn = var.eks_iam_role_for_service_accounts_config.openid_connect_provider_arn
   eks_openid_connect_provider_url = var.eks_iam_role_for_service_accounts_config.openid_connect_provider_url
