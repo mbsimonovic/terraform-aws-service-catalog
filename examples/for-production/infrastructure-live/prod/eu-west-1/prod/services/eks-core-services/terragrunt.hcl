@@ -68,6 +68,11 @@ dependency "aurora" {
 
 dependency "applications_namespace" {
   config_path = "../eks-applications-namespace"
+
+  mock_outputs = {
+    namespace_name = "applications"
+  }
+  mock_outputs_allowed_terraform_commands = ["validate"]
 }
 
 # Generate a Kubernetes provider configuration for authenticating against the EKS cluster.
@@ -115,12 +120,12 @@ inputs = {
     rds = {
       target_dns  = dependency.rds.outputs.primary_host
       target_port = dependency.rds.outputs.port
-      namespace   = "applications"
+      namespace   = dependency.applications_namespace.outputs.namespace_name
     }
     aurora = {
       target_dns  = dependency.aurora.outputs.primary_host
       target_port = dependency.aurora.outputs.port
-      namespace   = "applications"
+      namespace   = dependency.applications_namespace.outputs.namespace_name
     }
   }
 }
