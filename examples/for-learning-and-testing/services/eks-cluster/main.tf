@@ -4,10 +4,6 @@
 
 provider "aws" {
   region = var.aws_region
-
-  # There is a regression in autoscaling groups tags introduced in 2.64.0 that consistently cause "inconsistent final
-  # plan" errors, so we lock the version to 2.63.0 until that is resolved.
-  version = "= 2.63.0"
 }
 
 module "eks_cluster" {
