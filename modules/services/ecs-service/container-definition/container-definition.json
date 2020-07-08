@@ -8,13 +8,7 @@
     "portMappings": ${port_mappings},
     "environment": ${env_vars},
     "logConfiguration": {
-      "logDriver": "syslog",
-      "options": {
-        "tag": "${container_name} ({{"{{"}}.ID{{"}}"}})"
-      }
+      "logDriver": "syslog"
     }
-    {{- if .UseCustomDockerRunCommand }},
-    "command": [${command}]
-    {{- end }}
   }
 ]

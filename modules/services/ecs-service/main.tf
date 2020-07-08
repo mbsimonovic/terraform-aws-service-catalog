@@ -20,15 +20,13 @@ module "ecs_service" {
   source = "git::git@github.com:gruntwork-io/module-ecs.git//modules/ecs-service?ref=v0.20.4"
 
   service_name     = var.service_name
-  environment_name = var.vpc_name
+  environment_name = var.service_name
+  ecs_cluster_arn  = var.ecs_cluster_arn
 
+  ecs_task_container_definitions = var.canary_deployment ? data.template_file.container_definition.1.rendered : data.template_file.container_definition.0.rendered
 
-  ecs_cluster_arn = var.ecs_cluster_arn
-
-  ecs_task_container_definitions = var.canary_deployment ? data.template_file.container_definition.0.rendered : data.template_file.container_definition.rendered
-
-  ecs_task_definition_canary            = var.canary_deployment ? data.template_file.container_definition.1.rendered : null
-  desired_number_of_canary_tasks_to_run = var.canary_deployment ? var.desired_number_of_canary_tasks_to_run : null
+  ecs_task_definition_canary            = var.canary_deployment ? data.template_file.container_definition.0.rendered : null
+  desired_number_of_canary_tasks_to_run = var.canary_deployment ? var.desired_number_of_canary_tasks_to_run : 0
 
   desired_number_of_tasks = var.desired_number_of_tasks
 
@@ -44,15 +42,15 @@ module "ecs_service" {
 
 # Update the ECS Node Security Group to allow the ECS Service to be accessed directly from an ECS Node (versus only from the ELB).
 resource "aws_security_group_rule" "custom_permissions" {
-  count = var.expose_ecs_service_to_other_ecs_nodes ? var.num_port_mappings : 0
+  count = var.expose_ecs_service_to_other_ecs_nodes ? length(var.ecs_node_port_mappings) : 0
 
   type      = "ingress"
-  from_port = element(values(var.port_mappings), count.index)
-  to_port   = element(values(var.port_mappings), count.index)
+  from_port = element(values(var.ecs_node_port_mappings), count.index)
+  to_port   = element(values(var.ecs_node_port_mappings), count.index)
   protocol  = "tcp"
 
-  source_security_group_id = data.terraform_remote_state.ecs_cluster.outputs.ecs_instance_security_group_id
-  security_group_id        = data.terraform_remote_state.ecs_cluster.outputs.ecs_instance_security_group_id
+  source_security_group_id = var.ecs_instance_security_group_id
+  security_group_id        = var.ecs_instance_security_group_id
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -72,10 +70,9 @@ data "template_file" "container_definition" {
     version        = var.canary_deployment ? [var.image_version, var.canary_version][count.index] : var.image_version
     cpu            = var.cpu
     memory         = var.memory
-    vpc_name       = var.vpc_name
     port_mappings  = "[${join(",", data.template_file.port_mappings.*.rendered)}]"
     env_vars       = "[${join(",", data.template_file.all_env_vars.*.rendered)}]"
-    command        = var.use_custom_docker_run_command ? join(",", formatlist("\"%s\"", var.custom_docker_command)) : null
+    #   command        = var.use_custom_docker_run_command ? join(",", formatlist("\"%s\"", var.custom_docker_command)) : null
   }
 }
 
@@ -143,8 +140,8 @@ data "aws_iam_policy_document" "access_kms_master_key" {
 
 # Add CloudWatch Alarms that go off if the ECS Service's CPU or Memory usage gets too high.
 module "ecs_service_cpu_memory_alarms" {
-  count  = var.enable_cloudwatch_alarms ? 1 : 0
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/ecs-service-alarms?ref=var.module_aws_monitoring_version"
+  create_resources = var.enable_cloudwatch_alarms ? true : false
+  source           = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/ecs-service-alarms?ref=v0.21.2"
 
   ecs_service_name     = var.service_name
   ecs_cluster_name     = var.ecs_cluster_name
@@ -156,31 +153,31 @@ module "ecs_service_cpu_memory_alarms" {
   high_memory_utilization_period    = var.high_memory_utilization_period
 }
 
-module "metric_widget_ecs_service_cpu_usage" {
-  count  = var.enable_cloudwatch_alarms ? 1 : 0
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=var.module_aws_monitoring_version"
+#module "metric_widget_ecs_service_cpu_usage" {
+#  create_resources  = var.enable_cloudwatch_alarms ? 1 : 0
+#  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.21.2"
+#
+#  period = 60
+#  stat   = "Average"
+#  title  = "${title(var.service_name)} CPUUtilization"
+#
+#  metrics = [
+#    ["AWS/ECS", "CPUUtilization", "ClusterName", data.terraform_remote_state.ecs_cluster.outputs.ecs_cluster_name, "ServiceName", var.service_name],
+#  ]
+#}
 
-  period = 60
-  stat   = "Average"
-  title  = "${title(var.service_name)} CPUUtilization"
-
-  metrics = [
-    ["AWS/ECS", "CPUUtilization", "ClusterName", data.terraform_remote_state.ecs_cluster.outputs.ecs_cluster_name, "ServiceName", var.service_name],
-  ]
-}
-
-module "metric_widget_ecs_service_memory_usage" {
-  count  = var.enable_cloudwatch_alarms ? 1 : 0
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=var.module_aws_monitoring_version"
-
-  period = 60
-  stat   = "Average"
-  title  = "${title(var.service_name)} MemoryUtilization"
-
-  metrics = [
-    ["AWS/ECS", "MemoryUtilization", "ClusterName", data.terraform_remote_state.ecs_cluster.outputs.ecs_cluster_name, "ServiceName", var.service_name],
-  ]
-}
+#module "metric_widget_ecs_service_memory_usage" {
+#  create_resources  = var.enable_cloudwatch_alarms ? 1 : 0
+#  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.21.2"
+#
+#  period = 60
+#  stat   = "Average"
+#  title  = "${title(var.service_name)} MemoryUtilization"
+#
+#  metrics = [
+#    ["AWS/ECS", "MemoryUtilization", "ClusterName", data.terraform_remote_state.ecs_cluster.outputs.ecs_cluster_name, "ServiceName", var.service_name],
+#  ]
+#}
 
 # ---------------------------------------------------------------------------------------------------------------------
 # ENABLE AUTO SCALING OF THIS ECS SERVICE'S CONTAINERS
@@ -189,17 +186,18 @@ module "metric_widget_ecs_service_memory_usage" {
 
 # Create an Auto Scaling Policy to scale the number of ECS Tasks up in response to load.
 resource "aws_appautoscaling_policy" "scale_out" {
-  count       = var.enable_autoscaling ? 1 : 0
-  name        = "${var.service_name}-scale-out"
-  resource_id = "service/${data.terraform_remote_state.ecs_cluster.outputs.ecs_cluster_name}/${var.service_name}"
+  count = var.use_auto_scaling ? 1 : 0
+  name  = "${var.service_name}-scale-out"
 
-  adjustment_type         = "ChangeInCapacity"
-  cooldown                = 60
-  metric_aggregation_type = "Average"
+  service_namespace = "${var.service_name}-namespace"
 
-  step_adjustment {
-    metric_interval_lower_bound = 0
-    scaling_adjustment          = 1
+  resource_id = "service/${var.ecs_cluster_name}/${var.service_name}"
+
+  scalable_dimension = "ecs:service:DesiredCount"
+
+  step_scaling_policy_configuration {
+    adjustment_type = "ChangeInCapacity"
+    cooldown        = 300
   }
 
   # NOTE: due to a Terraform bug, this depends_on does not actually help, and it's possible the auto scaling target has
@@ -212,17 +210,16 @@ resource "aws_appautoscaling_policy" "scale_out" {
 
 # Create an Auto Scaling Policy to scale the number of ECS Tasks down in response to load.
 resource "aws_appautoscaling_policy" "scale_in" {
-  count       = var.enable_autoscaling ? 1 : 0
+  count       = var.use_auto_scaling ? 1 : 0
   name        = "${var.service_name}-scale-in"
-  resource_id = "service/${data.terraform_remote_state.ecs_cluster.outputs.ecs_cluster_name}/${var.service_name}"
+  resource_id = "service/${var.ecs_cluster_name}/${var.service_name}"
 
-  adjustment_type         = "ChangeInCapacity"
-  cooldown                = 60
-  metric_aggregation_type = "Average"
+  service_namespace  = "${var.service_name}-namespace"
+  scalable_dimension = "ecs:service:DesiredCount"
 
-  step_adjustment {
-    metric_interval_lower_bound = 0
-    scaling_adjustment          = -1
+  step_scaling_policy_configuration {
+    adjustment_type = "ChangeInCapacity"
+    cooldown        = 300
   }
 
   # NOTE: due to a Terraform bug, this depends_on does not actually help, and it's possible the auto scaling target has
@@ -240,17 +237,14 @@ resource "aws_cloudwatch_metric_alarm" "high_cpu_usage" {
   alarm_description = "An alarm that triggers auto scaling if the CPU usage for service ${var.service_name} gets too high"
   namespace         = "AWS/ECS"
   metric_name       = "CPUUtilization"
-  dimensions {
-    ClusterName = "${data.terraform_remote_state.ecs_cluster.outputs.ecs_cluster_name}"
-    ServiceName = "${var.service_name}"
-  }
+
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = "1"
   period              = "60"
   statistic           = "Average"
   threshold           = "90"
   unit                = "Percent"
-  alarm_actions       = [aws_appautoscaling_policy.scale_out.arn]
+  alarm_actions       = [var.use_auto_scaling ? aws_appautoscaling_policy.scale_out.0.arn : null]
 }
 
 # Create a CloudWatch Alarm to trigger our Auto Scaling Policies if CPU Utilization gets sufficiently low.
@@ -260,15 +254,12 @@ resource "aws_cloudwatch_metric_alarm" "low_cpu_usage" {
   alarm_description = "An alarm that triggers auto scaling if the CPU usage for service ${var.service_name} gets too low"
   namespace         = "AWS/ECS"
   metric_name       = "CPUUtilization"
-  dimensions {
-    ClusterName = data.terraform_remote_state.ecs_cluster.outputs.ecs_cluster_name
-    ServiceName = var.service_name
-  }
+
   comparison_operator = "LessThanThreshold"
   evaluation_periods  = "1"
   period              = "60"
   statistic           = "Average"
   threshold           = "70"
   unit                = "Percent"
-  alarm_actions       = [aws_appautoscaling_policy.scale_in.arn]
+  alarm_actions       = [var.use_auto_scaling ? aws_appautoscaling_policy.scale_in.0.arn : null]
 }

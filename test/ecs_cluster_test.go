@@ -125,3 +125,11 @@ func validateECSCluster(t *testing.T, testFolder string) {
 
 	assert.NotEmpty(t, ecsClusterArn)
 }
+
+/*func validateEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestFolder string) {
+	terraformOptions := test_structure.LoadTerraformOptions(t, ecsClusterTestFolder)
+	clusterName := test_structure.LoadString(t, ecsClusterTestFolder, "clusterName")
+	ecsClusterArn := terraform.OutputRequired(t, terraformOptions, "ecs_cluster_arn")
+	applicationName := test_structure.LoadString(t, ecsServiceTestFolder, "applicationName")
+
+}*/

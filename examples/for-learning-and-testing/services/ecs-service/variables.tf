@@ -8,6 +8,11 @@ variable "aws_region" {
   type        = string
 }
 
+variable "aws_account_id" {
+  description = "The ID of the AWS Account in which to create resources."
+  type        = string
+}
+
 variable "service_name" {
   description = "The name of the ECS service (e.g. my-service-stage)"
   type        = string
@@ -89,7 +94,12 @@ variable "high_memory_utilization_period" {
 }
 
 variable "alarm_sns_topic_arn" {
-  description = "The ARN of the sns topic to use for alarm notifications"
+  description = "The ARN of the SNS topic to write alarm events to"
+  type        = string
+}
+
+variable "ecs_cluster_arn" {
+  description = "The ARN of the cluster to which the ecs service should be deployed"
   type        = string
 }
 
@@ -108,10 +118,6 @@ variable "ecs_instance_security_group_id" {
   type        = string
 }
 
-variable "ecs_cluster_arn" {
-  description = "The ARN of the ecs cluster into which the ecs service should be deployed"
-  type        = string
-}
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL PARAMETERS
 # These values may optionally be overwritten by the calling Terraform code.
@@ -128,42 +134,22 @@ variable "custom_docker_command" {
   default     = null
 }
 
-variable "canary_deployment" {
-  description = "Set this to true if you wish to include a canary deployment"
+variable "use_auto_scaling" {
+  description = "Whether or not to enable auto scaling for the ecs service"
   type        = bool
   default     = false
 }
-
-variable "expose_ecs_service_to_other_ecs_nodes" {
-  description = "Set this to true to enable other ecs nodes to access this ecs service"
-  type        = bool
-  default     = false
-}
-
-variable "ecs_cluster_name" {
-  description = "The name of the ecs cluster into which the ecs task should be deployed"
-  type        = string
-  default     = null
-}
-
-
 
 variable "desired_number_of_canary_tasks_to_run" {
-  description = "The number of tasks that should be run using the canary image and image tag"
+  description = "The number of tasks that should use the canary image and tag"
   type        = number
   default     = 0
 }
 
-variable "use_auto_scaling" {
-  description = "Set this to true to enable auto scaling within the ecs service"
-  type        = bool
-  default     = false
-}
-
-variable "enable_cloudwatch_alarms" {
-  description = "Set this to true to enable Cloudwatch alarms for monitoring ecs service resource usage"
-  type        = bool
-  default     = false
+variable "ecs_cluster_name" {
+  description = "The name of the ecs cluster to deploy the ecs service onto"
+  type        = string
+  default     = null
 }
 
 variable "deployment_maximum_percent" {
@@ -214,8 +200,3 @@ variable "force_destroy" {
   default     = false
 }
 
-variable "terraform_state_kms_master_key" {
-  description = "Path base name of the kms master key to use. This should reflect what you have in your infrastructure-live folder."
-  type        = string
-  default     = "kms-master-key"
-}
