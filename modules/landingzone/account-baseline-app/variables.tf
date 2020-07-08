@@ -417,3 +417,9 @@ variable "slack_webhook_url" {
   type        = string
   default     = null
 }
+
+variable "enable_service_linked_role" {
+  description = "Whether to enable a service-linked role for elasticsearch. Set to true if using elasticsearch via https://github.com/gruntwork-io/package-elk/"
+  type        = bool
+  default     = false
+}
