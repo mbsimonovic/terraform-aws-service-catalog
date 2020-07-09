@@ -149,8 +149,6 @@ locals {
 
   has_canary = length(var.canary_images) > 0 ? true : false
 
-  # Create default map of env vars in the JSON format used by ECS container definitions.
-  #
   # NOTE: if you add a default env var, make sure to update the count in data.template_file.all_env_vars!!!
   default_env_vars = map(
     var.aws_region_env_var_name, var.aws_region,
