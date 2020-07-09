@@ -24,8 +24,8 @@ module "ecs_service" {
   ecs_cluster_arn  = var.ecs_cluster_arn
 
   # TODO - fix these definitions to contain all definition json 
-  ecs_task_container_definitions = aws_ecs_task_definition.service.0.container_definitions
-  ecs_task_definition_canary     = local.has_canary ? aws_ecs_task_definition.canary.0.container_definitions : null
+  ecs_task_container_definitions = local.container_definition_json
+  ecs_task_definition_canary     = local.has_canary ? local.container_definition_json : null
 
   desired_number_of_canary_tasks_to_run = local.has_canary ? var.desired_number_of_canary_tasks_to_run : 0
 
@@ -57,75 +57,6 @@ resource "aws_security_group_rule" "custom_permissions" {
 # ---------------------------------------------------------------------------------------------------------------------
 # CREATE THE CONTAINER DEFINITION THAT SPECIFIES WHAT DOCKER CONTAINERS TO RUN AND THE RESOURCES THEY NEED
 # ---------------------------------------------------------------------------------------------------------------------
-resource "aws_ecs_task_definition" "service" {
-  for_each = var.container_images
-
-  family             = "${var.service_name}-${each.key}"
-  task_role_arn      = aws_iam_role.ecs_task.arn
-  execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
-  network_mode       = "awsvpc"
-  cpu                = var.cpu
-  memory             = var.memory
-
-  container_definitions = jsonencode([
-    {
-      name      = each.key
-      image     = "${each.value.docker_image}:${each.value.docker_tag}"
-      essential = true
-      secrets = [
-        for env_var, arn in each.value.secrets_manager_arns :
-        {
-          name      = env_var
-          valueFrom = arn
-        }
-      ]
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          awslogs-create-group  = "true"
-          awslogs-region        = data.aws_region.current.name
-          awslogs-group         = local.cloudwatch_log_group_name
-          awslogs-stream-prefix = "${local.cloudwatch_log_prefix}"
-        }
-      }
-    },
-  ])
-}
-
-resource "aws_ecs_task_definition" "canary" {
-  for_each = var.canary_images
-
-  family             = "${var.service_name}-${each.key}"
-  task_role_arn      = aws_iam_role.ecs_task.arn
-  execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
-  network_mode       = "awsvpc"
-  cpu                = var.cpu
-  memory             = var.memory
-
-  container_definitions = jsonencode([
-    {
-      name      = each.key
-      image     = "${each.value.docker_image}:${each.value.docker_tag}"
-      essential = true
-      secrets = [
-        for env_var, arn in each.value.secrets_manager_arns :
-        {
-          name      = env_var
-          valueFrom = arn
-        }
-      ]
-      logConfiguration = {
-        logDriver = "awslogs"
-        options = {
-          awslogs-create-group  = "true"
-          awslogs-region        = data.aws_region.current.name
-          awslogs-group         = local.cloudwatch_log_group_name
-          awslogs-stream-prefix = "${local.cloudwatch_log_prefix}"
-        }
-      }
-    },
-  ])
-}
 
 # Convert the maps of ports to the container definition JSON format.
 data "template_file" "port_mappings" {
@@ -140,6 +71,15 @@ EOF
 }
 
 locals {
+
+  container_definition_json = jsonencode([{
+   "name": "${var.service_name}", 
+   "image": "nginx:1.17", 
+   "cpu": 2, 
+   "memory": 500, 
+   "essential": true, 
+   "environment": []
+  }])
 
   secret_manager_arns = flatten([
     for name, container in var.container_images :
@@ -335,19 +275,18 @@ module "metric_widget_ecs_service_memory_usage" {
 resource "aws_appautoscaling_policy" "scale_out" {
   count = var.use_auto_scaling ? 1 : 0
   name  = "${var.service_name}-scale-out"
-
-  service_namespace = "${var.service_name}-namespace"
-
-  resource_id = "service/${var.ecs_cluster_name}/${var.service_name}"
-
+  resource_id = module.ecs_service.service_app_autoscaling_target_resource_id
+ 
   scalable_dimension = "ecs:service:DesiredCount"
+  service_namespace = "ecs"
 
   step_scaling_policy_configuration {
     adjustment_type = "ChangeInCapacity"
-    cooldown        = 300
+    cooldown        = 60
+    metric_aggregation_type = "Average"
   }
 
-  # NOTE: due to a Terraform bug, this depends_on does not actually help, and it's possible the auto scaling target has
+   # NOTE: due to a Terraform bug, this depends_on does not actually help, and it's possible the auto scaling target has
   # not been created when Terraform tries to create this auto scaling policy. As a result, you get an error along the
   # lines of "Error putting scaling policy: ObjectNotFoundException: No scalable target registered for service
   # namespace..." Wait a few seconds, re-run `terraform apply`, and the erorr should go away. For more info, see:
@@ -359,14 +298,15 @@ resource "aws_appautoscaling_policy" "scale_out" {
 resource "aws_appautoscaling_policy" "scale_in" {
   count       = var.use_auto_scaling ? 1 : 0
   name        = "${var.service_name}-scale-in"
-  resource_id = "service/${var.ecs_cluster_name}/${var.service_name}"
-
-  service_namespace  = "${var.service_name}-namespace"
+  resource_id = module.ecs_service.service_app_autoscaling_target_resource_id
+  
   scalable_dimension = "ecs:service:DesiredCount"
+  service_namespace  = "ecs"
 
   step_scaling_policy_configuration {
     adjustment_type = "ChangeInCapacity"
-    cooldown        = 300
+    cooldown        = 60
+    metric_aggregation_type = "Average"
   }
 
   # NOTE: due to a Terraform bug, this depends_on does not actually help, and it's possible the auto scaling target has
