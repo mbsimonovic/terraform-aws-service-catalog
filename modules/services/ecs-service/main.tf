@@ -73,12 +73,12 @@ EOF
 locals {
 
   container_definition_json = jsonencode([{
-   "name": "${var.service_name}", 
-   "image": "nginx:1.17", 
-   "cpu": 2, 
-   "memory": 500, 
-   "essential": true, 
-   "environment": []
+    "name" : "${var.service_name}",
+    "image" : "nginx:1.17",
+    "cpu" : 2,
+    "memory" : 500,
+    "essential" : true,
+    "environment" : []
   }])
 
   secret_manager_arns = flatten([
@@ -273,20 +273,20 @@ module "metric_widget_ecs_service_memory_usage" {
 
 # Create an Auto Scaling Policy to scale the number of ECS Tasks up in response to load.
 resource "aws_appautoscaling_policy" "scale_out" {
-  count = var.use_auto_scaling ? 1 : 0
-  name  = "${var.service_name}-scale-out"
+  count       = var.use_auto_scaling ? 1 : 0
+  name        = "${var.service_name}-scale-out"
   resource_id = module.ecs_service.service_app_autoscaling_target_resource_id
- 
+
   scalable_dimension = "ecs:service:DesiredCount"
-  service_namespace = "ecs"
+  service_namespace  = "ecs"
 
   step_scaling_policy_configuration {
-    adjustment_type = "ChangeInCapacity"
-    cooldown        = 60
+    adjustment_type         = "ChangeInCapacity"
+    cooldown                = 60
     metric_aggregation_type = "Average"
   }
 
-   # NOTE: due to a Terraform bug, this depends_on does not actually help, and it's possible the auto scaling target has
+  # NOTE: due to a Terraform bug, this depends_on does not actually help, and it's possible the auto scaling target has
   # not been created when Terraform tries to create this auto scaling policy. As a result, you get an error along the
   # lines of "Error putting scaling policy: ObjectNotFoundException: No scalable target registered for service
   # namespace..." Wait a few seconds, re-run `terraform apply`, and the erorr should go away. For more info, see:
@@ -299,13 +299,13 @@ resource "aws_appautoscaling_policy" "scale_in" {
   count       = var.use_auto_scaling ? 1 : 0
   name        = "${var.service_name}-scale-in"
   resource_id = module.ecs_service.service_app_autoscaling_target_resource_id
-  
+
   scalable_dimension = "ecs:service:DesiredCount"
   service_namespace  = "ecs"
 
   step_scaling_policy_configuration {
-    adjustment_type = "ChangeInCapacity"
-    cooldown        = 60
+    adjustment_type         = "ChangeInCapacity"
+    cooldown                = 60
     metric_aggregation_type = "Average"
   }
 
