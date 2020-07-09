@@ -4,13 +4,11 @@
 
 provider "aws" {
   region = var.aws_region
-
-  version = "2.63.0"
 }
 
 module "ecs_cluster" {
-  # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you 
-  # to a specific version of the modules, such as the following example: 
+  # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
+  # to a specific version of the modules, such as the following example:
   # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/services/ecs-cluster?ref=1.0.8"
   source = "../../../../modules/services/ecs-cluster"
 
@@ -37,14 +35,14 @@ module "ecs_cluster" {
 
   enable_ecs_cloudwatch_alarms = var.enable_ecs_cloudwatch_alarms
 
-  # For this simple example, use a regular keypair instead of ssh-grunt 
+  # For this simple example, use a regular keypair instead of ssh-grunt
   cluster_instance_keypair_name = var.cluster_instance_keypair_name
   enable_ssh_grunt              = false
 
   vpc_id         = module.vpc.vpc_id
   vpc_subnet_ids = module.vpc.private_app_subnet_ids
 
-  # cloud-init / user-data variables 
+  # cloud-init / user-data variables
   enable_cloudwatch_log_aggregation = var.enable_cloudwatch_log_aggregation
 
   enable_fail2ban    = var.enable_fail2ban
@@ -53,7 +51,7 @@ module "ecs_cluster" {
 }
 
 # ----------------------------------------------------------------------------------------------------------------------
-# CREATE A VPC 
+# CREATE A VPC
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "vpc" {

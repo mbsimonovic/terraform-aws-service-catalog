@@ -17,7 +17,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_cluster" {
-  source = "git::git@github.com:gruntwork-io/module-ecs.git//modules/ecs-cluster?ref=v0.20.1"
+  source = "git::git@github.com:gruntwork-io/module-ecs.git//modules/ecs-cluster?ref=v0.20.5"
 
   cluster_name     = var.cluster_name
   cluster_min_size = var.cluster_min_size
@@ -44,14 +44,14 @@ module "ecs_cluster" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 locals {
-  # Default cloud init script for this module 
+  # Default cloud init script for this module
   cloud_init = {
     filename     = "ecs-cluster-default-cloud-init"
     content_type = "text/x-shellscript"
     content      = data.template_file.user_data.rendered
   }
 
-  # Merge in all the cloud init scripts the user has passed in 
+  # Merge in all the cloud init scripts the user has passed in
   cloud_init_parts = merge({ default : local.cloud_init }, var.cloud_init_parts)
 }
 
@@ -78,7 +78,8 @@ module "cloudwatch_log_aggregation" {
   source      = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/logs/cloudwatch-log-aggregation-iam-policy?ref=v0.21.2"
   name_prefix = var.cluster_name
 
-  # We set this to false so that the cloudwatch-custom-metrics-iam policy generates JSON for the policy, but does not create a standalone IAM policy with that JSON. We'll instead add that JSON to the ECS cluster IAM role. 
+  # We set this to false so that the cloudwatch-custom-metrics-iam policy generates JSON for the policy, but does not
+  # create a standalone IAM policy with that JSON. We'll instead add that JSON to the ECS cluster IAM role.
   create_resources = false
 }
 
@@ -132,8 +133,9 @@ module "metric_widget_ecs_cluster_memory_usage" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# BASE RESOURCES 
-# Includes resources common to all EC2 instances in the Service Catalog, including permissions for ssh-grunt, CloudWatch Logs aggregation, CloudWatch metrics, and CloudWatch alarms 
+# BASE RESOURCES
+# Includes resources common to all EC2 instances in the Service Catalog, including permissions for ssh-grunt, CloudWatch
+# Logs aggregation, CloudWatch metrics, and CloudWatch alarms
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ec2_baseline" {
@@ -143,7 +145,7 @@ module "ec2_baseline" {
   enable_ssh_grunt                    = var.enable_ssh_grunt
   external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
   enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
-  # We use custom metrics for ECS, as specified above 
+  # We use custom metrics for ECS, as specified above
   enable_cloudwatch_metrics = false
   iam_role_arn              = module.ecs_cluster.ecs_instance_iam_role_name
   cloud_init_parts          = local.cloud_init_parts
@@ -152,7 +154,7 @@ module "ec2_baseline" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# ADD AN AUTO SCALING POLICY TO ADD MORE INSTANCES WHEN CPU USAGE IS HIGH 
+# ADD AN AUTO SCALING POLICY TO ADD MORE INSTANCES WHEN CPU USAGE IS HIGH
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_autoscaling_policy" "scale_out" {
@@ -164,9 +166,9 @@ resource "aws_autoscaling_policy" "scale_out" {
   policy_type               = "StepScaling"
   estimated_instance_warmup = 200
 
-  # Each of the step_adjustment values below defines what to do if the metric is a given amount above the alarm 
-  # threshold. Since our threshold is set at 75, the values below define what to do for CPU usage between 75 and 85% 
-  # and then anything above 85% 
+  # Each of the step_adjustment values below defines what to do if the metric is a given amount above the alarm
+  # threshold. Since our threshold is set at 75, the values below define what to do for CPU usage between 75 and 85%
+  # and then anything above 85%
 
   step_adjustment {
     metric_interval_lower_bound = 0.0
@@ -200,7 +202,7 @@ resource "aws_cloudwatch_metric_alarm" "high_cpu_utilization" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# ADD AN AUTO SCALING POLICY TO REMOVE INSTANCES WHEN CPU USAGE IS LOW 
+# ADD AN AUTO SCALING POLICY TO REMOVE INSTANCES WHEN CPU USAGE IS LOW
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_autoscaling_policy" "scale_in" {
@@ -234,7 +236,7 @@ resource "aws_cloudwatch_metric_alarm" "low_cpu_utilization" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# ENABLE ACCESS TO CERTAIN PORTS WITHIN THE ECS CLUSTER 
+# ENABLE ACCESS TO CERTAIN PORTS WITHIN THE ECS CLUSTER
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_security_group_rule" "cluster_access" {
