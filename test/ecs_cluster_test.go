@@ -162,6 +162,20 @@ func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestF
 		},
 	}
 
+	/*defaultVpc := aws.GetDefaultVpc(t, awsRegion)
+	vpcSubnets := aws.GetSubnetsForVpc(t, defaultVpc.Id, awsRegion)
+	var vpcSubnetIDs []string
+	for _, sn := range vpcSubnets {
+		vpcSubnetIDs = append(vpcSubnetIDs, sn.Id)
+	}
+	networkConfigName := fmt.Sprintf("gruntwork-test-%s", uniqueID)
+	var networkConfig = map[string]interface{}{
+		networkConfigName: map[string]interface{}{
+			"subnets": vpcSubnetIDs,
+			"security_groups":
+		}
+	}*/
+
 	ecsServiceTerraformOptions.Vars["service_name"] = serviceName
 	ecsServiceTerraformOptions.Vars["ecs_cluster_name"] = "test"
 	ecsServiceTerraformOptions.Vars["ecs_cluster_arn"] = ecsClusterArn
@@ -171,11 +185,14 @@ func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestF
 	ecsServiceTerraformOptions.Vars["image_version"] = "1.17"
 	ecsServiceTerraformOptions.Vars["vpc_env_var_name"] = "placeholder"
 	ecsServiceTerraformOptions.Vars["ecs_node_port_mappings"] = portMappings
-	ecsServiceTerraformOptions.Vars["alarm_sns_topic_arn"] = "TODO"
+	ecsServiceTerraformOptions.Vars["alarm_sns_topic_arn"] = "arn:aws:sns:us-west-1:087285199408:062OP8"
 	ecsServiceTerraformOptions.Vars["kms_master_key_arn"] = "TODO"
 	ecsServiceTerraformOptions.Vars["ecs_instance_security_group_id"] = "TODO"
 	ecsServiceTerraformOptions.Vars["db_primary_endpoint"] = "https://example.com"
 	ecsServiceTerraformOptions.Vars["container_images"] = containerImages
+	ecsServiceTerraformOptions.Vars["use_auto_scaling"] = true
+	ecsServiceTerraformOptions.Vars["ecs_task_definition_network_mode"] = "awsvpc"
+	ecsServiceTerraformOptions.Vars["ecs_service_network_configuration"] = networkConfiguration
 
 	terraform.InitAndApply(t, ecsServiceTerraformOptions)
 
