@@ -153,7 +153,11 @@ module "sns_topic" {
   slack_webhook_url = var.slack_webhook_url
 }
 
+# ----------------------------------------------------------------------------------------------------------------------
+# AWS IAM SERVICE LINKED ROLES
+# ----------------------------------------------------------------------------------------------------------------------
+
 resource "aws_iam_service_linked_role" "es" {
-  count            = var.enable_service_linked_role ? 1 : 0
+  count            = length(var.service_linked_roles)
   aws_service_name = "es.amazonaws.com"
 }

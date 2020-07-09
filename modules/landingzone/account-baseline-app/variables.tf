@@ -418,8 +418,8 @@ variable "slack_webhook_url" {
   default     = null
 }
 
-variable "enable_service_linked_role" {
-  description = "Whether to enable a service-linked role for elasticsearch. Set to true if using elasticsearch via https://github.com/gruntwork-io/package-elk/"
-  type        = bool
-  default     = false
+variable "service_linked_roles" {
+  description = "Create service-linked roles for this set of services. You should pass in the URLs of the services, but without the protocol (e.g., http://) in front: e.g., use elasticbeanstalk.amazonaws.com for Elastic Beanstalk or es.amazonaws.com for Amazon Elasticsearch. Service-linked roles are predefined by the service, can typically only be assumed by that service, and include all the permissions that the service requires to call other AWS services on your behalf. You can typically only create one such role per AWS account, which is why this parameter exists in the account baseline. See https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_aws-services-that-work-with-iam.html for the list of services that support service-linked roles."
+  type        = list(string)
+  default     = []
 }
