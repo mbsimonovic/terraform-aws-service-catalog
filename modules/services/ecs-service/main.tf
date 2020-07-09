@@ -23,10 +23,11 @@ module "ecs_service" {
   environment_name = var.service_name
   ecs_cluster_arn  = var.ecs_cluster_arn
 
-  ecs_task_container_definitions = var.canary_deployment ? data.template_file.container_definition.1.rendered : data.template_file.container_definition.0.rendered
+  # TODO - fix these definitions to contain all definition json 
+  ecs_task_container_definitions = aws_ecs_task_definition.service.0.container_definitions
+  ecs_task_definition_canary     = local.has_canary ? aws_ecs_task_definition.canary.0.container_definitions : null
 
-  ecs_task_definition_canary            = var.canary_deployment ? data.template_file.container_definition.0.rendered : null
-  desired_number_of_canary_tasks_to_run = var.canary_deployment ? var.desired_number_of_canary_tasks_to_run : 0
+  desired_number_of_canary_tasks_to_run = local.has_canary ? var.desired_number_of_canary_tasks_to_run : 0
 
   desired_number_of_tasks = var.desired_number_of_tasks
 
@@ -56,24 +57,74 @@ resource "aws_security_group_rule" "custom_permissions" {
 # ---------------------------------------------------------------------------------------------------------------------
 # CREATE THE CONTAINER DEFINITION THAT SPECIFIES WHAT DOCKER CONTAINERS TO RUN AND THE RESOURCES THEY NEED
 # ---------------------------------------------------------------------------------------------------------------------
+resource "aws_ecs_task_definition" "service" {
+  for_each = var.container_images
 
-# Create the "container" portion of the ECS Task definition.
-data "template_file" "container_definition" {
-  # If var.canary_deployment is set to true, we create two container definitions: the first one is for normal deployment and the second one is for the canary deployment
-  count = var.canary_deployment ? 2 : 1
+  family             = "${var.service_name}-${each.key}"
+  task_role_arn      = aws_iam_role.ecs_task.arn
+  execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
+  network_mode       = "awsvpc"
+  cpu                = var.cpu
+  memory             = var.memory
 
-  template = file("${path.module}/container-definition/container-definition.json")
+  container_definitions = jsonencode([
+    {
+      name      = each.key
+      image     = "${each.value.docker_image}:${each.value.docker_tag}"
+      essential = true
+      secrets = [
+        for env_var, arn in each.value.secrets_manager_arns :
+        {
+          name      = env_var
+          valueFrom = arn
+        }
+      ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-create-group  = "true"
+          awslogs-region        = data.aws_region.current.name
+          awslogs-group         = local.cloudwatch_log_group_name
+          awslogs-stream-prefix = "${local.cloudwatch_log_prefix}"
+        }
+      }
+    },
+  ])
+}
 
-  vars = {
-    image          = var.image
-    container_name = var.service_name
-    version        = var.canary_deployment ? [var.image_version, var.canary_version][count.index] : var.image_version
-    cpu            = var.cpu
-    memory         = var.memory
-    port_mappings  = "[${join(",", data.template_file.port_mappings.*.rendered)}]"
-    env_vars       = "[${join(",", data.template_file.all_env_vars.*.rendered)}]"
-    #   command        = var.use_custom_docker_run_command ? join(",", formatlist("\"%s\"", var.custom_docker_command)) : null
-  }
+resource "aws_ecs_task_definition" "canary" {
+  for_each = var.canary_images
+
+  family             = "${var.service_name}-${each.key}"
+  task_role_arn      = aws_iam_role.ecs_task.arn
+  execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
+  network_mode       = "awsvpc"
+  cpu                = var.cpu
+  memory             = var.memory
+
+  container_definitions = jsonencode([
+    {
+      name      = each.key
+      image     = "${each.value.docker_image}:${each.value.docker_tag}"
+      essential = true
+      secrets = [
+        for env_var, arn in each.value.secrets_manager_arns :
+        {
+          name      = env_var
+          valueFrom = arn
+        }
+      ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          awslogs-create-group  = "true"
+          awslogs-region        = data.aws_region.current.name
+          awslogs-group         = local.cloudwatch_log_group_name
+          awslogs-stream-prefix = "${local.cloudwatch_log_prefix}"
+        }
+      }
+    },
+  ])
 }
 
 # Convert the maps of ports to the container definition JSON format.
@@ -89,6 +140,15 @@ EOF
 }
 
 locals {
+
+  secret_manager_arns = flatten([
+    for name, container in var.container_images :
+    [for env_var, secret_arn in container.secrets_manager_arns : secret_arn]
+  ])
+
+
+  has_canary = length(var.canary_images) > 0 ? true : false
+
   # Create default map of env vars in the JSON format used by ECS container definitions.
   #
   # NOTE: if you add a default env var, make sure to update the count in data.template_file.all_env_vars!!!
@@ -99,6 +159,9 @@ locals {
 
   # Merge the default env vars with any extra env vars passed in by the user into a single map
   all_env_vars = merge(local.default_env_vars, var.extra_env_vars)
+
+  cloudwatch_log_group_name = var.cloudwatch_log_group_name != null ? var.cloudwatch_log_group_name : var.service_name
+  cloudwatch_log_prefix     = "ecs-service"
 }
 
 # Convert the env vars into a JSON format used by ECS container definitions.
@@ -134,14 +197,102 @@ data "aws_iam_policy_document" "access_kms_master_key" {
   }
 }
 
+# Create the ECS Task IAM Role
+resource "aws_iam_role" "ecs_task" {
+  name               = "${var.service_name}-task"
+  assume_role_policy = data.aws_iam_policy_document.ecs_task.json
+
+  # IAM objects take time to propagate. This leads to subtle eventual consistency bugs where the ECS task cannot be
+  # created because the IAM role does not exist. We add a 15 second wait here to give the IAM role a chance to propagate
+  # within AWS.
+  provisioner "local-exec" {
+    command = "echo 'Sleeping for 15 seconds to wait for IAM role to be created'; sleep 15"
+  }
+}
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# CREATE AN IAM POLICY AND EXECUTION ROLE TO ALLOW ECS TASK TO MAKE CLOUDWATCH REQUESTS AND PULL IMAGES FROM ECR
+# ---------------------------------------------------------------------------------------------------------------------
+
+resource "aws_iam_role" "ecs_task_execution_role" {
+  name               = "${var.service_name}-task-execution-role"
+  assume_role_policy = data.aws_iam_policy_document.ecs_task.json
+
+  # IAM objects take time to propagate. This leads to subtle eventual consistency bugs where the ECS task cannot be
+  # created because the IAM role does not exist. We add a 15 second wait here to give the IAM role a chance to propagate
+  # within AWS.
+  provisioner "local-exec" {
+    command = "echo 'Sleeping for 15 seconds to wait for IAM role to be created'; sleep 15"
+  }
+}
+
+resource "aws_iam_role_policy" "ecs_task_execution_policy" {
+  name   = "${var.service_name}-task-excution-policy"
+  policy = data.aws_iam_policy_document.ecs_task_execution_policy_document.json
+  role   = aws_iam_role.ecs_task_execution_role.name
+}
+
+data "aws_iam_policy_document" "ecs_task_execution_policy_document" {
+  statement {
+    effect = "Allow"
+
+    actions = [
+      "ecr:GetAuthorizationToken",
+      "ecr:BatchCheckLayerAvailability",
+      "ecr:GetDownloadUrlForLayer",
+      "ecr:BatchGetImage",
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents",
+    ]
+
+    resources = ["*"]
+  }
+
+  dynamic "statement" {
+    # The contents of the for each list does not matter here, as the only purpose is to determine whether or not to
+    # include this statement block.
+    for_each = length(local.secret_manager_arns) > 0 ? ["include_secrets_manager_permissions"] : []
+
+    content {
+      effect    = "Allow"
+      actions   = ["secretsmanager:GetSecretValue"]
+      resources = local.secret_manager_arns
+    }
+  }
+
+  dynamic "statement" {
+    for_each = compact([var.secrets_manager_kms_key_arn])
+
+    content {
+      effect    = "Allow"
+      actions   = ["kms:Decrypt"]
+      resources = [var.secrets_manager_kms_key_arn]
+    }
+  }
+}
+
+# Define the Assume Role IAM Policy Document for ECS to assume these roles
+data "aws_iam_policy_document" "ecs_task" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["ecs-tasks.amazonaws.com"]
+    }
+  }
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # ADD CLOUDWATCH ALARMS TO ALERT OPERATORS TO IMPORTANT ISSUES
 # ---------------------------------------------------------------------------------------------------------------------
 
 # Add CloudWatch Alarms that go off if the ECS Service's CPU or Memory usage gets too high.
 module "ecs_service_cpu_memory_alarms" {
-  create_resources = var.enable_cloudwatch_alarms ? true : false
-  source           = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/ecs-service-alarms?ref=v0.21.2"
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/ecs-service-alarms?ref=v0.21.2"
 
   ecs_service_name     = var.service_name
   ecs_cluster_name     = var.ecs_cluster_name
@@ -153,31 +304,29 @@ module "ecs_service_cpu_memory_alarms" {
   high_memory_utilization_period    = var.high_memory_utilization_period
 }
 
-#module "metric_widget_ecs_service_cpu_usage" {
-#  create_resources  = var.enable_cloudwatch_alarms ? 1 : 0
-#  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.21.2"
-#
-#  period = 60
-#  stat   = "Average"
-#  title  = "${title(var.service_name)} CPUUtilization"
-#
-#  metrics = [
-#    ["AWS/ECS", "CPUUtilization", "ClusterName", data.terraform_remote_state.ecs_cluster.outputs.ecs_cluster_name, "ServiceName", var.service_name],
-#  ]
-#}
+module "metric_widget_ecs_service_cpu_usage" {
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.21.2"
 
-#module "metric_widget_ecs_service_memory_usage" {
-#  create_resources  = var.enable_cloudwatch_alarms ? 1 : 0
-#  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.21.2"
-#
-#  period = 60
-#  stat   = "Average"
-#  title  = "${title(var.service_name)} MemoryUtilization"
-#
-#  metrics = [
-#    ["AWS/ECS", "MemoryUtilization", "ClusterName", data.terraform_remote_state.ecs_cluster.outputs.ecs_cluster_name, "ServiceName", var.service_name],
-#  ]
-#}
+  period = 60
+  stat   = "Average"
+  title  = "${title(var.service_name)} CPUUtilization"
+
+  metrics = [
+    ["AWS/ECS", "CPUUtilization", "ClusterName", var.ecs_cluster_name, "ServiceName", var.service_name],
+  ]
+}
+
+module "metric_widget_ecs_service_memory_usage" {
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.21.2"
+
+  period = 60
+  stat   = "Average"
+  title  = "${title(var.service_name)} MemoryUtilization"
+
+  metrics = [
+    ["AWS/ECS", "MemoryUtilization", "ClusterName", var.ecs_cluster_name, "ServiceName", var.service_name],
+  ]
+}
 
 # ---------------------------------------------------------------------------------------------------------------------
 # ENABLE AUTO SCALING OF THIS ECS SERVICE'S CONTAINERS

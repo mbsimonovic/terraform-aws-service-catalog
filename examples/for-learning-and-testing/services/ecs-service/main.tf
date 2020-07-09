@@ -34,5 +34,6 @@ module "application" {
   db_primary_endpoint               = var.db_primary_endpoint
   ecs_instance_security_group_id    = var.ecs_instance_security_group_id
   ecs_cluster_arn                   = var.ecs_cluster_arn
+  container_images                  = var.container_images
 }
 

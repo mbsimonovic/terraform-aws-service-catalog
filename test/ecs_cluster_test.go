@@ -44,7 +44,7 @@ func TestEcsCluster(t *testing.T) {
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
 		ecsClusterTerraformOptions := test_structure.LoadTerraformOptions(t, ecsClusterTestFolder)
-		terraform.Destroy(t, terraformOptions)
+		terraform.Destroy(t, ecsClusterTerraformOptions)
 
 		ecsServiceTerraformOptions := test_structure.LoadTerraformOptions(t, ecsServiceTestFolder)
 		terraform.Destroy(t, ecsServiceTerraformOptions)
@@ -136,9 +136,13 @@ func validateECSCluster(t *testing.T, testFolder string) {
 }
 
 func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestFolder string) {
-	terraformOptions := test_structure.LoadTerraformOptions(t, ecsClusterTestFolder)
-	clusterName := test_structure.LoadString(t, ecsClusterTestFolder, "clusterName")
-	ecsClusterArn := terraform.OutputRequired(t, terraformOptions, "ecs_cluster_arn")
+
+	awsRegion := test_structure.LoadString(t, ecsClusterTestFolder, "region")
+
+	ecsClusterTerraformOptions := test_structure.LoadTerraformOptions(t, ecsClusterTestFolder)
+	ecsServiceTerraformOptions := createBaseTerraformOptions(t, ecsServiceTestFolder, awsRegion)
+
+	ecsClusterArn := terraform.OutputRequired(t, ecsClusterTerraformOptions, "ecs_cluster_arn")
 	uniqueID := test_structure.LoadString(t, ecsClusterTestFolder, "uniqueID")
 	serviceName := fmt.Sprintf("nginx-%s", strings.ToLower(uniqueID))
 
@@ -148,20 +152,31 @@ func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestF
 		"443": 443,
 	}
 
-	terraformOptions.Vars["service_name"] = serviceName
-	terraformOptions.Vars["ecs_cluster_name"] = clusterName
-	terraformOptions.Vars["ecs_cluster_arn"] = ecsClusterArn
-	// TODO: cleanup the following vars
-	terraformOptions.Vars["aws_region"] = "us-west-1"
-	terraformOptions.Vars["image"] = "nginx"
-	terraformOptions.Vars["image_version"] = "1.17"
-	terraformOptions.Vars["vpc_env_var_name"] = "placeholder"
-	terraformOptions.Vars["ecs_node_port_mappings"] = portMappings
-	terraformOptions.Vars["alarm_sns_topic_arn"] = "TODO"
-	terraformOptions.Vars["kms_master_key_arn"] = "TODO"
-	terraformOptions.Vars["ecs_instance_security_group_id"] = "TODO"
-	terraformOptions.Vars["db_primary_endpoint"] = "https://example.com"
+	containerImageName := fmt.Sprintf("gruntwork-test-%s", uniqueID)
 
-	terraform.InitAndApply(t, terraformOptions)
+	var containerImages = map[string]interface{}{
+		containerImageName: map[string]interface{}{
+			"docker_image":         "nginx",
+			"docker_tag":           "1.17",
+			"secrets_manager_arns": map[string]interface{}{},
+		},
+	}
+
+	ecsServiceTerraformOptions.Vars["service_name"] = serviceName
+	ecsServiceTerraformOptions.Vars["ecs_cluster_name"] = "test"
+	ecsServiceTerraformOptions.Vars["ecs_cluster_arn"] = ecsClusterArn
+	// TODO: cleanup the following vars
+	ecsServiceTerraformOptions.Vars["aws_region"] = "us-west-1"
+	ecsServiceTerraformOptions.Vars["image"] = "nginx"
+	ecsServiceTerraformOptions.Vars["image_version"] = "1.17"
+	ecsServiceTerraformOptions.Vars["vpc_env_var_name"] = "placeholder"
+	ecsServiceTerraformOptions.Vars["ecs_node_port_mappings"] = portMappings
+	ecsServiceTerraformOptions.Vars["alarm_sns_topic_arn"] = "TODO"
+	ecsServiceTerraformOptions.Vars["kms_master_key_arn"] = "TODO"
+	ecsServiceTerraformOptions.Vars["ecs_instance_security_group_id"] = "TODO"
+	ecsServiceTerraformOptions.Vars["db_primary_endpoint"] = "https://example.com"
+	ecsServiceTerraformOptions.Vars["container_images"] = containerImages
+
+	terraform.InitAndApply(t, ecsServiceTerraformOptions)
 
 }
