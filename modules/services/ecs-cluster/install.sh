@@ -47,6 +47,15 @@ function install_ecs_cluster {
   # Fallback to default version if the env var is not set.
   local ecs_cluster_version="${ecs_cluster_version:-$DEFAULT_ECS_CLUSTER_VERSION}"
 
+  local module_security_version="${module_security_version:-$DEFAULT_MODULE_SECURITY_VERSION}"
+  local module_aws_monitoring_version="${module_aws_monitoring_version:-$DEFAULT_MODULE_AWS_MONITORING_VERSION}"
+  local bash_commons_version="${bash_commons_version:-$DEFAULT_BASH_COMMONS_VERSION}"
+
+  local enable_ssh_grunt="${enable_ssh_grunt:-$DEFAULT_ENABLE_SSH_GRUNT}"
+  local enable_cloudwatch_metrics="${enable_cloudwatch_metrics:-$DEFAULT_ENABLE_CLOUDWATCH_METRICS}"
+  local enable_cloudwatch_log_aggregation="${enable_cloudwatch_log_aggregation:-$DEFAULT_ENABLE_CLOUDWATCH_LOG_AGGREGATION}"
+
+ 
   while [[ $# -gt 0 ]]; do
     local key="$1"
 
@@ -56,6 +65,34 @@ function install_ecs_cluster {
         ecs_cluster_version="$2"
         shift
         ;;
+      --module-security-version)
+        assert_not_empty "$key" "$2"
+        module_security_version="$2"
+        shift
+        ;;
+      --module-aws-monitoring-version)
+        assert_not_empty "$key" "$2"
+        module_aws_monitoring_version="$2"
+        shift
+        ;;
+      --bash-commons-version)
+        assert_not_empty "$key" "$2"
+        bash_commons_version="$2"
+        shift
+        ;;
+      --enable-ssh-grunt)
+        enable_ssh_grunt="$2"
+        shift
+        ;;
+      --enable-cloudwatch-metrics)
+        enable_cloudwatch_metrics="$2"
+        shift
+        ;;
+      --enable-cloudwatch-log-aggregation)
+        enable_cloudwatch_log_aggregation="$2"
+        shift
+        ;;
+
      *)
         echo "ERROR: Unrecognized argument: $key"
         exit 1
