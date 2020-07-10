@@ -70,7 +70,7 @@ function install_ecs_cluster {
   gruntwork-install --module-name 'ecs-scripts' --repo https://github.com/gruntwork-io/module-ecs --tag "$ecs_cluster_version"
 
   install_user_data \ 
-      "${ECS_BASELINE_PATH}/user-data-common.sh"
+      "${EC2_BASELINE_PATH}/user-data-common.sh"
 }
 
 include_ec2_baseline
