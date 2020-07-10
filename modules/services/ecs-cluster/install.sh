@@ -66,6 +66,14 @@ function install_ecs_cluster {
   done
 
   assert_env_var_not_empty "GITHUB_OAUTH_TOKEN"
+  
+  install_gruntwork_modules \
+    "$bash_commons_version" \
+    "$module_security_version" \
+    "$module_aws_monitoring_version" \
+    "$enable_ssh_grunt" \
+    "$enable_cloudwatch_metrics" \
+    "$enable_cloudwatch_log_aggregation"
 
   gruntwork-install --module-name 'ecs-scripts' --repo https://github.com/gruntwork-io/module-ecs --tag "$ecs_cluster_version"
  

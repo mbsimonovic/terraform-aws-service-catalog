@@ -40,7 +40,7 @@ module "ecs_cluster" {
   enable_ssh_grunt              = false
 
   vpc_id         = module.vpc.vpc_id
-  vpc_subnet_ids = module.vpc.private_app_subnet_ids
+  vpc_subnet_ids = module.vpc.public_subnet_ids
 
   # cloud-init / user-data variables
   enable_cloudwatch_log_aggregation = var.enable_cloudwatch_log_aggregation
