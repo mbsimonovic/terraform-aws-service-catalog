@@ -68,9 +68,9 @@ function install_ecs_cluster {
   assert_env_var_not_empty "GITHUB_OAUTH_TOKEN"
 
   gruntwork-install --module-name 'ecs-scripts' --repo https://github.com/gruntwork-io/module-ecs --tag "$ecs_cluster_version"
-
-  install_user_data \ 
-      "${EC2_BASELINE_PATH}/user-data-common.sh"
+ 
+  install_user_data \
+    "${EC2_BASELINE_PATH}/user-data-common.sh"
 }
 
 include_ec2_baseline
