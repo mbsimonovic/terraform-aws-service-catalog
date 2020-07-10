@@ -157,7 +157,7 @@ module "sns_topic" {
 # AWS IAM SERVICE LINKED ROLES
 # ----------------------------------------------------------------------------------------------------------------------
 
-resource "aws_iam_service_linked_role" "es" {
-  count            = length(var.service_linked_roles)
-  aws_service_name = "es.amazonaws.com"
+resource "aws_iam_service_linked_role" "role" {
+  for_each         = var.service_linked_roles
+  aws_service_name = each.value
 }
