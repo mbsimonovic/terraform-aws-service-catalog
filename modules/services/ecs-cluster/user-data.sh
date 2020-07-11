@@ -28,4 +28,4 @@ start_ec2_baseline \
   "${log_group_name}" \
   "${external_account_ssh_grunt_role_arn}"
 
-/usr/local/bin/configure-ecs-instance --ecs-cluster-name "${cluster_name}" --docker-auth-type ecr
+/usr/local/bin/configure-ecs-instance --ecs-cluster-name "${cluster_name}" --docker-auth-type ecr --ecr-aws-region "${aws_region}"

@@ -61,6 +61,7 @@ data "template_file" "user_data" {
 
   vars = {
     cluster_name                        = var.cluster_name
+    aws_region                          = data.aws_region.current.name
     enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
     enable_ssh_grunt                    = var.enable_ssh_grunt
     ssh_grunt_iam_group                 = var.ssh_grunt_iam_group

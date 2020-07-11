@@ -102,11 +102,13 @@ func deployECSCluster(t *testing.T, testFolder string) {
 	clusterName := test_structure.LoadString(t, testFolder, "clusterName")
 	awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
 
+	// Use the default VPC and subnets for testing, since they are already configured
+	// with an internet gateway and routes for public internet access
 	defaultVpc := aws.GetDefaultVpc(t, awsRegion)
 	vpcSubnets := aws.GetSubnetsForVpc(t, defaultVpc.Id, awsRegion)
-	var vpcSubnetIDs []string
+	var vpcSubnetIds []string
 	for _, sn := range vpcSubnets {
-		vpcSubnetIDs = append(vpcSubnetIDs, sn.Id)
+		vpcSubnetIds = append(vpcSubnetIds, sn.Id)
 	}
 
 	terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
@@ -116,13 +118,13 @@ func deployECSCluster(t *testing.T, testFolder string) {
 	terraformOptions.Vars["cluster_instance_type"] = "t2.medium"
 	terraformOptions.Vars["cluster_instance_ami_version_tag"] = branchName
 	terraformOptions.Vars["vpc_id"] = defaultVpc.Id
-	terraformOptions.Vars["vpc_subnet_ids"] = vpcSubnetIDs
+	terraformOptions.Vars["vpc_subnet_ids"] = vpcSubnetIds
 	terraformOptions.Vars["cluster_instance_keypair_name"] = awsKeyPair.Name
 	terraformOptions.Vars["enable_cloudwatch_log_aggregation"] = true
 	terraformOptions.Vars["enable_ecs_cloudwatch_alarms"] = true
 	terraformOptions.Vars["enable_ssh_grunt"] = false
 	terraformOptions.Vars["enable_fail2ban"] = true
-	terraformOptions.Vars["enable_ip_lockdown"] = true
+	terraformOptions.Vars["enable_ip_lockdown"] = false
 
 	test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
 	terraform.InitAndApply(t, terraformOptions)
@@ -162,20 +164,6 @@ func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestF
 		},
 	}
 
-	/*defaultVpc := aws.GetDefaultVpc(t, awsRegion)
-	vpcSubnets := aws.GetSubnetsForVpc(t, defaultVpc.Id, awsRegion)
-	var vpcSubnetIDs []string
-	for _, sn := range vpcSubnets {
-		vpcSubnetIDs = append(vpcSubnetIDs, sn.Id)
-	}
-	networkConfigName := fmt.Sprintf("gruntwork-test-%s", uniqueID)
-	var networkConfig = map[string]interface{}{
-		networkConfigName: map[string]interface{}{
-			"subnets": vpcSubnetIDs,
-			"security_groups":
-		}
-	}*/
-
 	ecsServiceTerraformOptions.Vars["service_name"] = serviceName
 	ecsServiceTerraformOptions.Vars["ecs_cluster_name"] = "test"
 	ecsServiceTerraformOptions.Vars["ecs_cluster_arn"] = ecsClusterArn
@@ -191,8 +179,6 @@ func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestF
 	ecsServiceTerraformOptions.Vars["db_primary_endpoint"] = "https://example.com"
 	ecsServiceTerraformOptions.Vars["container_images"] = containerImages
 	ecsServiceTerraformOptions.Vars["use_auto_scaling"] = true
-	ecsServiceTerraformOptions.Vars["ecs_task_definition_network_mode"] = "awsvpc"
-	ecsServiceTerraformOptions.Vars["ecs_service_network_configuration"] = networkConfiguration
 
 	terraform.InitAndApply(t, ecsServiceTerraformOptions)
 

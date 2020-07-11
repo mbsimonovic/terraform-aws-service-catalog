@@ -39,8 +39,8 @@ module "ecs_cluster" {
   cluster_instance_keypair_name = var.cluster_instance_keypair_name
   enable_ssh_grunt              = false
 
-  vpc_id         = module.vpc.vpc_id
-  vpc_subnet_ids = module.vpc.public_subnet_ids
+  vpc_id         = var.vpc_id
+  vpc_subnet_ids = var.vpc_subnet_ids
 
   # cloud-init / user-data variables
   enable_cloudwatch_log_aggregation = var.enable_cloudwatch_log_aggregation
@@ -49,19 +49,4 @@ module "ecs_cluster" {
   enable_ip_lockdown = var.enable_ip_lockdown
 
 }
-
-# ----------------------------------------------------------------------------------------------------------------------
-# CREATE A VPC
-# ----------------------------------------------------------------------------------------------------------------------
-
-module "vpc" {
-  source = "../../../../modules/networking/vpc"
-
-  aws_region       = var.aws_region
-  cidr_block       = "10.0.0.0/16"
-  num_nat_gateways = 1
-  vpc_name         = var.cluster_name
-  create_flow_logs = false
-}
-
 
