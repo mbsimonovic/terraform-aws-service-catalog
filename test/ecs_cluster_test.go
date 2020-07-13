@@ -22,7 +22,7 @@ func TestEcsCluster(t *testing.T) {
 	// os.Setenv("SKIP_build_ami", "true")
 	// os.Setenv("SKIP_deploy_terraform", "true")
 	// os.Setenv("SKIP_validate_cluster", "true")
-	// os.Setenv("SKIP_deploy_ecs_service, "true")
+	// os.Setenv("SKIP_deploy_ecs_service", "true")
 	// os.Setenv("SKIP_cleanup", "true")
 	// os.Setenv("SKIP_cleanup_keypairs", "true")
 	// os.Setenv("SKIP_cleanup_ami", "true")
@@ -133,8 +133,18 @@ func deployECSCluster(t *testing.T, testFolder string) {
 func validateECSCluster(t *testing.T, testFolder string) {
 	terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
 	ecsClusterArn := terraform.OutputRequired(t, terraformOptions, "ecs_cluster_arn")
+	clusterName := test_structure.LoadString(t, testFolder, "clusterName")
+	awsRegion := test_structure.LoadString(t, testFolder, "region")
 
 	assert.NotEmpty(t, ecsClusterArn)
+
+	// Sanity check that the cluster can be retrieved via the SDK and that it has at least 1 successfully registered container instance
+	cluster := aws.GetEcsCluster(t, awsRegion, clusterName)
+	assert.NotNil(t, cluster)
+
+	instanceCount := int(*cluster.RegisteredContainerInstancesCount)
+	assert.Greater(t, instanceCount, 0)
+
 }
 
 func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestFolder string) {
@@ -174,7 +184,6 @@ func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestF
 	ecsServiceTerraformOptions.Vars["vpc_env_var_name"] = "placeholder"
 	ecsServiceTerraformOptions.Vars["ecs_node_port_mappings"] = portMappings
 	ecsServiceTerraformOptions.Vars["alarm_sns_topic_arn"] = "arn:aws:sns:us-west-1:087285199408:062OP8"
-	ecsServiceTerraformOptions.Vars["kms_master_key_arn"] = "TODO"
 	ecsServiceTerraformOptions.Vars["ecs_instance_security_group_id"] = "TODO"
 	ecsServiceTerraformOptions.Vars["db_primary_endpoint"] = "https://example.com"
 	ecsServiceTerraformOptions.Vars["container_images"] = containerImages
