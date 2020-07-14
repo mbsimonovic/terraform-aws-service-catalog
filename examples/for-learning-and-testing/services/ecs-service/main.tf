@@ -35,6 +35,6 @@ module "application" {
   ecs_instance_security_group_id    = var.ecs_instance_security_group_id
   ecs_cluster_arn                   = var.ecs_cluster_arn
   ecs_cluster_name                  = var.ecs_cluster_name
-  container_images                  = var.container_images
+  container_definitions             = var.container_definitions
 }
 

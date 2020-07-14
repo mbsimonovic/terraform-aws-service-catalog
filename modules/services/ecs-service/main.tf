@@ -24,8 +24,8 @@ module "ecs_service" {
   ecs_cluster_arn  = var.ecs_cluster_arn
 
   # TODO - fix these definitions to contain all definition json 
-  ecs_task_container_definitions = local.container_definition_json
-  ecs_task_definition_canary     = local.has_canary ? local.container_definition_json : null
+  ecs_task_container_definitions = local.container_definitions
+  ecs_task_definition_canary     = local.has_canary ? local.canary_container_definitions : null
 
   desired_number_of_canary_tasks_to_run = local.has_canary ? var.desired_number_of_canary_tasks_to_run : 0
 
@@ -71,23 +71,101 @@ EOF
 }
 
 locals {
+  list_of_container_definitions = [for k, v in var.container_definitions : {
+    "name" : "${k}",
+    "command" : lookup(v, "command", null),
+    "dependsOn" : lookup(v, "dependsOn", null),
+    "disableNetworking" : lookup(v, "disableNetworking", null),
+    "dnsSearchDomains" : lookup(v, "dnsSearchDomains", null),
+    "dnsServers" : lookup(v, "dnsServers", null),
+    "dockerLabels" : lookup(v, "dockerLabels", null),
+    "dockerSecurityOptions" : lookup(v, "dockerSecurityOptions", null),
+    "entryPoint" : lookup(v, "entryPoint", null),
+    "image" : lookup(v, "image", null),
+    "cpu" : lookup(v, "cpu", 1),
+    "memory" : lookup(v, "memory", 500),
+    "essential" : lookup(v, "essential", null),
+    "environment" : lookup(v, "environment", null),
+    "environmentFiles" : lookup(v, "environmentFiles", null),
+    "extraHosts" : lookup(v, "firelensConfiguration", null),
+    "firelensConfiguration" : lookup(v, "firelensConfiguration", null),
+    "healthCheck" : lookup(v, "healthCheck", null),
+    "hostname" : lookup(v, "hostname", null),
+    "interactive" : lookup(v, "interactive", null),
+    "links" : lookup(v, "links", null),
+    "linuxParameters" : lookup(v, "linuxParameters", null),
+    "logConfiguration" : lookup(v, "logConfiguration", null),
+    "memoryReservation" : lookup(v, "memoryReservation", null),
+    "mountPoints" : lookup(v, "mountPoints", null),
+    "portMappings" : lookup(v, "portMappings", null),
+    "privileged" : lookup(v, "privileged", null),
+    "pseudoTerminal" : lookup(v, "pseudoTerminal", null),
+    "readonlyRootFilesystem" : lookup(v, "readonlyRootFilesystem", null),
+    "respositoryCredentials" : lookup(v, "repositoryCredentials", null),
+    "resourceRequirements" : lookup(v, "resourceRequirements", null),
+    "secrets" : lookup(v, "secrets", null)
+    "startTimeout" : lookup(v, "startTimeout", null)
+    "stopTimeout" : lookup(v, "stopTimeout", null)
+    "systemControls" : lookup(v, "systemControls", null)
+    "ulimits" : lookup(v, "ulimits", null),
+    "user" : lookup(v, "user", null),
+    "volumesFrom" : lookup(v, "volumesFrom", null),
+    "workingDirectory" : lookup(v, "workingDirectory", null)
+  }]
 
-  container_definition_json = jsonencode([{
-    "name" : "${var.service_name}",
-    "image" : "nginx:1.17",
-    "cpu" : 2,
-    "memory" : 500,
-    "essential" : true,
-    "environment" : []
-  }])
+  container_definitions = jsonencode(local.list_of_container_definitions)
+
+  list_of_canary_container_definitions = [for k, v in var.canary_container_definitions : {
+    "name" : "${k}",
+    "command" : lookup(v, "command", null),
+    "dependsOn" : lookup(v, "dependsOn", null),
+    "disableNetworking" : lookup(v, "disableNetworking", null),
+    "dnsSearchDomains" : lookup(v, "dnsSearchDomains", null),
+    "dnsServers" : lookup(v, "dnsServers", null),
+    "dockerLabels" : lookup(v, "dockerLabels", null),
+    "dockerSecurityOptions" : lookup(v, "dockerSecurityOptions", null),
+    "entryPoint" : lookup(v, "entryPoint", null),
+    "image" : lookup(v, "image", null),
+    "cpu" : lookup(v, "cpu", 1),
+    "memory" : lookup(v, "memory", 500),
+    "essential" : lookup(v, "essential", null),
+    "environment" : lookup(v, "environment", null),
+    "environmentFiles" : lookup(v, "environmentFiles", null),
+    "extraHosts" : lookup(v, "firelensConfiguration", null),
+    "firelensConfiguration" : lookup(v, "firelensConfiguration", null),
+    "healthCheck" : lookup(v, "healthCheck", null),
+    "hostname" : lookup(v, "hostname", null),
+    "interactive" : lookup(v, "interactive", null),
+    "links" : lookup(v, "links", null),
+    "linuxParameters" : lookup(v, "linuxParameters", null),
+    "logConfiguration" : lookup(v, "logConfiguration", null),
+    "memoryReservation" : lookup(v, "memoryReservation", null),
+    "mountPoints" : lookup(v, "mountPoints", null),
+    "portMappings" : lookup(v, "portMappings", null),
+    "privileged" : lookup(v, "privileged", null),
+    "pseudoTerminal" : lookup(v, "pseudoTerminal", null),
+    "readonlyRootFilesystem" : lookup(v, "readonlyRootFilesystem", null),
+    "respositoryCredentials" : lookup(v, "repositoryCredentials", null),
+    "resourceRequirements" : lookup(v, "resourceRequirements", null),
+    "secrets" : lookup(v, "secrets", null)
+    "startTimeout" : lookup(v, "startTimeout", null)
+    "stopTimeout" : lookup(v, "stopTimeout", null)
+    "systemControls" : lookup(v, "systemControls", null)
+    "ulimits" : lookup(v, "ulimits", null),
+    "user" : lookup(v, "user", null),
+    "volumesFrom" : lookup(v, "volumesFrom", null),
+    "workingDirectory" : lookup(v, "workingDirectory", null)
+  }]
+
+  canary_container_definitions = jsonencode(local.list_of_canary_container_definitions)
 
   secret_manager_arns = flatten([
-    for name, container in var.container_images :
+    for name, container in var.container_definitions :
     [for env_var, secret_arn in container.secrets_manager_arns : secret_arn]
   ])
 
 
-  has_canary = length(var.canary_images) > 0 ? true : false
+  has_canary = var.canary_container_definitions != null && length(var.canary_container_definitions) > 0 ? true : false
 
   # NOTE: if you add a default env var, make sure to update the count in data.template_file.all_env_vars!!!
   default_env_vars = map(
@@ -121,6 +199,7 @@ EOF
 
 # Give this ECS Service access to the KMS Master Key so it can use it to decrypt secrets in config files.
 resource "aws_iam_role_policy" "access_kms_master_key" {
+  count  = var.kms_master_key_arn != null ? 1 : 0
   name   = "access-kms-master-key"
   role   = module.ecs_service.ecs_task_iam_role_name
   policy = data.aws_iam_policy_document.access_kms_master_key.json

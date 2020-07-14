@@ -59,32 +59,18 @@ variable "image_version" {
   type        = string
 }
 
-variable "container_images" {
-  description = "Map of names to docker image (repo and tag) to use for the ECS task. Each entry corresponds to a different ECS task definition that can be used for infrastructure pipelines. The key corresponds to a user defined name that can be used with the invoker function to determine which task definition to use."
-  type = map(object({
-    # Docker container identifiers
-    docker_image = string
-    docker_tag   = string
-
-    # Map of environment variable names to secret manager arns of secrets to share with the container during runtime.
-    secrets_manager_arns = map(string)
-  }))
+variable "container_definitions" {
+  description = "Map of names to container definitions to use for the ECS task. Each entry corresponds to a different ECS container definition. The key corresponds to a user defined name for the container definition"
+  type        = any
 }
-# ---------------------------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL PARAMETERS
 # These values may optionally be overwritten by the calling Terraform code.
 # ---------------------------------------------------------------------------------------------------------------------
-variable "canary_images" {
-  description = "Map of names to docker image (repo and tag) to use for the ECS task. Each entry corresponds to a different ECS task definition that can be used for infrastructure pipelines. The key corresponds to a user defined name that can be used with the invoker function to determine which task definition to use."
-  type = map(object({
-    # Docker container identifiers
-    docker_image = string
-    docker_tag   = string
-
-    # Map of environment variable names to secret manager arns of secrets to share with the container during runtime.
-    secrets_manager_arns = map(string)
-  }))
-  default = {}
+variable "canary_container_definitions" {
+  description = "Map of names to container definitions to use for the canary ECS task. Each entry corresponds to a different ECS container definition. The key corresponds to a user defined name for the container definition"
+  type        = any
+  default     = null
 }
 
 variable "secrets_manager_kms_key_arn" {
