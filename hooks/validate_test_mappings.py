@@ -62,9 +62,6 @@ IGNORE_SUFFIX_LIST = [
 
     # Ignore html files
     '.html',
-
-    # Ignore the helpers for the ECS deploy runner
-    'ecs_deploy_runner_test_helpers.go',
 ]
 
 

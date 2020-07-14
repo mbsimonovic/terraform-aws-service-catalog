@@ -3,14 +3,14 @@ output "ecs_cluster_arn" {
   value       = module.ecs_deploy_runner.ecs_cluster_arn
 }
 
-output "ecs_task_iam_role_name" {
-  description = "Name of the IAM role that will be attached to the ECS task to grant it access to AWS resources."
-  value       = module.ecs_deploy_runner.ecs_task_iam_role_name
+output "ecs_task_arns" {
+  description = "Map of AWS ARNs of the ECS Task Definition. There are four entries, one for each container in the standard config (docker-image-builder ; ami-builder ; terraform-planner ; terraform-applier)."
+  value       = module.ecs_deploy_runner.ecs_task_arns
 }
 
-output "ecs_task_iam_role_arn" {
-  description = "ARN of the IAM role that will be attached to the ECS task to grant it access to AWS resources."
-  value       = module.ecs_deploy_runner.ecs_task_iam_role_arn
+output "ecs_task_iam_roles" {
+  description = "Map of AWS ARNs and names of the IAM role that will be attached to the ECS task to grant it access to AWS resources. Each container will have its own IAM role. There are four entries, one for each container in the standard config (docker-image-builder ; ami-builder ; terraform-planner ; terraform-applier)."
+  value       = module.ecs_deploy_runner.ecs_task_iam_roles
 }
 
 output "default_ecs_task_arn" {
@@ -18,18 +18,13 @@ output "default_ecs_task_arn" {
   value       = module.ecs_deploy_runner.default_ecs_task_arn
 }
 
-output "ecs_task_arns" {
-  description = "Map of AWS ARNs of the ECS Task Definition. Each entry corresponds to an entry in the var.container_images input map, with the keys aligned."
-  value       = module.ecs_deploy_runner.ecs_task_arns
-}
-
 output "ecs_task_families" {
-  description = "Map of the families of the ECS Task Definition that is currently live. Each entry corresponds to an entry in the var.container_images input map, with the keys aligned."
+  description = "Map of the families of the ECS Task Definition that is currently live. There are four entries, one for each container in the standard config (docker-image-builder ; ami-builder ; terraform-planner ; terraform-applier)."
   value       = module.ecs_deploy_runner.ecs_task_families
 }
 
 output "ecs_task_revisions" {
-  description = "Map of the current revision of the ECS Task Definition that is live. Each entry corresponds to an entry in the var.container_images input map, with the keys aligned."
+  description = "Map of the current revision of the ECS Task Definition that is currently live. There are four entries, one for each container in the standard config (docker-image-builder ; ami-builder ; terraform-planner ; terraform-applier)."
   value       = module.ecs_deploy_runner.ecs_task_revisions
 }
 

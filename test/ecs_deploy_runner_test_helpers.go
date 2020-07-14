@@ -1,24 +1,24 @@
 package test
 
 import (
-	"fmt"
+	"context"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
-	"time"
 
 	awsgo "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecr"
-	"github.com/aws/aws-sdk-go/service/ecs"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
-	"github.com/gruntwork-io/gruntwork-cli/errors"
+	"github.com/google/go-github/v32/github"
 	"github.com/gruntwork-io/terratest/modules/aws"
-	"github.com/gruntwork-io/terratest/modules/retry"
+	"github.com/gruntwork-io/terratest/modules/docker"
 	"github.com/gruntwork-io/terratest/modules/shell"
 	"github.com/stretchr/testify/require"
-
-	"github.com/gruntwork-io/module-ci/modules/infrastructure-deployer/deploy"
+	"golang.org/x/oauth2"
 )
+
+const gitPATEnvName = "GITHUB_OAUTH_TOKEN"
 
 var ECSFargateRegions = []string{
 	"us-east-1",
@@ -36,48 +36,32 @@ var ECSFargateRegions = []string{
 	"ca-central-1",
 }
 
-// invokeDeployRunnerLambdaE will take the provided deploy args and directly invoke the Lambda function using the AWS
-// SDK.
-func invokeDeployRunnerLambdaE(t *testing.T, args deploy.DeployArgs, region string, functionArn string) (*deploy.InvokeResp, error) {
-	session, err := deploy.NewAuthenticatedSessionFromDefaultCredentials(region)
-	if err != nil {
-		return nil, err
+func gitCloneAndDockerBuild(
+	t *testing.T,
+	repo string,
+	ref string,
+	path string,
+	dockerBuildOpts *docker.BuildOptions,
+) {
+	workingDir, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	defer os.RemoveAll(workingDir)
+
+	cloneCmd := shell.Command{
+		Command: "git",
+		Args:    []string{"clone", repo, workingDir},
 	}
-	resp, err := deploy.InvokeLambda(session, functionArn, args)
-	return resp, errors.Unwrap(err)
-}
+	shell.RunCommand(t, cloneCmd)
 
-// waitForECSTaskToFinish will continuously check the ECS task referenced in the invoke response until it reaches the
-// STOPPED state, or the check times out. The timeout setting is 5 minutes.
-func waitForECSTaskToFinish(t *testing.T, region string, resp *deploy.InvokeResp) {
-	ecsClient := aws.NewEcsClient(t, region)
-	retry.DoWithRetry(
-		t,
-		"wait for task to finish",
-		// 5 minutes: 30 tries, 10 seconds in between each trial
-		30, 10*time.Second,
-		func() (string, error) {
-			input := &ecs.DescribeTasksInput{
-				Cluster: awsgo.String(resp.ClusterArn),
-				Tasks:   awsgo.StringSlice([]string{resp.TaskArn}),
-			}
-			resp, err := ecsClient.DescribeTasks(input)
-			if err != nil {
-				return "", err
-			}
+	checkoutCmd := shell.Command{
+		Command:    "git",
+		Args:       []string{"checkout", ref},
+		WorkingDir: workingDir,
+	}
+	shell.RunCommand(t, checkoutCmd)
 
-			if len(resp.Tasks) != 1 {
-				return "", fmt.Errorf("Could not find deploy task.")
-			}
-
-			task := resp.Tasks[0]
-			lastStatus := awsgo.StringValue(task.LastStatus)
-			if lastStatus != "STOPPED" {
-				return "", fmt.Errorf("Deploy task has not stopped yet. Last status %s", lastStatus)
-			}
-			return "deploy task has stopped", nil
-		},
-	)
+	contextPath := filepath.Join(workingDir, path)
+	docker.Build(t, contextPath, dockerBuildOpts)
 }
 
 func deleteDockerImage(t *testing.T, img string) {
@@ -98,32 +82,33 @@ func createECRRepo(t *testing.T, region string, name string) string {
 // deleteECRRepo will force delete the ECR repo by deleting all images prior to deleting the ECR repository.
 func deleteECRRepo(t *testing.T, region string, name string) {
 	client := newECRClient(t, region)
-	_, err := client.BatchDeleteImage(&ecr.BatchDeleteImageInput{
+
+	resp, err := client.ListImages(&ecr.ListImagesInput{RepositoryName: awsgo.String(name)})
+	require.NoError(t, err)
+
+	_, err = client.BatchDeleteImage(&ecr.BatchDeleteImageInput{
 		RepositoryName: awsgo.String(name),
-		ImageIds: []*ecr.ImageIdentifier{
-			&ecr.ImageIdentifier{ImageTag: awsgo.String("v1")},
-		},
+		ImageIds:       resp.ImageIds,
 	})
 	require.NoError(t, err)
+
 	_, err = client.DeleteRepository(&ecr.DeleteRepositoryInput{RepositoryName: awsgo.String(name)})
 	require.NoError(t, err)
 }
 
-func loadSSHKeyToSecretsManager(t *testing.T, region string, uniqueID string) string {
+func loadSecretToSecretsManager(t *testing.T, region string, name string, secret string) string {
 	client := newSecretsManagerClient(t, region)
 
-	privateKey := loadSSHKey(t)
-	name := fmt.Sprintf("ECRDeployRunnerTestSSHKey-%s", uniqueID)
 	input := &secretsmanager.CreateSecretInput{
 		Name:         awsgo.String(name),
-		SecretString: awsgo.String(privateKey),
+		SecretString: awsgo.String(secret),
 	}
 	out, err := client.CreateSecret(input)
 	require.NoError(t, err)
 	return awsgo.StringValue(out.ARN)
 }
 
-func deleteSSHKeySecret(t *testing.T, region string, arn string) {
+func deleteSecretsManagerSecret(t *testing.T, region string, arn string) {
 	client := newSecretsManagerClient(t, region)
 
 	input := &secretsmanager.DeleteSecretInput{
@@ -153,4 +138,21 @@ func loadSSHKey(t *testing.T) string {
 	contents, err := ioutil.ReadFile(sshPrivKeyPath)
 	require.NoError(t, err)
 	return string(contents)
+}
+
+func getGitUserInfo(t *testing.T, token string) (string, string) {
+	ctx, ghClient := newGithubClient(token)
+	authenticatedUser, _, err := ghClient.Users.Get(ctx, "")
+	require.NoError(t, err)
+	return authenticatedUser.GetEmail(), authenticatedUser.GetName()
+}
+
+func newGithubClient(token string) (context.Context, *github.Client) {
+	ctx := context.Background()
+	oauth2TokenSource := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: token},
+	)
+	oauth2Client := oauth2.NewClient(ctx, oauth2TokenSource)
+
+	return ctx, github.NewClient(oauth2Client)
 }

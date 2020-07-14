@@ -2,6 +2,7 @@ package test
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -14,36 +15,34 @@ import (
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 )
 
-const repo = "git@github.com:gruntwork-io/aws-service-catalog.git"
+const (
+	serviceCatalogRepo = "git@github.com:gruntwork-io/aws-service-catalog.git"
+	deployRunnerImgTag = "deploy-runner-v1"
+	kanikoImgTag       = "kaniko-v1"
+
+	// TODO: remove and replace with release tag
+	moduleCIRepo   = "git@github.com:gruntwork-io/module-ci.git"
+	moduleCIBranch = "yori-app-cicd-feature"
+)
 
 // TestEcsDeployRunner tests the ECS Deploy Runner module.
-// Since certain parts of the pipeline take a long time, this test is broken up into
-// multiple sub tests to support setup and cleanup functionalities. The hierarchy is as follows:
-//
-// TestDeployRunnerECSTaskDeployment
-// └── subgroup
-//     └── ... additional sub tests ...
-//
-// TestDeployRunnerECSTaskDeployment will setup the docker image and ECR repository.
-//
 // The environment variable TERRATEST_SSH_PRIVATE_KEY_PATH must be set to a valid path containing an SSH private key
 // that can be used to clone Gruntwork Repos.
 func TestEcsDeployRunner(t *testing.T) {
 	t.Parallel()
 
-	// Setup
 	//os.Setenv("SKIP_setup", "true")
 	//os.Setenv("SKIP_setup_ecr_repo", "true")
 	//os.Setenv("SKIP_setup_ssh_private_key", "true")
 	//os.Setenv("SKIP_build_docker_image", "true")
 	//os.Setenv("SKIP_push_docker_image", "true")
-
-	// Refer to top of testDeploymentScenarios additional skips
-
-	// Cleanup
+	//os.Setenv("SKIP_apply_deploy_runner", "true")
+	//os.Setenv("SKIP_destroy_deploy_runner", "true")
 	//os.Setenv("SKIP_delete_docker_image", "true")
 	//os.Setenv("SKIP_cleanup_ssh_private_key", "true")
 	//os.Setenv("SKIP_cleanup_ecr_repo", "true")
+
+	modulePath := test_structure.CopyTerraformFolderToTemp(t, "..", "examples/for-learning-and-testing/mgmt/ecs-deploy-runner")
 
 	// Create a directory path that won't conflict
 	workingDir := filepath.Join(".", "stages", t.Name())
@@ -58,6 +57,7 @@ func TestEcsDeployRunner(t *testing.T) {
 	uniqueID := test_structure.LoadString(t, workingDir, "UniqueID")
 	region := test_structure.LoadString(t, workingDir, "AwsRegion")
 	repository := fmt.Sprintf("gruntwork/ecs-deploy-runner-%s", uniqueID)
+	deployRunnerName := fmt.Sprintf("ecs-deploy-runner-%s", uniqueID)
 
 	// Setup ECR repository
 	defer test_structure.RunTestStage(t, "cleanup_ecr_repo", func() {
@@ -68,30 +68,59 @@ func TestEcsDeployRunner(t *testing.T) {
 		test_structure.SaveString(t, workingDir, "EcrRepositoryUri", repositoryUri)
 	})
 	repositoryUri := test_structure.LoadString(t, workingDir, "EcrRepositoryUri")
-	imgTag := fmt.Sprintf("%s:v1", repositoryUri)
+	deployRunnerImg := fmt.Sprintf("%s:%s", repositoryUri, deployRunnerImgTag)
+	kanikoImg := fmt.Sprintf("%s:%s", repositoryUri, kanikoImgTag)
 
 	// Setup private ssh key in secrets manager
 	defer test_structure.RunTestStage(t, "cleanup_ssh_private_key", func() {
-		secretsManagerArn := test_structure.LoadString(t, workingDir, "SSHKeySecretsManagerArn")
-		deleteSSHKeySecret(t, region, secretsManagerArn)
+		sshSecretsManagerArn := test_structure.LoadString(t, workingDir, "SSHKeySecretsManagerArn")
+		deleteSecretsManagerSecret(t, region, sshSecretsManagerArn)
+
+		patSecretsManagerArn := test_structure.LoadString(t, workingDir, "PATSecretsManagerArn")
+		deleteSecretsManagerSecret(t, region, patSecretsManagerArn)
 	})
 	test_structure.RunTestStage(t, "setup_ssh_private_key", func() {
-		secretsManagerArn := loadSSHKeyToSecretsManager(t, region, uniqueID)
-		test_structure.SaveString(t, workingDir, "SSHKeySecretsManagerArn", secretsManagerArn)
+		sshKeyName := fmt.Sprintf("ECRDeployRunnerTestSSHKey-%s", uniqueID)
+		privateKey := loadSSHKey(t)
+		sshSecretsManagerArn := loadSecretToSecretsManager(t, region, sshKeyName, privateKey)
+		test_structure.SaveString(t, workingDir, "SSHKeySecretsManagerArn", sshSecretsManagerArn)
+
+		gitPatName := fmt.Sprintf("ECRDeployRunnerTestGitPAT-%s", uniqueID)
+		gitPatSecretsManagerArn := loadSecretToSecretsManager(t, region, gitPatName, os.Getenv(gitPATEnvName))
+		test_structure.SaveString(t, workingDir, "PATSecretsManagerArn", gitPatSecretsManagerArn)
 	})
-	secretsManagerArn := test_structure.LoadString(t, workingDir, "SSHKeySecretsManagerArn")
+	sshSecretsManagerArn := test_structure.LoadString(t, workingDir, "SSHKeySecretsManagerArn")
+	gitPatSecretsManagerArn := test_structure.LoadString(t, workingDir, "PATSecretsManagerArn")
 
 	// Build and push docker image
 	defer test_structure.RunTestStage(t, "delete_docker_image", func() {
-		deleteDockerImage(t, imgTag)
+		deleteDockerImage(t, deployRunnerImg)
+		deleteDockerImage(t, kanikoImg)
 	})
 	test_structure.RunTestStage(t, "build_docker_image", func() {
-		buildOpts := &docker.BuildOptions{
-			Tags:         []string{imgTag},
-			BuildArgs:    []string{"GITHUB_OAUTH_TOKEN"},
+		// deploy-runner docker image
+		deployRunnerBuildOpts := &docker.BuildOptions{
+			Tags: []string{deployRunnerImg},
+			BuildArgs: []string{
+				"GITHUB_OAUTH_TOKEN",
+				"module_ci_tag=''",
+				fmt.Sprintf("module_ci_branch=%s", moduleCIBranch),
+			},
 			OtherOptions: []string{"--no-cache"},
 		}
-		docker.Build(t, "../examples/for-learning-and-testing/mgmt/ecs-deploy-runner/docker", buildOpts)
+		gitCloneAndDockerBuild(t, moduleCIRepo, moduleCIBranch, "modules/ecs-deploy-runner/docker/deploy-runner", deployRunnerBuildOpts)
+
+		// kaniko docker image
+		kanikoBuildOpts := &docker.BuildOptions{
+			Tags: []string{kanikoImg},
+			BuildArgs: []string{
+				"GITHUB_OAUTH_TOKEN",
+				"module_ci_tag=''",
+				fmt.Sprintf("module_ci_branch=%s", moduleCIBranch),
+			},
+			OtherOptions: []string{"--no-cache"},
+		}
+		gitCloneAndDockerBuild(t, moduleCIRepo, moduleCIBranch, "modules/ecs-deploy-runner/docker/kaniko", kanikoBuildOpts)
 	})
 	test_structure.RunTestStage(t, "push_docker_image", func() {
 		pushCmd := shell.Command{
@@ -99,57 +128,84 @@ func TestEcsDeployRunner(t *testing.T) {
 			Args: []string{
 				"-c",
 				fmt.Sprintf(
-					"eval $(aws ecr get-login --no-include-email --region %s) && docker push %s",
+					"eval $(aws ecr get-login --no-include-email --region %s) && docker push %s && docker push %s",
 					region,
-					imgTag,
+					deployRunnerImg,
+					kanikoImg,
 				),
 			},
 		}
 		shell.RunCommand(t, pushCmd)
 	})
 
-	testDeploymentScenarios(t, uniqueID, region, secretsManagerArn, repositoryUri)
-}
-
-// Test that the deploy runner ECS task can be invoked and works as expected.
-func testDeploymentScenarios(
-	t *testing.T,
-	parentUniqueID string,
-	region string,
-	secretsManagerArn string,
-	repositoryUri string,
-) {
-	// Setup code
-	//os.Setenv("SKIP_setup_deployment_test", "true")
-	//os.Setenv("SKIP_apply_deploy_runner", "true")
-
-	// Clean up code
-	//os.Setenv("SKIP_destroy_deploy_runner", "true")
-
-	// Create a directory path that won't conflict
-	workingDir := filepath.Join(".", "stages", t.Name())
-
-	test_structure.RunTestStage(t, "setup_deployment_test", func() {
-		uniqueID := strings.ToLower(random.UniqueId())
-		test_structure.SaveString(t, workingDir, "UniqueID", uniqueID)
-	})
-	uniqueID := test_structure.LoadString(t, workingDir, "UniqueID")
-	name := fmt.Sprintf("%s-ecs-deploy-runner-%s", parentUniqueID, uniqueID)
-	modulePath := test_structure.CopyTerraformFolderToTemp(t, "..", "examples/for-learning-and-testing/mgmt/ecs-deploy-runner")
-
 	// Deploy the ECS deploy runner
+	gitUserEmail, gitUserName := getGitUserInfo(t, os.Getenv(gitPATEnvName))
 	deployOpts := &terraform.Options{
 		TerraformDir: modulePath,
 		Vars: map[string]interface{}{
 			"aws_region": region,
-			"name":       name,
-			"container_image": map[string]string{
-				"repo": repositoryUri,
-				"tag":  "v1",
+			"name":       deployRunnerName,
+			"docker_image_builder_config": map[string]interface{}{
+				"container_image": map[string]string{
+					"docker_image": repositoryUri,
+					"docker_tag":   kanikoImgTag,
+				},
+				"iam_policy": map[string]interface{}{
+					"ECRAccess": map[string]interface{}{
+						"effect":    "Allow",
+						"actions":   []string{"ecr:*"},
+						"resources": []string{"*"},
+					},
+				},
+				"allowed_repos": []string{serviceCatalogRepo},
+				"git_config": map[string]interface{}{
+					"username_secrets_manager_arn": gitPatSecretsManagerArn,
+					"password_secrets_manager_arn": nil,
+				},
+				"secrets_manager_env_vars": map[string]interface{}{},
 			},
-			"repository":                          repo,
-			"approved_apply_refs":                 []string{"master"},
-			"ssh_private_key_secrets_manager_arn": secretsManagerArn,
+			"ami_builder_config": map[string]interface{}{
+				"container_image": map[string]string{
+					"docker_image": repositoryUri,
+					"docker_tag":   deployRunnerImgTag,
+				},
+				"iam_policy": map[string]interface{}{
+					"EC2Access": map[string]interface{}{
+						"effect":    "Allow",
+						"actions":   []string{"ec2:*"},
+						"resources": []string{"*"},
+					},
+				},
+				"allowed_repos": []string{serviceCatalogRepo},
+				"repo_access_ssh_key_secrets_manager_arn": sshSecretsManagerArn,
+				"secrets_manager_env_vars":                map[string]interface{}{},
+			},
+			"terraform_planner_config": map[string]interface{}{
+				"container_image": map[string]string{
+					"docker_image": repositoryUri,
+					"docker_tag":   deployRunnerImgTag,
+				},
+				"iam_policy":                              map[string]interface{}{},
+				"infrastructure_live_repository":          serviceCatalogRepo,
+				"repo_access_ssh_key_secrets_manager_arn": sshSecretsManagerArn,
+				"secrets_manager_env_vars":                map[string]interface{}{},
+			},
+			"terraform_applier_config": map[string]interface{}{
+				"container_image": map[string]string{
+					"docker_image": repositoryUri,
+					"docker_tag":   deployRunnerImgTag,
+				},
+				"iam_policy":                     map[string]interface{}{},
+				"infrastructure_live_repository": serviceCatalogRepo,
+				"allowed_update_variable_names":  []string{"tag", "docker_tag", "ami_version_tag", "ami"},
+				"allowed_apply_git_refs":         []string{"master"},
+				"machine_user_git_info": map[string]interface{}{
+					"name":  gitUserName,
+					"email": gitUserEmail,
+				},
+				"repo_access_ssh_key_secrets_manager_arn": sshSecretsManagerArn,
+				"secrets_manager_env_vars":                map[string]interface{}{},
+			},
 		},
 	}
 	defer test_structure.RunTestStage(t, "destroy_deploy_runner", func() {
