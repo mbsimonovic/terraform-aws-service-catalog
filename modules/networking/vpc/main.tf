@@ -8,7 +8,8 @@
 
 terraform {
   required_providers {
-    aws = "~> 2.6"
+    # Require at least version 2.69.0
+    aws = "~> 2.69"
   }
 
   # Require at least 0.12.6, which added for_each support; make sure we don't accidentally pull in 0.13.x, as that may
@@ -21,7 +22,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "vpc" {
-  source = "git::git@github.com:gruntwork-io/module-vpc.git//modules/vpc-app?ref=v0.8.8"
+  source = "git::git@github.com:gruntwork-io/module-vpc.git//modules/vpc-app?ref=v0.9.0"
 
   vpc_name   = var.vpc_name
   aws_region = var.aws_region
@@ -46,7 +47,7 @@ module "vpc" {
   # Some teams may want to explicitly define the exact CIDR blocks used by their subnets. If so, see the vpc-app vars.tf
   # docs at https://github.com/gruntwork-io/module-vpc/blob/master/modules/vpc-app/vars.tf for additional detail.
 
-  availability_zone_blacklisted_names = var.availability_zone_blacklisted_names
+  availability_zone_exclude_names = var.availability_zone_exclude_names
 
   # The VPC resources need special tags for discoverability by Kubernetes to use with certain features, like deploying
   # ALBs.
