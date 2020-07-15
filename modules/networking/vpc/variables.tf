@@ -71,7 +71,7 @@ variable "eks_cluster_names" {
   default     = []
 }
 
-variable "availability_zone_blacklisted_names" {
+variable "availability_zone_exclude_names" {
   description = "Specific Availability Zones in which subnets SHOULD NOT be created. Useful for when features / support is missing from a given AZ."
   type        = list(string)
   default     = []
