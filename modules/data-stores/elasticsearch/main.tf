@@ -88,7 +88,6 @@ resource "aws_elasticsearch_domain" "cluster" {
 #    provides a reasonable balance between security and usability.
 # ---------------------------------------------------------------------------------------------------------------------
 
-# TODO: why is this needed?
 data "aws_iam_policy_document" "elasticsearch_access_policy" {
   statement {
     effect  = "Allow"
@@ -97,7 +96,7 @@ data "aws_iam_policy_document" "elasticsearch_access_policy" {
       identifiers = ["*"]
       type        = "AWS"
     }
-    resources = ["arn:aws:es:${var.aws_region}:${var.aws_account_id}:domain/${var.domain_name}/*"]
+    resources = ["arn:aws:es:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:domain/${var.domain_name}/*"]
   }
 }
 
@@ -173,11 +172,15 @@ resource "aws_security_group_rule" "allow_all_inbound_https_from_bastion_host" {
 module "elasticsearch_alarms" {
   source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/elasticsearch-alarms?ref=v0.21.2"
 
-  cluster_name   = aws_elasticsearch_domain.cluster.domain_name
-  aws_account_id = var.aws_account_id
+  cluster_name   = var.domain_name
+  aws_account_id = data.aws_caller_identity.current.account_id
   instance_type  = var.instance_type
 
-  # TODO: should I allow inputting only a single arn?
-  # alarm_sns_topic_arns = [var.alarm_sns_topic_arn]
   alarm_sns_topic_arns = var.alarm_sns_topic_arns
 }
+
+# ---------------------------------------------------------------------------------------------------------------------
+# GET INFO ABOUT CURRENT USER/ACCOUNT
+# ---------------------------------------------------------------------------------------------------------------------
+data "aws_region" "current" {}
+data "aws_caller_identity" "current" {}

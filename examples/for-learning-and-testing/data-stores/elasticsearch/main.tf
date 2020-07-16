@@ -27,8 +27,6 @@ module "elasticsearch" {
   # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/data-stores/elasticsearch?ref=v1.2.3"
   source = "../../../../modules/data-stores/elasticsearch"
 
-  aws_region                          = var.aws_region
-  aws_account_id                      = var.aws_account_id
   domain_name                         = var.domain_name
   elasticsearch_version               = var.elasticsearch_version
   instance_type                       = var.instance_type

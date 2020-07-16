@@ -1,25 +1,7 @@
 # ---------------------------------------------------------------------------------------------------------------------
-# ENVIRONMENT VARIABLES
-# Define these secrets as environment variables
-# ---------------------------------------------------------------------------------------------------------------------
-
-# AWS_ACCESS_KEY_ID
-# AWS_SECRET_ACCESS_KEY
-
-# ---------------------------------------------------------------------------------------------------------------------
 # MODULE PARAMETERS
 # These variables are expected to be passed in by the operator when calling this terraform module
 # ---------------------------------------------------------------------------------------------------------------------
-
-variable "aws_region" {
-  description = "The AWS region in which all resources will be created."
-  type        = string
-}
-
-variable "aws_account_id" {
-  description = "The ID of the AWS Account in which to create resources."
-  type        = string
-}
 
 variable "domain_name" {
   description = "The name of the Elasticsearch cluster. It must be unique to your account and region, start with a lowercase letter, contain between 3 and 28 characters, and contain only lowercase letters a-z, the numbers 0-9, and the hyphen (-)."
