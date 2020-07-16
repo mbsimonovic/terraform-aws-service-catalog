@@ -9,8 +9,24 @@ variable "instance_type" {
 }
 
 variable "ami" {
-  description = "The ID of the AMI to run on the Jenkins server. This should be the AMI build from the Packer template at packer/jenkins-ubuntu.json."
+  description = "The ID of the AMI to run on the Jenkins server. This should be the AMI build from the Packer template jenkins-ubuntu.json. One of var.ami or var.ami_filters is required. Set to null if looking up the ami with filters."
   type        = string
+}
+
+variable "ami_filters" {
+  description = "Properties on the AMI that can be used to lookup a prebuilt AMI for use with Jenkins. You can build the AMI using the Packer template jenkins-ubuntu.json. Only used if var.ami is null. One of var.ami or var.ami_filters is required. Set to null if passing the ami ID directly."
+  type = object({
+    # List of owners to limit the search. Set to null if you do not wish to limit the search by AMI owners.
+    owners = list(string)
+
+    # Name/Value pairs to filter the AMI off of. There are several valid keys, for a full reference, check out the
+    # documentation for describe-images in the AWS CLI reference
+    # (https://docs.aws.amazon.com/cli/latest/reference/ec2/describe-images.html).
+    filters = list(object({
+      name   = string
+      values = list(string)
+    }))
+  })
 }
 
 variable "vpc_id" {

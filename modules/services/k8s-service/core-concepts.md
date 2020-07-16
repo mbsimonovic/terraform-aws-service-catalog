@@ -61,7 +61,7 @@ To access the `Service` within the Kubernetes cluster for any of the modes, you 
 `$APPLICATION_NAME-$APPLICATION_NAME.$NAMESPACE.svc.cluster.local`.
 
 
-## Configration and Secrets Management
+## Configuration and Secrets Management
 
 Kubernetes provides a built in mechanism for configuration and secrets management of applications in the form of
 `ConfigMap` and `Secrets` resources. Both resources behave similarly in that they both provide a key-value store that
@@ -93,6 +93,20 @@ Then, you can debug the generated yaml files using the `helm template` command:
 ```
 helm template $APPLICATION_NAME gruntwork/k8s-service --debug -f $VALUES_FILE_PATH
 ```
+
+## How do I assign IAM permissions to a service?
+
+This module supports the [IAM roles for service accounts](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) feature. You can use this feature to create an IAM role with a policy and map it to a service account, or map an existing role. 
+
+To create a new role: 
+
+* Set `iam_role_exists=false`
+* Provide an `iam_role_name` that conforms to the [IAM Name Requirements](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_iam-quotas.html)
+* Provide a `service_account_name`
+* Provide an `iam_policy`. Note that this only supports simple policies with a list of actions, resources, and an effect. For more complex policies, create the role and attach the policies in a separate module.
+* In `eks_iam_role_for_service_accounts_config`, provide OpenID Connect Provider details. See the variable description for more information.
+
+To use an existing role, set `iam_role_exists=true` and provide the existing role in `iam_role_name`. You won't need to set `iam_policy`, but the other steps above remain the same.
 
 ## How do I create a canary deployment?
 

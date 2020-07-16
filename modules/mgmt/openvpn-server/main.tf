@@ -31,7 +31,7 @@ module "openvpn" {
   name = var.name
 
   instance_type    = var.instance_type
-  ami              = var.ami_id
+  ami              = module.ec2_baseline.existing_ami
   user_data_base64 = module.ec2_baseline.cloud_init_rendered
 
   request_queue_name    = var.request_queue_name
@@ -143,6 +143,8 @@ module "ec2_baseline" {
   num_asg_names                       = 1
   alarms_sns_topic_arn                = var.alarms_sns_topic_arn
   cloud_init_parts                    = local.cloud_init_parts
+  ami                                 = var.ami
+  ami_filters                         = var.ami_filters
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

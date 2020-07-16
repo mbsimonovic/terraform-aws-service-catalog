@@ -14,7 +14,20 @@ module "bastion" {
 
   name          = var.name
   instance_type = "t3.micro"
-  ami           = var.ami_id
+  ami           = null
+  ami_filters = {
+    owners = ["self"]
+    filters = [
+      {
+        name   = "tag:service"
+        values = ["bastion-host"]
+      },
+      {
+        name   = "tag:version"
+        values = [var.ami_version_tag]
+      },
+    ]
+  }
 
   # For this simple example, use a regular key pair instead of ssh-grunt
   keypair_name     = var.keypair_name

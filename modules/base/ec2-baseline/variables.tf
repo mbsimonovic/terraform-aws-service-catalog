@@ -88,3 +88,26 @@ variable "cloud_init_parts" {
   }))
   default = {}
 }
+
+variable "ami" {
+  description = "The ID of an AMI to use for deploying servers. This provides a convenience function for choosing between looking up an AMI with filters, or returning a hard coded AMI ID. Used if var.ami_filters is null."
+  type        = string
+  default     = null
+}
+
+variable "ami_filters" {
+  description = "Properties on the AMI that can be used to lookup a prebuilt AMI."
+  type = object({
+    # List of owners to limit the search. Set to null if you do not wish to limit the search by AMI owners.
+    owners = list(string)
+
+    # Name/Value pairs to filter the AMI off of. There are several valid keys, for a full reference, check out the
+    # documentation for describe-images in the AWS CLI reference
+    # (https://docs.aws.amazon.com/cli/latest/reference/ec2/describe-images.html).
+    filters = list(object({
+      name   = string
+      values = list(string)
+    }))
+  })
+  default = null
+}
