@@ -158,10 +158,11 @@ variable "terraform_planner_config" {
       effect    = string
     }))
 
-    # Git repository containing infrastructure live configuration (top level terraform or terragrunt configuration to
-    # deploy infrastructure) that the deploy runner is allowed to run plan on. These should be the SSH git URL of the
-    # repository (e.g., git@github.com:gruntwork-io/module-ci.git).
-    infrastructure_live_repository = string
+    # List of Git repository containing infrastructure live configuration (top level terraform or terragrunt
+    # configuration to deploy infrastructure) that the deploy runner is allowed to run plan on. These should be the SSH
+    # git URL of the repository (e.g., git@github.com:gruntwork-io/module-ci.git).
+    # NOTE: when only a single repository is provided, this will automatically be included as a hardcoded option.
+    infrastructure_live_repositories = list(string)
 
     # The ARN of a secrets manager entry containing the raw contents of a SSH private key to use when accessing the
     # infrastructure live repository.
@@ -211,10 +212,11 @@ variable "terraform_applier_config" {
       effect    = string
     }))
 
-    # Git repository containing infrastructure live configuration (top level terraform or terragrunt configuration to
-    # deploy infrastructure) that the deploy runner is allowed to deploy. These should be the SSH git URL of the
-    # repository (e.g., git@github.com:gruntwork-io/module-ci.git).
-    infrastructure_live_repository = string
+    # List of Git repository containing infrastructure live configuration (top level terraform or terragrunt
+    # configuration to deploy infrastructure) that the deploy runner is allowed to deploy. These should be the SSH git
+    # URL of the repository (e.g., git@github.com:gruntwork-io/module-ci.git).
+    # NOTE: when only a single repository is provided, this will automatically be included as a hardcoded option.
+    infrastructure_live_repositories = list(string)
 
     # List of variable names that are allowed to be automatically updated by the CI/CD pipeline. Recommended to set to:
     # ["tag", "docker_tag", "ami_version_tag", "ami"]

@@ -34,7 +34,7 @@ module "ecs_deploy_runner" {
 }
 
 module "standard_config" {
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner-standard-configuration?ref=yori-app-cicd-feature"
+  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner-standard-configuration?ref=yori-app-cicd-fixes"
 
   docker_image_builder = {
     container_image = var.docker_image_builder_config.container_image
@@ -66,8 +66,8 @@ module "standard_config" {
   }
 
   terraform_planner = {
-    container_image                = var.terraform_planner_config.container_image
-    infrastructure_live_repository = var.terraform_planner_config.infrastructure_live_repository
+    container_image                  = var.terraform_planner_config.container_image
+    infrastructure_live_repositories = var.terraform_planner_config.infrastructure_live_repositories
     secrets_manager_env_vars = merge(
       {
         DEPLOY_SCRIPT_SSH_PRIVATE_KEY = var.terraform_planner_config.repo_access_ssh_key_secrets_manager_arn
@@ -78,7 +78,7 @@ module "standard_config" {
 
   terraform_applier = {
     container_image                         = var.terraform_applier_config.container_image
-    infrastructure_live_repository          = var.terraform_applier_config.infrastructure_live_repository
+    infrastructure_live_repositories        = var.terraform_applier_config.infrastructure_live_repositories
     allowed_apply_git_refs                  = var.terraform_applier_config.allowed_apply_git_refs
     machine_user_git_info                   = var.terraform_applier_config.machine_user_git_info
     allowed_update_variable_names           = var.terraform_applier_config.allowed_update_variable_names
