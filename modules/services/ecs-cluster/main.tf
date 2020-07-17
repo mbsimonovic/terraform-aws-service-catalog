@@ -17,16 +17,17 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_cluster" {
-  source = "git::git@github.com:gruntwork-io/module-ecs.git//modules/ecs-cluster?ref=v0.20.5"
+  # TODO: Update me to a real reference after changes are merged and released 
+  source = "git::git@github.com:gruntwork-io/module-ecs.git//modules/ecs-cluster?ref=add-user-data-base64"
 
   cluster_name     = var.cluster_name
   cluster_min_size = var.cluster_min_size
   cluster_max_size = var.cluster_max_size
 
-  cluster_instance_ami          = module.ec2_baseline.existing_ami
-  cluster_instance_type         = var.cluster_instance_type
-  cluster_instance_keypair_name = var.cluster_instance_keypair_name
-  cluster_instance_user_data    = data.template_file.user_data.rendered
+  cluster_instance_ami              = module.ec2_baseline.existing_ami
+  cluster_instance_type             = var.cluster_instance_type
+  cluster_instance_keypair_name     = var.cluster_instance_keypair_name
+  cluster_instance_user_data_base64 = module.ec2_baseline.cloud_init_rendered
 
   vpc_id                            = var.vpc_id
   vpc_subnet_ids                    = var.vpc_subnet_ids
