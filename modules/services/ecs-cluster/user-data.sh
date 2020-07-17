@@ -18,12 +18,6 @@ exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
 # Include common functions
 source /etc/user-data/user-data-common.sh
 
-function configure_ecs_instance {
-  local -r cluster_name="$1"
-
-  configure-ecs-instance --ecs-cluster-name "${cluster_name}" --docker-auth-type ecr
-}
-
 start_ec2_baseline \
   "${enable_cloudwatch_log_aggregation}" \
   "${enable_ssh_grunt}" \
@@ -34,6 +28,4 @@ start_ec2_baseline \
   "${log_group_name}" \
   "${external_account_ssh_grunt_role_arn}"
 
-# These variables are set by Terraform interpolation
-configure_ecs_instance "${cluster_name}"
-
+/usr/local/bin/configure-ecs-instance --ecs-cluster-name "${cluster_name}" --docker-auth-type ecr
