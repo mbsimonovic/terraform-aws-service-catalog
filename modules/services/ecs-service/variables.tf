@@ -178,7 +178,7 @@ variable "custom_docker_command" {
 variable "use_auto_scaling" {
   description = "Whether or not to enable auto scaling for the ecs service"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "desired_number_of_canary_tasks_to_run" {

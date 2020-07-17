@@ -23,7 +23,6 @@ module "ecs_service" {
   environment_name = var.service_name
   ecs_cluster_arn  = var.ecs_cluster_arn
 
-  # TODO - fix these definitions to contain all definition json 
   ecs_task_container_definitions = local.container_definitions
   ecs_task_definition_canary     = local.has_canary ? local.canary_container_definitions : null
 
@@ -85,7 +84,7 @@ locals {
     "cpu" : lookup(v, "cpu", 1),
     "memory" : lookup(v, "memory", 500),
     "essential" : lookup(v, "essential", null),
-    "environment" : lookup(v, "environment", null),
+    "environment" : lookup(v, "environment", {}),
     "environmentFiles" : lookup(v, "environmentFiles", null),
     "extraHosts" : lookup(v, "firelensConfiguration", null),
     "firelensConfiguration" : lookup(v, "firelensConfiguration", null),
@@ -363,8 +362,12 @@ resource "aws_appautoscaling_policy" "scale_out" {
     adjustment_type         = "ChangeInCapacity"
     cooldown                = 60
     metric_aggregation_type = "Average"
-  }
 
+    step_adjustment {
+      metric_interval_upper_bound = 0
+      scaling_adjustment          = 1
+    }
+  }
   # NOTE: due to a Terraform bug, this depends_on does not actually help, and it's possible the auto scaling target has
   # not been created when Terraform tries to create this auto scaling policy. As a result, you get an error along the
   # lines of "Error putting scaling policy: ObjectNotFoundException: No scalable target registered for service
@@ -386,8 +389,12 @@ resource "aws_appautoscaling_policy" "scale_in" {
     adjustment_type         = "ChangeInCapacity"
     cooldown                = 60
     metric_aggregation_type = "Average"
-  }
 
+    step_adjustment {
+      metric_interval_lower_bound = 0
+      scaling_adjustment          = -1
+    }
+  }
   # NOTE: due to a Terraform bug, this depends_on does not actually help, and it's possible the auto scaling target has
   # not been created when Terraform tries to create this auto scaling policy. As a result, you get an error along the
   # lines of "Error putting scaling policy: ObjectNotFoundException: No scalable target registered for service
