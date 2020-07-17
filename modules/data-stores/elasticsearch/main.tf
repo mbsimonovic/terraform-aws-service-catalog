@@ -3,7 +3,7 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # ---------------------------------------------------------------------------------------------------------------------
-# CONFIGURE REMOTE STATE STORAGE
+# CONFIGURE TERRAFORM AND PROVIDER REQUIRED VERSIONS
 # ---------------------------------------------------------------------------------------------------------------------
 
 terraform {
@@ -47,8 +47,8 @@ resource "aws_elasticsearch_domain" "cluster" {
 
   access_policies = data.aws_iam_policy_document.elasticsearch_access_policy.json
 
-  # EBS volumes are useful if your cluster nodes need more disk space than is available on the node itself. Note that
-  # t2 nodes always require EBS volumes.
+  # We always turn on EBS volumes to ensure there is enough disk space and
+  # IOPS available to the node than is directly available on the node itself.
   ebs_options {
     ebs_enabled = true
     volume_type = var.volume_type
@@ -119,50 +119,44 @@ resource "aws_security_group_rule" "allow_all_outbound" {
   cidr_blocks       = ["0.0.0.0/0"]
 }
 
-resource "aws_security_group_rule" "allow_all_inbound_http_from_app_and_persistence_subnets" {
-  count             = length(var.private_app_subnet_cidr_blocks) > 0 || length(var.private_persistence_subnet_cidr_blocks) > 0 ? 1 : 0
+resource "aws_security_group_rule" "allow_inbound_http_from_subnets" {
+  count             = length(var.allowed_cidr_blocks) > 0 ? 1 : 0
   type              = "ingress"
   from_port         = local.http_port
   to_port           = local.http_port
   protocol          = "tcp"
   security_group_id = aws_security_group.elasticsearch_cluster.id
-  cidr_blocks = concat(
-    var.private_app_subnet_cidr_blocks,
-    var.private_persistence_subnet_cidr_blocks,
-  )
+  cidr_blocks       = var.allowed_cidr_blocks
 }
 
-resource "aws_security_group_rule" "allow_all_inbound_https_from_app_and_persistence_subnets" {
-  count             = length(var.private_app_subnet_cidr_blocks) > 0 || length(var.private_persistence_subnet_cidr_blocks) > 0 ? 1 : 0
+resource "aws_security_group_rule" "allow_inbound_https_from_subnets" {
+  count             = length(var.allowed_cidr_blocks) > 0 ? 1 : 0
   type              = "ingress"
   from_port         = local.https_port
   to_port           = local.https_port
   protocol          = "tcp"
   security_group_id = aws_security_group.elasticsearch_cluster.id
-  cidr_blocks = concat(
-    var.private_app_subnet_cidr_blocks,
-    var.private_persistence_subnet_cidr_blocks,
-  )
+  cidr_blocks       = var.allowed_cidr_blocks
 }
 
-resource "aws_security_group_rule" "allow_all_inbound_http_from_bastion_host" {
-  count                    = var.allow_connections_from_bastion_host ? 1 : 0
+resource "aws_security_group_rule" "allow_inbound_http_from_security_group" {
+  for_each                 = var.allowed_security_group_ids
   type                     = "ingress"
   from_port                = local.http_port
   to_port                  = local.http_port
   protocol                 = "tcp"
   security_group_id        = aws_security_group.elasticsearch_cluster.id
-  source_security_group_id = var.bastion_host_security_group_id
+  source_security_group_id = each.value
 }
 
-resource "aws_security_group_rule" "allow_all_inbound_https_from_bastion_host" {
-  count                    = var.allow_connections_from_bastion_host ? 1 : 0
+resource "aws_security_group_rule" "allow_inbound_https_from_security_group" {
+  for_each                 = var.allowed_security_group_ids
   type                     = "ingress"
   from_port                = local.https_port
   to_port                  = local.https_port
   protocol                 = "tcp"
   security_group_id        = aws_security_group.elasticsearch_cluster.id
-  source_security_group_id = var.bastion_host_security_group_id
+  source_security_group_id = each.value
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # LAUNCH AN ELASTICSEARCH CLUSTER
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ---------------------------------------------------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------------------------------------------------
 # CONFIGURE OUR AWS CONNECTION
@@ -27,14 +27,21 @@ module "elasticsearch" {
   # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/data-stores/elasticsearch?ref=v1.2.3"
   source = "../../../../modules/data-stores/elasticsearch"
 
-  domain_name                         = var.domain_name
-  elasticsearch_version               = var.elasticsearch_version
-  instance_type                       = var.instance_type
-  instance_count                      = var.instance_count
-  zone_awareness_enabled              = var.zone_awareness_enabled
-  volume_type                         = var.volume_type
-  volume_size                         = var.volume_size
-  vpc_id                              = var.vpc_id
-  subnet_ids                          = var.subnet_ids
-  allow_connections_from_bastion_host = var.allow_connections_from_bastion_host
+  domain_name            = var.domain_name
+  elasticsearch_version  = var.elasticsearch_version
+  instance_type          = var.instance_type
+  instance_count         = var.instance_count
+  zone_awareness_enabled = var.zone_awareness_enabled
+  volume_type            = var.volume_type
+  volume_size            = var.volume_size
+  vpc_id                 = var.vpc_id == null ? data.aws_vpc.default.id : var.vpc_id
+  subnet_ids             = length(var.subnet_ids) == 0 ? data.aws_subnet_ids.default.ids : var.subnet_ids
+}
+
+data "aws_vpc" "default" {
+  default = true
+}
+
+data "aws_subnet_ids" "default" {
+  vpc_id = data.aws_vpc.default.id
 }
