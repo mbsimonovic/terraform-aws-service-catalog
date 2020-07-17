@@ -168,7 +168,7 @@ variable "terraform_planner_config" {
       effect    = string
     }))
 
-    # List of git repository containing infrastructure live configuration (top level terraform or terragrunt
+    # List of git repositories containing infrastructure live configuration (top level terraform or terragrunt
     # configuration to deploy infrastructure) that the deploy runner is allowed to run plan on. These should be the SSH
     # git URL of the repository (e.g., git@github.com:gruntwork-io/module-ci.git).
     # NOTE: when only a single repository is provided, this will automatically be included as a hardcoded option.
