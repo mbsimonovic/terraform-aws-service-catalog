@@ -15,11 +15,6 @@ set -e
 # From: https://alestic.com/2010/12/ec2-user-data-output/
 exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
 
-
-# Include common functions
-source /etc/user-data/user-data-common.sh
-
-
 function configure_baseline {
   local -r enable_cloudwatch_log_aggregation="$1"
   local -r enable_ssh_grunt="$2"
@@ -42,9 +37,10 @@ function configure_baseline {
 }
 
 function configure_ecs_instance {
-  local -r enable_cloudwatch_log_aggregation="$1"
-  local -r enable_ssh_grunt="$2"
-  local -r ssh_grunt_iam_group="$3"
+  local -r cluster_name="$1"
+  local -r enable_cloudwatch_log_aggregation="$2"
+  local -r enable_ssh_grunt="$3"
+  local -r ssh_grunt_iam_group="$4"
   local -r ssh_grunt_iam_group_sudo="$4"
   local -r log_group_name="$5"
   local -r external_account_ssh_grunt_role_arn="$6"
@@ -59,8 +55,12 @@ function configure_ecs_instance {
     "${log_group_name}" \
     "${external_account_ssh_grunt_role_arn}" \
     "${enable_fail2ban}" \
-    "${enable_ip_lockdown}"
+    "${enable_ip_lockdown}" 
+
+  # configure ECS instance here
+  configure-ecs-instance --ecs-cluster-name "${cluster_name}" --docker-auth-type ecr
 }
 
 # These variables are set by Terraform interpolation
-configure_ecs_instance "${enable_cloudwatch_log_aggregation}" "${enable_ssh_grunt}" "${ssh_grunt_iam_group}" "${ssh_grunt_iam_group_sudo}" "${log_group_name}" "${external_account_ssh_grunt_role_arn}" "${enable_fail2ban}" "${enable_ip_lockdown}"
+configure_ecs_instance "${cluster_name}" "${enable_cloudwatch_log_aggregation}" "${enable_ssh_grunt}" "${ssh_grunt_iam_group}" "${ssh_grunt_iam_group_sudo}" "${log_group_name}" "${external_account_ssh_grunt_role_arn}" "${enable_fail2ban}" "${enable_ip_lockdown}" 
+

@@ -60,14 +60,15 @@ data "template_file" "user_data" {
   template = file("${path.module}/user-data.sh")
 
   vars = {
-    log_group_name                      = var.cluster_name
+    cluster_name                        = var.cluster_name
     enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
     enable_ssh_grunt                    = var.enable_ssh_grunt
-    enable_fail2ban                     = var.enable_fail2ban
-    enable_ip_lockdown                  = var.enable_ip_lockdown
     ssh_grunt_iam_group                 = var.ssh_grunt_iam_group
     ssh_grunt_iam_group_sudo            = var.ssh_grunt_iam_group_sudo
+    log_group_name                      = "${var.cluster_name}-logs"
     external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
+    enable_fail2ban                     = var.enable_fail2ban
+    enable_ip_lockdown                  = var.enable_ip_lockdown
   }
 }
 
