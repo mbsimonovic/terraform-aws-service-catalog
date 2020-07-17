@@ -185,7 +185,6 @@ func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestF
 	ecsServiceTerraformOptions.Vars["service_name"] = serviceName
 	ecsServiceTerraformOptions.Vars["ecs_cluster_name"] = "test"
 	ecsServiceTerraformOptions.Vars["ecs_cluster_arn"] = ecsClusterArn
-	// TODO: cleanup the following vars
 	ecsServiceTerraformOptions.Vars["aws_region"] = "us-west-1"
 	ecsServiceTerraformOptions.Vars["image"] = "nginx"
 	ecsServiceTerraformOptions.Vars["image_version"] = "1.17"
