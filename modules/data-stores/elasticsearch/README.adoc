@@ -29,21 +29,20 @@ image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
 
 This folder contains code to deploy an Amazon Elasticsearch Service (AES) cluster managed by AWS.
 
+Amazon Elasticsearch Service makes it easy to deploy, operate, and scale Elasticsearch. It is a fully managed service that delivers Elasticsearch’s easy-to-use APIs and real-time capabilities along with the availability, scalability, and security required by production workloads. For more information about Elasticsearch and its uses, see the http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/what-is-amazon-elasticsearch-service.html[Amazon Elasticsearch Service developer guide] and the https://aws.amazon.com/elasticsearch-service/getting-started/[Getting Started] page.
+
 toc::[]
 
 
 
 == Features
 
-TODO: replace
-* Deploy a fully-managed native Elasticsearch cluster
-* Supports zone awareness, i.e., deployment of Elasticsearch nodes across Availability Zones.
-* Read replicas
+* Deploy a fully-managed native Elasticsearch cluster in a VPC
+* Use VPC-based security
+    * If you use AWS's default VPC, which contains public subnets, your Elasticsearch cluster is still only accessible from within the VPC. It is not publicly accessible. https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-vpc.html#es-vpc-security[See these docs] for more information.
+* Leverage zone awareness, i.e., deployment of Elasticsearch nodes across Availability Zones
 * Automatic nightly snapshots
-* Automatic cross account snapshots
-* Automatic scaling of storage
 * CloudWatch Alarms for alerting when CPU, memory, and disk metrics exceed certain thresholds
-* CloudWatch dashboard widgets for AES statistics
 
 
 == Learn
@@ -53,13 +52,15 @@ reusable, battle-tested, production ready infrastructure code. If you've never u
 sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catallog/[How to use the Gruntwork
 Service Catalog]!
 
-TODO: replace
-* https://github.com/gruntwork-io/module-data-storage/blob/master/modules/rds/core-concepts.md#what-is-amazon-rds[What is Amazon RDS?]
-* https://github.com/gruntwork-io/module-data-storage/blob/master/modules/rds/core-concepts.md#common-gotchas[Common gotchas with RDS]
-* https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Welcome.html[RDS documentation]: Amazon's docs for RDS that
-  cover core concepts such as the types of databases supported, security, backup & restore, and monitoring.
-* _https://dataintensive.net[Designing Data Intensive Applications]_: the best book we've found for understanding data
-  systems, including relational databases, NoSQL, replication, sharding, consistency, and so on.
+=== Introductory documentation:
+* https://aws.amazon.com/elasticsearch-service/[About Amazon Elasticsearch Service]
+* https://aws.amazon.com/elasticsearch-service/features/[Features of AES]
+* https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/what-is-amazon-elasticsearch-service.html[Developer Guide]: Contains the main documentation on how to use AES and answers questions such as "What is Amazon Elasticsearch Service?"
+* https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CWL_ES_Stream.html[Streaming CloudWatch monitoring logs to Amazon Elasticsearch Service]
+
+=== Beginning usage, API documentation:
+* https://opendistro.github.io/for-elasticsearch-docs/docs/elasticsearch/index-data/[Open Distro docs: How to index data into Elasticsearch]: Documentation by Open Distro for Elasticsearch, a reliable resource on how to use Elasticsearch APIs.
+* https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-index_.html[Elastic docs: How to index data into Elasticsearch]: Documentation by Elastic, the originators of Elasticsearch.
 
 
 
@@ -70,17 +71,20 @@ TODO: replace
 If you just want to try this repo out for experimenting and learning, check out the following resources:
 
 * link:/examples/for-learning-and-testing[examples/for-learning-and-testing folder]: The
-  `examples/for-learning-and-testing` folder contains standalone sample code optimized for learning, experimenting, and
-  testing (but not direct production usage).
+  `examples/for-learning-and-testing` folder contains standalone sample code optimized for learning,
+  experimenting, and testing (but not direct production usage).
+* https://aws.amazon.com/free/[AWS Free tier]: Using AES on Amazon's free tier is a great way to get started, but it has limited features and does not include encryption at rest, ultra warm data notes, or advanced security options such as fine-grained access control. The free tier does allow multiple availability zones, VPC-based access control, TLS-only requests, and node-to-node encryption.
 
 === Production deployment
 
 If you want to deploy this repo in production, check out the following resources:
 
+
 * link:/examples/for-production[examples/for-production folder]: The `examples/for-production` folder contains sample
   code optimized for direct usage in production. This is code from the
   https://gruntwork.io/reference-architecture/:[Gruntwork Reference Architecture], and it shows you how we build an
   end-to-end, integrated tech stack on top of the Gruntwork Service Catalog.
+* https://aws.amazon.com/elasticsearch-service/pricing/[Amazon Elasticsearch Service pricing]
 
 
 

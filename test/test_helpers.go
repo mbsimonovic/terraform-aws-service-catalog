@@ -161,9 +161,27 @@ func testSSH(t *testing.T, ip string, sshUsername string, keyPair *aws.Ec2Keypai
 		t,
 		fmt.Sprintf("SSH to public host %s", ip),
 		10,
-		30*time.Second,
+		3*time.Second,
 		func() (string, error) {
 			return "", ssh.CheckSshConnectionE(t, publicHost)
+		},
+	)
+}
+
+func testSSHCommand(t *testing.T, ip string, sshUsername string, keyPair *aws.Ec2Keypair, command string) string {
+	publicHost := ssh.Host{
+		Hostname:    ip,
+		SshUserName: sshUsername,
+		SshKeyPair:  keyPair.KeyPair,
+	}
+
+	return retry.DoWithRetry(
+		t,
+		fmt.Sprintf("SSH to public host %s", ip),
+		10,
+		3*time.Second,
+		func() (string, error) {
+			return ssh.CheckSshCommandE(t, publicHost, command)
 		},
 	)
 }

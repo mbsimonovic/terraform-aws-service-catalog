@@ -1,6 +1,6 @@
 # ---------------------------------------------------------------------------------------------------------------------
 # MODULE PARAMETERS
-# These variables are expected to be passed in by the operator when calling this terraform module
+# These variables are expected to be passed in by the operator when calling this example terraform module.
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "aws_region" {
@@ -8,6 +8,7 @@ variable "aws_region" {
   type        = string
 }
 
+# TODO: why is this not in other modules?
 variable "aws_account_id" {
   description = "The ID of the AWS Account in which to create resources."
   type        = string
@@ -20,6 +21,7 @@ variable "domain_name" {
 
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL PARAMETERS
+# These variables are set with defaults to make running the example easier.
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "elasticsearch_version" {
@@ -71,21 +73,21 @@ variable "subnet_ids" {
 }
 
 variable "dedicated_master_enabled" {
-  description = "Whether to deploy separate nodes specifically for performing cluster management tasks (e.g. tracking number of nodes, monitoring health, replicating changes). This increases the stability of large clusters and is required for clusters with more than 10 nodes."
+  description = "Whether to deploy separate nodes specifically for performing cluster management tasks (e.g. tracking number of nodes, monitoring health, replicating changes). This increases the stability of large clusters and is required for clusters with more than 10 nodes. Recommended value: true."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "dedicated_master_type" {
   description = "The instance type for the dedicated master nodes. These nodes can use a different instance type than the rest of the cluster. Only used if var.dedicated_master_enabled is true."
   type        = string
-  default     = null
+  default     = "t2.small.elasticsearch"
 }
 
 variable "dedicated_master_count" {
-  description = "The number of dedicated master nodes to run. We recommend setting this to 3 for production deployments. Only used if var.dedicated_master_enabled is true."
+  description = "The number of dedicated master nodes to run. We recommend setting this to 3 for production deployments. Only used if var.dedicated_master_enabled is true. Recommended value: 3 or greater."
   type        = number
-  default     = null
+  default     = 3
 }
 
 variable "iops" {
@@ -94,16 +96,28 @@ variable "iops" {
   default     = null
 }
 
-variable "allowed_cidr_blocks" {
-  description = "The subnet CIDR blocks from which to allow HTTP and HTTPS traffic to the Elasticsearch cluster."
+variable "allow_connections_from_cidr_blocks" {
+  description = "The list of network CIDR blocks that are allowed access to Elasticsearch. One of var.allow_connections_from_cidr_blocks or var.allow_connections_from_security_groups must be specified for the service to be reachable."
   type        = set(string)
   default     = []
 }
 
-variable "allowed_security_group_ids" {
-  description = "The ids of security groups that should have access to the Elasticsearch cluster via TCP. This module sets a security group rule for each security group."
+variable "allow_connections_from_security_groups" {
+  description = "The list of IDs or Security Groups allowed to access Elasticsearch. All security groups must either be in the VPC specified by var.vpc_id, or a peered VPC with the VPC specified by var.vpc_id. One of var.allow_connections_from_cidr_blocks or var.allow_connections_from_security_groups must be specified for the service to be reachable."
   type        = set(string)
   default     = []
+}
+
+variable "automated_snapshot_start_hour" {
+  description = "Hour during which the service takes an automated daily snapshot of the indices in the domain. This setting has no effect on Elasticsearch 5.3 and later."
+  type        = number
+  default     = 0
+}
+
+variable "enable_cloudwatch_alarms" {
+  description = "Set to true to enable several basic CloudWatch alarms around CPU usage, memory usage, and disk space usage. If set to true, make sure to specify SNS topics to send notifications to using var.alarms_sns_topic_arns."
+  type        = bool
+  default     = true
 }
 
 variable "alarm_sns_topic_arns" {
@@ -112,8 +126,8 @@ variable "alarm_sns_topic_arns" {
   default     = []
 }
 
-variable "automated_snapshot_start_hour" {
-  description = "Hour during which the service takes an automated daily snapshot of the indices in the domain. This setting has no effect on Elasticsearch 5.3 and later."
-  type        = number
-  default     = 0
+variable "keypair_name" {
+  description = "The name of the key pair used to authenticate to the EC2 instance used to make requests against the Elasticsearch cluster."
+  type        = string
+  default     = null
 }

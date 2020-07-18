@@ -3,6 +3,8 @@
 # These variables are expected to be passed in by the operator when calling this terraform module
 # ---------------------------------------------------------------------------------------------------------------------
 
+# Cluster configuration
+
 variable "domain_name" {
   description = "The name of the Elasticsearch cluster. It must be unique to your account and region, start with a lowercase letter, contain between 3 and 28 characters, and contain only lowercase letters a-z, the numbers 0-9, and the hyphen (-)."
   type        = string
@@ -18,11 +20,6 @@ variable "instance_count" {
   type        = number
 }
 
-variable "zone_awareness_enabled" {
-  description = "Whether to deploy the Elasticsearch nodes across two Availability Zones instead of one. Note that if you enable this, the instance_count MUST be an even number."
-  type        = bool
-}
-
 variable "volume_type" {
   description = "The type of EBS volumes to use in the cluster. Must be one of: standard, gp2, io1, sc1, or st1. For a comparison of EBS volume types, see https://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/ebs-volume-types.html."
   type        = string
@@ -32,6 +29,8 @@ variable "volume_size" {
   description = "The size in GiB of the EBS volume for each node in the cluster (e.g. 10, or 512). For volume size limits see https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/aes-limits.html."
   type        = number
 }
+
+# Network configuration
 
 variable "vpc_id" {
   description = "The id of the VPC to deploy into. It must be in the same region as the Elasticsearch domain and its tenancy must be set to Default. If zone_awareness_enabled is false, the Elasticsearch cluster will have an endpoint in one subnet of the VPC; otherwise it will have endpoints in two subnets."
@@ -43,8 +42,14 @@ variable "subnet_ids" {
   type        = list(string)
 }
 
+variable "zone_awareness_enabled" {
+  description = "Whether to deploy the Elasticsearch nodes across two Availability Zones instead of one. Note that if you enable this, the instance_count MUST be an even number."
+  type        = bool
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL PARAMETERS
+# Generally, these values won't need to be changed.
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "elasticsearch_version" {
@@ -77,21 +82,15 @@ variable "iops" {
   default     = null
 }
 
-variable "allowed_cidr_blocks" {
-  description = "The subnet CIDR blocks from which to allow HTTP and HTTPS traffic to the Elasticsearch cluster."
+variable "allow_connections_from_cidr_blocks" {
+  description = "The list of network CIDR blocks to allow network access to Aurora from. One of var.allow_connections_from_cidr_blocks or var.allow_connections_from_security_groups must be specified for the database to be reachable."
   type        = set(string)
   default     = []
 }
 
-variable "allowed_security_group_ids" {
-  description = "The ids of security groups that should have access to the Elasticsearch cluster via TCP. This module sets a security group rule for each security group."
+variable "allow_connections_from_security_groups" {
+  description = "The list of IDs or Security Groups to allow network access to Aurora from. All security groups must either be in the VPC specified by var.vpc_id, or a peered VPC with the VPC specified by var.vpc_id. One of var.allow_connections_from_cidr_blocks or var.allow_connections_from_security_groups must be specified for the database to be reachable."
   type        = set(string)
-  default     = []
-}
-
-variable "alarm_sns_topic_arns" {
-  description = "ARNs of the SNS topics associated with the CloudWatch alarms for the Elasticsearch cluster."
-  type        = list(string)
   default     = []
 }
 
@@ -99,4 +98,16 @@ variable "automated_snapshot_start_hour" {
   description = "Hour during which the service takes an automated daily snapshot of the indices in the domain. This setting has no effect on Elasticsearch 5.3 and later."
   type        = number
   default     = 0
+}
+
+variable "enable_cloudwatch_alarms" {
+  description = "Set to true to enable several basic CloudWatch alarms around CPU usage, memory usage, and disk space usage. If set to true, make sure to specify SNS topics to send notifications to using var.alarms_sns_topic_arns."
+  type        = bool
+  default     = true
+}
+
+variable "alarm_sns_topic_arns" {
+  description = "ARNs of the SNS topics associated with the CloudWatch alarms for the Elasticsearch cluster."
+  type        = list(string)
+  default     = []
 }

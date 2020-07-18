@@ -25,11 +25,13 @@ resource "aws_elasticsearch_domain" "cluster" {
   elasticsearch_version = var.elasticsearch_version
 
   cluster_config {
+    # Data nodes
     instance_type  = var.instance_type
     instance_count = var.instance_count
 
     zone_awareness_enabled = var.zone_awareness_enabled
 
+    # Dedicated master nodes
     dedicated_master_enabled = var.dedicated_master_enabled
     dedicated_master_type    = var.dedicated_master_type
     dedicated_master_count   = var.dedicated_master_count
@@ -103,6 +105,7 @@ data "aws_iam_policy_document" "elasticsearch_access_policy" {
 locals {
   http_port  = 80
   https_port = 443
+  ssh_port   = 22
 }
 
 resource "aws_security_group" "elasticsearch_cluster" {
@@ -119,28 +122,38 @@ resource "aws_security_group_rule" "allow_all_outbound" {
   cidr_blocks       = ["0.0.0.0/0"]
 }
 
+# Allow ssh access from within the VPC
+resource "aws_security_group_rule" "allow_all_inbound_ssh" {
+  type              = "ingress"
+  from_port         = local.ssh_port
+  to_port           = local.ssh_port
+  protocol          = "tcp"
+  security_group_id = aws_security_group.elasticsearch_cluster.id
+  cidr_blocks       = ["0.0.0.0/0"]
+}
+
 resource "aws_security_group_rule" "allow_inbound_http_from_subnets" {
-  count             = length(var.allowed_cidr_blocks) > 0 ? 1 : 0
+  count             = length(var.allow_connections_from_cidr_blocks) > 0 ? 1 : 0
   type              = "ingress"
   from_port         = local.http_port
   to_port           = local.http_port
   protocol          = "tcp"
   security_group_id = aws_security_group.elasticsearch_cluster.id
-  cidr_blocks       = var.allowed_cidr_blocks
+  cidr_blocks       = var.allow_connections_from_cidr_blocks
 }
 
 resource "aws_security_group_rule" "allow_inbound_https_from_subnets" {
-  count             = length(var.allowed_cidr_blocks) > 0 ? 1 : 0
+  count             = length(var.allow_connections_from_cidr_blocks) > 0 ? 1 : 0
   type              = "ingress"
   from_port         = local.https_port
   to_port           = local.https_port
   protocol          = "tcp"
   security_group_id = aws_security_group.elasticsearch_cluster.id
-  cidr_blocks       = var.allowed_cidr_blocks
+  cidr_blocks       = var.allow_connections_from_cidr_blocks
 }
 
 resource "aws_security_group_rule" "allow_inbound_http_from_security_group" {
-  for_each                 = var.allowed_security_group_ids
+  for_each                 = var.allow_connections_from_security_groups
   type                     = "ingress"
   from_port                = local.http_port
   to_port                  = local.http_port
@@ -150,7 +163,7 @@ resource "aws_security_group_rule" "allow_inbound_http_from_security_group" {
 }
 
 resource "aws_security_group_rule" "allow_inbound_https_from_security_group" {
-  for_each                 = var.allowed_security_group_ids
+  for_each                 = var.allow_connections_from_security_groups
   type                     = "ingress"
   from_port                = local.https_port
   to_port                  = local.https_port
@@ -164,7 +177,8 @@ resource "aws_security_group_rule" "allow_inbound_https_from_security_group" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "elasticsearch_alarms" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/elasticsearch-alarms?ref=v0.21.2"
+  source           = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/elasticsearch-alarms?ref=v0.21.2"
+  create_resources = var.enable_cloudwatch_alarms
 
   cluster_name   = var.domain_name
   aws_account_id = data.aws_caller_identity.current.account_id

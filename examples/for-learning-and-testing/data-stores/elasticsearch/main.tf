@@ -27,17 +27,65 @@ module "elasticsearch" {
   # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/data-stores/elasticsearch?ref=v1.2.3"
   source = "../../../../modules/data-stores/elasticsearch"
 
-  domain_name            = var.domain_name
-  elasticsearch_version  = var.elasticsearch_version
-  instance_type          = var.instance_type
-  instance_count         = var.instance_count
-  zone_awareness_enabled = var.zone_awareness_enabled
-  volume_type            = var.volume_type
-  volume_size            = var.volume_size
-  vpc_id                 = var.vpc_id == null ? data.aws_vpc.default.id : var.vpc_id
-  subnet_ids             = length(var.subnet_ids) == 0 ? data.aws_subnet_ids.default.ids : var.subnet_ids
+  # Cluster Configurations
+  domain_name           = var.domain_name
+  elasticsearch_version = var.elasticsearch_version
+  instance_type         = var.instance_type
+  instance_count        = var.instance_count
+  volume_type           = var.volume_type
+  volume_size           = var.volume_size
+
+  # Network Configurations
+
+  # To keep this example simple, we run it in the default VPC, put everything in the same subnets, and allow access from
+  # any source. In production, you'll want to use a custom VPC, private subnets, and explicitly close off access to only
+  # those applications that need it.
+  vpc_id                                 = data.aws_vpc.default.id
+  subnet_ids                             = data.aws_subnet_ids.default.ids
+  allow_connections_from_cidr_blocks     = ["0.0.0.0/0"]
+  allow_connections_from_security_groups = []
+  zone_awareness_enabled                 = var.zone_awareness_enabled
+
+  # Since this is just an example, we don't deploy any CloudWatch resources in order to make it faster to deploy, however in
+  # production you'll probably want to enable this feature.
+  enable_cloudwatch_alarms = false
 }
 
+# ---------------------------------------------------------------------------------------------------------------------
+# ADD AN EC2 INSTANCE TO SERVE AS A BASTION HOST
+# This instance will be used to run curl commands against the Elasticsearch cluster.
+# ---------------------------------------------------------------------------------------------------------------------
+data "aws_ami" "ubuntu" {
+  most_recent = true
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-bionic-18.04-amd64-server-*"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  owners = ["099720109477"] # Canonical
+}
+
+resource "aws_instance" "server" {
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = "t2.micro"
+
+  # Create the instance in the security group of the Elasticsearch cluster.
+  # Alternatively, create it in a different security group which is included in var.allow_connections_from_security_groups
+  vpc_security_group_ids      = [module.elasticsearch.cluster_security_group_id]
+  subnet_id                   = tolist(data.aws_subnet_ids.default.ids)[0]
+  key_name                    = var.keypair_name
+  associate_public_ip_address = true
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# DATA
+# ---------------------------------------------------------------------------------------------------------------------
 data "aws_vpc" "default" {
   default = true
 }
