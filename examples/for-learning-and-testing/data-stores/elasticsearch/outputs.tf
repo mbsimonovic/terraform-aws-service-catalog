@@ -22,8 +22,3 @@ output "aws_instance_public_ip" {
   description = "The public IP of the bastion host which you can SSH into to run curl commands against the Elasticsearch cluster."
   value       = aws_instance.server.public_ip
 }
-
-output "aws_instance_key_name" {
-  description = "The key pair name used to authenticate SSH on the bastion host."
-  value       = aws_instance.server.key_name
-}
