@@ -1,6 +1,6 @@
 :type: service
 :name: Amazon Elasticsearch
-:description: Deploy and manage Amazon Elasticsearch Service (AES)
+:description: Deploy and manage Amazon Elasticsearch Service
 :icon: /_docs/aes-icon.png
 :category: database
 :cloud: aws
@@ -27,7 +27,7 @@ endif::[]
 image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
 image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
 
-This folder contains code to deploy an Amazon Elasticsearch Service (AES) cluster managed by AWS.
+This folder contains code to deploy an Amazon Elasticsearch Service cluster managed by AWS.
 
 Amazon Elasticsearch Service makes it easy to deploy, operate, and scale Elasticsearch. It is a fully managed service that delivers Elasticsearch’s easy-to-use APIs and real-time capabilities along with the availability, scalability, and security required by production workloads. For more information about Elasticsearch and its uses, see the http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/what-is-amazon-elasticsearch-service.html[Amazon Elasticsearch Service developer guide] and the https://aws.amazon.com/elasticsearch-service/getting-started/[Getting Started] page.
 
@@ -54,13 +54,9 @@ Service Catalog]!
 
 === Introductory documentation:
 * https://aws.amazon.com/elasticsearch-service/[About Amazon Elasticsearch Service]
-* https://aws.amazon.com/elasticsearch-service/features/[Features of AES]
-* https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/what-is-amazon-elasticsearch-service.html[Developer Guide]: Contains the main documentation on how to use AES and answers questions such as "What is Amazon Elasticsearch Service?"
+* https://aws.amazon.com/elasticsearch-service/features/[Features of Amazon ES]
+* https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/what-is-amazon-elasticsearch-service.html[Developer Guide]: Contains the main documentation on how to use Amazon ES and answers questions such as "What is Amazon Elasticsearch Service?"
 * https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CWL_ES_Stream.html[Streaming CloudWatch monitoring logs to Amazon Elasticsearch Service]
-
-=== Beginning usage, API documentation:
-* https://opendistro.github.io/for-elasticsearch-docs/docs/elasticsearch/index-data/[Open Distro docs: How to index data into Elasticsearch]: Documentation by Open Distro for Elasticsearch, a reliable resource on how to use Elasticsearch APIs.
-* https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-index_.html[Elastic docs: How to index data into Elasticsearch]: Documentation by Elastic, the originators of Elasticsearch.
 
 
 
@@ -73,12 +69,12 @@ If you just want to try this repo out for experimenting and learning, check out 
 * link:/examples/for-learning-and-testing[examples/for-learning-and-testing folder]: The
   `examples/for-learning-and-testing` folder contains standalone sample code optimized for learning,
   experimenting, and testing (but not direct production usage).
-* https://aws.amazon.com/free/[AWS Free tier]: Using AES on Amazon's free tier is a great way to get started, but it has limited features and does not include encryption at rest, ultra warm data notes, or advanced security options such as fine-grained access control. The free tier does allow multiple availability zones, VPC-based access control, TLS-only requests, and node-to-node encryption.
+* https://aws.amazon.com/free/[AWS Free tier]: Using Amazon ES on Amazon's free tier is a great way to get started, but it has limited features and does not include encryption at rest, ultra warm data notes, or advanced security options such as fine-grained access control. The free tier does allow multiple availability zones, VPC-based access control, TLS-only requests, and node-to-node encryption.
+
 
 === Production deployment
 
 If you want to deploy this repo in production, check out the following resources:
-
 
 * link:/examples/for-production[examples/for-production folder]: The `examples/for-production` folder contains sample
   code optimized for direct usage in production. This is code from the
@@ -92,21 +88,14 @@ If you want to deploy this repo in production, check out the following resources
 == Operate
 
 === Day-to-day operations
-
-TODO: replace
-* https://github.com/gruntwork-io/module-data-storage/blob/master/modules/rds/core-concepts.md#how-do-you-connect-to-the-database[How to connect to an RDS instance]
-* https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAM.html[How to authenticate to RDS with IAM]
-* https://github.com/gruntwork-io/module-data-storage/blob/master/modules/rds/core-concepts.md#how-do-you-scale-this-database[How to scale RDS]
-* https://github.com/gruntwork-io/module-data-storage/blob/master/modules/lambda-create-snapshot/core-concepts.md#data-backup-core-concepts[How to back up RDS databases]
-* https://github.com/gruntwork-io/module-data-storage/blob/master/modules/lambda-cleanup-snapshots/README.md[How clean up old database snapshots]
-* link:core-concepts.md#how-do-i-use-kubernetes-service-discovery-with-the-rds-database[How do I use Kubernetes Service
-  Discovery with the RDS database?]
+* https://opendistro.github.io/for-elasticsearch-docs/docs/elasticsearch/index-data/[Open Distro docs: How to index data into Elasticsearch]: Documentation by Open Distro for Elasticsearch, a reliable resource on how to use Elasticsearch APIs.
+* https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-index_.html[Elastic docs: How to index data into Elasticsearch]: Documentation by Elastic, the originators of Elasticsearch.
+* https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/sizing-domains.html[How to size Amazon ES domains]
 
 === Major changes
 
-TODO: replace
-* https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_UpgradeDBInstance.Upgrading.html[Upgrading a DB instance]
-* https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/USER_RestoreFromSnapshot.html[Restoring from a DB snapshot]
+* https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-version-migration.html[Upgrading Elasticsearch]
+* https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-managedomains-snapshots.html[Using Snapshot / Restore]
 
 
 

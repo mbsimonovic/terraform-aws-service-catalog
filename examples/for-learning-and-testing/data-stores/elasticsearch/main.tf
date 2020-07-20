@@ -28,23 +28,28 @@ module "elasticsearch" {
   source = "../../../../modules/data-stores/elasticsearch"
 
   # Cluster Configurations
-  domain_name           = var.domain_name
-  elasticsearch_version = var.elasticsearch_version
-  instance_type         = var.instance_type
-  instance_count        = var.instance_count
-  volume_type           = var.volume_type
-  volume_size           = var.volume_size
+  domain_name            = var.domain_name
+  elasticsearch_version  = var.elasticsearch_version
+  instance_type          = var.instance_type
+  instance_count         = var.instance_count
+  volume_type            = var.volume_type
+  volume_size            = var.volume_size
+  zone_awareness_enabled = var.zone_awareness_enabled
 
   # Network Configurations
 
   # To keep this example simple, we run it in the default VPC, put everything in the same subnets, and allow access from
-  # any source. In production, you'll want to use a custom VPC, private subnets, and explicitly close off access to only
+  # any source.
+  # NOTE: However, even with Elasticsearch deployed in a public subnet in the default VPC, it is still only accessible from within the VPC.
+  # This seems to be a layer of security that exists in Amazon's implementation of Elasticsearch Service,
+  # and you can read more about it here:
+  # https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-vpc.html#es-vpc-security
+  # In production, you can use a custom VPC, private subnets, and explicitly close off access to only
   # those applications that need it.
   vpc_id                                 = data.aws_vpc.default.id
   subnet_ids                             = data.aws_subnet_ids.default.ids
   allow_connections_from_cidr_blocks     = ["0.0.0.0/0"]
   allow_connections_from_security_groups = []
-  zone_awareness_enabled                 = var.zone_awareness_enabled
 
   # Since this is just an example, we don't deploy any CloudWatch resources in order to make it faster to deploy, however in
   # production you'll probably want to enable this feature.
@@ -54,6 +59,7 @@ module "elasticsearch" {
 # ---------------------------------------------------------------------------------------------------------------------
 # ADD AN EC2 INSTANCE TO SERVE AS A BASTION HOST
 # This instance will be used to run curl commands against the Elasticsearch cluster.
+# Your usage may vary. You may prefer to use a VPN tunnel instead of a bastion host.
 # ---------------------------------------------------------------------------------------------------------------------
 data "aws_ami" "ubuntu" {
   most_recent = true
@@ -84,7 +90,7 @@ resource "aws_instance" "server" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# DATA
+# DATA: Use the default VPC for this example.
 # ---------------------------------------------------------------------------------------------------------------------
 data "aws_vpc" "default" {
   default = true

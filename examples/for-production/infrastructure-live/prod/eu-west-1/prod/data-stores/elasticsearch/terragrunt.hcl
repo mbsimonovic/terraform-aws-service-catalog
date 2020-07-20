@@ -32,12 +32,11 @@ prevent_destroy = true
 inputs = {
 
   domain_name            = "aes-cluster"
-  elasticsearch_version  = "7.4"
   instance_type          = "t2.small.elasticsearch"
-  instance_count         = 4
-  zone_awareness_enabled = true
+  instance_count         = 2
   volume_type            = "standard"
   volume_size            = 10
+  zone_awareness_enabled = true
   vpc_id                 = "vpc-0e0d9a6b"
   subnet_ids             = ["subnet-1cb53110", "subnet-0cd80b55", "subnet-d377c6a4"]
 }

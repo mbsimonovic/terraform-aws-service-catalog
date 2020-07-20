@@ -22,6 +22,8 @@ variable "domain_name" {
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL PARAMETERS
 # These variables are set with defaults to make running the example easier.
+# E.g., This example uses 3 dedicated master nodes and runs the 7.4 version
+# of Elasticsearch.
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "elasticsearch_version" {

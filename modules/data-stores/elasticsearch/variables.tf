@@ -30,6 +30,11 @@ variable "volume_size" {
   type        = number
 }
 
+variable "zone_awareness_enabled" {
+  description = "Whether to deploy the Elasticsearch nodes across two Availability Zones instead of one. Note that if you enable this, the instance_count MUST be an even number."
+  type        = bool
+}
+
 # Network configuration
 
 variable "vpc_id" {
@@ -42,14 +47,8 @@ variable "subnet_ids" {
   type        = list(string)
 }
 
-variable "zone_awareness_enabled" {
-  description = "Whether to deploy the Elasticsearch nodes across two Availability Zones instead of one. Note that if you enable this, the instance_count MUST be an even number."
-  type        = bool
-}
-
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL PARAMETERS
-# Generally, these values won't need to be changed.
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "elasticsearch_version" {
