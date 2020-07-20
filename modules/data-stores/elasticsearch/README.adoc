@@ -38,8 +38,7 @@ toc::[]
 == Features
 
 * Deploy a fully-managed native Elasticsearch cluster in a VPC
-* Use VPC-based security
-    * If you use AWS's default VPC, which contains public subnets, your Elasticsearch cluster is still only accessible from within the VPC. It is not publicly accessible. https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-vpc.html#es-vpc-security[See these docs] for more information.
+* Use VPC-based security. _Note:_ If you use AWS's default VPC, which contains public subnets, your Elasticsearch cluster is still only accessible from within the VPC. It is not publicly accessible. https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-vpc.html#es-vpc-security[See these docs] for more information.
 * Leverage zone awareness, i.e., deployment of Elasticsearch nodes across Availability Zones
 * Automatic nightly snapshots
 * CloudWatch Alarms for alerting when CPU, memory, and disk metrics exceed certain thresholds
@@ -52,7 +51,6 @@ reusable, battle-tested, production ready infrastructure code. If you've never u
 sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catallog/[How to use the Gruntwork
 Service Catalog]!
 
-=== Introductory documentation:
 * https://aws.amazon.com/elasticsearch-service/[About Amazon Elasticsearch Service]
 * https://aws.amazon.com/elasticsearch-service/features/[Features of Amazon ES]
 * https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/what-is-amazon-elasticsearch-service.html[Developer Guide]: Contains the main documentation on how to use Amazon ES and answers questions such as "What is Amazon Elasticsearch Service?"
