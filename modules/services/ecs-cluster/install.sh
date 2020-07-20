@@ -111,6 +111,8 @@ function install_ecs_cluster {
     "$enable_cloudwatch_metrics" \
     "$enable_cloudwatch_log_aggregation"
 
+  # install ecs-scripts module which allows for configuring an EC2 instance to join an existing ECS cluster
+  # See: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/bootstrap_container_instance.html for more information
   gruntwork-install --module-name 'ecs-scripts' --repo https://github.com/gruntwork-io/module-ecs --tag "$ecs_cluster_version"
  
   install_user_data \
