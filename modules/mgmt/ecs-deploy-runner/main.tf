@@ -23,8 +23,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_deploy_runner" {
-  # TODO: update to released version when app CI/CD feature is released
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner?ref=yori-app-cicd-feature"
+  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner?ref=v0.24.0"
 
   name             = var.name
   container_images = module.standard_config.container_images
@@ -34,7 +33,7 @@ module "ecs_deploy_runner" {
 }
 
 module "standard_config" {
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner-standard-configuration?ref=yori-app-cicd-fixes"
+  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner-standard-configuration?ref=v0.24.0"
 
   docker_image_builder = {
     container_image = var.docker_image_builder_config.container_image
