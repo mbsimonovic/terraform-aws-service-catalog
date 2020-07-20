@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------------------------------------------------
-# DEPLOY SERVICE ON KUBERNETES USING THE K8S-SERVICE HELM CHART
+# DEPLOY ECS SERVICE
 # ----------------------------------------------------------------------------------------------------------------------
 
 provider "aws" {
@@ -51,4 +51,3 @@ module "application" {
   ecs_instance_security_group_id = var.ecs_instance_security_group_id
 
 }
-
