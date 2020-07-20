@@ -102,7 +102,7 @@ func TestEcsDeployRunner(t *testing.T) {
 			Tags: []string{deployRunnerImg},
 			BuildArgs: []string{
 				"GITHUB_OAUTH_TOKEN",
-				fmt.Sprintf("module_ci_tag='%s'", moduleCITag),
+				fmt.Sprintf("module_ci_tag=%s", moduleCITag),
 			},
 			OtherOptions: []string{"--no-cache"},
 		}
@@ -113,7 +113,7 @@ func TestEcsDeployRunner(t *testing.T) {
 			Tags: []string{kanikoImg},
 			BuildArgs: []string{
 				"GITHUB_OAUTH_TOKEN",
-				fmt.Sprintf("module_ci_tag='%s'", moduleCITag),
+				fmt.Sprintf("module_ci_tag=%s", moduleCITag),
 			},
 			OtherOptions: []string{"--no-cache"},
 		}
