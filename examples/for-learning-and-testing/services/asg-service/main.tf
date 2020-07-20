@@ -23,7 +23,7 @@ module "asg" {
   desired_capacity = 2
   min_elb_capacity = 2
 
-  server_port         = local.server_port
+  server_port = local.server_port
 
   vpc_id     = data.aws_vpc.default.id
   subnet_ids = data.aws_subnet_ids.default.ids
@@ -33,24 +33,16 @@ module "asg" {
 
   create_route53_entry = false
 
-  alb_listener_rule_configs = [
-    {
-      port     = local.server_port
-      path     = "/*"
-      priority = 90
+  forward_listener_rules = {
+    "root-route" = {
+      path_patterns = ["/*"]
     }
-  ]
+  }
 
-  alb_listener_arn = module.alb.listener_arns[80] // alb_listener_rule_configs[0].port
+  listener_arns  = module.alb.listener_arns
+  listener_ports = [80]
 
-  key_pair_name         = var.key_pair_name
-  original_alb_dns_name = ""
-
-  user_data = <<-EOF
-              #!/bin/bash
-              echo "Hello, World" > index.html
-              nohup busybox httpd -f -p ${local.server_port} &
-              EOF
+  key_pair_name = var.key_pair_name
 }
 
 module "alb" {

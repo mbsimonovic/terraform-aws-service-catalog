@@ -14,8 +14,16 @@ output "security_group_id" {
   value = aws_security_group.lc_security_group.id
 }
 
-output "lb_listener_rule_ids" {
-  value = aws_lb_listener_rule.paths_to_route_to_this_service.*.id
+output "lb_listener_rule_forward_arns" {
+  value = module.listener_rules.lb_listener_rule_forward_arns
+}
+
+output "lb_listener_rule_fixed_response_arns" {
+  value = module.listener_rules.lb_listener_rule_fixed_response_arns
+}
+
+output "lb_listener_rule_redirect_arns" {
+  value = module.listener_rules.lb_listener_rule_redirect_arns
 }
 
 output "launch_configuration_id" {

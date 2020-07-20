@@ -50,32 +50,31 @@ variable "server_port" {
   type        = number
 }
 
-variable "alb_listener_rule_configs" {
-  description = "A list of all ALB Listener Rules that should be attached to an existing ALB Listener. These rules configure the ALB to send requests that come in on certain ports and paths to this service. Each item in the list should be a map with the keys port (the port to match), path (the path to match), and priority (earlier priorities are matched first)."
-  type = list(object({
-    port     = number
-    path     = string
-    priority = number
-  }))
+variable "forward_listener_rules" {
+  default = {}
 
-  # Example:
-  # default = [
-  #   {
-  #     port     = 80
-  #     path     = "/foo/*"
-  #     priority = 100
-  #   },
-  #   {
-  #     port     = 443
-  #     path     = "/foo/*"
-  #     priority = 100
-  #   }
-  # ]
 }
 
-variable "alb_listener_arn" {
-  description = "The ARN of the ALB listener."
-  type        = string
+variable "redirect_listener_rules" {
+  default = {}
+
+}
+
+variable "fixed_response_listener_rules" {
+  default = {}
+}
+
+variable "listener_arns" {
+  default = {}
+}
+
+variable "listener_ports" {
+  default = {}
+}
+
+variable "default_forward_target_group_arns" {
+  default = []
+
 }
 
 variable "health_check_path" {
@@ -86,11 +85,6 @@ variable "health_check_path" {
 variable "health_check_protocol" {
   description = "The protocol to use for health checks. Should be one of HTTP, HTTPS."
   type        = string
-}
-
-variable "user_data" {
-  type    = string
-  default = null
 }
 
 variable "vpc_id" {
@@ -120,12 +114,12 @@ variable "hosted_zone_id" {
   default     = null
 }
 
-variable "original_alb_dns_name" {
+variable "original_lb_dns_name" {
   type    = string
   default = null
 }
 
-variable "alb_hosted_zone_id" {
+variable "lb_hosted_zone_id" {
   description = "The ID of the Route 53 Hosted Zone in which to create a DNS A record for the Auto Scaling Group. Optional if create_route53_entry = false."
   type        = string
   default     = null

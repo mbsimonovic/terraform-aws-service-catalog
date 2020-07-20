@@ -6,7 +6,7 @@ terraform {
   required_providers {
     # There is a regression in autoscaling groups tags introduced in 2.64.0 that consistently cause "inconsistent final
     # plan" errors, so we lock the version to 2.63.0 until that is resolved.
-    aws = "= 2.63.0"
+    aws = "~> 2.68.0"
   }
 
   # Require at least 0.12.6, which added for_each support; make sure we don't accidentally pull in 0.13.x, as that may
@@ -19,7 +19,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "asg" {
-  source = "git::git@github.com:gruntwork-io/module-asg.git//modules/asg-rolling-deploy?ref=v0.9.0"
+  source = "git::git@github.com:gruntwork-io/module-asg.git//modules/asg-rolling-deploy?ref=v0.9.1"
 
   launch_configuration_name = aws_launch_configuration.launch_configuration.name
   vpc_subnet_ids            = var.subnet_ids
@@ -98,11 +98,11 @@ resource "aws_security_group_rule" "egress_all" {
 
 # Inbound HTTP from the ALB
 resource "aws_security_group_rule" "ingress_alb" {
-  type        = "ingress"
-  from_port   = var.server_port
-  to_port     = var.server_port
-  protocol    = "tcp"
-  cidr_blocks = ["0.0.0.0/0"]
+  type              = "ingress"
+  from_port         = var.server_port
+  to_port           = var.server_port
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.lc_security_group.id
 }
 
@@ -127,8 +127,8 @@ module "ec2_baseline" {
   enable_ssh_grunt                    = local.enable_ssh_grunt
   external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
   enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
-  enable_cloudwatch_metrics           = false
-  iam_role_arn                        = aws_iam_role.instance_role.id// TODO is this the right value?
+  enable_cloudwatch_metrics           = var.enable_cloudwatch_metrics
+  iam_role_arn                        = aws_iam_role.instance_role.id // TODO is this the right value?
   asg_names                           = [module.asg.asg_name]
   num_asg_names                       = 1
   cloud_init_parts                    = local.cloud_init_parts
@@ -174,7 +174,7 @@ data "aws_iam_policy_document" "instance_role" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# CREATE AN ALB TARGET GROUP AND LISTENER RULE TO RECEIVE TRAFFIC FROM THE ALB FOR CERTAIN PATHS
+# CREATE AN ALB TARGET GROUP THAT WILL RECEIVE TRAFFIC FROM THE ALB FOR CERTAIN PATHS
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_alb_target_group" "service" {
@@ -204,22 +204,21 @@ resource "aws_alb_target_group" "service" {
 # domain names (the condition block) to the Target Group that contains this ASG service.
 # ---------------------------------------------------------------------------------------------------------------------
 
-resource "aws_lb_listener_rule" "paths_to_route_to_this_service" {
-  count = length(var.alb_listener_rule_configs)
+module "listener_rules" {
+  source = "git::git@github.com:gruntwork-io/module-load-balancer.git//modules/lb-listener-rules?ref=v0.20.2"
 
-  listener_arn = var.alb_listener_arn
-  priority     = var.alb_listener_rule_configs[count.index]["priority"]
+  default_listener_arns  = var.listener_arns
+  default_listener_ports = var.listener_ports
 
-  action {
-    type             = "forward"
-    target_group_arn = aws_alb_target_group.service.arn
-  }
+  default_forward_target_group_arns = concat(
+    var.default_forward_target_group_arns,
+    [{ arn = aws_alb_target_group.service.arn }]
+  )
 
-  condition {
-    path_pattern {
-      values = [var.alb_listener_rule_configs[count.index]["path"]]
-    }
-  }
+  forward_rules        = var.forward_listener_rules
+  redirect_rules       = var.redirect_listener_rules
+  fixed_response_rules = var.fixed_response_listener_rules
+
 }
 
 # ------------------------------------------------------------------------------
@@ -235,8 +234,8 @@ resource "aws_route53_record" "service" {
   type = "A"
 
   alias {
-    name                   = var.original_alb_dns_name
-    zone_id                = var.alb_hosted_zone_id
+    name                   = var.original_lb_dns_name
+    zone_id                = var.lb_hosted_zone_id
     evaluate_target_health = true
   }
 }
