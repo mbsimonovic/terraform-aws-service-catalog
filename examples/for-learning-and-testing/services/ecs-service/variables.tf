@@ -3,11 +3,6 @@
 # These variables must be passed in by the calling Terraform code.
 # ---------------------------------------------------------------------------------------------------------------------
 
-variable "aws_region" {
-  description = "The AWS region in which all resources will be created"
-  type        = string
-}
-
 variable "service_name" {
   description = "The name of the ECS service (e.g. my-service-stage)"
   type        = string

@@ -12,7 +12,6 @@ module "application" {
   # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/services/k8s-service?ref=v1.0.8"
   source = "../../../../modules/services/ecs-service"
 
-  aws_region       = var.aws_region
   service_name     = var.service_name
   ecs_cluster_arn  = var.ecs_cluster_arn
   ecs_cluster_name = var.ecs_cluster_name

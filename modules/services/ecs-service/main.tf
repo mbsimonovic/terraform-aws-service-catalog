@@ -168,7 +168,6 @@ locals {
 
   # NOTE: if you add a default env var, make sure to update the count in data.template_file.all_env_vars!!!
   default_env_vars = map(
-    var.aws_region_env_var_name, var.aws_region,
     var.db_url_env_var_name, var.db_primary_endpoint,
   )
 
