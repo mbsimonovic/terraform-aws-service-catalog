@@ -20,9 +20,8 @@ const (
 	deployRunnerImgTag = "deploy-runner-v1"
 	kanikoImgTag       = "kaniko-v1"
 
-	// TODO: remove and replace with release tag
-	moduleCIRepo   = "git@github.com:gruntwork-io/module-ci.git"
-	moduleCIBranch = "yori-app-cicd-feature"
+	moduleCIRepo = "git@github.com:gruntwork-io/module-ci.git"
+	moduleCITag  = "v0.24.0"
 )
 
 // TestEcsDeployRunner tests the ECS Deploy Runner module.
@@ -103,24 +102,22 @@ func TestEcsDeployRunner(t *testing.T) {
 			Tags: []string{deployRunnerImg},
 			BuildArgs: []string{
 				"GITHUB_OAUTH_TOKEN",
-				"module_ci_tag=''",
-				fmt.Sprintf("module_ci_branch=%s", moduleCIBranch),
+				fmt.Sprintf("module_ci_tag='%s'", moduleCITag),
 			},
 			OtherOptions: []string{"--no-cache"},
 		}
-		gitCloneAndDockerBuild(t, moduleCIRepo, moduleCIBranch, "modules/ecs-deploy-runner/docker/deploy-runner", deployRunnerBuildOpts)
+		gitCloneAndDockerBuild(t, moduleCIRepo, moduleCITag, "modules/ecs-deploy-runner/docker/deploy-runner", deployRunnerBuildOpts)
 
 		// kaniko docker image
 		kanikoBuildOpts := &docker.BuildOptions{
 			Tags: []string{kanikoImg},
 			BuildArgs: []string{
 				"GITHUB_OAUTH_TOKEN",
-				"module_ci_tag=''",
-				fmt.Sprintf("module_ci_branch=%s", moduleCIBranch),
+				fmt.Sprintf("module_ci_tag='%s'", moduleCITag),
 			},
 			OtherOptions: []string{"--no-cache"},
 		}
-		gitCloneAndDockerBuild(t, moduleCIRepo, moduleCIBranch, "modules/ecs-deploy-runner/docker/kaniko", kanikoBuildOpts)
+		gitCloneAndDockerBuild(t, moduleCIRepo, moduleCITag, "modules/ecs-deploy-runner/docker/kaniko", kanikoBuildOpts)
 	})
 	test_structure.RunTestStage(t, "push_docker_image", func() {
 		pushCmd := shell.Command{
