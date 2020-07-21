@@ -23,7 +23,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_deploy_runner" {
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner?ref=v0.24.0"
+  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner?ref=v0.24.1"
 
   name             = var.name
   container_images = module.standard_config.container_images
@@ -33,62 +33,77 @@ module "ecs_deploy_runner" {
 }
 
 module "standard_config" {
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner-standard-configuration?ref=v0.24.0"
+  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner-standard-configuration?ref=v0.24.1"
 
-  docker_image_builder = {
-    container_image = var.docker_image_builder_config.container_image
-    allowed_repos   = var.docker_image_builder_config.allowed_repos
-    secrets_manager_env_vars = merge(
-      (
-        var.docker_image_builder_config.git_config != null && var.docker_image_builder_config.git_config.username_secrets_manager_arn != null
-        ? {
-          GIT_USERNAME = var.docker_image_builder_config.git_config.username_secrets_manager_arn
-        }
-        : {}
-      ),
-      (
-        var.docker_image_builder_config.git_config != null && var.docker_image_builder_config.git_config.password_secrets_manager_arn != null
-        ? {
-          GIT_PASSWORD = var.docker_image_builder_config.git_config.password_secrets_manager_arn
-        }
-        : {}
-      ),
-      var.docker_image_builder_config.secrets_manager_env_vars,
-    )
-  }
+  docker_image_builder = (
+    var.docker_image_builder_config != null
+    ? { container_image = var.docker_image_builder_config.container_image
+      allowed_repos     = var.docker_image_builder_config.allowed_repos
+      secrets_manager_env_vars = merge(
+        (
+          var.docker_image_builder_config.git_config != null && var.docker_image_builder_config.git_config.username_secrets_manager_arn != null
+          ? {
+            GIT_USERNAME = var.docker_image_builder_config.git_config.username_secrets_manager_arn
+          }
+          : {}
+        ),
+        (
+          var.docker_image_builder_config.git_config != null && var.docker_image_builder_config.git_config.password_secrets_manager_arn != null
+          ? {
+            GIT_PASSWORD = var.docker_image_builder_config.git_config.password_secrets_manager_arn
+          }
+          : {}
+        ),
+        var.docker_image_builder_config.secrets_manager_env_vars,
+      )
+    }
+    : null
+  )
 
-  ami_builder = {
-    container_image                         = var.ami_builder_config.container_image
-    allowed_repos                           = var.ami_builder_config.allowed_repos
-    repo_access_ssh_key_secrets_manager_arn = var.ami_builder_config.repo_access_ssh_key_secrets_manager_arn
-    secrets_manager_env_vars                = var.ami_builder_config.secrets_manager_env_vars
-  }
+  ami_builder = (
+    var.ami_builder_config != null
+    ? {
+      container_image                         = var.ami_builder_config.container_image
+      allowed_repos                           = var.ami_builder_config.allowed_repos
+      repo_access_ssh_key_secrets_manager_arn = var.ami_builder_config.repo_access_ssh_key_secrets_manager_arn
+      secrets_manager_env_vars                = var.ami_builder_config.secrets_manager_env_vars
+    }
+    : null
+  )
 
-  terraform_planner = {
-    container_image                  = var.terraform_planner_config.container_image
-    infrastructure_live_repositories = var.terraform_planner_config.infrastructure_live_repositories
-    secrets_manager_env_vars = merge(
-      {
-        DEPLOY_SCRIPT_SSH_PRIVATE_KEY = var.terraform_planner_config.repo_access_ssh_key_secrets_manager_arn
-      },
-      var.terraform_planner_config.secrets_manager_env_vars,
-    )
-  }
+  terraform_planner = (
+    var.terraform_planner_config != null
+    ? {
+      container_image                  = var.terraform_planner_config.container_image
+      infrastructure_live_repositories = var.terraform_planner_config.infrastructure_live_repositories
+      secrets_manager_env_vars = merge(
+        {
+          DEPLOY_SCRIPT_SSH_PRIVATE_KEY = var.terraform_planner_config.repo_access_ssh_key_secrets_manager_arn
+        },
+        var.terraform_planner_config.secrets_manager_env_vars,
+      )
+    }
+    : null
+  )
 
-  terraform_applier = {
-    container_image                         = var.terraform_applier_config.container_image
-    infrastructure_live_repositories        = var.terraform_applier_config.infrastructure_live_repositories
-    allowed_apply_git_refs                  = var.terraform_applier_config.allowed_apply_git_refs
-    machine_user_git_info                   = var.terraform_applier_config.machine_user_git_info
-    allowed_update_variable_names           = var.terraform_applier_config.allowed_update_variable_names
-    repo_access_ssh_key_secrets_manager_arn = var.terraform_applier_config.repo_access_ssh_key_secrets_manager_arn
-    secrets_manager_env_vars = merge(
-      {
-        DEPLOY_SCRIPT_SSH_PRIVATE_KEY = var.terraform_applier_config.repo_access_ssh_key_secrets_manager_arn
-      },
-      var.terraform_applier_config.secrets_manager_env_vars,
-    )
-  }
+  terraform_applier = (
+    var.terraform_applier_config != null
+    ? {
+      container_image                         = var.terraform_applier_config.container_image
+      infrastructure_live_repositories        = var.terraform_applier_config.infrastructure_live_repositories
+      allowed_apply_git_refs                  = var.terraform_applier_config.allowed_apply_git_refs
+      machine_user_git_info                   = var.terraform_applier_config.machine_user_git_info
+      allowed_update_variable_names           = var.terraform_applier_config.allowed_update_variable_names
+      repo_access_ssh_key_secrets_manager_arn = var.terraform_applier_config.repo_access_ssh_key_secrets_manager_arn
+      secrets_manager_env_vars = merge(
+        {
+          DEPLOY_SCRIPT_SSH_PRIVATE_KEY = var.terraform_applier_config.repo_access_ssh_key_secrets_manager_arn
+        },
+        var.terraform_applier_config.secrets_manager_env_vars,
+      )
+    }
+    : null
+  )
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

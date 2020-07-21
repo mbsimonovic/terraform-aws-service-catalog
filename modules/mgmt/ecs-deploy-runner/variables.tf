@@ -14,7 +14,7 @@ variable "private_subnet_ids" {
 }
 
 variable "docker_image_builder_config" {
-  description = "Configuration options for the docker-image-builder container of the ECS deploy runner stack. This container will be used for building docker images in the CI/CD pipeline."
+  description = "Configuration options for the docker-image-builder container of the ECS deploy runner stack. This container will be used for building docker images in the CI/CD pipeline. Set to `null` to disable this container."
   type = object({
     # Docker repo and image tag to use as the container image for the docker image builder. This should be based on the
     # Dockerfile in module-ci/modules/ecs-deploy-runner/docker/kaniko.
@@ -84,7 +84,7 @@ variable "docker_image_builder_config" {
 }
 
 variable "ami_builder_config" {
-  description = "Configuration options for the ami-builder container of the ECS deploy runner stack. This container will be used for building AMIs in the CI/CD pipeline using packer."
+  description = "Configuration options for the ami-builder container of the ECS deploy runner stack. This container will be used for building AMIs in the CI/CD pipeline using packer. Set to `null` to disable this container."
   type = object({
     # Docker repo and image tag to use as the container image for the ami builder. This should be based on the
     # Dockerfile in module-ci/modules/ecs-deploy-runner/docker/deploy-runner.
@@ -136,7 +136,7 @@ variable "ami_builder_config" {
 }
 
 variable "terraform_planner_config" {
-  description = "Configuration options for the terraform-planner container of the ECS deploy runner stack. This container will be used for running infrastructure plan (including validate) actions in the CI/CD pipeline with Terraform / Terragrunt."
+  description = "Configuration options for the terraform-planner container of the ECS deploy runner stack. This container will be used for running infrastructure plan (including validate) actions in the CI/CD pipeline with Terraform / Terragrunt. Set to `null` to disable this container."
   type = object({
     # Docker repo and image tag to use as the container image for the ami builder. This should be based on the
     # Dockerfile in module-ci/modules/ecs-deploy-runner/docker/deploy-runner.
@@ -190,7 +190,7 @@ variable "terraform_planner_config" {
 }
 
 variable "terraform_applier_config" {
-  description = "Configuration options for the terraform-applier container of the ECS deploy runner stack. This container will be used for running infrastructure deployment actions (including automated variable updates) in the CI/CD pipeline with Terraform / Terragrunt."
+  description = "Configuration options for the terraform-applier container of the ECS deploy runner stack. This container will be used for running infrastructure deployment actions (including automated variable updates) in the CI/CD pipeline with Terraform / Terragrunt. Set to `null` to disable this container."
   type = object({
     # Docker repo and image tag to use as the container image for the ami builder. This should be based on the
     # Dockerfile in module-ci/modules/ecs-deploy-runner/docker/deploy-runner.
