@@ -1,6 +1,6 @@
-# {{ .EcsServiceModuleName | capitalize }} Module
+# ECS Service Module
 
-This Terraform Module deploys ECS Services that fit the  {{ .EcsServiceModuleName }} profile as an ECS Service on top 
+This Terraform Module deploys ECS Services on top 
 of an ECS Cluster.
 
 ## How do you use this module?
