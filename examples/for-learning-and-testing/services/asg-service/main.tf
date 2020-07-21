@@ -1,10 +1,14 @@
+# ----------------------------------------------------------------------------------------------------------------------
+# DEPLOY AN ASG
+# ----------------------------------------------------------------------------------------------------------------------
 
 provider "aws" {
   region = var.aws_region
 }
 
 locals {
-  server_port = 8080
+  server_port    = 8080
+  listener_ports = [80]
 }
 
 module "asg" {
@@ -18,10 +22,10 @@ module "asg" {
   instance_type = "t3.micro"
   ami           = var.ami
 
-  min_size         = 2
-  max_size         = 3
-  desired_capacity = 2
-  min_elb_capacity = 2
+  min_size         = var.num_instances
+  max_size         = var.num_instances
+  desired_capacity = var.num_instances
+  min_elb_capacity = var.num_instances
 
   server_port = local.server_port
 
@@ -40,7 +44,7 @@ module "asg" {
   }
 
   listener_arns  = module.alb.listener_arns
-  listener_ports = [80]
+  listener_ports = local.listener_ports
 
   key_pair_name = var.key_pair_name
 }
@@ -62,7 +66,7 @@ module "alb" {
   // For testing, we are allowing ALL but for production, you should limit just for the servers you want to trust
   allow_inbound_from_cidr_blocks = ["0.0.0.0/0"]
 
-  http_listener_ports = [80]
+  http_listener_ports = local.listener_ports
 
   vpc_id         = data.aws_vpc.default.id
   vpc_subnet_ids = data.aws_subnet_ids.default.ids
