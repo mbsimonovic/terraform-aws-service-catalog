@@ -57,18 +57,6 @@ resource "aws_security_group_rule" "custom_permissions" {
 # CREATE THE CONTAINER DEFINITION THAT SPECIFIES WHAT DOCKER CONTAINERS TO RUN AND THE RESOURCES THEY NEED
 # ---------------------------------------------------------------------------------------------------------------------
 
-# Convert the maps of ports to the container definition JSON format.
-data "template_file" "port_mappings" {
-  count    = length(var.ecs_node_port_mappings)
-  template = <<EOF
-{
-  "containerPort": ${var.ecs_node_port_mappings[element(keys(var.ecs_node_port_mappings), count.index)]},
-  "hostPort": ${element(keys(var.ecs_node_port_mappings), count.index)},
-  "protocol": "tcp"
-}
-EOF
-}
-
 locals {
 
   container_definitions = jsonencode(var.container_definitions)
