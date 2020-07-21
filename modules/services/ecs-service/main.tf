@@ -70,125 +70,23 @@ EOF
 }
 
 locals {
-  list_of_container_definitions = [for k, v in var.container_definitions : {
-    "name" : "${k}",
-    "command" : lookup(v, "command", null),
-    "dependsOn" : lookup(v, "dependsOn", null),
-    "disableNetworking" : lookup(v, "disableNetworking", null),
-    "dnsSearchDomains" : lookup(v, "dnsSearchDomains", null),
-    "dnsServers" : lookup(v, "dnsServers", null),
-    "dockerLabels" : lookup(v, "dockerLabels", null),
-    "dockerSecurityOptions" : lookup(v, "dockerSecurityOptions", null),
-    "entryPoint" : lookup(v, "entryPoint", null),
-    "image" : lookup(v, "image", null),
-    "cpu" : lookup(v, "cpu", 1),
-    "memory" : lookup(v, "memory", 500),
-    "essential" : lookup(v, "essential", null),
-    "environment" : lookup(v, "environment", {}),
-    "environmentFiles" : lookup(v, "environmentFiles", null),
-    "extraHosts" : lookup(v, "firelensConfiguration", null),
-    "firelensConfiguration" : lookup(v, "firelensConfiguration", null),
-    "healthCheck" : lookup(v, "healthCheck", null),
-    "hostname" : lookup(v, "hostname", null),
-    "interactive" : lookup(v, "interactive", null),
-    "links" : lookup(v, "links", null),
-    "linuxParameters" : lookup(v, "linuxParameters", null),
-    "logConfiguration" : lookup(v, "logConfiguration", null),
-    "memoryReservation" : lookup(v, "memoryReservation", null),
-    "mountPoints" : lookup(v, "mountPoints", null),
-    "portMappings" : lookup(v, "portMappings", null),
-    "privileged" : lookup(v, "privileged", null),
-    "pseudoTerminal" : lookup(v, "pseudoTerminal", null),
-    "readonlyRootFilesystem" : lookup(v, "readonlyRootFilesystem", null),
-    "respositoryCredentials" : lookup(v, "repositoryCredentials", null),
-    "resourceRequirements" : lookup(v, "resourceRequirements", null),
-    "secrets" : lookup(v, "secrets", null)
-    "startTimeout" : lookup(v, "startTimeout", null)
-    "stopTimeout" : lookup(v, "stopTimeout", null)
-    "systemControls" : lookup(v, "systemControls", null)
-    "ulimits" : lookup(v, "ulimits", null),
-    "user" : lookup(v, "user", null),
-    "volumesFrom" : lookup(v, "volumesFrom", null),
-    "workingDirectory" : lookup(v, "workingDirectory", null)
-  }]
 
-  container_definitions = jsonencode(local.list_of_container_definitions)
+  container_definitions = jsonencode(var.container_definitions)
 
-  list_of_canary_container_definitions = [for k, v in var.canary_container_definitions : {
-    "name" : "${k}",
-    "command" : lookup(v, "command", null),
-    "dependsOn" : lookup(v, "dependsOn", null),
-    "disableNetworking" : lookup(v, "disableNetworking", null),
-    "dnsSearchDomains" : lookup(v, "dnsSearchDomains", null),
-    "dnsServers" : lookup(v, "dnsServers", null),
-    "dockerLabels" : lookup(v, "dockerLabels", null),
-    "dockerSecurityOptions" : lookup(v, "dockerSecurityOptions", null),
-    "entryPoint" : lookup(v, "entryPoint", null),
-    "image" : lookup(v, "image", null),
-    "cpu" : lookup(v, "cpu", 1),
-    "memory" : lookup(v, "memory", 500),
-    "essential" : lookup(v, "essential", null),
-    "environment" : lookup(v, "environment", null),
-    "environmentFiles" : lookup(v, "environmentFiles", null),
-    "extraHosts" : lookup(v, "firelensConfiguration", null),
-    "firelensConfiguration" : lookup(v, "firelensConfiguration", null),
-    "healthCheck" : lookup(v, "healthCheck", null),
-    "hostname" : lookup(v, "hostname", null),
-    "interactive" : lookup(v, "interactive", null),
-    "links" : lookup(v, "links", null),
-    "linuxParameters" : lookup(v, "linuxParameters", null),
-    "logConfiguration" : lookup(v, "logConfiguration", null),
-    "memoryReservation" : lookup(v, "memoryReservation", null),
-    "mountPoints" : lookup(v, "mountPoints", null),
-    "portMappings" : lookup(v, "portMappings", null),
-    "privileged" : lookup(v, "privileged", null),
-    "pseudoTerminal" : lookup(v, "pseudoTerminal", null),
-    "readonlyRootFilesystem" : lookup(v, "readonlyRootFilesystem", null),
-    "respositoryCredentials" : lookup(v, "repositoryCredentials", null),
-    "resourceRequirements" : lookup(v, "resourceRequirements", null),
-    "secrets" : lookup(v, "secrets", null)
-    "startTimeout" : lookup(v, "startTimeout", null)
-    "stopTimeout" : lookup(v, "stopTimeout", null)
-    "systemControls" : lookup(v, "systemControls", null)
-    "ulimits" : lookup(v, "ulimits", null),
-    "user" : lookup(v, "user", null),
-    "volumesFrom" : lookup(v, "volumesFrom", null),
-    "workingDirectory" : lookup(v, "workingDirectory", null)
-  }]
+  canary_container_definitions = local.has_canary ? jsonencode(var.canary_container_definitions) : null
 
-  canary_container_definitions = jsonencode(local.list_of_canary_container_definitions)
+  # TODO - fix this   
+  #  secret_manager_arns = flatten([
+  #    for name, container in var.container_definitions :
+  #   [for env_var, secret_arn in container.secrets_manager_arns : secret_arn]
+  #  ])
 
-  secret_manager_arns = flatten([
-    for name, container in var.container_definitions :
-    [for env_var, secret_arn in container.secrets_manager_arns : secret_arn]
-  ])
+  secret_manager_arns = []
 
-
-  has_canary = var.canary_container_definitions != null && length(var.canary_container_definitions) > 0 ? true : false
-
-  # NOTE: if you add a default env var, make sure to update the count in data.template_file.all_env_vars!!!
-  default_env_vars = map(
-    var.db_url_env_var_name, var.db_primary_endpoint,
-  )
-
-  # Merge the default env vars with any extra env vars passed in by the user into a single map
-  all_env_vars = merge(local.default_env_vars, var.extra_env_vars)
+  has_canary = var.canary_container_definitions != null ? true : false
 
   cloudwatch_log_group_name = var.cloudwatch_log_group_name != null ? var.cloudwatch_log_group_name : var.service_name
   cloudwatch_log_prefix     = "ecs-service"
-}
-
-# Convert the env vars into a JSON format used by ECS container definitions.
-data "template_file" "all_env_vars" {
-  # Terraform does not allow us to depend on modules, data sources, or any other dynamic data in the count parameter,
-  # so we have to manually add the number of env vars in var.extra_env_vars and local.default_env_vars.
-  count    = var.num_extra_env_vars + 2
-  template = <<EOF
-{
-  "name": "${element(keys(local.all_env_vars), count.index)}",
-  "value": "${lookup(local.all_env_vars, element(keys(local.all_env_vars), count.index))}"
-}
-EOF
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -311,7 +209,7 @@ module "ecs_service_cpu_memory_alarms" {
 
   ecs_service_name     = var.service_name
   ecs_cluster_name     = var.ecs_cluster_name
-  alarm_sns_topic_arns = [var.alarm_sns_topic_arn]
+  alarm_sns_topic_arns = var.alarm_sns_topic_arns
 
   high_cpu_utilization_threshold    = var.high_cpu_utilization_threshold
   high_cpu_utilization_period       = var.high_cpu_utilization_period

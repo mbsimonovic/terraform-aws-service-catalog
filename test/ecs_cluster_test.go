@@ -15,8 +15,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	aws_sdk "github.com/aws/aws-sdk-go/aws"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 )
+
+const MinsToWaitForClusterInstances = 10
 
 func TestEcsCluster(t *testing.T) {
 	// Uncomment the items below to skip certain parts of the test
@@ -45,11 +48,13 @@ func TestEcsCluster(t *testing.T) {
 	})
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
-		ecsClusterTerraformOptions := test_structure.LoadTerraformOptions(t, ecsClusterTestFolder)
-		terraform.Destroy(t, ecsClusterTerraformOptions)
-
+		// The ECS service needs to be torn down prior to the cluster - otherwise AWS will return an error if you try to destroy a cluster that
+		// still has a service defined within it
 		ecsServiceTerraformOptions := test_structure.LoadTerraformOptions(t, ecsServiceTestFolder)
 		terraform.Destroy(t, ecsServiceTerraformOptions)
+
+		ecsClusterTerraformOptions := test_structure.LoadTerraformOptions(t, ecsClusterTestFolder)
+		terraform.Destroy(t, ecsClusterTerraformOptions)
 	})
 
 	test_structure.RunTestStage(t, "build_ami", func() {
@@ -144,18 +149,28 @@ func validateECSCluster(t *testing.T, testFolder string) {
 	cluster := aws.GetEcsCluster(t, awsRegion, clusterName)
 	assert.NotNil(t, cluster)
 
+	time.Sleep(time.Minute * MinsToWaitForClusterInstances)
+
 	instanceCount := int(*cluster.RegisteredContainerInstancesCount)
 	require.Greater(t, instanceCount, 0)
 }
 
 func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestFolder string) {
+	ecsClusterTerraformOptions := test_structure.LoadTerraformOptions(t, ecsClusterTestFolder)
+
+	ecsServiceTerraformOptions := &terraform.Options{
+		TerraformDir:             ecsServiceTestFolder,
+		Vars:                     map[string]interface{}{},
+		RetryableTerraformErrors: retryableTerraformErrors,
+		MaxRetries:               maxTerraformRetries,
+		TimeBetweenRetries:       sleepBetweenTerraformRetries,
+	}
 
 	awsRegion := test_structure.LoadString(t, ecsClusterTestFolder, "region")
 
-	ecsClusterTerraformOptions := test_structure.LoadTerraformOptions(t, ecsClusterTestFolder)
-	ecsServiceTerraformOptions := createBaseTerraformOptions(t, ecsServiceTestFolder, awsRegion)
-
 	ecsClusterArn := terraform.OutputRequired(t, ecsClusterTerraformOptions, "ecs_cluster_arn")
+
+	ecsClusterName := test_structure.LoadString(t, ecsClusterTestFolder, "clusterName")
 	uniqueID := test_structure.LoadString(t, ecsClusterTestFolder, "uniqueID")
 	serviceName := fmt.Sprintf("nginx-%s", strings.ToLower(uniqueID))
 
@@ -166,35 +181,43 @@ func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestF
 	}
 
 	containerDefinitionName := fmt.Sprintf("gruntwork-test-%s", uniqueID)
+	containerDefinitionName2 := fmt.Sprintf("gruntwork-test-2-%s", uniqueID)
 
 	var envKeyValuePair ecs.KeyValuePair
 	envKeyValuePair.SetName("test")
 	envKeyValuePair.SetValue("true")
 
-	var containerDefinitions = map[string]interface{}{
-		containerDefinitionName: map[string]interface{}{
-			"image":                "nginx:1.17",
-			"cpu":                  1,
-			"memory":               500,
-			"essential":            true,
-			"environment":          []ecs.KeyValuePair{envKeyValuePair},
-			"secrets_manager_arns": map[string]interface{}{},
-		},
+	testContainerDefinition := ecs.ContainerDefinition{
+		Name:        aws_sdk.String(containerDefinitionName),
+		Image:       aws_sdk.String("nginx:1.17"),
+		Cpu:         aws_sdk.Int64(1),
+		Memory:      aws_sdk.Int64(256),
+		Essential:   aws_sdk.Bool(true),
+		Environment: []*ecs.KeyValuePair{&envKeyValuePair},
 	}
 
+	testContainerDefinition2 := ecs.ContainerDefinition{
+		Name:        aws_sdk.String(containerDefinitionName2),
+		Image:       aws_sdk.String("nginx:1.17"),
+		Cpu:         aws_sdk.Int64(1),
+		Memory:      aws_sdk.Int64(256),
+		Essential:   aws_sdk.Bool(false),
+		Environment: []*ecs.KeyValuePair{&envKeyValuePair},
+	}
+
+	var containerDefinitions = []ecs.ContainerDefinition{
+		testContainerDefinition,
+		testContainerDefinition2,
+	}
+
+	ecsServiceTerraformOptions.Vars["aws_region"] = awsRegion
 	ecsServiceTerraformOptions.Vars["service_name"] = serviceName
-	ecsServiceTerraformOptions.Vars["ecs_cluster_name"] = "test"
+	ecsServiceTerraformOptions.Vars["ecs_cluster_name"] = ecsClusterName
 	ecsServiceTerraformOptions.Vars["ecs_cluster_arn"] = ecsClusterArn
-	ecsServiceTerraformOptions.Vars["aws_region"] = "us-west-1"
-	ecsServiceTerraformOptions.Vars["image"] = "nginx"
-	ecsServiceTerraformOptions.Vars["image_version"] = "1.17"
-	ecsServiceTerraformOptions.Vars["vpc_env_var_name"] = "placeholder"
 	ecsServiceTerraformOptions.Vars["ecs_node_port_mappings"] = portMappings
-	ecsServiceTerraformOptions.Vars["alarm_sns_topic_arn"] = "arn:aws:sns:us-west-1:087285199408:062OP8"
-	ecsServiceTerraformOptions.Vars["ecs_instance_security_group_id"] = "TODO"
-	ecsServiceTerraformOptions.Vars["db_primary_endpoint"] = "https://example.com"
 	ecsServiceTerraformOptions.Vars["container_definitions"] = containerDefinitions
 	ecsServiceTerraformOptions.Vars["use_auto_scaling"] = true
+	ecsServiceTerraformOptions.Vars["alarm_sns_topic_arns"] = []string{"arn:aws:sns:us-west-1:087285199408:062OP8"}
 	ecsServiceTerraformOptions.Vars["kms_master_key_arn"] = "arn:aws:kms:us-west-1:087285199408:key/86ad7480-8503-403f-89b3-436241d7e16f"
 
 	terraform.InitAndApply(t, ecsServiceTerraformOptions)
