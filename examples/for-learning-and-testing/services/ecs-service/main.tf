@@ -38,6 +38,9 @@ module "application" {
   high_cpu_utilization_period       = var.high_cpu_utilization_period
 
   kms_master_key_arn   = var.kms_master_key_arn
-  alarm_sns_topic_arns = var.alarm_sns_topic_arns
+  alarm_sns_topic_arns = [aws_sns_topic.ecs-alerts.arn]
+}
 
+resource "aws_sns_topic" "ecs-alerts" {
+  name = "ecs-alerts-topic"
 }
