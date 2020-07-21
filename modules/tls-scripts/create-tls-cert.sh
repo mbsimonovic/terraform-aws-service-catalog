@@ -128,12 +128,12 @@ function encrypt_private_key {
 
   local private_key_plaintext
   local private_key_ciphertext
-  private_key_plaintext=$(cat "$cert_private_key_path")
+  private_key_plaintext=$(cat "${VAULT_TLS_MODULE_PATH}/$cert_private_key_path")
   private_key_ciphertext=$(gruntkms encrypt --plaintext "$private_key_plaintext" --aws-region "$aws_region" --key-id "$kms_key_id")
   echo -n "$private_key_ciphertext" > "$encrypted_cert_private_key_path"
   log "Stored encrypted key as $encrypted_cert_private_key_path"
   log "Removing original unencrypted key"
-  rm "$cert_private_key_path"
+  rm "${VAULT_TLS_MODULE_PATH}/$cert_private_key_path"
 }
 
 function prepare_folders {
