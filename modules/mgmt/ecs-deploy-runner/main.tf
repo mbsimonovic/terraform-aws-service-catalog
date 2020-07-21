@@ -112,7 +112,7 @@ module "standard_config" {
 
 locals {
   configure_docker_image_builder_iam_policy = var.docker_image_builder_config != null && length(var.docker_image_builder_config.iam_policy) > 0
-  configure_ami_builder_iam_policy          = var.docker_image_builder_config != null && length(var.ami_builder_config.iam_policy) > 0
+  configure_ami_builder_iam_policy          = var.ami_builder_config != null && length(var.ami_builder_config.iam_policy) > 0
   configure_terraform_planner_iam_policy    = var.terraform_planner_config != null && length(var.terraform_planner_config.iam_policy) > 0
   configure_terraform_applier_iam_policy    = var.terraform_applier_config != null && length(var.terraform_applier_config.iam_policy) > 0
 }
