@@ -1,7 +1,10 @@
 package test
 
 import (
+	"fmt"
+	http_helper "github.com/gruntwork-io/terratest/modules/http-helper"
 	"github.com/gruntwork-io/terratest/modules/random"
+	"os"
 	"testing"
 	"time"
 
@@ -10,7 +13,6 @@ import (
 	"github.com/gruntwork-io/terratest/modules/packer"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestAsgService(t *testing.T) {
@@ -30,11 +32,6 @@ func TestAsgService(t *testing.T) {
 		amiId := test_structure.LoadArtifactID(t, testFolder)
 		awsRegion := test_structure.LoadString(t, testFolder, "region")
 		aws.DeleteAmiAndAllSnapshots(t, awsRegion, amiId)
-	})
-
-	defer test_structure.RunTestStage(t, "cleanup_ami", func() {
-		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
-		aws.DeleteEC2KeyPair(t, awsKeyPair)
 	})
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
@@ -72,22 +69,17 @@ func buildASGAmi(t *testing.T, testFolder string) {
 
 	amiId := packer.BuildArtifact(t, packerOptions)
 	test_structure.SaveArtifactID(t, testFolder, amiId)
-
-	uniqueID := random.UniqueId()
-	awsKeyPair := aws.CreateAndImportEC2KeyPair(t, awsRegion, uniqueID)
-	test_structure.SaveEc2KeyPair(t, testFolder, awsKeyPair)
 }
 
 func deployASG(t *testing.T, testFolder string) {
 	amiId := test_structure.LoadArtifactID(t, testFolder)
 	awsRegion := test_structure.LoadString(t, testFolder, "region")
-	awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
+	name := fmt.Sprintf("service-catalog-asg-%s", random.UniqueId())
 
 	terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
 	terraformOptions.Vars["ami"] = amiId
-	terraformOptions.Vars["name"] = "marina-testing"
+	terraformOptions.Vars["name"] = name
 	terraformOptions.Vars["aws_region"] = awsRegion
-	terraformOptions.Vars["key_pair_name"] = awsKeyPair
 
 	test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
 	terraform.InitAndApply(t, terraformOptions)
@@ -95,8 +87,11 @@ func deployASG(t *testing.T, testFolder string) {
 
 func validateASG(t *testing.T, testFolder string) {
 	terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
-	validation := terraform.OutputRequired(t, terraformOptions, "TODO")
 
-	assert.Equal(t, validation, "TODO")
+	deployedLbDnsName := terraform.Output(t, terraformOptions, "lb_dns_name")
+	lbUrl := fmt.Sprintf("http://%s", deployedLbDnsName)
+
+	forwardRoot := fmt.Sprintf("%s", lbUrl)
+	http_helper.HttpGetWithRetry(t, forwardRoot, nil, 200, "Hello, World", 20, 5*time.Second)
 }
 

@@ -70,4 +70,8 @@ module "alb" {
 
   vpc_id         = data.aws_vpc.default.id
   vpc_subnet_ids = data.aws_subnet_ids.default.ids
+
+  # We need to set this to true so it’s easier to run destroy on this example as part of automated tests, but you should NOT set this to true in prod!
+  force_destroy = true
 }
+

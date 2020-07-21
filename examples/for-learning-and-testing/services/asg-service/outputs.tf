@@ -2,6 +2,10 @@ output "asg_name" {
   value = module.asg.asg_name
 }
 
+output "lb_dns_name" {
+  value = module.alb.alb_dns_name
+}
+
 output "asg_unique_id" {
   value = module.asg.asg_unique_id
 }
