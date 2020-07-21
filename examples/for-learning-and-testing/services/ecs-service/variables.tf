@@ -19,12 +19,6 @@ variable "ecs_node_port_mappings" {
   type        = map(number)
 }
 
-variable "alarm_sns_topic_arns" {
-  description = "The ARN of the SNS topic to write alarm events to"
-  type        = list(string)
-  default     = []
-}
-
 variable "ecs_cluster_arn" {
   description = "The ARN of the cluster to which the ecs service should be deployed"
   type        = string
