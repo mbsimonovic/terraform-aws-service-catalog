@@ -59,6 +59,7 @@ module "iam_cross_account_roles" {
 
   auto_deploy_permissions                   = var.auto_deploy_permissions
   allow_auto_deploy_from_other_account_arns = var.allow_auto_deploy_from_other_account_arns
+  max_session_duration_machine_users        = var.max_session_duration_machine_users
 }
 
 module "iam_user_password_policy" {
