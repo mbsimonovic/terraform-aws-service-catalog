@@ -28,8 +28,8 @@ variable "master_username" {
   type        = string
 }
 
-variable "master_password" {
-  description = "The password for the master user."
+variable "master_password_secrets_manager_id" {
+  description = "The friendly name or ARN of an AWS Secrets Manager secret that contains the master password. The password should be stored as a plaintext value. Note that even with this precaution, the password will be stored in plaintext in the Terraform state file! See the following blog post for more details: https://blog.gruntwork.io/a-comprehensive-guide-to-managing-secrets-in-your-terraform-code-1d586955ace1"
   type        = string
 }
 

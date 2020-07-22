@@ -32,7 +32,7 @@ module "database" {
   license_model  = var.license_model
 
   master_username = var.master_username
-  master_password = var.master_password
+  master_password = data.aws_secretsmanager_secret_version.master_password.secret_string
 
   # Run in the private persistence subnets and only allow incoming connections from the private app subnets
   vpc_id                                 = var.vpc_id
@@ -280,3 +280,11 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 data "aws_caller_identity" "current" {}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# RETRIEVE THE MASTER PASSWORD FROM AWS SECRETS MANAGER
+# ---------------------------------------------------------------------------------------------------------------------
+
+data "aws_secretsmanager_secret_version" "master_password" {
+  secret_id = var.master_password_secrets_manager_id
+}
