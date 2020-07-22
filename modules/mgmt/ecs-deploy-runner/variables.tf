@@ -57,7 +57,7 @@ variable "docker_image_builder_config" {
     #
     # Github:
     # - `username_secrets_manager_arn` should contain a valid Personal Access Token for the corresponding machine user.
-    # - `password_secrets_manager_arn` should be set to null. 
+    # - `password_secrets_manager_arn` should be set to null.
     #
     # BitBucket:
     # - `username_secrets_manager_arn` should contain the bitbucket username for the corresponding machine user.
@@ -287,4 +287,28 @@ variable "iam_groups" {
   description = "List of AWS IAM groups that should be given access to invoke the deploy runner."
   type        = list(string)
   default     = []
+}
+
+variable "container_cpu" {
+  description = "The default CPU units for the instances that Fargate will spin up. The invoker allows users to override the CPU at run time, but this value will be used if the user provides no value for the CPU. Options here: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate.html#fargate-tasks-size."
+  type        = number
+  default     = 1024
+}
+
+variable "container_memory" {
+  description = "The default memory units for the instances that Fargate will spin up. The invoker allows users to override the memory at run time, but this value will be used if the user provides no value for memory. Options here: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate.html#fargate-tasks-size."
+  type        = number
+  default     = 2048
+}
+
+variable "container_max_cpu" {
+  description = "The maximum CPU units that is allowed to be specified by the user when invoking the deploy runner with the Lambda function."
+  type        = number
+  default     = 2048
+}
+
+variable "container_max_memory" {
+  description = "The maximum memory units that is allowed to be specified by the user when invoking the deploy runner with the Lambda function."
+  type        = number
+  default     = 8192
 }

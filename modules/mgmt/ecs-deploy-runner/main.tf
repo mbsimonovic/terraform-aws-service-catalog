@@ -30,6 +30,11 @@ module "ecs_deploy_runner" {
 
   vpc_id         = var.vpc_id
   vpc_subnet_ids = var.private_subnet_ids
+
+  container_cpu        = var.container_cpu
+  container_memory     = var.container_memory
+  container_max_cpu    = var.container_max_cpu
+  container_max_memory = var.container_max_memory
 }
 
 module "standard_config" {
