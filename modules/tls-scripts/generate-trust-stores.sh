@@ -51,7 +51,7 @@ function print_usage {
   log "  --san-domain\t\t\t\tThe domain name to include in the SAN field on the generated cert. *May be repeated*."
   log "  --export-cert-key\t\t\tOptional boolean whether to export the generated self-signed certificate's private key. If not specified, private key will not be exported."
   log "  --export-cert-p8-key\t\t\tOptional boolean whether to export the generated self-signed certificate's private key in P8 format. If not specified, will not exported private key."
-  log "  --generate-certs-in-one-folder\tOptional boolean. If present all cert/jsk/truststore files will be outputted into --store-path. Otherwise trust-store and jks will be in separate dirs."
+  log "  --generate-certs-in-one-folder\tOptional boolean. If present all cert/jks/truststore files will be outputted into --store-path. Otherwise trust-store and jks will be in separate dirs."
   log
   log "Example:"
   log
