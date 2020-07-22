@@ -21,8 +21,8 @@ module "mysql_rds" {
   engine_version = "8.0.17"
   port           = 3306
 
-  master_username = var.master_username
-  master_password = aws_secretsmanager_secret_version.master_password.secret_id
+  master_username                    = var.master_username
+  master_password_secrets_manager_id = aws_secretsmanager_secret_version.master_password.secret_id
 
   vpc_id     = data.aws_vpc.default.id
   subnet_ids = data.aws_subnet_ids.default.ids
