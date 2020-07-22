@@ -81,21 +81,31 @@ locals {
 # ADD IAM PERMISSIONS FOR THE ECS TASK
 # ---------------------------------------------------------------------------------------------------------------------
 
-# Give this ECS Service access to the KMS Master Key so it can use it to decrypt secrets in config files.
-resource "aws_iam_role_policy" "access_kms_master_key" {
-  count  = var.kms_master_key_arn != null ? 1 : 0
-  name   = "access-kms-master-key"
-  role   = module.ecs_service.ecs_task_iam_role_name
-  policy = data.aws_iam_policy_document.access_kms_master_key.json
+resource "aws_iam_role_policy" "service_policy" {
+  count  = var.iam_role_name != "" && var.iam_role_exists == false ? 1 : 0
+  name   = "${var.iam_role_name}Policy"
+  role   = var.iam_role_name != "" && var.iam_role_exists == false ? aws_iam_role.ecs_task : data.aws_iam_role.existing_role[0].id
+  policy = data.aws_iam_policy_document.service_policy[0].json
 }
 
-# Create an IAM Policy for acessing the KMS Master Key
-data "aws_iam_policy_document" "access_kms_master_key" {
-  statement {
-    effect    = "Allow"
-    actions   = ["kms:Decrypt"]
-    resources = [var.kms_master_key_arn]
+data "aws_iam_policy_document" "service_policy" {
+  count = var.iam_role_name != "" ? 1 : 0
+
+  dynamic "statement" {
+    for_each = var.iam_policy == null ? {} : var.iam_policy
+
+    content {
+      sid       = statement.key
+      effect    = statement.value.effect
+      actions   = statement.value.actions
+      resources = statement.value.resources
+    }
   }
+}
+
+data "aws_iam_role" "existing_role" {
+  count = var.iam_role_exists ? 1 : 0
+  name  = var.iam_role_name
 }
 
 # Create the ECS Task IAM Role

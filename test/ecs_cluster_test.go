@@ -24,13 +24,13 @@ const MinsToWaitForClusterInstances = 10
 func TestEcsCluster(t *testing.T) {
 	// Uncomment the items below to skip certain parts of the test
 	// os.Setenv("TERRATEST_REGION", "eu-west-1")
-	// os.Setenv("SKIP_build_ami", "true")
-	// os.Setenv("SKIP_deploy_terraform", "true")
-	// os.Setenv("SKIP_validate_cluster", "true")
-	// os.Setenv("SKIP_deploy_ecs_service", "true")
-	// os.Setenv("SKIP_cleanup", "true")
-	// os.Setenv("SKIP_cleanup_keypairs", "true")
-	// os.Setenv("SKIP_cleanup_ami", "true")
+	//os.Setenv("SKIP_build_ami", "true")
+	//os.Setenv("SKIP_deploy_terraform", "true")
+	//os.Setenv("SKIP_validate_cluster", "true")
+	//os.Setenv("SKIP_deploy_ecs_service", "true")
+	//os.Setenv("SKIP_cleanup", "true")
+	//os.Setenv("SKIP_cleanup_keypairs", "true")
+	//os.Setenv("SKIP_cleanup_ami", "true")
 	t.Parallel()
 
 	ecsClusterTestFolder := "../examples/for-learning-and-testing/services/ecs-cluster"
@@ -145,11 +145,12 @@ func validateECSCluster(t *testing.T, testFolder string) {
 
 	assert.NotEmpty(t, ecsClusterArn)
 
+	// Even after EC2 instances are successfully launched, it can take some time for them to be registered with the cluster
+	time.Sleep(time.Minute * MinsToWaitForClusterInstances)
+
 	// Sanity check that the cluster can be retrieved via the SDK and that it has at least 1 successfully registered container instance
 	cluster := aws.GetEcsCluster(t, awsRegion, clusterName)
 	assert.NotNil(t, cluster)
-
-	time.Sleep(time.Minute * MinsToWaitForClusterInstances)
 
 	instanceCount := int(*cluster.RegisteredContainerInstancesCount)
 	require.Greater(t, instanceCount, 0)
@@ -166,9 +167,8 @@ func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestF
 		TimeBetweenRetries:       sleepBetweenTerraformRetries,
 	}
 
-	awsRegion := test_structure.LoadString(t, ecsClusterTestFolder, "region")
-
 	ecsClusterArn := terraform.OutputRequired(t, ecsClusterTerraformOptions, "ecs_cluster_arn")
+	awsRegion := aws.GetRandomStableRegion(t, []string{"us-west-1"}, nil)
 
 	ecsClusterName := test_structure.LoadString(t, ecsClusterTestFolder, "clusterName")
 	uniqueID := test_structure.LoadString(t, ecsClusterTestFolder, "uniqueID")
@@ -180,6 +180,7 @@ func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestF
 		"443": 443,
 	}
 
+	// Create two container definitions
 	containerDefinitionName := fmt.Sprintf("gruntwork-test-%s", uniqueID)
 	containerDefinitionName2 := fmt.Sprintf("gruntwork-test-2-%s", uniqueID)
 
@@ -216,10 +217,9 @@ func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestF
 	ecsServiceTerraformOptions.Vars["ecs_cluster_arn"] = ecsClusterArn
 	ecsServiceTerraformOptions.Vars["ecs_node_port_mappings"] = portMappings
 	ecsServiceTerraformOptions.Vars["container_definitions"] = containerDefinitions
-	ecsServiceTerraformOptions.Vars["use_auto_scaling"] = true
-	ecsServiceTerraformOptions.Vars["alarm_sns_topic_arns"] = []string{"arn:aws:sns:us-west-1:087285199408:062OP8"}
-	ecsServiceTerraformOptions.Vars["kms_master_key_arn"] = "arn:aws:kms:us-west-1:087285199408:key/86ad7480-8503-403f-89b3-436241d7e16f"
 
 	terraform.InitAndApply(t, ecsServiceTerraformOptions)
+
+	test_structure.SaveTerraformOptions(t, ecsServiceTestFolder, ecsServiceTerraformOptions)
 
 }

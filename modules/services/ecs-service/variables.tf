@@ -18,11 +18,6 @@ variable "ecs_cluster_arn" {
   type        = string
 }
 
-variable "kms_master_key_arn" {
-  description = "The ARN of the master KMS key"
-  type        = string
-}
-
 variable "container_definitions" {
   description = "Map of names to container definitions to use for the ECS task. Each entry corresponds to a different ECS container definition. The key corresponds to a user defined name for the container definition"
   type        = any
@@ -87,8 +82,6 @@ variable "cloudwatch_log_group_name" {
   type        = string
   default     = null
 }
-
-
 
 variable "high_cpu_utilization_threshold" {
   description = "Trigger an alarm if the ECS Service has a CPU utilization percentage above this threshold"
@@ -198,3 +191,42 @@ variable "force_destroy" {
   default     = false
 }
 
+# ---------------------------------------------------------------------------------------------------------------------
+# IAM ROLES AND POLICIES 
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "iam_role_exists" {
+  description = "Whether or not the IAM role passed in `iam_role_name` already exists. Set to true if it exists, or false if it needs to be created. Defaults to false."
+  type        = bool
+  default     = false
+}
+
+variable "iam_role_name" {
+  description = "The name of an IAM role that will be used by the pod to access the AWS API. If `iam_role_exists` is set to false, this role will be created. Leave as an empty string if you do not wish to use IAM role with Service Accounts."
+  type        = string
+  default     = ""
+}
+
+variable "iam_policy" {
+  description = "An object defining the policy to attach to `iam_role_name` if the IAM role is going to be created. Accepts a map of objects, where the map keys are sids for IAM policy statements, and the object fields are the resources, actions, and the effect (\"Allow\" or \"Deny\") of the statement. Ignored if `iam_role_arn` is provided. Leave as null if you do not wish to use IAM role with Service Accounts."
+  type = map(object({
+    resources = list(string)
+    actions   = list(string)
+    effect    = string
+  }))
+  default = null
+
+  # Example:
+  # iam_policy = {
+  #   S3Access = {
+  #     actions = ["s3:*"]
+  #     resources = ["arn:aws:s3:::mybucket"]
+  #     effect = "Allow"
+  #   },
+  #   SecretsManagerAccess = {
+  #     actions = ["secretsmanager:GetSecretValue"],
+  #     resources = ["arn:aws:secretsmanager:us-east-1:0123456789012:secret:mysecert"]
+  #     effect = "Allow"
+  #   }
+  # }
+}

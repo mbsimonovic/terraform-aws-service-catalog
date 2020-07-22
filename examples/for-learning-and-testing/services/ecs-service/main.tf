@@ -18,6 +18,16 @@ module "application" {
 
   container_definitions = var.container_definitions
 
+  # An example of configuring a container definition within Terraform: 
+  canary_container_definitions = [{
+    name : "canary-test-task",
+    image : "nginx:1.17",
+    cpu : 1,
+    memory : 256,
+    essential : true,
+    Environment : [{ name : "TEST_ENV_VAR", value : "test-env-val" }]
+  }]
+
   use_auto_scaling = true
 
   desired_number_of_tasks = var.desired_number_of_tasks
