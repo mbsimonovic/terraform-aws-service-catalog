@@ -6,6 +6,7 @@ import (
 
 	"github.com/gruntwork-io/terratest/modules/shell"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTlsScripts(t *testing.T) {
@@ -18,65 +19,125 @@ func TestTlsScripts(t *testing.T) {
 	// os.Setenv("SKIP_cleanup", "true")
 
 	scriptsPath := "../modules/tls-scripts"
+	testFolderPath := fmt.Sprintf("%s/.test-data", scriptsPath)
+	downloadPath := fmt.Sprintf("%s/rds-cert", testFolderPath)
+
 	outputPath := "/tmp/vault-blueprint/modules/private-tls-cert"
 	files := []string{"ca.crt.pem", "my-app.cert"}
 
-	// TODO: remove this comment block
-	// NOTE: Keeping this here to show what the cleanup would look like.
-	// However, the script outputs get overwritten if they exist,
-	// and the vault-blueprint repo doesn't get recloned if it exists.
-	// So in the interest of having less creation/cleanup, I don't think
-	// we need a cleanup step at all.
-	// defer test_structure.RunTestStage(t, "cleanup", func() {
-	// 	cleanup := shell.Command{
-	// 		Command: "bash",
-	// 		Args: []string{
-	// 			"-c",
-	// 			fmt.Sprintf(
-	//        // Only delete the created files because we need the cloned stuff to remain.
-	//        // Alternatively we could delete the whole repo clone, but I feel that provides no benefit.
-	// 				"rm -rf %s/%s %s/%s",
-	// 				outputPath,
-	// 				files[0],
-	// 				outputPath,
-	// 				files[1],
-	// 			),
-	// 		},
-	// 	}
+	var testCases = []struct {
+		name     string
+		deploy   func()
+		validate func()
+		cleanup  func()
+	}{
+		{
+			"CreateTlsCert",
+			func() {
+				createTlsCert := shell.Command{
+					Command: "bash",
+					Args: []string{
+						"-c",
+						fmt.Sprintf(
+							"%s/create-tls-cert.sh --ca-path ca.crt.pem --cert-path my-app.cert --key-path my-app.key.pem --company-name Acme --kms-key-id alias/cmk-dev --aws-region us-east-1",
+							scriptsPath,
+						),
+					},
+				}
 
-	// 	shell.RunCommand(t, cleanup)
-	// })
+				shell.RunCommand(t, createTlsCert)
 
-	test_structure.RunTestStage(t, "deploy", func() {
-		createTlsCert := shell.Command{
-			Command: "bash",
-			Args: []string{
-				"-c",
-				fmt.Sprintf(
-					"%s/create-tls-cert.sh --ca-path ca.crt.pem --cert-path my-app.cert --key-path my-app.key.pem.kms.encrypted --company-name Acme --kms-key-id alias/cmk-dev --aws-region us-east-1",
-					scriptsPath,
-				),
 			},
-		}
+			func() {
+				checkCerts := shell.Command{
+					Command: "bash",
+					Args: []string{
+						"-c",
+						fmt.Sprintf(
+							"[ -f %s/%s ] && [ -f %s/%s ] && exit 0 || exit 1",
+							outputPath,
+							files[0],
+							outputPath,
+							files[1],
+						),
+					},
+				}
 
-		shell.RunCommand(t, createTlsCert)
-	})
-
-	test_structure.RunTestStage(t, "validate", func() {
-		checkCerts := shell.Command{
-			Command: "bash",
-			Args: []string{
-				"-c",
-				fmt.Sprintf(
-					"cat %s/%s && cat %s/%s",
-					outputPath,
-					files[0],
-					outputPath,
-					files[1],
-				),
+				err := shell.RunCommandE(t, checkCerts)
+				require.NoError(t, err, "Error Validating Cert Creation")
 			},
-		}
+			func() {
+				cleanup := shell.Command{
+					Command: "bash",
+					Args: []string{
+						"-c",
+						fmt.Sprint(
+							"rm -rf /tmp/vault-blueprint",
+						),
+					},
+				}
 
-		shell.RunCommand(t, checkCerts)
-	})
+				shell.RunCommand(t, cleanup)
+			},
+		},
+		{
+			"DownloadRdsCaCert",
+			func() {
+				downloadRdsCaCerts := shell.Command{
+					Command: "bash",
+					Args: []string{
+						"-c",
+						fmt.Sprintf(
+							"%s/download-rds-ca-certs.sh %s",
+							scriptsPath,
+							downloadPath,
+						),
+					},
+				}
+
+				shell.RunCommand(t, downloadRdsCaCerts)
+			},
+			func() {
+				checkDownload := shell.Command{
+					Command: "bash",
+					Args: []string{
+						"-c",
+						fmt.Sprintf(
+							"[ -f %s ] && exit 0 || exit 1",
+							downloadPath,
+						),
+					},
+				}
+
+				err := shell.RunCommandE(t, checkDownload)
+				require.NoError(t, err, "Error Validating Download RDS CA Cert")
+			},
+			func() {
+				cleanup := shell.Command{
+					Command: "bash",
+					Args: []string{
+						"-c",
+						fmt.Sprintf(
+							"rm %s",
+							downloadPath,
+						),
+					},
+				}
+
+				shell.RunCommand(t, cleanup)
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		defer test_structure.RunTestStage(t, "cleanup", testCase.cleanup)
+	}
+
+	for _, testCase := range testCases {
+		test_structure.RunTestStage(t, "deploy", testCase.deploy)
+	}
+
+	for _, testCase := range testCases {
+		test_structure.RunTestStage(t, "validate", testCase.validate)
+	}
 }
