@@ -22,7 +22,7 @@ module "mysql_rds" {
   port           = 3306
 
   master_username = var.master_username
-  master_password = var.master_password
+  master_password = aws_secretsmanager_secret_version.master_password.secret_id
 
   vpc_id     = data.aws_vpc.default.id
   subnet_ids = data.aws_subnet_ids.default.ids
@@ -70,4 +70,23 @@ module "dashboard" {
       module.mysql_rds.metric_widget_rds_write_latency,
     ]
   }
+}
+
+# ----------------------------------------------------------------------------------------------------------------------
+# CREATE A SECRET IN AWS SECRETS MANAGER
+# IMPORTANT: For testing purposes only! In a production context, create the secret outside of Terraform.
+# ----------------------------------------------------------------------------------------------------------------------
+
+resource "random_string" "random" {
+  length  = 8
+  special = false
+}
+
+resource "aws_secretsmanager_secret" "master_password_secret" {
+  name = "${random_string.random.result}-rds-master-password"
+}
+
+resource "aws_secretsmanager_secret_version" "master_password" {
+  secret_id     = aws_secretsmanager_secret.master_password_secret.id
+  secret_string = var.master_password
 }

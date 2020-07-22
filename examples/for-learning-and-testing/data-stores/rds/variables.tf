@@ -7,7 +7,7 @@
 
 # TF_VAR_master_password
 variable "master_password" {
-  description = "The password for the master user."
+  description = "The password for the master user. This will be stored in AWS Secrets Manager and then passed on to the rds module."
   type        = string
 }
 
