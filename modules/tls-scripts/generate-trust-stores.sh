@@ -57,7 +57,8 @@ function print_usage {
   log
   log "  generate-trust-stores.sh \\"
   log "    --keystore-name kafka \\"
-  log "    --store-path /ssl \\"
+  log "    --store-path /tmp/ssl \\"
+  log "    --vpc-name default \\"
   log "    --company-name Acme \\"
   log "    --company-org-unit IT \\"
   log "    --company-city Phoenix \\"

@@ -19,11 +19,18 @@ func TestTlsScripts(t *testing.T) {
 	// os.Setenv("SKIP_cleanup", "true")
 
 	scriptsPath := "../modules/tls-scripts"
-	testFolderPath := fmt.Sprintf("%s/.test-data", scriptsPath)
-	downloadPath := fmt.Sprintf("%s/rds-cert", testFolderPath)
 
+	// Download RDS CA Certs vars
+	downloadPath := fmt.Sprintf("%s/.test-data/rds-cert", scriptsPath)
+
+	// Create TLS Cert vars
 	outputPath := "/tmp/vault-blueprint/modules/private-tls-cert"
-	files := []string{"ca.crt.pem", "my-app.cert"}
+	createCertFiles := []string{"ca.crt.pem", "my-app.cert", "my-app.key.pem.kms.encrypted"}
+
+	// Generate Trust Stores vars
+	packageKafkaPath := "/tmp/package-kafka"
+	sslPath := "/tmp/ssl"
+	trustStoresFiles := []string{"kafka.server.ca.default.pem", "kafka.server.cert.default.pem", "keystore/kafka.server.keystore.default.jks", "truststore/kafka.server.truststore.default.jks"}
 
 	var testCases = []struct {
 		name     string
@@ -54,11 +61,13 @@ func TestTlsScripts(t *testing.T) {
 					Args: []string{
 						"-c",
 						fmt.Sprintf(
-							"[ -f %s/%s ] && [ -f %s/%s ] && exit 0 || exit 1",
+							"[ -f %s/%s ] && [ -f %s/%s ] && [ -f %s/%s ] && exit 0 || exit 1",
 							outputPath,
-							files[0],
+							createCertFiles[0],
 							outputPath,
-							files[1],
+							createCertFiles[1],
+							outputPath,
+							createCertFiles[2],
 						),
 					},
 				}
@@ -120,6 +129,60 @@ func TestTlsScripts(t *testing.T) {
 						fmt.Sprintf(
 							"rm %s",
 							downloadPath,
+						),
+					},
+				}
+
+				shell.RunCommand(t, cleanup)
+			},
+		},
+		{
+			"GenerateTrustStores",
+			func() {
+				generateTrustStores := shell.Command{
+					Command: "bash",
+					Args: []string{
+						"-c",
+						fmt.Sprintf(
+							"%s/generate-trust-stores.sh --keystore-name kafka --store-path /tmp/ssl --vpc-name default --company-name Acme --company-org-unit IT --company-city Phoenix --company-state AZ --company-country US --kms-key-id alias/cmk-dev --aws-region us-east-1",
+							scriptsPath,
+						),
+					},
+				}
+
+				shell.RunCommand(t, generateTrustStores)
+			},
+			func() {
+				checkGenerateTrustStores := shell.Command{
+					Command: "bash",
+					Args: []string{
+						"-c",
+						fmt.Sprintf(
+							"[ -f %s/%s ] && [ -f %s/%s ] && [ -f %s/%s ] && [ -f %s/%s ]",
+							sslPath,
+							trustStoresFiles[0],
+							sslPath,
+							trustStoresFiles[1],
+							sslPath,
+							trustStoresFiles[2],
+							sslPath,
+							trustStoresFiles[3],
+						),
+					},
+				}
+
+				err := shell.RunCommandE(t, checkGenerateTrustStores)
+				require.NoError(t, err, "Error Validating Generate Trust Stores")
+			},
+			func() {
+				cleanup := shell.Command{
+					Command: "bash",
+					Args: []string{
+						"-c",
+						fmt.Sprintf(
+							"rm -rf %s && rm -rf %s",
+							packageKafkaPath,
+							sslPath,
 						),
 					},
 				}
