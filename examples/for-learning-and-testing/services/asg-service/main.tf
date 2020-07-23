@@ -21,6 +21,7 @@ module "asg" {
 
   instance_type = "t3.micro"
   ami           = var.ami
+  ami_filters   = null
 
   min_size         = var.num_instances
   max_size         = var.num_instances
@@ -47,6 +48,7 @@ module "asg" {
   listener_ports = local.listener_ports
 
   key_pair_name = var.key_pair_name
+  enable_cloudwatch_metrics = false
 }
 
 module "alb" {

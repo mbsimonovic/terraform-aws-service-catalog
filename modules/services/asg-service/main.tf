@@ -50,7 +50,7 @@ module "asg" {
 
 resource "aws_launch_configuration" "launch_configuration" {
   name_prefix          = "${var.name}-"
-  image_id             = var.ami
+  image_id             = module.ec2_baseline.existing_ami
   instance_type        = var.instance_type
   iam_instance_profile = aws_iam_instance_profile.instance_profile.name
   key_name             = var.key_pair_name
@@ -132,6 +132,7 @@ module "ec2_baseline" {
   asg_names                           = [module.asg.asg_name]
   num_asg_names                       = 1
   cloud_init_parts                    = local.cloud_init_parts
+  ami = var.ami
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

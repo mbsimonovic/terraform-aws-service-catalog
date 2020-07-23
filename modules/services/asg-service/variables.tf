@@ -50,6 +50,22 @@ variable "server_port" {
   type        = number
 }
 
+variable "ami_filters" {
+  description = "Properties on the AMI that can be used to lookup a prebuilt AMI for use with the Bastion Host. You can build the AMI using the Packer template bastion-host.json. Only used if var.ami is null. One of var.ami or var.ami_filters is required. Set to null if passing the ami ID directly."
+  type = object({
+    # List of owners to limit the search. Set to null if you do not wish to limit the search by AMI owners.
+    owners = list(string)
+
+    # Name/Value pairs to filter the AMI off of. There are several valid keys, for a full reference, check out the
+    # documentation for describe-images in the AWS CLI reference
+    # (https://docs.aws.amazon.com/cli/latest/reference/ec2/describe-images.html).
+    filters = list(object({
+      name   = string
+      values = list(string)
+    }))
+  })
+}
+
 variable "forward_listener_rules" {
   type    = any
   default = {}
