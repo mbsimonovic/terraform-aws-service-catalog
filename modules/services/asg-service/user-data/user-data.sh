@@ -19,7 +19,3 @@ start_ec2_baseline \
   "${log_group_name}" \
   "${external_account_ssh_grunt_role_arn}"
 
-echo "Hello, World" > index.html
-nohup busybox httpd -f -p 8080 &
-# these can be from cloud_init_parts
-

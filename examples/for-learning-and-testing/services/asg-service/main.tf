@@ -6,11 +6,6 @@ provider "aws" {
   region = var.aws_region
 }
 
-locals {
-  server_port    = 8080
-  listener_ports = [80]
-}
-
 module "asg" {
   # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
   # to a specific version of the modules, such as the following example:
@@ -48,6 +43,9 @@ module "asg" {
   listener_ports = local.listener_ports
 
   key_pair_name = var.key_pair_name
+
+  cloud_init_parts = local.cloud_init
+
   enable_cloudwatch_metrics = false
 }
 
@@ -76,4 +74,22 @@ module "alb" {
   # We need to set this to true so it’s easier to run destroy on this example as part of automated tests, but you should NOT set this to true in prod!
   force_destroy = true
 }
+
+locals {
+  cloud_init = {
+    "hello-world-server" = {
+      filename     = "hello-world-server"
+      content_type = "text/x-shellscript"
+      content      = data.template_file.user_data.rendered
+    }
+  }
+
+  server_port    = 8080
+  listener_ports = [80]
+}
+
+data "template_file" "user_data" {
+  template = file("${path.module}/user-data/user-data.sh")
+}
+
 
