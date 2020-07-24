@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aws/aws-sdk-go/service/ecs"
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/git"
 	"github.com/gruntwork-io/terratest/modules/packer"
@@ -15,22 +14,22 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	aws_sdk "github.com/aws/aws-sdk-go/aws"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 )
 
-const MinsToWaitForClusterInstances = 10
+const MinsToWaitForClusterInstances = 4
 
 func TestEcsCluster(t *testing.T) {
 	// Uncomment the items below to skip certain parts of the test
 	// os.Setenv("TERRATEST_REGION", "eu-west-1")
-	//os.Setenv("SKIP_build_ami", "true")
-	//os.Setenv("SKIP_deploy_terraform", "true")
-	//os.Setenv("SKIP_validate_cluster", "true")
-	//os.Setenv("SKIP_deploy_ecs_service", "true")
-	//os.Setenv("SKIP_cleanup", "true")
-	//os.Setenv("SKIP_cleanup_keypairs", "true")
-	//os.Setenv("SKIP_cleanup_ami", "true")
+	// os.Setenv("SKIP_build_ami", "true")
+	// os.Setenv("SKIP deploy_ecs_cluster", "true")
+	// os.Setenv("SKIP_validate_cluster", "true")
+	// os.Setenv("SKIP_deploy_ecs_service", "true")
+	// os.Setenv("SKIP_destroy_service", "true")
+	// os.Setenv("SKIP_destroy_cluster", "true")
+	// os.Setenv("SKIP_cleanup_keypairs", "true")
+	// os.Setenv("SKIP_cleanup_ami", "true")
 	t.Parallel()
 
 	ecsClusterTestFolder := "../examples/for-learning-and-testing/services/ecs-cluster"
@@ -47,12 +46,14 @@ func TestEcsCluster(t *testing.T) {
 		aws.DeleteEC2KeyPair(t, awsKeyPair)
 	})
 
-	defer test_structure.RunTestStage(t, "cleanup", func() {
-		// The ECS service needs to be torn down prior to the cluster - otherwise AWS will return an error if you try to destroy a cluster that
-		// still has a service defined within it
+	// The ECS service needs to be torn down prior to the cluster - otherwise AWS will return an error if you try to destroy a cluster that
+	// still has a service defined within it
+	defer test_structure.RunTestStage(t, "destroy_service", func() {
 		ecsServiceTerraformOptions := test_structure.LoadTerraformOptions(t, ecsServiceTestFolder)
 		terraform.Destroy(t, ecsServiceTerraformOptions)
+	})
 
+	defer test_structure.RunTestStage(t, "destroy_cluster", func() {
 		ecsClusterTerraformOptions := test_structure.LoadTerraformOptions(t, ecsClusterTestFolder)
 		terraform.Destroy(t, ecsClusterTerraformOptions)
 	})
@@ -61,7 +62,7 @@ func TestEcsCluster(t *testing.T) {
 		buildAmi(t, ecsClusterTestFolder)
 	})
 
-	test_structure.RunTestStage(t, "deploy_terraform", func() {
+	test_structure.RunTestStage(t, "deploy_ecs_cluster", func() {
 		deployECSCluster(t, ecsClusterTestFolder)
 	})
 
@@ -118,6 +119,8 @@ func deployECSCluster(t *testing.T, testFolder string) {
 		vpcSubnetIds = append(vpcSubnetIds, sn.Id)
 	}
 
+	test_structure.SaveString(t, testFolder, "vpcId", defaultVpc.Id)
+
 	terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
 	terraformOptions.Vars["cluster_name"] = clusterName
 	terraformOptions.Vars["cluster_min_size"] = 1
@@ -157,6 +160,18 @@ func validateECSCluster(t *testing.T, testFolder string) {
 }
 
 func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestFolder string) {
+
+	awsRegion := test_structure.LoadString(t, ecsClusterTestFolder, "region")
+
+	vpcId := test_structure.LoadString(t, ecsClusterTestFolder, "vpcId")
+	require.NotNil(t, vpcId)
+
+	vpcSubnets := aws.GetSubnetsForVpc(t, vpcId, awsRegion)
+	var vpcSubnetIds []string
+	for _, sn := range vpcSubnets {
+		vpcSubnetIds = append(vpcSubnetIds, sn.Id)
+	}
+
 	ecsClusterTerraformOptions := test_structure.LoadTerraformOptions(t, ecsClusterTestFolder)
 
 	ecsServiceTerraformOptions := &terraform.Options{
@@ -168,7 +183,7 @@ func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestF
 	}
 
 	ecsClusterArn := terraform.OutputRequired(t, ecsClusterTerraformOptions, "ecs_cluster_arn")
-	awsRegion := aws.GetRandomStableRegion(t, []string{"us-west-1"}, nil)
+	clusterInstanceSecurityGroupId := terraform.OutputRequired(t, ecsClusterTerraformOptions, "ecs_instance_security_group_id")
 
 	ecsClusterName := test_structure.LoadString(t, ecsClusterTestFolder, "clusterName")
 	uniqueID := test_structure.LoadString(t, ecsClusterTestFolder, "uniqueID")
@@ -180,46 +195,16 @@ func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestF
 		"443": 443,
 	}
 
-	// Create two container definitions
-	containerDefinitionName := fmt.Sprintf("gruntwork-test-%s", uniqueID)
-	containerDefinitionName2 := fmt.Sprintf("gruntwork-test-2-%s", uniqueID)
-
-	var envKeyValuePair ecs.KeyValuePair
-	envKeyValuePair.SetName("test")
-	envKeyValuePair.SetValue("true")
-
-	testContainerDefinition := ecs.ContainerDefinition{
-		Name:        aws_sdk.String(containerDefinitionName),
-		Image:       aws_sdk.String("nginx:1.17"),
-		Cpu:         aws_sdk.Int64(1),
-		Memory:      aws_sdk.Int64(256),
-		Essential:   aws_sdk.Bool(true),
-		Environment: []*ecs.KeyValuePair{&envKeyValuePair},
-	}
-
-	testContainerDefinition2 := ecs.ContainerDefinition{
-		Name:        aws_sdk.String(containerDefinitionName2),
-		Image:       aws_sdk.String("nginx:1.17"),
-		Cpu:         aws_sdk.Int64(1),
-		Memory:      aws_sdk.Int64(256),
-		Essential:   aws_sdk.Bool(false),
-		Environment: []*ecs.KeyValuePair{&envKeyValuePair},
-	}
-
-	var containerDefinitions = []ecs.ContainerDefinition{
-		testContainerDefinition,
-		testContainerDefinition2,
-	}
-
 	ecsServiceTerraformOptions.Vars["aws_region"] = awsRegion
 	ecsServiceTerraformOptions.Vars["service_name"] = serviceName
 	ecsServiceTerraformOptions.Vars["ecs_cluster_name"] = ecsClusterName
 	ecsServiceTerraformOptions.Vars["ecs_cluster_arn"] = ecsClusterArn
 	ecsServiceTerraformOptions.Vars["ecs_node_port_mappings"] = portMappings
-	ecsServiceTerraformOptions.Vars["container_definitions"] = containerDefinitions
+	ecsServiceTerraformOptions.Vars["vpc_id"] = vpcId
+	ecsServiceTerraformOptions.Vars["subnet_ids"] = vpcSubnetIds
+	ecsServiceTerraformOptions.Vars["ecs_instance_security_group_id"] = clusterInstanceSecurityGroupId
 
 	terraform.InitAndApply(t, ecsServiceTerraformOptions)
 
 	test_structure.SaveTerraformOptions(t, ecsServiceTestFolder, ecsServiceTerraformOptions)
-
 }

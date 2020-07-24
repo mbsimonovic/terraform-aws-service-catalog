@@ -13,3 +13,7 @@ output "metric_widget_ecs_service_cpu_usage" {
 output "metric_widget_ecs_service_memory_usage" {
   value = module.metric_widget_ecs_service_memory_usage.widget
 }
+
+output "target_group_arns" {
+  value = module.ecs_service.target_group_arns
+}

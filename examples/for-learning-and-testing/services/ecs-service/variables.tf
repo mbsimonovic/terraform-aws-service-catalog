@@ -29,20 +29,25 @@ variable "ecs_cluster_arn" {
   type        = string
 }
 
-variable "container_definitions" {
-  description = "Map of names to container definitions to use for the ECS task. Each entry corresponds to a different ECS container definition. The key corresponds to a user defined name for the container definition"
-  type        = any
+variable "vpc_id" {
+  description = "The ID of the VPC into which ECS and associated resources should be launched"
+  type        = string
+}
+
+variable "subnet_ids" {
+  description = "The ID of the subnet into which ECS and associated resources should be launched"
+  type        = list(string)
+}
+
+variable "ecs_instance_security_group_id" {
+  description = "The ID of the security group that the ECS cluster module applied to all EC2 container instances"
+  type        = string
 }
 
 #---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL PARAMETERS
 # These values may optionally be overwritten by the calling Terraform code.
 # ---------------------------------------------------------------------------------------------------------------------
-variable "canary_container_definitions" {
-  description = "Map of names to container definitions to use for the canary ECS task. Each entry corresponds to a different ECS container definition. The key corresponds to a user defined name for the container definition"
-  type        = any
-  default     = null
-}
 
 variable "high_cpu_utilization_threshold" {
   description = "Trigger an alarm if the ECS Service has a CPU utilization percentage above this threshold"

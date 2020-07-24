@@ -26,7 +26,7 @@ module "ecs_service" {
   ecs_task_container_definitions = local.container_definitions
   ecs_task_definition_canary     = local.has_canary ? local.canary_container_definitions : null
 
-  desired_number_of_canary_tasks_to_run = local.has_canary ? var.desired_number_of_canary_tasks_to_run : 0
+  desired_number_of_canary_tasks_to_run = local.has_canary ? var.desired_number_of_canary_tasks : 0
 
   desired_number_of_tasks = var.desired_number_of_tasks
 
@@ -34,10 +34,17 @@ module "ecs_service" {
   # the initial number of Tasks, and auto scaling is used to determine the size after that.
   use_auto_scaling    = var.use_auto_scaling
   min_number_of_tasks = var.use_auto_scaling ? var.min_number_of_tasks : null
-  max_number_of_tasks = var.use_auto_scaling ? var.max_number_of_tasks : null
+  max_number_of_tasks = var.use_auto_scaling ? var.max_number_of_tasks : null # The resulting canary_container_definition is identical to local.container_definition, except its image version is newer
 
   deployment_maximum_percent         = var.deployment_maximum_percent
   deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
+
+  clb_name           = var.clb_name
+  clb_container_name = var.clb_container_name
+  clb_container_port = var.clb_container_port
+
+  elb_target_groups       = var.elb_target_groups
+  elb_target_group_vpc_id = var.elb_target_group_vpc_id
 }
 
 # Update the ECS Node Security Group to allow the ECS Service to be accessed directly from an ECS Node (versus only from the ELB).
