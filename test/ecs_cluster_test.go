@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	http_helper "github.com/gruntwork-io/terratest/modules/http-helper"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 )
 
@@ -25,7 +26,8 @@ func TestEcsCluster(t *testing.T) {
 	// os.Setenv("SKIP_build_ami", "true")
 	// os.Setenv("SKIP deploy_ecs_cluster", "true")
 	// os.Setenv("SKIP_validate_cluster", "true")
-	// os.Setenv("SKIP_deploy_ecs_service", "true")
+	// os.Setenv("SKIP_deploy_service", "true")
+	// os.Setenv("SKIP_validate_service", "true")
 	// os.Setenv("SKIP_destroy_service", "true")
 	// os.Setenv("SKIP_destroy_cluster", "true")
 	// os.Setenv("SKIP_cleanup_keypairs", "true")
@@ -62,7 +64,7 @@ func TestEcsCluster(t *testing.T) {
 		buildAmi(t, ecsClusterTestFolder)
 	})
 
-	test_structure.RunTestStage(t, "deploy_ecs_cluster", func() {
+	test_structure.RunTestStage(t, "deploy_cluster", func() {
 		deployECSCluster(t, ecsClusterTestFolder)
 	})
 
@@ -70,7 +72,11 @@ func TestEcsCluster(t *testing.T) {
 		validateECSCluster(t, ecsClusterTestFolder)
 	})
 
-	test_structure.RunTestStage(t, "deploy_ecs_service", func() {
+	test_structure.RunTestStage(t, "validate_service", func() {
+		validateECSService(t, ecsClusterTestFolder, ecsServiceTestFolder)
+	})
+
+	test_structure.RunTestStage(t, "deploy_service", func() {
 		deployEcsService(t, ecsClusterTestFolder, ecsServiceTestFolder)
 	})
 }
@@ -207,4 +213,14 @@ func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestF
 	terraform.InitAndApply(t, ecsServiceTerraformOptions)
 
 	test_structure.SaveTerraformOptions(t, ecsServiceTestFolder, ecsServiceTerraformOptions)
+}
+
+func validateECSService(t *testing.T, ecsClusterTestFolder, ecsServiceTestFolder string) {
+
+	// Call the service endpoint and ensure we get a response from nginx
+	ecsServiceTerraformOptions := test_structure.LoadTerraformOptions(t, ecsServiceTestFolder)
+	albDnsName := terraform.OutputRequired(t, ecsServiceTerraformOptions, "alb_dns_name")
+
+	http_helper.HTTPDoWithRetry(t, "GET", fmt.Sprintf("http://%s", albDnsName), nil, nil, 200, 5, time.Second*5, nil)
+
 }

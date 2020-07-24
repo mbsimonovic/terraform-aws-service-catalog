@@ -7,7 +7,7 @@ provider "aws" {
 }
 
 locals {
-  # This exmaple demonstrates creating a common base configuration across normal and canary container definitions, while also changing the canary container definition to run a different image tag 
+  # This example demonstrates creating a common base configuration across normal and canary container definitions, while also changing the canary container definition to run a different image tag 
   # This is a helpful pattern for using the canary task to verify a new release candidate
   container_definition = {
     name : "test",
@@ -105,10 +105,11 @@ module "ecs_service" {
   alarm_sns_topic_arns = [aws_sns_topic.ecs-alerts.arn]
 }
 
-# EXAMPLE OF A HOST-BASED LISTENER RULE
-# Host-based Listener Rules are used when you wish to have a single ALB handle requests for both foo.acme.com and
-# bar.acme.com. Using a host-based routing rule, the ALB can route each inbound request to the desired Target Group.
-resource "aws_alb_listener_rule" "host_based_example" {
+# EXAMPLE OF A PATH-BASED LISTENER RULE
+# Path-based Listener Rules are used when you wish to route all requests received by the ALB that match a certain
+# "path" pattern to a given ECS Service. This is useful if you have one service that should receive all requests sent
+# to /api and another service that receives requests sent to /customers.
+resource "aws_alb_listener_rule" "path_based_example" {
   # Get the Listener ARN associated with port 80 on the ALB
   # In other words, this ALB has a Listener that listens for incoming traffic on port 80. That Listener has a unique
   # Amazon Resource Name (ARN), which we must pass to this rule so it knows which ALB Listener to "attach" to. Fortunately,
@@ -116,7 +117,7 @@ resource "aws_alb_listener_rule" "host_based_example" {
   # so that we can easily look up the ARN by the port number.
   listener_arn = module.alb.http_listener_arns["80"]
 
-  priority = 95
+  priority = 100
 
   action {
     type             = "forward"
@@ -124,8 +125,8 @@ resource "aws_alb_listener_rule" "host_based_example" {
   }
 
   condition {
-    host_header {
-      values = ["*.${module.alb.alb_dns_name}"]
+    path_pattern {
+      values = ["/*"]
     }
   }
 }
@@ -139,24 +140,18 @@ resource "aws_security_group_rule" "ecs_cluster_instances_webserver" {
   security_group_id = var.ecs_instance_security_group_id
 }
 
+resource "aws_security_group_rule" "ecs_cluster_instance_ssh" {
+  type              = "ingress"
+  from_port         = 22
+  to_port           = 22
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = var.ecs_instance_security_group_id
+}
+
 # Create an SNS topic to receive ecs-related alerts when defined service thresholds are breached
 resource "aws_sns_topic" "ecs-alerts" {
   name = "ecs-alerts-topic"
-}
-
-# Create a security group that allows SSH access to the EC2 instances hosting the ECS containers (container instances)
-resource "aws_security_group" "allow_ssh" {
-  name        = "allow_ssh"
-  description = "Allow ssh to container instances"
-  vpc_id      = var.vpc_id
-
-  ingress {
-    description = "SSH"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
 }
 
 data "aws_caller_identity" "current" {}
