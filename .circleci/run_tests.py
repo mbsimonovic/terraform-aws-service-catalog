@@ -39,7 +39,6 @@ DIRECT_TEST_MAP = {
     'test_helpers.go': ['.*'],
     'k8s_test_helpers.go': ['TestK8SNamespace', 'TestK8SService', 'TestEksCluster'],
     'for_production_smoke_test.go': [TERRAGRUNT_SMOKE_TEST],
-    '../modules/services/asg-service/user-data/user-data.sh': ['TestAsgService'],
 }
 
 

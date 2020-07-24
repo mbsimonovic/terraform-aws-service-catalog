@@ -361,7 +361,7 @@ locals {
 }
 
 data "template_file" "user_data" {
-  template = file("${path.module}/user-data/user-data.sh")
+  template = file("${path.module}/user-data.sh")
 
   vars = {
     log_group_name                      = var.name
