@@ -8,7 +8,7 @@ these scripts to configure end-to-end encryption in your Reference Architecture.
    can also upload the cert to IAM, so it can be used with an ELB or ALB. These certs are meant for private/internal
    use only, such as to set up end-to-end encryption within an AWS account. The only IP address in the cert will be
    127.0.0.1 and localhost, so you can test your servers locally. You can also use the servers with the ELB or ALB, as
-   the AWS load balancers don't verify the CA.
+   the AWS load balancers don't verify the CA. Also see [Loading TLS secrets from AWS Secrets Manager](https://github.com/gruntwork-io/aws-sample-app/blob/master/core-concepts.md#loading-tls-secrets-from-aws-secrets-manager)
 
 - `generate-trust-stores.sh`: This script is meant to be used to automatically generate a Key Store and Trust Store,
    which are typically used with Java apps to securely store SSL certificates. If they don't already exist, the Key
@@ -17,7 +17,3 @@ these scripts to configure end-to-end encryption in your Reference Architecture.
 
 - `download-rds-ca-certs.sh`: Download the CA certs for RDS so that applications can validate the certs when
    connecting to RDS over SSL.
-
-
-## Usage
-[](https://github.com/gruntwork-io/aws-sample-app/blob/master/tls/README.md)

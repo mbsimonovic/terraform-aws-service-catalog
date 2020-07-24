@@ -2,8 +2,10 @@ package test
 
 import (
 	"fmt"
+	"os"
 	"testing"
 
+	"github.com/gruntwork-io/terratest/modules/files"
 	"github.com/gruntwork-io/terratest/modules/shell"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 	"github.com/stretchr/testify/require"
@@ -24,7 +26,8 @@ func TestTlsScripts(t *testing.T) {
 	downloadPath := fmt.Sprintf("%s/.test-data/rds-cert", scriptsPath)
 
 	// Create TLS Cert vars
-	outputPath := "/tmp/vault-blueprint/modules/private-tls-cert"
+	certBasePath := "/tmp/vault-blueprint"
+	outputPath := fmt.Sprintf("%s/modules/private-tls-cert", certBasePath)
 	createCertFiles := []string{"ca.crt.pem", "my-app.cert", "my-app.key.pem.kms.encrypted"}
 
 	// Generate Trust Stores vars
@@ -42,13 +45,20 @@ func TestTlsScripts(t *testing.T) {
 			"CreateTlsCert",
 			func() {
 				createTlsCert := shell.Command{
-					Command: "bash",
+					Command: fmt.Sprintf("%s/create-tls-cert.sh", scriptsPath),
 					Args: []string{
-						"-c",
-						fmt.Sprintf(
-							"%s/create-tls-cert.sh --ca-path ca.crt.pem --cert-path my-app.cert --key-path my-app.key.pem --company-name Acme --kms-key-id alias/cmk-dev --aws-region us-east-1",
-							scriptsPath,
-						),
+						"--ca-path",
+						"ca.crt.pem",
+						"--cert-path",
+						"my-app.cert",
+						"--key-path",
+						"my-app.key.pem",
+						"--company-name",
+						"Acme",
+						"--kms-key-id",
+						"alias/cmk-dev",
+						"--aws-region",
+						"us-east-1",
 					},
 				}
 
@@ -56,138 +66,87 @@ func TestTlsScripts(t *testing.T) {
 
 			},
 			func() {
-				checkCerts := shell.Command{
-					Command: "bash",
-					Args: []string{
-						"-c",
-						fmt.Sprintf(
-							"[ -f %s/%s ] && [ -f %s/%s ] && [ -f %s/%s ] && exit 0 || exit 1",
-							outputPath,
-							createCertFiles[0],
-							outputPath,
-							createCertFiles[1],
-							outputPath,
-							createCertFiles[2],
-						),
-					},
+				for _, file := range createCertFiles {
+					require.Truef(
+						t,
+						files.FileExists(fmt.Sprintf("%s/%s", outputPath, file)),
+						"Error Validating Create TLS Cert %s",
+						file,
+					)
 				}
-
-				err := shell.RunCommandE(t, checkCerts)
-				require.NoError(t, err, "Error Validating Cert Creation")
 			},
 			func() {
-				cleanup := shell.Command{
-					Command: "bash",
-					Args: []string{
-						"-c",
-						fmt.Sprint(
-							"rm -rf /tmp/vault-blueprint",
-						),
-					},
-				}
-
-				shell.RunCommand(t, cleanup)
+				os.RemoveAll(certBasePath)
 			},
 		},
 		{
 			"DownloadRdsCaCert",
 			func() {
 				downloadRdsCaCerts := shell.Command{
-					Command: "bash",
+					Command: fmt.Sprintf("%s/download-rds-ca-certs.sh", scriptsPath),
 					Args: []string{
-						"-c",
-						fmt.Sprintf(
-							"%s/download-rds-ca-certs.sh %s",
-							scriptsPath,
-							downloadPath,
-						),
+						downloadPath,
 					},
 				}
 
 				shell.RunCommand(t, downloadRdsCaCerts)
 			},
 			func() {
-				checkDownload := shell.Command{
-					Command: "bash",
-					Args: []string{
-						"-c",
-						fmt.Sprintf(
-							"[ -f %s ] && exit 0 || exit 1",
-							downloadPath,
-						),
-					},
-				}
-
-				err := shell.RunCommandE(t, checkDownload)
-				require.NoError(t, err, "Error Validating Download RDS CA Cert")
+				require.True(
+					t,
+					files.FileExists(downloadPath),
+					"Error Validating Download RDS CA Cert %s",
+					downloadPath,
+				)
 			},
 			func() {
-				cleanup := shell.Command{
-					Command: "bash",
-					Args: []string{
-						"-c",
-						fmt.Sprintf(
-							"rm %s",
-							downloadPath,
-						),
-					},
-				}
-
-				shell.RunCommand(t, cleanup)
+				os.RemoveAll(downloadPath)
 			},
 		},
 		{
 			"GenerateTrustStores",
 			func() {
 				generateTrustStores := shell.Command{
-					Command: "bash",
+					Command: fmt.Sprintf("%s/generate-trust-stores.sh", scriptsPath),
 					Args: []string{
-						"-c",
-						fmt.Sprintf(
-							"%s/generate-trust-stores.sh --keystore-name kafka --store-path /tmp/ssl --vpc-name default --company-name Acme --company-org-unit IT --company-city Phoenix --company-state AZ --company-country US --kms-key-id alias/cmk-dev --aws-region us-east-1",
-							scriptsPath,
-						),
+						"--keystore-name",
+						"kafka",
+						"--store-path",
+						"/tmp/ssl",
+						"--vpc-name",
+						"default",
+						"--company-name",
+						"Acme",
+						"--company-org-unit",
+						"IT",
+						"--company-city",
+						"Phoenix",
+						"--company-state",
+						"AZ",
+						"--company-country",
+						"US",
+						"--kms-key-id",
+						"alias/cmk-dev",
+						"--aws-region",
+						"us-east-1",
 					},
 				}
 
 				shell.RunCommand(t, generateTrustStores)
 			},
 			func() {
-				checkGenerateTrustStores := shell.Command{
-					Command: "bash",
-					Args: []string{
-						"-c",
-						fmt.Sprintf(
-							"[ -f %s/%s ] && [ -f %s/%s ] && [ -f %s/%s ] && [ -f %s/%s ]",
-							sslPath,
-							trustStoresFiles[0],
-							sslPath,
-							trustStoresFiles[1],
-							sslPath,
-							trustStoresFiles[2],
-							sslPath,
-							trustStoresFiles[3],
-						),
-					},
+				for _, file := range trustStoresFiles {
+					require.Truef(
+						t,
+						files.FileExists(fmt.Sprintf("%s/%s", sslPath, file)),
+						"Error Validating Generate Trust Stores %s",
+						file,
+					)
 				}
-
-				err := shell.RunCommandE(t, checkGenerateTrustStores)
-				require.NoError(t, err, "Error Validating Generate Trust Stores")
 			},
 			func() {
-				cleanup := shell.Command{
-					Command: "bash",
-					Args: []string{
-						"-c",
-						fmt.Sprintf(
-							"rm -rf %s && rm -rf %s",
-							packageKafkaPath,
-							sslPath,
-						),
-					},
-				}
-
-				shell.RunCommand(t, cleanup)
+				os.RemoveAll(packageKafkaPath)
+				os.RemoveAll(sslPath)
 			},
 		},
 	}
