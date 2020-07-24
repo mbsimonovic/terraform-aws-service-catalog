@@ -2,6 +2,7 @@ package test
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
@@ -16,9 +17,9 @@ func TestElasticsearch(t *testing.T) {
 	t.Parallel()
 
 	// Uncomment the items below to skip certain parts of the test
-	//os.Setenv("TERRATEST_REGION", "eu-west-1")
-	//os.Setenv("SKIP_setup", "true")
-	//os.Setenv("SKIP_deploy_terraform", "true")
+	os.Setenv("TERRATEST_REGION", "eu-west-1")
+	os.Setenv("SKIP_setup", "true")
+	os.Setenv("SKIP_deploy_terraform", "true")
 	//os.Setenv("SKIP_validate_cluster", "true")
 	//os.Setenv("SKIP_cleanup", "true")
 
@@ -32,6 +33,8 @@ func TestElasticsearch(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "setup", func() {
+		// Redundantly restrict and allow regions to safeguard against future changes to the allowed regions list.
+		// I.e., ap-northeast-2 is known to fail on t2.micro instance types and us/eu regions are known to succeed.
 		awsRegion := aws.GetRandomStableRegion(t, []string{"us-east-1", "us-west-1", "eu-west-1"}, []string{"ap-northeast-2"})
 		test_structure.SaveString(t, testFolder, "region", awsRegion)
 
@@ -59,6 +62,8 @@ func TestElasticsearch(t *testing.T) {
 		terraform.OutputRequired(t, terraformOptions, "cluster_domain_id")
 		endpoint := terraform.OutputRequired(t, terraformOptions, "cluster_endpoint")
 		terraform.OutputRequired(t, terraformOptions, "cluster_security_group_id")
+		// Not a required output of the service module--only the example module.
+		// Only used to SSH into the instance for validation of the elasticsearch cluster.
 		ip := terraform.OutputRequired(t, terraformOptions, "aws_instance_public_ip")
 
 		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)

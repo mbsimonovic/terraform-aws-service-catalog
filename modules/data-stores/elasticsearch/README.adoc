@@ -2,7 +2,7 @@
 :name: Amazon Elasticsearch
 :description: Deploy and manage Amazon Elasticsearch Service
 :icon: /_docs/aes-icon.png
-:category: database
+:category: nosql
 :cloud: aws
 :tags: analytics, data
 :license: gruntwork
