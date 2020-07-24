@@ -217,7 +217,7 @@ variable "auto_deploy_permissions" {
 }
 
 variable "max_session_duration_machine_users" {
-  description = "The maximum allowable session duration, in seconds, for the credentials you get when assuming the IAM roles created by this module. This variable  applies to all IAM roles created by this module that are intended for machine users, such as allow-auto-deploy-from-other-accounts. For IAM roles that are intended for human users, such as allow-read-only-access-from-other-accounts, see var.max_session_duration_human_users."
+  description = "The maximum allowable session duration, in seconds, for the credentials you get when assuming the IAM roles created by this module. This variable  applies to all IAM roles created by this module that are intended for machine users, such as allow-auto-deploy-from-other-accounts. Defaults to 1 hour."
   type        = number
   default     = 3600 # 1 hour
 }
