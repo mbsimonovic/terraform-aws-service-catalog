@@ -132,7 +132,7 @@ module "ec2_baseline" {
   asg_names                           = [module.asg.asg_name]
   num_asg_names                       = 1
   cloud_init_parts                    = local.cloud_init_parts
-  ami = var.ami
+  ami                                 = var.ami
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
