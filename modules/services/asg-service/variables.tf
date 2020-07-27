@@ -45,9 +45,14 @@ variable "min_elb_capacity" {
   type        = number
 }
 
-variable "server_port" {
+variable "listener_ports" {
   description = "The port the EC2 instances listen on for HTTP requests"
-  type        = number
+  type        = any
+  default     = {}
+}
+
+variable "server_ports" {
+
 }
 
 variable "ami_filters" {
@@ -272,11 +277,11 @@ variable "listener_arns" {
   default     = {}
 }
 
-variable "listener_ports" {
-  description = "The default port numbers on the load balancer to attach listener rules to. You can override this default on a rule-by-rule basis by setting the listener_ports parameter in each rule. The port numbers specified in this variable and the listener_ports parameter must exist in var.listener_arns."
-  type        = list(string)
-  default     = []
-}
+//variable "listener_ports" {
+//  description = "The default port numbers on the load balancer to attach listener rules to. You can override this default on a rule-by-rule basis by setting the listener_ports parameter in each rule. The port numbers specified in this variable and the listener_ports parameter must exist in var.listener_arns."
+//  type        = list(string)
+//  default     = []
+//}
 
 variable "default_forward_target_group_arns" {
   description = "The ARN of the Target Group to which to route traffic. Required if using forward rules."
@@ -288,16 +293,6 @@ variable "default_forward_target_group_arns" {
   # - arn    [string]: The ARN of the target group.
   # OPTIONAL:
   # - weight [number]: The weight. The range is 0 to 999. Only applies if len(target_group_arns) > 1.
-}
-
-variable "health_check_path" {
-  description = "The path, without any leading slash, that can be used as a health check (e.g. healthcheck). Should return a 200 OK when the service is up and running."
-  type        = string
-}
-
-variable "health_check_protocol" {
-  description = "The protocol to use for health checks. Should be one of HTTP, HTTPS."
-  type        = string
 }
 
 variable "vpc_id" {

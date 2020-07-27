@@ -23,13 +23,16 @@ module "asg" {
   desired_capacity = var.num_instances
   min_elb_capacity = var.num_instances
 
-  server_port = local.server_port
-
   vpc_id     = data.aws_vpc.default.id
   subnet_ids = data.aws_subnet_ids.default.ids
 
-  health_check_protocol = "HTTP"
-  health_check_path     = "/"
+  server_ports = {
+    "default_http" = {
+      server_port           = "8080"
+      health_check_protocol = "HTTP"
+      health_check_path     = "/"
+    }
+  }
 
   create_route53_entry = false
 
