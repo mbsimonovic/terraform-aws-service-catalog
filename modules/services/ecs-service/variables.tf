@@ -27,6 +27,12 @@ variable "container_definitions" {
 # OPTIONAL PARAMETERS
 # These values may optionally be overwritten by the calling Terraform code.
 # ---------------------------------------------------------------------------------------------------------------------
+variable "secret_manager_arns" {
+  description = "A list of ARNs for Secrets Manager secrets that the ECS execution IAM policy should be granted access to read. Note that this is different from the ECS task IAM policy. The execution policy is concerned with permissions required to run the ECS task."
+  type        = list(string)
+  default     = []
+}
+
 variable "alarm_sns_topic_arns" {
   description = "A list of ARNs of the SNS topic(s) to write alarm events to"
   type        = list(string)

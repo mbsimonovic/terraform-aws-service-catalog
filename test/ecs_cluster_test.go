@@ -72,12 +72,12 @@ func TestEcsCluster(t *testing.T) {
 		validateECSCluster(t, ecsClusterTestFolder)
 	})
 
-	test_structure.RunTestStage(t, "validate_service", func() {
-		validateECSService(t, ecsClusterTestFolder, ecsServiceTestFolder)
-	})
-
 	test_structure.RunTestStage(t, "deploy_service", func() {
 		deployEcsService(t, ecsClusterTestFolder, ecsServiceTestFolder)
+	})
+
+	test_structure.RunTestStage(t, "validate_service", func() {
+		validateECSService(t, ecsClusterTestFolder, ecsServiceTestFolder)
 	})
 }
 
@@ -129,7 +129,7 @@ func deployECSCluster(t *testing.T, testFolder string) {
 
 	terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
 	terraformOptions.Vars["cluster_name"] = clusterName
-	terraformOptions.Vars["cluster_min_size"] = 1
+	terraformOptions.Vars["cluster_min_size"] = 2
 	terraformOptions.Vars["cluster_max_size"] = 2
 	terraformOptions.Vars["cluster_instance_type"] = "t2.medium"
 	terraformOptions.Vars["cluster_instance_ami_version_tag"] = branchName

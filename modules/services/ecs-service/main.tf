@@ -17,7 +17,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_service" {
-  source = "git::git@github.com:gruntwork-io/module-ecs.git//modules/ecs-service?ref=v0.20.4"
+  source = "git::git@github.com:gruntwork-io/module-ecs.git//modules/ecs-service?ref=canary-task-unique-family-name"
 
   service_name     = var.service_name
   environment_name = var.service_name
@@ -70,13 +70,10 @@ locals {
 
   canary_container_definitions = local.has_canary ? jsonencode(var.canary_container_definitions) : null
 
-  # TODO - fix this   
-  #  secret_manager_arns = flatten([
-  #    for name, container in var.container_definitions :
-  #   [for env_var, secret_arn in container.secrets_manager_arns : secret_arn]
-  #  ])
-
-  secret_manager_arns = []
+  secret_manager_arns = flatten([
+    for name, container in var.secret_manager_arns :
+    [for env_var, secret_arn in lookup(container, "secrets_manager_arns", []) : secret_arn]
+  ])
 
   has_canary = var.canary_container_definitions != null ? true : false
 

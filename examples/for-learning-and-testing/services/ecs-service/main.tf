@@ -9,14 +9,14 @@ provider "aws" {
 locals {
   # This example demonstrates creating a common base configuration across normal and canary container definitions, while also changing the canary container definition to run a different image tag 
   # This is a helpful pattern for using the canary task to verify a new release candidate
-  container_definition = {
-    name : "test",
+  container_definitions = {
+    name : var.service_name,
     image : "nginx:1.17",
     cpu : 1024,
     memory : 256,
     essential : true
     Environment : [{ name : "TEST_ENV_VAR", value : "test-env-val" }],
-    "portMappings" : [
+    portMappings : [
       {
         "hostPort" : 80,
         "containerPort" : 80,
@@ -26,17 +26,14 @@ locals {
   }
 
   # Override the canary task definition to use a unique name and a newer image tag, as you might do when testing a new release tag prior to rolling it out fully
-  canary_container_base = {
-    name : "test-canary",
+  canary_container_overrides = {
     image : "nginx:1.18"
   }
   # The resulting canary_container_definition is identical to local.container_definition, except its image version is newer and its name is unique
-  canary_container_definition = merge(local.container_definition, local.canary_container_base)
+  canary_container_definition = merge(local.container_definitions, local.canary_container_overrides)
 
-  container_definitions        = [local.container_definition]
   canary_container_definitions = [local.canary_container_definition]
 }
-
 
 module "alb" {
   source = "git::git@github.com:gruntwork-io/module-load-balancer.git//modules/alb?ref=v0.14.1"
@@ -67,12 +64,12 @@ module "ecs_service" {
   ecs_cluster_arn  = var.ecs_cluster_arn
   ecs_cluster_name = var.ecs_cluster_name
 
-  container_definitions = local.container_definitions
+  container_definitions = [local.container_definitions]
 
   # An example of configuring a container definition within Terraform: 
   canary_container_definitions = local.canary_container_definitions
   # Run one canary container 
-  desired_number_of_canary_tasks = 0
+  desired_number_of_canary_tasks = 1
 
   use_auto_scaling = true
 
@@ -87,7 +84,7 @@ module "ecs_service" {
   elb_target_groups = {
     alb = {
       name                  = var.service_name
-      container_name        = local.container_definition.name
+      container_name        = local.container_definitions.name
       container_port        = 80
       protocol              = "HTTP"
       health_check_protocol = "HTTP"
