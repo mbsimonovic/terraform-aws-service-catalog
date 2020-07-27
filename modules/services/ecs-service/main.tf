@@ -45,6 +45,8 @@ module "ecs_service" {
 
   elb_target_groups       = var.elb_target_groups
   elb_target_group_vpc_id = var.elb_target_group_vpc_id
+
+  dependencies = var.dependencies
 }
 
 # Update the ECS Node Security Group to allow the ECS Service to be accessed directly from an ECS Node (versus only from the ELB).
