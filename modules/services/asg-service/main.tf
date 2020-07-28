@@ -329,23 +329,11 @@ module "asg_high_disk_usage_alarms" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "route53_health_check" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/route53-health-check-alarms?ref=v0.21.2"
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/route53-health-check-alarms?ref=v0.22.0"
 
-  //  TODO module doesnt accept for_each
-  //  for_each = var.listener_ports
-
-  create_resources = var.enable_route53_health_check
-
-  domain                         = var.domain_name
+  create_resources               = var.enable_route53_health_check
+  alarm_configs                  = local.route53_alarm_configurations
   alarm_sns_topic_arns_us_east_1 = var.alarm_sns_topic_arns_us_east_1
-
-  path = "/"    //each.value.health_check_path
-  type = "HTTP" //each.value.health_check_protocol
-  port = "8080" //each.value.server_port
-
-  // The values below probably will be also on the map.
-  failure_threshold = 2
-  request_interval  = 30
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -380,6 +368,17 @@ locals {
     }
   ])
 
+  route53_alarm_configurations = {
+    for key, item in var.server_ports :
+    key => {
+      domain            = var.domain_name
+      path              = item.health_check_path
+      type              = item.health_check_protocol
+      port              = item.server_port
+      failure_threshold = lookup(item, "failure_threshold", 2)
+      request_interval  = lookup(item, "request_interval", 30)
+    }
+  }
 }
 
 data "template_file" "user_data" {
