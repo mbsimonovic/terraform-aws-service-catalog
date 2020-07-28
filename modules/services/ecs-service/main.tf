@@ -29,8 +29,6 @@ module "ecs_service" {
   ecs_task_definition_canary     = local.has_canary ? local.canary_container_definitions : null
   desired_number_of_canary_tasks_to_run = local.has_canary ? var.desired_number_of_canary_tasks : 0
 
-  # Tell the ECS Service that we are using auto scaling, so the desired_number_of_tasks setting is only used to control
-  # the initial number of Tasks, and auto scaling is used to determine the size after that.
   use_auto_scaling    = var.use_auto_scaling
   min_number_of_tasks = var.use_auto_scaling ? var.min_number_of_tasks : null
   max_number_of_tasks = var.use_auto_scaling ? var.max_number_of_tasks : null 
