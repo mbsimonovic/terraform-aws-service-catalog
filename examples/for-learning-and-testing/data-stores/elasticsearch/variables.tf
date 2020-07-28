@@ -46,7 +46,7 @@ variable "zone_awareness_enabled" {
 variable "volume_type" {
   description = "The type of EBS volumes to use in the cluster. Must be one of: standard, gp2, io1, sc1, or st1. For a comparison of EBS volume types, see https://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/ebs-volume-types.html."
   type        = string
-  default     = "standard"
+  default     = "gp2"
 }
 
 variable "volume_size" {

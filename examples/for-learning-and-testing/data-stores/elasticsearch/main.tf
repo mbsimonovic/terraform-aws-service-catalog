@@ -30,12 +30,12 @@ module "elasticsearch" {
 
   # Cluster Configurations
   domain_name            = var.domain_name
-  elasticsearch_version  = var.elasticsearch_version
-  instance_type          = var.instance_type
-  instance_count         = var.instance_count
-  volume_type            = var.volume_type
-  volume_size            = var.volume_size
-  zone_awareness_enabled = var.zone_awareness_enabled
+  elasticsearch_version  = "7.7"
+  instance_type          = "t2.small.elasticsearch"
+  instance_count         = 1
+  volume_type            = "gp2"
+  volume_size            = 10
+  zone_awareness_enabled = false
 
   # Network Configurations
 
@@ -82,7 +82,7 @@ data "aws_ami" "ubuntu" {
 # Include this security group in var.allow_connections_from_security_groups
 resource "aws_security_group" "elasticsearch_bastion" {
   name   = "elasticsearch-bastion-${var.keypair_name}"
-  vpc_id = var.vpc_id
+  vpc_id = data.aws_vpc.default.id
 }
 
 resource "aws_security_group_rule" "allow_all_outbound" {
