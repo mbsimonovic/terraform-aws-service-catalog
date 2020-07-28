@@ -65,6 +65,15 @@ resource "aws_elasticsearch_domain" "cluster" {
   advanced_options = {
     "rest.action.multi.allow_explicit_index" = "true"
   }
+
+  node_to_node_encryption {
+    enabled = true
+  }
+
+  domain_endpoint_options {
+    enforce_https       = true
+    tls_security_policy = "Policy-Min-TLS-1-2-2019-07"
+  }
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -103,43 +112,12 @@ data "aws_iam_policy_document" "elasticsearch_access_policy" {
 }
 
 locals {
-  http_port  = 80
   https_port = 443
-  ssh_port   = 22
 }
 
 resource "aws_security_group" "elasticsearch_cluster" {
   name   = var.domain_name
   vpc_id = var.vpc_id
-}
-
-resource "aws_security_group_rule" "allow_all_outbound" {
-  type              = "egress"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
-  security_group_id = aws_security_group.elasticsearch_cluster.id
-  cidr_blocks       = ["0.0.0.0/0"]
-}
-
-# Allow ssh access from within the VPC
-resource "aws_security_group_rule" "allow_all_inbound_ssh" {
-  type              = "ingress"
-  from_port         = local.ssh_port
-  to_port           = local.ssh_port
-  protocol          = "tcp"
-  security_group_id = aws_security_group.elasticsearch_cluster.id
-  cidr_blocks       = ["0.0.0.0/0"]
-}
-
-resource "aws_security_group_rule" "allow_inbound_http_from_subnets" {
-  count             = length(var.allow_connections_from_cidr_blocks) > 0 ? 1 : 0
-  type              = "ingress"
-  from_port         = local.http_port
-  to_port           = local.http_port
-  protocol          = "tcp"
-  security_group_id = aws_security_group.elasticsearch_cluster.id
-  cidr_blocks       = var.allow_connections_from_cidr_blocks
 }
 
 resource "aws_security_group_rule" "allow_inbound_https_from_subnets" {
@@ -152,24 +130,14 @@ resource "aws_security_group_rule" "allow_inbound_https_from_subnets" {
   cidr_blocks       = var.allow_connections_from_cidr_blocks
 }
 
-resource "aws_security_group_rule" "allow_inbound_http_from_security_group" {
-  for_each                 = var.allow_connections_from_security_groups
-  type                     = "ingress"
-  from_port                = local.http_port
-  to_port                  = local.http_port
-  protocol                 = "tcp"
-  security_group_id        = aws_security_group.elasticsearch_cluster.id
-  source_security_group_id = each.value
-}
-
 resource "aws_security_group_rule" "allow_inbound_https_from_security_group" {
-  for_each                 = var.allow_connections_from_security_groups
+  count                    = length(var.allow_connections_from_security_groups)
   type                     = "ingress"
   from_port                = local.https_port
   to_port                  = local.https_port
   protocol                 = "tcp"
   security_group_id        = aws_security_group.elasticsearch_cluster.id
-  source_security_group_id = each.value
+  source_security_group_id = tolist(var.allow_connections_from_security_groups)[count.index]
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

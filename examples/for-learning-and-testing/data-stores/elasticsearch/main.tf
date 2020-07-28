@@ -12,9 +12,10 @@ provider "aws" {
 
   # Provider version 2.X series is the latest, but has breaking changes with 1.X series.
   version = "~> 2.6"
+}
 
-  # Only these AWS Account IDs may be operated on by this template
-  allowed_account_ids = [var.aws_account_id]
+locals {
+  ssh_port = 22
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -41,15 +42,13 @@ module "elasticsearch" {
   # To keep this example simple, we run it in the default VPC, put everything in the same subnets, and allow access from
   # any source.
   # NOTE: However, even with Elasticsearch deployed in a public subnet in the default VPC, it is still only accessible from within the VPC.
-  # This seems to be a layer of security that exists in Amazon's implementation of Elasticsearch Service,
-  # and you can read more about it here:
   # https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-vpc.html#es-vpc-security
   # In production, you can use a custom VPC, private subnets, and explicitly close off access to only
   # those applications that need it.
   vpc_id                                 = data.aws_vpc.default.id
   subnet_ids                             = data.aws_subnet_ids.default.ids
   allow_connections_from_cidr_blocks     = ["0.0.0.0/0"]
-  allow_connections_from_security_groups = []
+  allow_connections_from_security_groups = [aws_security_group.elasticsearch_bastion.id]
 
   # Since this is just an example, we don't deploy any CloudWatch resources in order to make it faster to deploy, however in
   # production you'll probably want to enable this feature.
@@ -58,9 +57,11 @@ module "elasticsearch" {
 
 # ---------------------------------------------------------------------------------------------------------------------
 # ADD AN EC2 INSTANCE TO SERVE AS A BASTION HOST
-# This instance will be used to run curl commands against the Elasticsearch cluster.
-# Your usage may vary. You may prefer to use a VPN tunnel instead of a bastion host.
+# This instance is used to run curl commands against the Elasticsearch cluster.
+# For your production use cases, you may wish to use a VPN tunnel instead of a bastion host.
 # ---------------------------------------------------------------------------------------------------------------------
+
+# First define the AMI to use for the instance
 data "aws_ami" "ubuntu" {
   most_recent = true
 
@@ -77,13 +78,44 @@ data "aws_ami" "ubuntu" {
   owners = ["099720109477"] # Canonical
 }
 
+# Create a new security group for this instance.
+# Include this security group in var.allow_connections_from_security_groups
+resource "aws_security_group" "elasticsearch_bastion" {
+  name   = "elasticsearch-bastion-${var.keypair_name}"
+  vpc_id = var.vpc_id
+}
+
+resource "aws_security_group_rule" "allow_all_outbound" {
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  security_group_id = aws_security_group.elasticsearch_bastion.id
+  cidr_blocks       = ["0.0.0.0/0"]
+}
+
+resource "aws_security_group_rule" "allow_all_inbound_ssh" {
+  type              = "ingress"
+  from_port         = local.ssh_port
+  to_port           = local.ssh_port
+  protocol          = "tcp"
+  security_group_id = aws_security_group.elasticsearch_bastion.id
+  cidr_blocks       = ["0.0.0.0/0"]
+}
+
+# Use this utility to find an instance type for the bastion host
+# that exists in all availability zones for the AWS region in use.
+module "lookup_instance_type" {
+  source         = "git::git@github.com:gruntwork-io/package-terraform-utilities.git//modules/instance-type?ref=v0.2.1"
+  instance_types = ["t2.micro", "t3.micro"]
+}
+
+# Finally define the bastion host!
 resource "aws_instance" "server" {
   ami           = data.aws_ami.ubuntu.id
-  instance_type = "t2.micro"
+  instance_type = module.lookup_instance_type.recommended_instance_type
 
-  # Create the instance in the security group of the Elasticsearch cluster.
-  # Alternatively, create it in a different security group which is included in var.allow_connections_from_security_groups
-  vpc_security_group_ids      = [module.elasticsearch.cluster_security_group_id]
+  vpc_security_group_ids      = [aws_security_group.elasticsearch_bastion.id]
   subnet_id                   = tolist(data.aws_subnet_ids.default.ids)[0]
   key_name                    = var.keypair_name
   associate_public_ip_address = true

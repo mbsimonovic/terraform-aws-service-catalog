@@ -3,17 +3,6 @@
 # These variables are expected to be passed in by the operator when calling this example terraform module.
 # ---------------------------------------------------------------------------------------------------------------------
 
-variable "aws_region" {
-  description = "The AWS region in which all resources will be created."
-  type        = string
-}
-
-# TODO: why is this not in other modules?
-variable "aws_account_id" {
-  description = "The ID of the AWS Account in which to create resources."
-  type        = string
-}
-
 variable "domain_name" {
   description = "The name of the Elasticsearch cluster. It must be unique to your account and region, start with a lowercase letter, contain between 3 and 28 characters, and contain only lowercase letters a-z, the numbers 0-9, and the hyphen (-)."
   type        = string
@@ -22,14 +11,18 @@ variable "domain_name" {
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL PARAMETERS
 # These variables are set with defaults to make running the example easier.
-# E.g., This example uses 3 dedicated master nodes and runs the 7.4 version
-# of Elasticsearch.
 # ---------------------------------------------------------------------------------------------------------------------
 
-variable "elasticsearch_version" {
-  description = "The version of Elasticsearch to deploy (e.g., 7.4)."
+variable "aws_region" {
+  description = "The AWS region in which all resources will be created."
   type        = string
-  default     = "7.4"
+  default     = "eu-west-1"
+}
+
+variable "elasticsearch_version" {
+  description = "The version of Elasticsearch to deploy (e.g., 7.7)."
+  type        = string
+  default     = "7.7"
 }
 
 variable "instance_type" {
@@ -41,13 +34,13 @@ variable "instance_type" {
 variable "instance_count" {
   description = "The number of instances to deploy in the Elasticsearch cluster."
   type        = number
-  default     = 2
+  default     = 1
 }
 
 variable "zone_awareness_enabled" {
   description = "Whether to deploy the Elasticsearch nodes across two Availability Zones instead of one. Note that if you enable this, the instance_count MUST be an even number."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "volume_type" {
@@ -68,16 +61,10 @@ variable "vpc_id" {
   default     = null
 }
 
-variable "subnet_ids" {
-  description = "VPC Subnet IDs for the Elasticsearch domain endpoints to be created in. If zone_awareness_enabled is true, the first two subnet ids are used; otherwise only the first one is used."
-  type        = list(string)
-  default     = []
-}
-
 variable "dedicated_master_enabled" {
   description = "Whether to deploy separate nodes specifically for performing cluster management tasks (e.g. tracking number of nodes, monitoring health, replicating changes). This increases the stability of large clusters and is required for clusters with more than 10 nodes. Recommended value: true."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "dedicated_master_type" {
@@ -120,12 +107,6 @@ variable "enable_cloudwatch_alarms" {
   description = "Set to true to enable several basic CloudWatch alarms around CPU usage, memory usage, and disk space usage. If set to true, make sure to specify SNS topics to send notifications to using var.alarms_sns_topic_arns."
   type        = bool
   default     = true
-}
-
-variable "alarm_sns_topic_arns" {
-  description = "ARNs of the SNS topics associated with the CloudWatch alarms for the Elasticsearch cluster."
-  type        = list(string)
-  default     = []
 }
 
 variable "keypair_name" {

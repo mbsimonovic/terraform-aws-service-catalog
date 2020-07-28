@@ -54,7 +54,7 @@ variable "subnet_ids" {
 variable "elasticsearch_version" {
   description = "The version of Elasticsearch to deploy."
   type        = string
-  default     = "7.4"
+  default     = "7.7"
 }
 
 variable "dedicated_master_enabled" {

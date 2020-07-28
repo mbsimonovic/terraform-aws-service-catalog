@@ -27,9 +27,7 @@ endif::[]
 image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
 image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
 
-This folder contains code to deploy an Amazon Elasticsearch Service cluster managed by AWS.
-
-Amazon Elasticsearch Service makes it easy to deploy, operate, and scale Elasticsearch. It is a fully managed service that delivers Elasticsearch’s easy-to-use APIs and real-time capabilities along with the availability, scalability, and security required by production workloads. For more information about Elasticsearch and its uses, see the http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/what-is-amazon-elasticsearch-service.html[Amazon Elasticsearch Service developer guide] and the https://aws.amazon.com/elasticsearch-service/getting-started/[Getting Started] page.
+This folder contains code to deploy an Amazon Elasticsearch Service cluster. See the http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/what-is-amazon-elasticsearch-service.html[Amazon Elasticsearch Service developer guide] and the https://aws.amazon.com/elasticsearch-service/getting-started/[Getting Started] page for more information.
 
 toc::[]
 
@@ -37,9 +35,10 @@ toc::[]
 
 == Features
 
-* Deploy a fully-managed native Elasticsearch cluster in a VPC
-* Use VPC-based security. _Note:_ If you use AWS's default VPC, which contains public subnets, your Elasticsearch cluster is still only accessible from within the VPC. It is not publicly accessible. https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-vpc.html#es-vpc-security[See these docs] for more information.
-* Leverage zone awareness, i.e., deployment of Elasticsearch nodes across Availability Zones
+* A fully-managed native Elasticsearch cluster in a VPC
+* A fully functional Kibana UI
+* VPC-based security
+* Zone awareness, i.e., deployment of Elasticsearch nodes across Availability Zones
 * Automatic nightly snapshots
 * CloudWatch Alarms for alerting when CPU, memory, and disk metrics exceed certain thresholds
 

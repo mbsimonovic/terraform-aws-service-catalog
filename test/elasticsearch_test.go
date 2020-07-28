@@ -17,11 +17,11 @@ func TestElasticsearch(t *testing.T) {
 	t.Parallel()
 
 	// Uncomment the items below to skip certain parts of the test
-	os.Setenv("TERRATEST_REGION", "eu-west-1")
-	os.Setenv("SKIP_setup", "true")
-	os.Setenv("SKIP_deploy_terraform", "true")
-	//os.Setenv("SKIP_validate_cluster", "true")
-	//os.Setenv("SKIP_cleanup", "true")
+	// os.Setenv("TERRATEST_REGION", "eu-west-1")
+	// os.Setenv("SKIP_setup", "true")
+	// os.Setenv("SKIP_deploy_terraform", "true")
+	// os.Setenv("SKIP_validate_cluster", "true")
+	os.Setenv("SKIP_cleanup", "true")
 
 	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../", "examples/for-learning-and-testing/data-stores/elasticsearch")
 
@@ -67,7 +67,16 @@ func TestElasticsearch(t *testing.T) {
 		ip := terraform.OutputRequired(t, terraformOptions, "aws_instance_public_ip")
 
 		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
-		curlResponse := testSSHCommand(t, ip, "ubuntu", awsKeyPair, fmt.Sprintf("curl -XGET %s/_cluster/settings?pretty=true", endpoint))
+		curlResponse := testSSHCommand(
+			t,
+			ip,
+			"ubuntu",
+			awsKeyPair,
+			fmt.Sprintf(
+				"curl --silent --location --fail --show-error -XGET %s/_cluster/settings?pretty=true",
+				fmt.Sprintf("https://%s", endpoint),
+			),
+		)
 		logger.Log(t, "%s", curlResponse)
 	})
 }
@@ -80,8 +89,7 @@ func createElasticsearchTerraformOptions(
 	awsKeyPairName string,
 ) *terraform.Options {
 	terraformOptions := createBaseTerraformOptions(t, terraformDir, awsRegion)
-	terraformOptions.Vars["aws_account_id"] = "087285199408"
-	terraformOptions.Vars["domain_name"] = fmt.Sprintf("acme-stage-aes-%s", uniqueID)
+	terraformOptions.Vars["domain_name"] = fmt.Sprintf("acme-test-aes-%s", uniqueID)
 	terraformOptions.Vars["keypair_name"] = awsKeyPairName
 	return terraformOptions
 }
