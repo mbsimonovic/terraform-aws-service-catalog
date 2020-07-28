@@ -17,9 +17,15 @@ module "mysql_rds" {
   source = "../../../../modules/data-stores/rds"
 
   name           = local.cluster_name
+  db_name        = var.db_name
+  port           = var.port
+  engine         = var.engine
   engine_version = "8.0.17"
 
-  db_config_secrets_manager_id = aws_secretsmanager_secret_version.db_config.secret_id
+  master_username = var.master_username
+  master_password = var.master_password
+
+  db_config_secrets_manager_id = var.db_config_secrets_manager_id
 
   vpc_id     = data.aws_vpc.default.id
   subnet_ids = data.aws_subnet_ids.default.ids
@@ -73,28 +79,4 @@ module "dashboard" {
       module.mysql_rds.metric_widget_rds_write_latency,
     ]
   }
-}
-
-# ----------------------------------------------------------------------------------------------------------------------
-# CREATE A SECRET IN AWS SECRETS MANAGER
-# IMPORTANT: For testing purposes only! In a production context, create the secret outside of Terraform.
-# See: https://blog.gruntwork.io/a-comprehensive-guide-to-managing-secrets-in-your-terraform-code-1d586955ace1
-# ----------------------------------------------------------------------------------------------------------------------
-
-resource "random_string" "secret_id" {
-  length  = 8
-  special = false
-}
-
-resource "aws_secretsmanager_secret" "db_config" {
-  name = "${random_string.secret_id.result}-db-config"
-}
-
-resource "aws_secretsmanager_secret" "master_password_secret" {
-  name = "${random_string.secret_id.result}-rds-master-password"
-}
-
-resource "aws_secretsmanager_secret_version" "db_config" {
-  secret_id     = aws_secretsmanager_secret.db_config.id
-  secret_string = local.db_config
 }

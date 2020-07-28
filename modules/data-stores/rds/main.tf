@@ -62,18 +62,27 @@ locals {
   # The primary_endpoint is of the format <host>:<port>. This output returns just the host part.
   primary_host = split(":", module.database.primary_endpoint)[0]
 
-  # Read database info from the secrets manager in a common JSON encoded format. 
-  # See: https://docs.aws.amazon.com/secretsmanager/latest/userguide/best-practices.html
-  db_config       = var.master_password == null ? jsondecode(data.aws_secretsmanager_secret_version.db_config[0].secret_string) : null
+  # The config data below can be provided in either a variable or from AWS Secrets Manager
+  # The variable value is read first. If null, we will read  the values from the secrets manager
+  # in JSON, as described here:
+  #
+  #   https://docs.aws.amazon.com/secretsmanager/latest/userguide/best-practices.html
+  #
+  #
+  db_config       = var.db_config_secrets_manager_id != null ? jsondecode(data.aws_secretsmanager_secret_version.db_config[0].secret_string) : null
   engine          = var.engine != null ? var.engine : local.db_config.engine
   port            = var.port != null ? var.port : local.db_config.port
-  db_name         = var.db_name != null ? var.db_name : local.db_config.db_name
+  db_name         = var.db_name != null ? var.db_name : local.db_config.dbname
   master_username = var.master_username != null ? var.master_username : local.db_config.username
   master_password = var.master_password != null ? var.master_password : local.db_config.password
 }
 
 data "aws_secretsmanager_secret_version" "db_config" {
-  count     = var.master_password == null ? 1 : 0
+  # Ideally, we would check if var.db_config_secrets_manager_id is not null. However
+  # this doesn't work because the secret itself  might itself be created by the calling
+  # Terraform code, which causes an error with `count`. Instead, we assume that if
+  # master_password is not provided, we should read from secrets manager.
+  count     = var.db_config_secrets_manager_id != null ? 1 : 0
   secret_id = var.db_config_secrets_manager_id
 }
 
@@ -293,4 +302,3 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 data "aws_caller_identity" "current" {}
-

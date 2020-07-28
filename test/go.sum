@@ -203,6 +203,8 @@ github.com/gruntwork-io/gruntwork-cli v0.6.1 h1:sPeSdsn3TU1PJMPUHJRFfrxTBHNF0Y0O
 github.com/gruntwork-io/gruntwork-cli v0.6.1/go.mod h1:jp6Z7NcLF2avpY8v71fBx6hds9eOFPELSuD/VPv7w00=
 github.com/gruntwork-io/terratest v0.28.3 h1:7nrfpOp35m7l+6y9l8UrR+qHCnrxizjoX/d6HWFyRsY=
 github.com/gruntwork-io/terratest v0.28.3/go.mod h1:lTntpr4gGDzb2YEQ1GTjC5G/xw9ixMwxGmZkPCk1O0A=
+github.com/gruntwork-io/terratest v0.28.11-0.20200728190946-e3a5c9acd67c h1:QuujsFo7HSTE8E8MV7EbudQpM/U915k+0uwO17GoIv8=
+github.com/gruntwork-io/terratest v0.28.11-0.20200728190946-e3a5c9acd67c/go.mod h1:PkVylPuUNmItkfOTwSiFreYA4FkanK8AluBuNeGxQOw=
 github.com/hashicorp/golang-lru v0.5.0/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
 github.com/hashicorp/golang-lru v0.5.1/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=
 github.com/hashicorp/golang-lru v0.5.3/go.mod h1:iADmTwqILo4mZ8BN3D2Q6+9jd8WM5uGBxy+E8yxSoD4=

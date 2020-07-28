@@ -1,6 +1,7 @@
 package test
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 	"testing"
@@ -9,6 +10,7 @@ import (
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
+	"github.com/stretchr/testify/require"
 )
 
 func TestRds(t *testing.T) {
@@ -26,6 +28,11 @@ func TestRds(t *testing.T) {
 	defer test_structure.RunTestStage(t, "cleanup", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
 		terraform.Destroy(t, terraformOptions)
+
+		awsRegion := test_structure.LoadString(t, testFolder, "region")
+		secretID := test_structure.LoadString(t, testFolder, "secretID")
+		err := aws.DeleteSecret(t, awsRegion, secretID, true)
+		require.NoError(t, err)
 	})
 
 	test_structure.RunTestStage(t, "setup", func() {
@@ -35,24 +42,33 @@ func TestRds(t *testing.T) {
 		uniqueID := strings.ToLower(random.UniqueId())
 		test_structure.SaveString(t, testFolder, "uniqueID", uniqueID)
 
+		dbName := "rds"
+		dbUsername := "rds"
 		dbPassword := fmt.Sprintf("%s-%s", random.UniqueId(), random.UniqueId())
+
+		dbConfig := getDbConfigJSON(t, dbName, dbUsername, dbPassword)
+		secretID, err := aws.CreateSecretStringWithDefaultKey(t, awsRegion, "Test description", "test-name-"+uniqueID, dbConfig)
+		require.NoError(t, err)
+		test_structure.SaveString(t, testFolder, "dbName", dbName)
+		test_structure.SaveString(t, testFolder, "username", dbUsername)
 		test_structure.SaveString(t, testFolder, "password", dbPassword)
+		test_structure.SaveString(t, testFolder, "secretID", secretID)
 	})
 
 	test_structure.RunTestStage(t, "deploy_terraform", func() {
 		awsRegion := test_structure.LoadString(t, testFolder, "region")
 		uniqueID := test_structure.LoadString(t, testFolder, "uniqueID")
-		dbPassword := test_structure.LoadString(t, testFolder, "password")
+		secretID := test_structure.LoadString(t, testFolder, "secretID")
 
-		terraformOptions := createRDSTerraformOptions(t, testFolder, awsRegion, uniqueID, dbPassword)
+		terraformOptions := createRDSTerraformOptions(t, testFolder, awsRegion, uniqueID, secretID)
 		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
 
 		terraform.InitAndApply(t, terraformOptions)
 	})
 
 	test_structure.RunTestStage(t, "validate", func() {
-		dbName := "rds"
-		dbUsername := "rds"
+		dbName := test_structure.LoadString(t, testFolder, "dbName")
+		dbUsername := test_structure.LoadString(t, testFolder, "username")
 		dbPassword := test_structure.LoadString(t, testFolder, "password")
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
 		dbEndpoint := terraform.OutputRequired(t, terraformOptions, "primary_host")
@@ -74,13 +90,34 @@ func createRDSTerraformOptions(
 	terraformDir string,
 	awsRegion string,
 	uniqueID string,
-	password string,
+	dbConfigSecretID string,
 ) *terraform.Options {
 	name := fmt.Sprintf("test-rds-%s", uniqueID)
 	terraformOptions := createBaseTerraformOptions(t, terraformDir, awsRegion)
 	terraformOptions.Vars["name"] = name
-	terraformOptions.Vars["db_name"] = "rds"
-	terraformOptions.Vars["master_username"] = "rds"
-	terraformOptions.Vars["master_password"] = password
+	terraformOptions.Vars["db_config_secrets_manager_id"] = dbConfigSecretID
 	return terraformOptions
+}
+
+func getDbConfigJSON(t *testing.T, dbName, username, password string) string {
+	type DbConfig struct {
+		Engine   string `json:"engine"`
+		Username string `json:"username"`
+		Password string `json:"password"`
+		Dbname   string `json:"dbname"`
+		Port     string `json:"port"`
+	}
+
+	config := DbConfig{
+		Engine:   "mysql",
+		Username: username,
+		Password: password,
+		Dbname:   dbName,
+		Port:     "3306",
+	}
+
+	result, err := json.Marshal(config)
+	require.NoError(t, err)
+
+	return string(result)
 }
