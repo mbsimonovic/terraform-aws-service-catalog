@@ -34,7 +34,7 @@ module "ecs_service" {
   # the initial number of Tasks, and auto scaling is used to determine the size after that.
   use_auto_scaling    = var.use_auto_scaling
   min_number_of_tasks = var.use_auto_scaling ? var.min_number_of_tasks : null
-  max_number_of_tasks = var.use_auto_scaling ? var.max_number_of_tasks : null # The resulting canary_container_definition is identical to local.container_definition, except its image version is newer
+  max_number_of_tasks = var.use_auto_scaling ? var.max_number_of_tasks : null 
 
   deployment_maximum_percent         = var.deployment_maximum_percent
   deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
