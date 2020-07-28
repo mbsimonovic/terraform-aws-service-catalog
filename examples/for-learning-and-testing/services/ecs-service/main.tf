@@ -75,7 +75,7 @@ module "ecs_service" {
 
   desired_number_of_tasks = var.desired_number_of_tasks
   max_number_of_tasks     = var.max_number_of_tasks
-  min_number_of_tasks     = var.min_number_of_tasks
+  min_number_of_tasks     = 0
 
   ecs_node_port_mappings = var.ecs_node_port_mappings
 
@@ -137,7 +137,8 @@ resource "aws_security_group_rule" "ecs_cluster_instances_webserver" {
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = var.ecs_instance_security_group_id
 }
-Demonstrates adding a security group rule allowing access to port 22 on the container instance. You would want to do this if you need to debug your container instances by ssh'ing into them
+
+# Demonstrates adding a security group rule allowing access to port 22 on the container instance. You would want to do this if you need to debug your container instances by ssh'ing into them
 resource "aws_security_group_rule" "ecs_cluster_instance_ssh" {
   type              = "ingress"
   from_port         = 22
