@@ -6,12 +6,11 @@ import (
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/aws"
-	http_helper "github.com/gruntwork-io/terratest/modules/http-helper"
 	"github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/random"
+	"github.com/gruntwork-io/terratest/modules/shell"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
-	"github.com/stretchr/testify/require"
 )
 
 func TestElasticsearch(t *testing.T) {
@@ -121,21 +120,19 @@ func TestElasticsearch(t *testing.T) {
 				endpoint := terraform.OutputRequired(t, terraformOptions, "cluster_endpoint")
 				terraform.OutputRequired(t, terraformOptions, "cluster_security_group_id")
 
-				err := http_helper.HttpGetWithRetryWithCustomValidationE(
-					t,
-					fmt.Sprintf("https://%s", endpoint),
-					nil,
-					3,
-					1,
-					func(statusCode int, body string) bool {
-						return statusCode == 200 && strings.Contains(body, "example static website")
+				curl := shell.Command{
+					Command: "curl",
+					Args: []string{
+						"--silent",
+						"--location",
+						"--fail",
+						"--show-error",
+						"-XGET",
+						fmt.Sprintf("https://%s/_cluster/settings?pretty=true", endpoint),
 					},
-				)
-				require.NoError(t, err)
+				}
 
-				// 				fmt.Sprintf(
-				// 					"curl --silent --location --fail --show-error -XGET %s/_cluster/settings?pretty=true",
-				// 					fmt.Sprintf("https://%s", endpoint))
+				shell.RunCommand(t, curl)
 			},
 
 			func() {
