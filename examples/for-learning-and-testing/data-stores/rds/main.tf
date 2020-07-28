@@ -17,12 +17,9 @@ module "mysql_rds" {
   source = "../../../../modules/data-stores/rds"
 
   name           = local.cluster_name
-  engine         = "mysql"
   engine_version = "8.0.17"
-  port           = 3306
 
-  master_username                    = var.master_username
-  master_password_secrets_manager_id = aws_secretsmanager_secret_version.master_password.secret_id
+  db_config_secrets_manager_id = aws_secretsmanager_secret_version.db_config.secret_id
 
   vpc_id     = data.aws_vpc.default.id
   subnet_ids = data.aws_subnet_ids.default.ids
@@ -41,7 +38,6 @@ module "mysql_rds" {
   # and no automatic backups. You'll want to tweak all of these settings for production usage.
   instance_type = "db.t3.micro"
 
-  db_name                 = var.db_name
   allocated_storage       = 10
   multi_az                = false
   backup_retention_period = 0
@@ -50,6 +46,13 @@ module "mysql_rds" {
 
 locals {
   cluster_name = "${var.name}-mysql"
+  db_config = jsonencode({
+    engine   = "mysql"
+    port     = "3306"
+    username = var.master_username
+    password = var.master_password
+    db_name  = var.db_name
+  })
 }
 
 
@@ -77,16 +80,20 @@ module "dashboard" {
 # IMPORTANT: For testing purposes only! In a production context, create the secret outside of Terraform.
 # ----------------------------------------------------------------------------------------------------------------------
 
-resource "random_string" "random" {
+resource "random_string" "secret_id" {
   length  = 8
   special = false
 }
 
-resource "aws_secretsmanager_secret" "master_password_secret" {
-  name = "${random_string.random.result}-rds-master-password"
+resource "aws_secretsmanager_secret" "db_config" {
+  name = "${random_string.secret_id.result}-db-config"
 }
 
-resource "aws_secretsmanager_secret_version" "master_password" {
-  secret_id     = aws_secretsmanager_secret.master_password_secret.id
-  secret_string = var.master_password
+resource "aws_secretsmanager_secret" "master_password_secret" {
+  name = "${random_string.secret_id.result}-rds-master-password"
+}
+
+resource "aws_secretsmanager_secret_version" "db_config" {
+  secret_id     = aws_secretsmanager_secret.db_config.id
+  secret_string = local.db_config
 }
