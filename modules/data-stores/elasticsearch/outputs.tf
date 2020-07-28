@@ -15,5 +15,5 @@ output "cluster_endpoint" {
 
 output "cluster_security_group_id" {
   description = "The ID of the security group created by this module for securing the Elasticsearch cluster."
-  value       = aws_security_group.elasticsearch_cluster.id
+  value       = aws_security_group.elasticsearch_cluster[0].id
 }

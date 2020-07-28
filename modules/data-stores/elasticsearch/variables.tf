@@ -37,19 +37,31 @@ variable "zone_awareness_enabled" {
 
 # Network configuration
 
-variable "vpc_id" {
-  description = "The id of the VPC to deploy into. It must be in the same region as the Elasticsearch domain and its tenancy must be set to Default. If zone_awareness_enabled is false, the Elasticsearch cluster will have an endpoint in one subnet of the VPC; otherwise it will have endpoints in two subnets."
-  type        = string
-}
-
-variable "subnet_ids" {
-  description = "VPC Subnet IDs for the Elasticsearch domain endpoints to be created in. If zone_awareness_enabled is true, the first two provided subnet ids are used; otherwise only the first one is used."
-  type        = list(string)
+variable "is_public" {
+  description = "Whether the cluster is publicly accessible."
+  type        = bool
+  default     = false
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL PARAMETERS
 # ---------------------------------------------------------------------------------------------------------------------
+
+# Network configuration
+
+variable "vpc_id" {
+  description = "The id of the VPC to deploy into. It must be in the same region as the Elasticsearch domain and its tenancy must be set to Default. If zone_awareness_enabled is false, the Elasticsearch cluster will have an endpoint in one subnet of the VPC; otherwise it will have endpoints in two subnets."
+  type        = string
+  default     = null
+}
+
+variable "subnet_ids" {
+  description = "VPC Subnet IDs for the Elasticsearch domain endpoints to be created in. If zone_awareness_enabled is true, the first two provided subnet ids are used; otherwise only the first one is used."
+  type        = list(string)
+  default     = []
+}
+
+# Cluster configuration
 
 variable "elasticsearch_version" {
   description = "The version of Elasticsearch to deploy."

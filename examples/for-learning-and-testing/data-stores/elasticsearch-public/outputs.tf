@@ -17,8 +17,3 @@ output "cluster_security_group_id" {
   description = "The ID of the security group created by this module for securing the Elasticsearch cluster."
   value       = module.elasticsearch.cluster_security_group_id
 }
-
-output "aws_instance_public_ip" {
-  description = "The public IP of the bastion host which you can SSH into to run curl commands against the Elasticsearch cluster."
-  value       = aws_instance.server.public_ip
-}

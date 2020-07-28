@@ -37,17 +37,20 @@ resource "aws_elasticsearch_domain" "cluster" {
     dedicated_master_count   = var.dedicated_master_count
   }
 
-  vpc_options {
+  dynamic "vpc_options" {
+    for_each = (var.is_public ? [] : list(var.is_public))
     # Elasticsearch requires you to specify exactly 1 or 2 subnets, depending on whether zone awareness is enabled.
-    subnet_ids = slice(
-      var.subnet_ids,
-      0,
-      var.zone_awareness_enabled ? 2 : 1,
-    )
-    security_group_ids = [aws_security_group.elasticsearch_cluster.id]
+    content {
+      subnet_ids = slice(
+        var.subnet_ids,
+        0,
+        var.zone_awareness_enabled ? 2 : 1,
+      )
+      security_group_ids = [aws_security_group.elasticsearch_cluster[0].id]
+    }
   }
 
-  access_policies = data.aws_iam_policy_document.elasticsearch_access_policy.json
+  access_policies = data.aws_iam_policy_document.elasticsearch_vpc_access_policy.json
 
   # We always turn on EBS volumes to ensure there is enough disk space and
   # IOPS available to the node than is directly available on the node itself.
@@ -99,7 +102,7 @@ resource "aws_elasticsearch_domain" "cluster" {
 #    provides a reasonable balance between security and usability.
 # ---------------------------------------------------------------------------------------------------------------------
 
-data "aws_iam_policy_document" "elasticsearch_access_policy" {
+data "aws_iam_policy_document" "elasticsearch_vpc_access_policy" {
   statement {
     effect  = "Allow"
     actions = ["es:*"]
@@ -116,27 +119,28 @@ locals {
 }
 
 resource "aws_security_group" "elasticsearch_cluster" {
+  count  = var.is_public ? 0 : 1
   name   = var.domain_name
   vpc_id = var.vpc_id
 }
 
 resource "aws_security_group_rule" "allow_inbound_https_from_subnets" {
-  count             = length(var.allow_connections_from_cidr_blocks) > 0 ? 1 : 0
+  count             = var.is_public == false ? (length(var.allow_connections_from_cidr_blocks) > 0 ? 1 : 0) : 0
   type              = "ingress"
   from_port         = local.https_port
   to_port           = local.https_port
   protocol          = "tcp"
-  security_group_id = aws_security_group.elasticsearch_cluster.id
+  security_group_id = aws_security_group.elasticsearch_cluster[0].id
   cidr_blocks       = var.allow_connections_from_cidr_blocks
 }
 
 resource "aws_security_group_rule" "allow_inbound_https_from_security_group" {
-  count                    = length(var.allow_connections_from_security_groups)
+  count                    = var.is_public == false ? length(var.allow_connections_from_security_groups) : 0
   type                     = "ingress"
   from_port                = local.https_port
   to_port                  = local.https_port
   protocol                 = "tcp"
-  security_group_id        = aws_security_group.elasticsearch_cluster.id
+  security_group_id        = aws_security_group.elasticsearch_cluster[0].id
   source_security_group_id = tolist(var.allow_connections_from_security_groups)[count.index]
 }
 
