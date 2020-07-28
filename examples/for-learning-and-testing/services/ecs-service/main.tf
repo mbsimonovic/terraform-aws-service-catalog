@@ -128,7 +128,7 @@ resource "aws_alb_listener_rule" "path_based_example" {
   }
 }
 # Demonstrates adding a security group rule allowing access to port 80 on the container instances. These instances run the ecs task
-# which also binds to port 80 allowing them to serve as web hosts.
+# which also binds to port 80 allowing them to serve as web hosts
 resource "aws_security_group_rule" "ecs_cluster_instances_webserver" {
   type              = "ingress"
   from_port         = 80
