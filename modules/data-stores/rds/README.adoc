@@ -83,8 +83,7 @@ If you want to deploy this repo in production, check out the following resources
   code optimized for direct usage in production. This is code from the
   https://gruntwork.io/reference-architecture/:[Gruntwork Reference Architecture], and it shows you how we build an
   end-to-end, integrated tech stack on top of the Gruntwork Service Catalog.
-
-
+* link:core-concepts.md#how-do-i-pass-database-configuration-securely[How do I pass database configuration securely?]
 
 
 == Operate
