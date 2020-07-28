@@ -35,6 +35,10 @@ variable "zone_awareness_enabled" {
   type        = bool
 }
 
+# ---------------------------------------------------------------------------------------------------------------------
+# OPTIONAL PARAMETERS
+# ---------------------------------------------------------------------------------------------------------------------
+
 # Network configuration
 
 variable "is_public" {
@@ -42,12 +46,6 @@ variable "is_public" {
   type        = bool
   default     = false
 }
-
-# ---------------------------------------------------------------------------------------------------------------------
-# OPTIONAL PARAMETERS
-# ---------------------------------------------------------------------------------------------------------------------
-
-# Network configuration
 
 variable "vpc_id" {
   description = "The id of the VPC to deploy into. It must be in the same region as the Elasticsearch domain and its tenancy must be set to Default. If zone_awareness_enabled is false, the Elasticsearch cluster will have an endpoint in one subnet of the VPC; otherwise it will have endpoints in two subnets."
@@ -103,6 +101,12 @@ variable "allow_connections_from_security_groups" {
   description = "The list of IDs or Security Groups to allow network access to Aurora from. All security groups must either be in the VPC specified by var.vpc_id, or a peered VPC with the VPC specified by var.vpc_id. One of var.allow_connections_from_cidr_blocks or var.allow_connections_from_security_groups must be specified for the database to be reachable."
   type        = set(string)
   default     = []
+}
+
+variable "advanced_options" {
+  description = "Key-value string pairs to specify advanced configuration options. Note that the values for these configuration options must be strings (wrapped in quotes)."
+  type        = map
+  default     = {}
 }
 
 variable "automated_snapshot_start_hour" {

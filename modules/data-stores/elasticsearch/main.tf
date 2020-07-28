@@ -65,9 +65,7 @@ resource "aws_elasticsearch_domain" "cluster" {
     automated_snapshot_start_hour = var.automated_snapshot_start_hour
   }
 
-  advanced_options = {
-    "rest.action.multi.allow_explicit_index" = "true"
-  }
+  advanced_options = var.advanced_options
 
   node_to_node_encryption {
     enabled = true
