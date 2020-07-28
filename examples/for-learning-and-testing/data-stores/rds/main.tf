@@ -78,6 +78,7 @@ module "dashboard" {
 # ----------------------------------------------------------------------------------------------------------------------
 # CREATE A SECRET IN AWS SECRETS MANAGER
 # IMPORTANT: For testing purposes only! In a production context, create the secret outside of Terraform.
+# See: https://blog.gruntwork.io/a-comprehensive-guide-to-managing-secrets-in-your-terraform-code-1d586955ace1
 # ----------------------------------------------------------------------------------------------------------------------
 
 resource "random_string" "secret_id" {
