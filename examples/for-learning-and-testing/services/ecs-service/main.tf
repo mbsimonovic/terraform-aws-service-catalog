@@ -75,7 +75,7 @@ module "ecs_service" {
 
   desired_number_of_tasks = var.desired_number_of_tasks
   max_number_of_tasks     = var.max_number_of_tasks
-  min_number_of_tasks     = 0
+  min_number_of_tasks     = var.min_number_of_tasks
 
   ecs_node_port_mappings = var.ecs_node_port_mappings
 
