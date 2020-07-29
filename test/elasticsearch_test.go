@@ -170,6 +170,8 @@ func createElasticsearchTerraformOptions(
 ) *terraform.Options {
 	terraformOptions := createBaseTerraformOptions(t, terraformDir, awsRegion)
 	terraformOptions.Vars["domain_name"] = fmt.Sprintf("acme-test-aes-%s", uniqueID)
-	terraformOptions.Vars["keypair_name"] = awsKeyPairName
+	if awsKeyPairName != "" {
+		terraformOptions.Vars["keypair_name"] = awsKeyPairName
+	}
 	return terraformOptions
 }
