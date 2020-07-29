@@ -166,6 +166,7 @@ func validateECSCluster(t *testing.T, testFolder string) {
 	require.Greater(t, instanceCount, 0)
 }
 
+// Verify that we can deploy an ecs service onto the ECS cluster that was previously created 
 func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestFolder string) {
 
 	awsRegion := test_structure.LoadString(t, ecsClusterTestFolder, "region")
