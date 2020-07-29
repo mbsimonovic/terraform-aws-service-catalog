@@ -64,7 +64,8 @@ function install_ecs_cluster {
         assert_not_empty "$key" "$2"
         ecs_cluster_version="$2"
         shift
-        ;;--module-security-version)
+        ;;
+      --module-security-version)
         assert_not_empty "$key" "$2"
         module_security_version="$2"
         shift
