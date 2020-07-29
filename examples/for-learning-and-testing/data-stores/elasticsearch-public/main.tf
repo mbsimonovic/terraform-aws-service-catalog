@@ -35,7 +35,7 @@ module "elasticsearch" {
 
   # Network Configurations
 
-  # This example creates a publicly accessible cluster.
+  # This example creates a publicly accessible cluster to make testing easier. In prod, you will most likely want to set is_public to false and only allow access from within your VPC.
   is_public          = true
   iam_principal_arns = [data.aws_caller_identity.current.arn]
 
