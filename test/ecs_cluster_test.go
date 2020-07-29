@@ -18,7 +18,8 @@ import (
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 )
 
-const MinsToWaitForClusterInstances = 4
+// In order to give EC2 container instances long enough to register themselves with the cluster, we wait a configurable number of minutes
+const MinsToWaitForClusterInstances = 3
 
 func TestEcsCluster(t *testing.T) {
 	// Uncomment the items below to skip certain parts of the test
@@ -50,14 +51,14 @@ func TestEcsCluster(t *testing.T) {
 
 	// The ECS service needs to be torn down prior to the cluster - otherwise AWS will return an error if you try to destroy a cluster that
 	// still has a service defined within it
-	defer test_structure.RunTestStage(t, "destroy_service", func() {
-		ecsServiceTerraformOptions := test_structure.LoadTerraformOptions(t, ecsServiceTestFolder)
-		terraform.Destroy(t, ecsServiceTerraformOptions)
-	})
-
 	defer test_structure.RunTestStage(t, "destroy_cluster", func() {
 		ecsClusterTerraformOptions := test_structure.LoadTerraformOptions(t, ecsClusterTestFolder)
 		terraform.Destroy(t, ecsClusterTerraformOptions)
+	})
+
+	defer test_structure.RunTestStage(t, "destroy_service", func() {
+		ecsServiceTerraformOptions := test_structure.LoadTerraformOptions(t, ecsServiceTestFolder)
+		terraform.Destroy(t, ecsServiceTerraformOptions)
 	})
 
 	test_structure.RunTestStage(t, "build_ami", func() {
@@ -165,7 +166,6 @@ func validateECSCluster(t *testing.T, testFolder string) {
 	require.Greater(t, instanceCount, 0)
 }
 
-// Verify that we can deploy an ecs service onto the ECS cluster that was previously created 
 func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestFolder string) {
 
 	awsRegion := test_structure.LoadString(t, ecsClusterTestFolder, "region")
