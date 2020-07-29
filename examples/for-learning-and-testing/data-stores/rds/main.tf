@@ -52,13 +52,6 @@ module "mysql_rds" {
 
 locals {
   cluster_name = "${var.name}-mysql"
-  db_config = jsonencode({
-    engine   = "mysql"
-    port     = "3306"
-    username = var.master_username
-    password = var.master_password
-    db_name  = var.db_name
-  })
 }
 
 
