@@ -24,14 +24,14 @@ module "ecs_service" {
   ecs_cluster_arn  = var.ecs_cluster_arn
 
   ecs_task_container_definitions = local.container_definitions
-  desired_number_of_tasks = var.desired_number_of_tasks
-  
-  ecs_task_definition_canary     = local.has_canary ? local.canary_container_definitions : null
+  desired_number_of_tasks        = var.desired_number_of_tasks
+
+  ecs_task_definition_canary            = local.has_canary ? local.canary_container_definitions : null
   desired_number_of_canary_tasks_to_run = local.has_canary ? var.desired_number_of_canary_tasks : 0
 
   use_auto_scaling    = var.use_auto_scaling
   min_number_of_tasks = var.use_auto_scaling ? var.min_number_of_tasks : null
-  max_number_of_tasks = var.use_auto_scaling ? var.max_number_of_tasks : null 
+  max_number_of_tasks = var.use_auto_scaling ? var.max_number_of_tasks : null
 
   deployment_maximum_percent         = var.deployment_maximum_percent
   deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
@@ -67,7 +67,7 @@ locals {
 
   container_definitions = jsonencode(var.container_definitions)
 
-  has_canary = var.canary_container_definitions != null ? true : false
+  has_canary                   = var.canary_container_definitions != null ? true : false
   canary_container_definitions = local.has_canary ? jsonencode(var.canary_container_definitions) : null
 
   secret_manager_arns = flatten([
