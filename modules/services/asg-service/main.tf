@@ -181,21 +181,22 @@ data "aws_iam_policy_document" "instance_role" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_alb_target_group" "service" {
-  for_each = var.server_ports
+  for_each = local.target_groups
 
-  name     = var.name
-  port     = each.value.server_port
-  protocol = each.value.health_check_protocol
+  name     = "${var.name}-${each.key}"
+  port     = each.value.port
+  protocol = each.value.protocol
   vpc_id   = var.vpc_id
 
   health_check {
-    healthy_threshold   = 2
-    unhealthy_threshold = 2
-    timeout             = 3
-    interval            = 10
-    port                = "traffic-port"
-    protocol            = each.value.health_check_protocol
-    path                = each.value.health_check_path
+    port     = "traffic-port"
+    protocol = each.value.protocol
+    path     = each.value.path
+
+    healthy_threshold   = each.value.healthy_threshold
+    unhealthy_threshold = each.value.unhealthy_threshold
+    interval            = each.value.interval
+    timeout             = each.value.timeout
   }
 
   lifecycle {
@@ -355,28 +356,43 @@ locals {
 
   enable_ssh_grunt = var.ssh_grunt_iam_group == "" && var.ssh_grunt_iam_group_sudo == "" ? false : true
 
-  server_ports = [for key, value in var.server_ports : value.server_port]
-
-  listeners_target_group_array = [
-    for target_group in aws_alb_target_group.service :
-    target_group.arn
-  ]
-
   listeners_target_group = flatten([
     for target_group in aws_alb_target_group.service : {
       arn = target_group.arn
     }
   ])
 
+  listeners_target_group_array = [
+    for target_group in aws_alb_target_group.service :
+    target_group.arn
+  ]
+
   route53_alarm_configurations = {
     for key, item in var.server_ports :
     key => {
-      domain            = var.domain_name
-      path              = item.health_check_path
-      type              = item.health_check_protocol
-      port              = item.server_port
-      failure_threshold = lookup(item, "failure_threshold", 2)
-      request_interval  = lookup(item, "request_interval", 30)
+      domain = var.domain_name
+      port   = item.server_port
+      path   = lookup(item, "health_check_path", null)
+//      tags   = lookup(item, "tags", null) == null ? {} : item.tags TODO need to fix the module first
+
+      type              = lookup(item, "r53_health_check_type", null)
+      failure_threshold = lookup(item, "r53_health_check_failure_threshold", 2)
+      request_interval  = lookup(item, "r53_health_check_request_interval", 30)
+    }
+  }
+
+  target_groups = {
+    for key, item in var.server_ports :
+    key => {
+      port     = item.server_port
+      path     = lookup(item, "health_check_path", null)
+      protocol = lookup(item, "protocol", "HTTP")
+//      tags     = lookup(item, "tags", null) == null ? {} : item.tags
+
+      healthy_threshold   = lookup(item, "lb_healthy_threshold", 2)
+      unhealthy_threshold = lookup(item, "lb_unhealthy_threshold", 2)
+      interval            = lookup(item, "lb_request_interval", 30)
+      timeout             = lookup(item, "lb_timeout", 10)
     }
   }
 }

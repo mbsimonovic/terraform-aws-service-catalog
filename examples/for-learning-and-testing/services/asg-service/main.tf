@@ -27,14 +27,17 @@ module "asg" {
   subnet_ids = data.aws_subnet_ids.default.ids
 
   server_ports = {
-    "default_http" = {
+    "default-http" = {
       server_port           = "8080"
+      health_check_protocol = "HTTP"
+      health_check_path     = "/"
+    },
+    "another-port" = {
+      server_port           = "3000"
       health_check_protocol = "HTTP"
       health_check_path     = "/"
     }
   }
-
-  create_route53_entry = false
 
   forward_listener_rules = {
     "root-route" = {
@@ -49,6 +52,7 @@ module "asg" {
 
   cloud_init_parts = local.cloud_init
 
+  create_route53_entry = false
   enable_cloudwatch_metrics = false
 }
 

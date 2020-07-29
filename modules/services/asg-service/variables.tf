@@ -46,12 +46,43 @@ variable "min_elb_capacity" {
 }
 
 variable "listener_ports" {
-  description = "The port the EC2 instances listen on for HTTP requests"
+  description = "The ports the EC2 instances listen on for HTTP requests"
   type        = any
   default     = {}
 }
 
 variable "server_ports" {
+  description = ""
+  type        = any
+  default     = {}
+
+  # Each entry in the map supports the following attributes:
+  #
+  # REQUIRED:
+  # - port              [number]      : The port of the endpoint to be checked (e.g. 80).
+  #
+  # OPTIONAL (defaults to value of corresponding module input):
+  # - tags              [map(string)] : A map of tags to apply to the metric alarm. The key is the tag name
+  #                                   and the value is the tag value.
+  #
+  # - r53_health_check_path              [string] : The path that you want Amazon Route 53 to request when
+  #                                                performing health checks (e.g. /status). Defaults to "/".
+  # - r53_health_check_type              [string] : The protocol to use when performing health checks. Valid
+  #                                               values are HTTP, HTTPS, HTTP_STR_MATCH, HTTPS_STR_MATCH,
+  #                                               TCP, CALCULATED and CLOUDWATCH_METRIC. Defaults to HTTP.
+  # - r53_health_check_failure_threshold [number] : The number of consecutive health checks that must pass
+  #                                               or fail for the health check to declare your site up or
+  #                                               down. Defaults to 2.
+  # - r53_health_check_request_interval  [number] : The number of seconds between health checks. Defaults to 30.
+  #
+  # - lb_healthy_threshold   [number] : The number of consecutive health checks *successes* required before
+  #                                    considering an unhealthy target healthy. Defaults to 3.
+  # - lb_unhealthy_threshold [number] : The number of consecutive health check *failures* required before
+  #                                    considering the target unhealthy. Defaults to 3.
+  # - lb_request_interval    [number] : The approximate amount of time, in seconds, between health checks
+  #                                   of an individual target. Defaults to 30.
+  # - lb_timeout             [number] : The amount of time, in seconds, during which no response means a
+  #                                   failed health check. Defaults to 10.
 
 }
 
@@ -276,12 +307,6 @@ variable "listener_arns" {
   type        = map(string)
   default     = {}
 }
-
-//variable "listener_ports" {
-//  description = "The default port numbers on the load balancer to attach listener rules to. You can override this default on a rule-by-rule basis by setting the listener_ports parameter in each rule. The port numbers specified in this variable and the listener_ports parameter must exist in var.listener_arns."
-//  type        = list(string)
-//  default     = []
-//}
 
 variable "default_forward_target_group_arns" {
   description = "The ARN of the Target Group to which to route traffic. Required if using forward rules."
