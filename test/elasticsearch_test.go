@@ -136,8 +136,6 @@ func TestElasticsearch(t *testing.T) {
 			func() {
 				terraformOptions := test_structure.LoadTerraformOptions(t, testFolderPublic)
 				terraform.Destroy(t, terraformOptions)
-				awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolderPublic)
-				aws.DeleteEC2KeyPair(t, awsKeyPair)
 			},
 		},
 	}
