@@ -105,7 +105,7 @@ data "aws_iam_policy_document" "elasticsearch_vpc_access_policy" {
     effect  = "Allow"
     actions = ["es:*"]
     principals {
-      identifiers = ["*"]
+      identifiers = var.iam_principal_arns
       type        = "AWS"
     }
     resources = ["arn:aws:es:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:domain/${var.domain_name}/*"]

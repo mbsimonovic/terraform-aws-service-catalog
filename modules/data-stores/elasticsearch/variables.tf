@@ -103,6 +103,12 @@ variable "allow_connections_from_security_groups" {
   default     = []
 }
 
+variable "iam_principal_arns" {
+  description = "The ARNS of the IAM users and roles to which to allow full access to the Elasticsearch cluster. Setting this to a restricted list is useful when using a public access cluster."
+  type        = list(string)
+  default     = ["*"]
+}
+
 variable "advanced_options" {
   description = "Key-value string pairs to specify advanced configuration options. Note that the values for these configuration options must be strings (wrapped in quotes)."
   type        = map

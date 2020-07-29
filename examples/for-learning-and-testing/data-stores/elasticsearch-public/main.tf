@@ -36,9 +36,15 @@ module "elasticsearch" {
   # Network Configurations
 
   # This example creates a publicly accessible cluster.
-  is_public = true
+  is_public          = true
+  iam_principal_arns = [data.aws_caller_identity.current.arn]
 
   # Since this is just an example, we don't deploy any CloudWatch resources in order to make it faster to deploy, however in
   # production you'll probably want to enable this feature.
   enable_cloudwatch_alarms = false
 }
+
+# ---------------------------------------------------------------------------------------------------------------------
+# GET INFO ABOUT CURRENT USER/ACCOUNT
+# ---------------------------------------------------------------------------------------------------------------------
+data "aws_caller_identity" "current" {}

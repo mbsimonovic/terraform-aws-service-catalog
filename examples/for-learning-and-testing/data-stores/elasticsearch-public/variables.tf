@@ -61,6 +61,12 @@ variable "volume_size" {
   default     = 10
 }
 
+variable "iam_principal_arns" {
+  description = "The ARNS of the IAM users and roles to which to allow full access to the Elasticsearch cluster. Setting this to a restricted list is useful when using a public access cluster."
+  type        = list(string)
+  default     = ["*"]
+}
+
 variable "automated_snapshot_start_hour" {
   description = "Hour during which the service takes an automated daily snapshot of the indices in the domain. This setting has no effect on Elasticsearch 5.3 and later."
   type        = number

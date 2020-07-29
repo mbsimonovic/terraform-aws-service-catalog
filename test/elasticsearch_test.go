@@ -65,8 +65,6 @@ func TestElasticsearch(t *testing.T) {
 				terraform.OutputRequired(t, terraformOptions, "cluster_domain_id")
 				endpoint := terraform.OutputRequired(t, terraformOptions, "cluster_endpoint")
 				terraform.OutputRequired(t, terraformOptions, "cluster_security_group_id")
-				// Not a required output of the service module--only the example module.
-				// Only used to SSH into the instance for validation of the elasticsearch cluster.
 				ip := terraform.OutputRequired(t, terraformOptions, "aws_instance_public_ip")
 
 				awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
