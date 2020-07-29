@@ -78,10 +78,6 @@ locals {
 }
 
 data "aws_secretsmanager_secret_version" "db_config" {
-  # Ideally, we would check if var.db_config_secrets_manager_id is not null. However
-  # this doesn't work because the secret itself  might itself be created by the calling
-  # Terraform code, which causes an error with `count`. Instead, we assume that if
-  # master_password is not provided, we should read from secrets manager.
   count     = var.db_config_secrets_manager_id != null ? 1 : 0
   secret_id = var.db_config_secrets_manager_id
 }
