@@ -31,7 +31,7 @@ func TestRds(t *testing.T) {
 
 		awsRegion := test_structure.LoadString(t, testFolder, "region")
 		secretID := test_structure.LoadString(t, testFolder, "secretID")
-		err := aws.DeleteSecret(t, awsRegion, secretID, true)
+		aws.DeleteSecret(t, awsRegion, secretID, true)
 		require.NoError(t, err)
 	})
 
@@ -47,8 +47,7 @@ func TestRds(t *testing.T) {
 		dbPassword := fmt.Sprintf("%s-%s", random.UniqueId(), random.UniqueId())
 
 		dbConfig := getDbConfigJSON(t, dbName, dbUsername, dbPassword)
-		secretID, err := aws.CreateSecretStringWithDefaultKey(t, awsRegion, "Test description", "test-name-"+uniqueID, dbConfig)
-		require.NoError(t, err)
+		secretID := aws.CreateSecretStringWithDefaultKey(t, awsRegion, "Test description", "test-name-"+uniqueID, dbConfig)
 		test_structure.SaveString(t, testFolder, "dbName", dbName)
 		test_structure.SaveString(t, testFolder, "username", dbUsername)
 		test_structure.SaveString(t, testFolder, "password", dbPassword)
