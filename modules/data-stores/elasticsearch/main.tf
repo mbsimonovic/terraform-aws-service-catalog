@@ -83,13 +83,13 @@ resource "aws_elasticsearch_domain" "cluster" {
 #
 # 1. IAM. Limiting access to specific AWS Principals (e.g. IAM users and roles) is the most secure option.
 #    However, this requires your Elasticsearch client to sign every request, which some clients don't support,
-#    including Kibana. Therefore we have not enabled this option. If you'd like to enable it in the
-#    future, see:
-#    http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-createupdatedomains.html#es-createdomain-configure-access-policies
+#    including Kibana. Therefore our default recommendation is not to use this option unless paired with VPC.
+#    See:
+#    https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-kibana.html#es-kibana-access
+#    https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-createupdatedomains.html#es-createdomain-configure-access-policies
 #
-# 2. IP. You can limit access to specific CIDR blocks. This is especially useful if you ever want to expose your
-#    Elasticsearch cluster publicly. However, we're running our cluster in private subnets of a VPC, so there's no
-#    need to do this. If you need it in the future, see:
+# 2. IP. You can limit access to specific CIDR blocks. This is especially useful if you want to expose your
+#    Elasticsearch cluster publicly. See:
 #    http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-createupdatedomains.html#es-createdomain-configure-access-policies
 #
 # 3. VPC. Using the vpc_options in the aws_elasticsearch_domain resource, we configure the Elasticsearch cluster

@@ -2,8 +2,13 @@ package test
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/signer/v4"
 
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/logger"
@@ -11,10 +16,11 @@ import (
 	"github.com/gruntwork-io/terratest/modules/shell"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
+	"github.com/stretchr/testify/require"
 )
 
 func TestElasticsearch(t *testing.T) {
-	t.Parallel()
+	//t.Parallel()
 
 	// Uncomment the items below to skip certain parts of the test
 	// os.Setenv("TERRATEST_REGION", "eu-west-1")
@@ -105,6 +111,7 @@ func TestElasticsearch(t *testing.T) {
 				awsRegion := test_structure.LoadString(t, testFolderPublic, "region")
 				uniqueID := test_structure.LoadString(t, testFolderPublic, "uniqueID")
 
+				// terraformOptions := createElasticsearchTerraformOptions(t, testFolderPublic, awsRegion, uniqueID, "", []string{"arn:aws:iam::087285199408:user/circle-ci-test"})
 				terraformOptions := createElasticsearchTerraformOptions(t, testFolderPublic, awsRegion, uniqueID, "")
 				test_structure.SaveTerraformOptions(t, testFolderPublic, terraformOptions)
 				terraform.InitAndApply(t, terraformOptions)
@@ -112,6 +119,7 @@ func TestElasticsearch(t *testing.T) {
 
 			func() {
 				terraformOptions := test_structure.LoadTerraformOptions(t, testFolderPublic)
+				awsRegion := test_structure.LoadString(t, testFolderPublic, "region")
 
 				terraform.OutputRequired(t, terraformOptions, "cluster_arn")
 				terraform.OutputRequired(t, terraformOptions, "cluster_domain_id")
@@ -130,7 +138,26 @@ func TestElasticsearch(t *testing.T) {
 					},
 				}
 
-				shell.RunCommand(t, curl)
+				// expect 403
+				err := shell.RunCommandE(t, curl)
+				require.Error(t, err)
+
+				// Get credentials from environment variables and create the AWS Signature Version 4 signer
+				credentials := credentials.NewEnvCredentials()
+				signer := v4.NewSigner(credentials)
+
+				// An HTTP client for sending the request
+				client := &http.Client{}
+
+				// Form the HTTP request
+				req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://%s/_cluster/settings?pretty=true", endpoint), nil)
+
+				// Sign the request, send it, and print the response
+				signer.Sign(req, nil, "es", awsRegion, time.Now())
+				resp, err := client.Do(req)
+				require.NoError(t, err)
+				fmt.Print(resp.Status + "\n")
+				// --silent --location --fail --show-error -XGET https://search-acme-test-aes-or2dig-fzlizewuolwrgkwrxhac2kediu.eu-west-1.es.amazonaws.com/_cluster/settings?pretty=true
 			},
 
 			func() {
