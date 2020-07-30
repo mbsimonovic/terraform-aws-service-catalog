@@ -47,8 +47,6 @@ module "app_baseline" {
       allow_manage_key_permissions_with_iam = false
     }
   }
-
-  sns_topic_name = var.sns_topic_name
 }
 
 # Create a dedicated KMS key for use with cloudtrail
