@@ -44,6 +44,16 @@ variable "ecs_instance_security_group_id" {
   type        = string
 }
 
+variable "domain_name" {
+  description = "The domain name to request a certificate for and to associate with the load balancer's https listener"
+  type        = string
+}
+
+variable "hosted_zone_id" {
+  description = "The ID of the hosted zone in which to write DNS records"
+  type        = string
+}
+
 #---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL PARAMETERS
 # These values may optionally be overwritten by the calling Terraform code.

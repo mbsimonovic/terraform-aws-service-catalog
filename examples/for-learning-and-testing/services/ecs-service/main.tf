@@ -15,7 +15,7 @@ locals {
     cpu : 1024,
     memory : 256,
     essential : true
-    Environment : [{ name : "TEST_ENV_VAR", value : "test-env-val" }],
+    Environment : [{ name : "TEST_NAME", value : "TEST_VALUE" }],
     portMappings : [
       {
         "hostPort" : 80,
@@ -45,13 +45,36 @@ module "alb" {
   environment_name = "test"
   is_internal_alb  = false
 
-  http_listener_ports                    = [80]
-  https_listener_ports_and_ssl_certs     = []
-  https_listener_ports_and_acm_ssl_certs = []
-  ssl_policy                             = "ELBSecurityPolicy-TLS-1-1-2017-01"
+  http_listener_ports = []
+  https_listener_ports_and_acm_ssl_certs = [
+    {
+      port            = 443
+      tls_domain_name = "*.gruntwork.in"
+    }
+  ]
+  https_listener_ports_and_acm_ssl_certs_num = 1
+
+  https_listener_ports_and_ssl_certs = []
+  ssl_policy                         = "ELBSecurityPolicy-TLS-1-1-2017-01"
 
   vpc_id         = var.vpc_id
   vpc_subnet_ids = var.subnet_ids
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# POINT THE DOMAIN NAME AT THE LOAD BALANCER
+# --------------------------------------------------------------------------------------------------------------------- 
+
+resource "aws_route53_record" "alb" {
+  name    = var.domain_name
+  type    = "A"
+  zone_id = var.hosted_zone_id
+
+  alias {
+    name                   = module.alb.alb_dns_name
+    zone_id                = module.alb.alb_hosted_zone_id
+    evaluate_target_health = true
+  }
 }
 
 module "ecs_service" {
@@ -107,12 +130,12 @@ module "ecs_service" {
 # "path" pattern to a given ECS Service. This is useful if you have one service that should receive all requests sent
 # to /api and another service that receives requests sent to /customers.
 resource "aws_alb_listener_rule" "path_based_example" {
-  # Get the Listener ARN associated with port 80 on the ALB
-  # In other words, this ALB has a Listener that listens for incoming traffic on port 80. That Listener has a unique
+  # Get the Listener ARN associated with port 443 on the ALB
+  # In other words, this ALB has a Listener that listens for incoming traffic on port 443. That Listener has a unique
   # Amazon Resource Name (ARN), which we must pass to this rule so it knows which ALB Listener to "attach" to. Fortunately,
   # Our ALB module outputs values like http_listener_arns, https_listener_non_acm_cert_arns, and https_listener_acm_cert_arns
   # so that we can easily look up the ARN by the port number.
-  listener_arn = module.alb.http_listener_arns["80"]
+  listener_arn = module.alb.https_listener_acm_cert_arns["443"]
 
   priority = 100
 

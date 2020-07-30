@@ -1,3 +1,4 @@
-output "alb_dns_name" {
-  value = module.alb.alb_dns_name
+output "alb_fqdn" {
+  value = aws_route53_record.alb.fqdn
 }
+

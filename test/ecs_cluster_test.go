@@ -1,6 +1,7 @@
 package test
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 	"testing"
@@ -18,8 +19,12 @@ import (
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 )
 
-// In order to give EC2 container instances long enough to register themselves with the cluster, we wait a configurable number of minutes
-const MinsToWaitForClusterInstances = 3
+const (
+	// In order to give EC2 container instances long enough to register themselves with the cluster, we wait a configurable number of minutes
+	MinsToWaitForClusterInstances = 3
+	TestDomainName                = "gruntwork.in"
+	TestHostedZoneId              = "Z2AJ7S3R6G9UYJ"
+)
 
 func TestEcsCluster(t *testing.T) {
 	// Uncomment the items below to skip certain parts of the test
@@ -166,7 +171,7 @@ func validateECSCluster(t *testing.T, testFolder string) {
 	require.Greater(t, instanceCount, 0)
 }
 
-// Verify that we can deploy an ecs service onto the ECS cluster that was previously created 
+// Verify that we can deploy an ecs service onto the ECS cluster that was previously created
 func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestFolder string) {
 
 	awsRegion := test_structure.LoadString(t, ecsClusterTestFolder, "region")
@@ -195,13 +200,15 @@ func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestF
 
 	ecsClusterName := test_structure.LoadString(t, ecsClusterTestFolder, "clusterName")
 	uniqueID := test_structure.LoadString(t, ecsClusterTestFolder, "uniqueID")
-	serviceName := fmt.Sprintf("nginx-%s", strings.ToLower(uniqueID))
+	domainName := fmt.Sprintf("ecs-service-test-%s.%s", uniqueID, TestDomainName)
 
 	portMappings := map[string]int{
 		"22":  22,
 		"80":  80,
 		"443": 443,
 	}
+
+	serviceName := fmt.Sprintf("nginx-%s", strings.ToLower(uniqueID))
 
 	ecsServiceTerraformOptions.Vars["aws_region"] = awsRegion
 	ecsServiceTerraformOptions.Vars["service_name"] = serviceName
@@ -211,18 +218,26 @@ func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestF
 	ecsServiceTerraformOptions.Vars["vpc_id"] = vpcId
 	ecsServiceTerraformOptions.Vars["subnet_ids"] = vpcSubnetIds
 	ecsServiceTerraformOptions.Vars["ecs_instance_security_group_id"] = clusterInstanceSecurityGroupId
+	ecsServiceTerraformOptions.Vars["domain_name"] = domainName
+	ecsServiceTerraformOptions.Vars["hosted_zone_id"] = TestHostedZoneId
 
 	terraform.InitAndApply(t, ecsServiceTerraformOptions)
 
 	test_structure.SaveTerraformOptions(t, ecsServiceTestFolder, ecsServiceTerraformOptions)
 }
 
+// Hit the load balancer via the route 53 record and ensure that nginx responds with the expected status code and response body
 func validateECSService(t *testing.T, ecsClusterTestFolder, ecsServiceTestFolder string) {
+	terraformOptions := test_structure.LoadTerraformOptions(t, ecsServiceTestFolder)
+	applicationLoadBalancerFqdn := terraform.OutputRequired(t, terraformOptions, "alb_fqdn")
 
-	// Call the service endpoint and ensure we get a response from nginx
-	ecsServiceTerraformOptions := test_structure.LoadTerraformOptions(t, ecsServiceTestFolder)
-	albDnsName := terraform.OutputRequired(t, ecsServiceTerraformOptions, "alb_dns_name")
+	expectedBody := "If you see this page, the nginx web server is successfully installed"
+	body := bytes.NewReader([]byte(expectedBody))
 
-	http_helper.HTTPDoWithRetry(t, "GET", fmt.Sprintf("http://%s", albDnsName), nil, nil, 200, 5, time.Second*5, nil)
+	customValidation := func(statusCode int, response string) bool {
+		return statusCode == 200 && strings.Contains(response, expectedBody)
+	}
+
+	http_helper.HTTPDoWithCustomValidation(t, "GET", fmt.Sprintf("https://%s", applicationLoadBalancerFqdn), body, nil, customValidation, nil)
 
 }
