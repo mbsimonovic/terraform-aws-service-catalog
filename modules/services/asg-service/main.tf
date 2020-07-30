@@ -188,15 +188,19 @@ resource "aws_alb_target_group" "service" {
   protocol = each.value.protocol
   vpc_id   = var.vpc_id
 
-  health_check {
-    port     = "traffic-port"
-    protocol = each.value.protocol
-    path     = each.value.path
+  dynamic "health_check" {
+    for_each = each.value.enable_lb_health_check ? ["once"] : []
 
-    healthy_threshold   = each.value.healthy_threshold
-    unhealthy_threshold = each.value.unhealthy_threshold
-    interval            = each.value.interval
-    timeout             = each.value.timeout
+    content {
+      port     = "traffic-port"
+      protocol = each.value.protocol
+      path     = each.value.path
+
+      healthy_threshold   = each.value.healthy_threshold
+      unhealthy_threshold = each.value.unhealthy_threshold
+      interval            = each.value.interval
+      timeout             = each.value.timeout
+    }
   }
 
   lifecycle {
@@ -330,7 +334,7 @@ module "asg_high_disk_usage_alarms" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "route53_health_check" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/route53-health-check-alarms?ref=v0.22.0"
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/route53-health-check-alarms?ref=v0.22.1"
 
   create_resources               = var.enable_route53_health_check
   alarm_configs                  = local.route53_alarm_configurations
@@ -373,7 +377,7 @@ locals {
       domain = var.domain_name
       port   = item.server_port
       path   = lookup(item, "health_check_path", null)
-//      tags   = lookup(item, "tags", null) == null ? {} : item.tags TODO need to fix the module first
+      tags   = lookup(item, "tags", {})
 
       type              = lookup(item, "r53_health_check_type", null)
       failure_threshold = lookup(item, "r53_health_check_failure_threshold", 2)
@@ -387,12 +391,13 @@ locals {
       port     = item.server_port
       path     = lookup(item, "health_check_path", null)
       protocol = lookup(item, "protocol", "HTTP")
-//      tags     = lookup(item, "tags", null) == null ? {} : item.tags
+      tags     = lookup(item, "tags", {})
 
-      healthy_threshold   = lookup(item, "lb_healthy_threshold", 2)
-      unhealthy_threshold = lookup(item, "lb_unhealthy_threshold", 2)
-      interval            = lookup(item, "lb_request_interval", 30)
-      timeout             = lookup(item, "lb_timeout", 10)
+      enable_lb_health_check = lookup(item, "enable_lb_health_check", true)
+      healthy_threshold      = lookup(item, "lb_healthy_threshold", 2)
+      unhealthy_threshold    = lookup(item, "lb_unhealthy_threshold", 2)
+      interval               = lookup(item, "lb_request_interval", 30)
+      timeout                = lookup(item, "lb_timeout", 10)
     }
   }
 }

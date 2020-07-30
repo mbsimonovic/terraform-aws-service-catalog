@@ -75,6 +75,8 @@ variable "server_ports" {
   #                                               down. Defaults to 2.
   # - r53_health_check_request_interval  [number] : The number of seconds between health checks. Defaults to 30.
   #
+  # - enable_lb_health_check [bool]   : Set to false if you want to disable Target Group health's check.
+  #                                   Defaults to true.
   # - lb_healthy_threshold   [number] : The number of consecutive health checks *successes* required before
   #                                    considering an unhealthy target healthy. Defaults to 3.
   # - lb_unhealthy_threshold [number] : The number of consecutive health check *failures* required before
