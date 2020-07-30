@@ -62,7 +62,7 @@ variable "volume_size" {
 }
 
 variable "iam_principal_arns" {
-  description = "The ARNS of the IAM users and roles to which to allow full access to the Elasticsearch cluster. Setting this to a restricted list is useful when using a public access cluster."
+  description = "The ARNs of the IAM users and roles to which to allow full access to the Elasticsearch cluster. Setting this to a restricted list is useful when using a public access cluster."
   type        = list(string)
   default     = ["*"]
 }
