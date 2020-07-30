@@ -19,7 +19,7 @@ func TestElasticsearch(t *testing.T) {
 	// Uncomment the items below to skip certain parts of the test
 	// os.Setenv("TERRATEST_REGION", "eu-west-1")
 	// os.Setenv("SKIP_setup", "true")
-	// os.Setenv("SKIP_deploy_terraform", "true")
+	// os.Setenv("SKIP_deploy_cluster", "true")
 	// os.Setenv("SKIP_validate_cluster", "true")
 	// os.Setenv("SKIP_cleanup", "true")
 
@@ -141,19 +141,14 @@ func TestElasticsearch(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		defer test_structure.RunTestStage(t, "cleanup", testCase.cleanup)
-	}
-
-	for _, testCase := range testCases {
-		test_structure.RunTestStage(t, "setup", testCase.setup)
-	}
-
-	for _, testCase := range testCases {
-		test_structure.RunTestStage(t, "deploy_terraform", testCase.deploy)
-	}
-
-	for _, testCase := range testCases {
-		test_structure.RunTestStage(t, "validate_cluster", testCase.validate)
+		testCase := testCase
+		t.Run("Elasticsearch", func(*testing.T) {
+			t.Parallel()
+			defer test_structure.RunTestStage(t, "cleanup", testCase.cleanup)
+			test_structure.RunTestStage(t, "setup", testCase.setup)
+			test_structure.RunTestStage(t, "deploy_cluster", testCase.deploy)
+			test_structure.RunTestStage(t, "validate_cluster", testCase.validate)
+		})
 	}
 }
 
