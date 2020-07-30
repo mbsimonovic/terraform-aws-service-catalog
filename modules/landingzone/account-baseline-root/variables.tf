@@ -399,6 +399,12 @@ variable "should_create_iam_group_billing" {
   default     = true
 }
 
+variable "should_create_iam_group_logs" {
+  description = "Should we create the IAM Group for logs? Allows read access to logs in CloudTrail, AWS Config, and CloudWatch. If var.cloudtrail_kms_key_arn is specified, will also be given permissions to decrypt with the KMS CMK that is used to encrypt CloudTrail logs. (true or false)"
+  type        = bool
+  default     = false
+}
+
 variable "should_create_iam_group_developers" {
   description = "Should we create the IAM Group for developers? The permissions of that group are specified via var.iam_group_developers_permitted_services. (true or false)"
   type        = bool
@@ -520,6 +526,16 @@ variable "allow_read_only_access_from_other_account_arns" {
 
 variable "allow_billing_access_from_other_account_arns" {
   description = "A list of IAM ARNs from other AWS accounts that will be allowed full (read and write) access to the billing info for this account."
+  type        = list(string)
+  default     = []
+  # Example:
+  # default = [
+  #   "arn:aws:iam::123445678910:root"
+  # ]
+}
+
+variable "allow_logs_access_from_other_account_arns" {
+  description = "A list of IAM ARNs from other AWS accounts that will be allowed read access to the logs in CloudTrail, AWS Config, and CloudWatch for this account. If var.cloudtrail_kms_key_arn is specified, will also be given permissions to decrypt with the KMS CMK that is used to encrypt CloudTrail logs."
   type        = list(string)
   default     = []
   # Example:
