@@ -175,6 +175,10 @@ output "allow_billing_access_from_other_accounts_iam_role_id" {
   value = module.iam_cross_account_roles.allow_billing_access_from_other_accounts_iam_role_id
 }
 
+output "allow_logs_access_from_other_accounts_iam_role_id" {
+  value = module.iam_cross_account_roles.allow_logs_access_from_other_accounts_iam_role_id
+}
+
 output "allow_ssh_grunt_access_from_other_accounts_iam_role_id" {
   value = module.iam_cross_account_roles.allow_ssh_grunt_access_from_other_accounts_iam_role_id
 }
@@ -209,6 +213,10 @@ output "allow_read_only_access_sign_in_url" {
 
 output "allow_billing_access_sign_in_url" {
   value = module.iam_cross_account_roles.allow_billing_access_sign_in_url
+}
+
+output "allow_logs_access_sign_in_url" {
+  value = module.iam_cross_account_roles.allow_logs_access_sign_in_url
 }
 
 output "allow_ssh_grunt_access_sign_in_url" {
@@ -271,6 +279,14 @@ output "billing_iam_group_name" {
 
 output "billing_iam_group_arn" {
   value = module.iam_groups.billing_iam_group_arn
+}
+
+output "logs_iam_group_name" {
+  value = module.iam_groups.logs_iam_group_name
+}
+
+output "logs_iam_group_arn" {
+  value = module.iam_groups.logs_iam_group_arn
 }
 
 output "developers_iam_group_name" {
