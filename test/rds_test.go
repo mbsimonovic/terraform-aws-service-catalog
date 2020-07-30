@@ -32,7 +32,6 @@ func TestRds(t *testing.T) {
 		awsRegion := test_structure.LoadString(t, testFolder, "region")
 		secretID := test_structure.LoadString(t, testFolder, "secretID")
 		aws.DeleteSecret(t, awsRegion, secretID, true)
-		require.NoError(t, err)
 	})
 
 	test_structure.RunTestStage(t, "setup", func() {
