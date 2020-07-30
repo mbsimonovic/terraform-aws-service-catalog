@@ -10,24 +10,24 @@ locals {
   # This example demonstrates creating a common base configuration across normal and canary container definitions, while also changing the canary container definition to run a different image tag 
   # This is a helpful pattern for using the canary task to verify a new release candidate
   container_definitions = {
-    name : var.service_name,
-    image : "nginx:1.17",
-    cpu : 1024,
-    memory : 256,
-    essential : true
-    Environment : [{ name : "TEST_NAME", value : "TEST_VALUE" }],
-    portMappings : [
+    name        = var.service_name
+    image       = "nginx:1.17"
+    cpu         = 1024,
+    memory      = 256,
+    essential   = true
+    Environment = [{ name : "TEST_NAME", value : "TEST_VALUE" }]
+    portMappings = [
       {
-        "hostPort" : 80,
-        "containerPort" : 80,
-        "protocol" : "tcp"
+        "hostPort"      = 80
+        "containerPort" = 80
+        "protocol"      = "tcp"
       }
     ]
   }
 
   # Override the canary task definition to use a unique name and a newer image tag, as you might do when testing a new release tag prior to rolling it out fully
   canary_container_overrides = {
-    image : "nginx:1.18"
+    image = "nginx:1.18"
   }
   # The resulting canary_container_definition is identical to local.container_definition, except its image version is newer and its name is unique
   canary_container_definition = merge(local.container_definitions, local.canary_container_overrides)
