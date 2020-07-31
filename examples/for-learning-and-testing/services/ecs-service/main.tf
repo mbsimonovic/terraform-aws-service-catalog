@@ -168,8 +168,9 @@ resource "aws_security_group_rule" "ecs_cluster_instance_ssh" {
   from_port = 22
   to_port   = 22
   protocol  = "tcp"
-  # Only allow access to the EC2 container instances from the Application Load Balancer
-  cidr_blocks       = [module.alb.alb_security_group_id]
+  # NOTE: we are only leaving this open to make testing easy, but in prod this should be locked down 
+  # to only trusted servers, such as a VPN server 
+  cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = var.ecs_instance_security_group_id
 }
 
