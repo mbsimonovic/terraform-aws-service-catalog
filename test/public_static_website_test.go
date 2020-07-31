@@ -7,6 +7,7 @@ import (
 
 	"github.com/gruntwork-io/terratest/modules/aws"
 	http_helper "github.com/gruntwork-io/terratest/modules/http-helper"
+	"github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
@@ -50,6 +51,7 @@ func TestPublicStaticWebsite(t *testing.T) {
 
 	test_structure.RunTestStage(t, "validate", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
+		logger.Log(t, "%s")
 
 		terraform.OutputRequired(t, terraformOptions, "cloudfront_domain_names")
 		terraform.OutputRequired(t, terraformOptions, "cloudfront_id")

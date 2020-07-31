@@ -119,7 +119,7 @@ variable "allow_connections_from_security_groups" {
 # Monitoring settings
 
 variable "enable_cloudwatch_alarms" {
-  description = "Set to true to enable several basic CloudWatch alarms around CPU usage, memory usage, and disk space usage. If set to true, make sure to specify SNS topics to send notifications to using var.alarms_sns_topic_arns."
+  description = "Set to true to enable several basic CloudWatch alarms around CPU usage, memory usage, and disk space usage. If set to true, make sure to specify SNS topics to send notifications to using var.alarms_sns_topic_arn."
   type        = bool
   default     = true
 }
