@@ -427,7 +427,7 @@ locals {
 
   server_ports_array = [
     for key, item in var.server_ports :
-    item.port
+    item.server_port
   ]
 
   ingress_security_ids = {

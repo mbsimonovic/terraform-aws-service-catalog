@@ -59,7 +59,7 @@ variable "server_ports" {
   # Each entry in the map supports the following attributes:
   #
   # REQUIRED:
-  # - port              [number]      : The port of the endpoint to be checked (e.g. 80).
+  # - server_port        [number]      : The port of the endpoint to be checked (e.g. 80).
   #
   # OPTIONAL (defaults to value of corresponding module input):
   # - tags              [map(string)] : A map of tags to apply to the metric alarm. The key is the tag name
