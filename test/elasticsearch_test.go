@@ -29,6 +29,11 @@ func TestElasticsearch(t *testing.T) {
 	// os.Setenv("SKIP_validate_cluster", "true")
 	// os.Setenv("SKIP_cleanup", "true")
 
+	// Redundantly restrict and allow regions to safeguard against future changes to the allowed regions list.
+	// I.e., ap-northeast-2 is known to fail on t2.micro instance types and us/eu regions are known to succeed.
+	preferredRegions := []string{"us-east-1", "us-west-1", "eu-west-1"}
+	excludedRegions := []string{"ap-northeast-2"}
+
 	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../", "examples/for-learning-and-testing/data-stores/elasticsearch")
 	testFolderPublic := test_structure.CopyTerraformFolderToTemp(t, "../", "examples/for-learning-and-testing/data-stores/elasticsearch-public")
 
@@ -42,9 +47,7 @@ func TestElasticsearch(t *testing.T) {
 		{
 			"VPC-based Cluster",
 			func() {
-				// Redundantly restrict and allow regions to safeguard against future changes to the allowed regions list.
-				// I.e., ap-northeast-2 is known to fail on t2.micro instance types and us/eu regions are known to succeed.
-				awsRegion := aws.GetRandomStableRegion(t, []string{"us-east-1", "us-west-1", "eu-west-1"}, []string{"ap-northeast-2"})
+				awsRegion := aws.GetRandomStableRegion(t, preferredRegions, excludedRegions)
 				test_structure.SaveString(t, testFolder, "region", awsRegion)
 
 				uniqueID := strings.ToLower(random.UniqueId())
@@ -98,9 +101,7 @@ func TestElasticsearch(t *testing.T) {
 		{
 			"Public Access Cluster",
 			func() {
-				// Redundantly restrict and allow regions to safeguard against future changes to the allowed regions list.
-				// I.e., ap-northeast-2 is known to fail on t2.micro instance types and us/eu regions are known to succeed.
-				awsRegion := aws.GetRandomStableRegion(t, []string{"us-east-1", "us-west-1", "eu-west-1"}, []string{"ap-northeast-2"})
+				awsRegion := aws.GetRandomStableRegion(t, preferredRegions, excludedRegions)
 				test_structure.SaveString(t, testFolderPublic, "region", awsRegion)
 
 				uniqueID := strings.ToLower(random.UniqueId())
@@ -111,7 +112,6 @@ func TestElasticsearch(t *testing.T) {
 				awsRegion := test_structure.LoadString(t, testFolderPublic, "region")
 				uniqueID := test_structure.LoadString(t, testFolderPublic, "uniqueID")
 
-				// terraformOptions := createElasticsearchTerraformOptions(t, testFolderPublic, awsRegion, uniqueID, "", []string{"arn:aws:iam::087285199408:user/circle-ci-test"})
 				terraformOptions := createElasticsearchTerraformOptions(t, testFolderPublic, awsRegion, uniqueID, "")
 				test_structure.SaveTerraformOptions(t, testFolderPublic, terraformOptions)
 				terraform.InitAndApply(t, terraformOptions)
@@ -126,38 +126,10 @@ func TestElasticsearch(t *testing.T) {
 				endpoint := terraform.OutputRequired(t, terraformOptions, "cluster_endpoint")
 				terraform.OutputRequired(t, terraformOptions, "cluster_security_group_id")
 
-				curl := shell.Command{
-					Command: "curl",
-					Args: []string{
-						"--silent",
-						"--location",
-						"--fail",
-						"--show-error",
-						"-XGET",
-						fmt.Sprintf("https://%s/_cluster/settings?pretty=true", endpoint),
-					},
-				}
-
-				// expect 403
-				err := shell.RunCommandE(t, curl)
-				require.Error(t, err)
-
-				// Get credentials from environment variables and create the AWS Signature Version 4 signer
-				credentials := credentials.NewEnvCredentials()
-				signer := v4.NewSigner(credentials)
-
-				// An HTTP client for sending the request
-				client := &http.Client{}
-
-				// Form the HTTP request
-				req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://%s/_cluster/settings?pretty=true", endpoint), nil)
-
-				// Sign the request, send it, and print the response
-				signer.Sign(req, nil, "es", awsRegion, time.Now())
-				resp, err := client.Do(req)
-				require.NoError(t, err)
-				fmt.Print(resp.Status + "\n")
-				// --silent --location --fail --show-error -XGET https://search-acme-test-aes-or2dig-fzlizewuolwrgkwrxhac2kediu.eu-west-1.es.amazonaws.com/_cluster/settings?pretty=true
+				// A public cluster with IAM arns should reject unsigned requests
+				// and permit requests signed with the right credentials
+				validateUnsignedRequest(t, endpoint)
+				validateSignedRequest(t, endpoint, awsRegion)
 			},
 
 			func() {
@@ -177,6 +149,42 @@ func TestElasticsearch(t *testing.T) {
 			test_structure.RunTestStage(t, "validate_cluster", testCase.validate)
 		})
 	}
+}
+
+func validateUnsignedRequest(t *testing.T, endpoint string) {
+	curl := shell.Command{
+		Command: "curl",
+		Args: []string{
+			"--silent",
+			"--location",
+			"--fail",
+			"--show-error",
+			"-XGET",
+			fmt.Sprintf("https://%s/_cluster/settings?pretty=true", endpoint),
+		},
+	}
+
+	// expect 403
+	err := shell.RunCommandE(t, curl)
+	require.Error(t, err)
+}
+
+func validateSignedRequest(t *testing.T, endpoint string, awsRegion string) {
+	// Get credentials from environment variables and create the AWS Signature Version 4 signer
+	credentials := credentials.NewEnvCredentials()
+	signer := v4.NewSigner(credentials)
+
+	// An HTTP client for sending the request
+	client := &http.Client{}
+
+	// Form the HTTP request
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://%s/_cluster/settings?pretty=true", endpoint), nil)
+
+	// Sign the request, send it, and print the response
+	signer.Sign(req, nil, "es", awsRegion, time.Now())
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+	fmt.Print(resp.Status + "\n")
 }
 
 func createElasticsearchTerraformOptions(
