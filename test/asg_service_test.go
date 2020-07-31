@@ -73,7 +73,7 @@ func buildASGAmi(t *testing.T, testFolder string) {
 func deployASG(t *testing.T, testFolder string) {
 	amiId := test_structure.LoadArtifactID(t, testFolder)
 	awsRegion := test_structure.LoadString(t, testFolder, "region")
-	name := fmt.Sprintf("service-catalog-asg-%s", random.UniqueId())
+	name := fmt.Sprintf("asg-%s", random.UniqueId())
 
 	terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
 	terraformOptions.Vars["ami"] = amiId

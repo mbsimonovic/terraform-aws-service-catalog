@@ -52,7 +52,7 @@ module "asg" {
 
   cloud_init_parts = local.cloud_init
 
-  create_route53_entry = false
+  create_route53_entry      = false
   enable_cloudwatch_metrics = false
 }
 
