@@ -378,6 +378,37 @@ variable "load_balancers" {
   default     = []
 }
 
+variable "allow_inbound_from_security_group_ids" {
+  description = "The security group IDs from which to allow access to the ports in var.server_ports"
+  default     = []
+  type        = list(string)
+}
+
+variable "allow_inbound_from_cidr_blocks" {
+  description = "The CIDR blocks from which to allow access to the ports in var.server_ports"
+  default     = []
+  type        = list(string)
+}
+
+variable "allow_ssh_security_group_ids" {
+  description = "The security group IDs from which to allow SSH access"
+  default     = []
+  type        = list(string)
+}
+
+variable "allow_ssh_from_cidr_blocks" {
+  description = "The CIDR blocks from which to allow SSH access"
+  default     = []
+  type        = list(string)
+}
+
+variable "ssh_port" {
+  description = "The port at which SSH will be allowed from var.allow_ssh_from_cidr_blocks and var.allow_ssh_security_group_ids"
+  default     = 22
+  type        = string
+}
+
+
 variable "use_elb_health_checks" {
   description = "Whether or not ELB or ALB health checks should be enabled. If set to true, the load_balancers or target_groups_arns variable should be set depending on the load balancer type you are using. Useful for testing connectivity before health check endpoints are available."
   type        = bool

@@ -97,24 +97,48 @@ resource "aws_security_group_rule" "egress_all" {
 }
 
 # Inbound HTTP from the ALB
-resource "aws_security_group_rule" "ingress_alb" {
-  for_each = var.server_ports
+resource "aws_security_group_rule" "ingress_alb_cidr_blocks" {
+  for_each = length(var.allow_inbound_from_cidr_blocks) == 0 ? {} : var.server_ports
 
   type              = "ingress"
   from_port         = each.value.server_port
   to_port           = each.value.server_port
   protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
+  cidr_blocks       = var.allow_inbound_from_cidr_blocks
   security_group_id = aws_security_group.lc_security_group.id
 }
 
-resource "aws_security_group_rule" "ingress_ssh" {
+resource "aws_security_group_rule" "ingress_alb_security_group_ids" {
+  for_each = local.ingress_security_ids
+
+  type                     = "ingress"
+  from_port                = each.value.port
+  to_port                  = each.value.port
+  protocol                 = "tcp"
+  source_security_group_id = each.value.security_group_id
+  security_group_id        = aws_security_group.lc_security_group.id
+}
+
+resource "aws_security_group_rule" "ingress_ssh_cidr_blocks" {
+  for_each          = length(var.allow_ssh_from_cidr_blocks) == 0 ? [] : ["once"]
+
   type              = "ingress"
-  from_port         = 22
-  to_port           = 22
+  from_port         = var.ssh_port
+  to_port           = var.ssh_port
   protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
+  cidr_blocks       = var.allow_ssh_from_cidr_blocks
   security_group_id = aws_security_group.lc_security_group.id
+}
+
+resource "aws_security_group_rule" "ingress_ssh_cidr_blocks" {
+  for_each                 = var.allow_ssh_security_group_ids
+
+  type                     = "ingress"
+  from_port                = var.ssh_port
+  to_port                  = var.ssh_port
+  protocol                 = "tcp"
+  source_security_group_id = each.value
+  security_group_id        = aws_security_group.lc_security_group.id
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -398,6 +422,19 @@ locals {
       unhealthy_threshold    = lookup(item, "lb_unhealthy_threshold", 2)
       interval               = lookup(item, "lb_request_interval", 30)
       timeout                = lookup(item, "lb_timeout", 10)
+    }
+  }
+
+  server_ports_array = [
+    for key, item in var.server_ports :
+    item.port
+  ]
+
+  ingress_security_ids = {
+    for item in setproduct(local.server_ports_array, var.allow_inbound_from_security_group_ids) :
+    "${item[0]}-${item[1]}" => {
+      port              = item[0]
+      security_group_id = item[1]
     }
   }
 }

@@ -54,6 +54,13 @@ module "asg" {
 
   create_route53_entry      = false
   enable_cloudwatch_metrics = false
+
+  allow_inbound_from_security_group_ids = [module.alb.alb_security_group_id]
+  allow_inbound_from_cidr_blocks        = []
+
+  // For testing, we are allowing ALL but for production, you should limit just for the servers you want to trust
+  allow_ssh_from_cidr_blocks   = ["0.0.0.0/0"]
+  allow_ssh_security_group_ids = []
 }
 
 module "alb" {
