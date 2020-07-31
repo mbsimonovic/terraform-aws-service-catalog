@@ -20,7 +20,7 @@ import (
 )
 
 func TestElasticsearch(t *testing.T) {
-	//t.Parallel()
+	t.Parallel()
 
 	// Uncomment the items below to skip certain parts of the test
 	// os.Setenv("TERRATEST_REGION", "eu-west-1")
@@ -38,34 +38,13 @@ func TestElasticsearch(t *testing.T) {
 	testFolderPublic := test_structure.CopyTerraformFolderToTemp(t, "../", "examples/for-learning-and-testing/data-stores/elasticsearch-public")
 
 	testCases := []struct {
-		name     string
-		setup    func()
-		deploy   func()
-		validate func()
-		cleanup  func()
+		name       string
+		validate   func()
+		testFolder string
+		hasKeyPair bool
 	}{
 		{
 			"VPC-based Cluster",
-			func() {
-				awsRegion := aws.GetRandomStableRegion(t, preferredRegions, excludedRegions)
-				test_structure.SaveString(t, testFolder, "region", awsRegion)
-
-				uniqueID := strings.ToLower(random.UniqueId())
-				test_structure.SaveString(t, testFolder, "uniqueID", uniqueID)
-
-				awsKeyPair := aws.CreateAndImportEC2KeyPair(t, awsRegion, uniqueID)
-				test_structure.SaveEc2KeyPair(t, testFolder, awsKeyPair)
-			},
-
-			func() {
-				awsRegion := test_structure.LoadString(t, testFolder, "region")
-				uniqueID := test_structure.LoadString(t, testFolder, "uniqueID")
-				awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
-
-				terraformOptions := createElasticsearchTerraformOptions(t, testFolder, awsRegion, uniqueID, awsKeyPair.Name)
-				test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
-				terraform.InitAndApply(t, terraformOptions)
-			},
 
 			func() {
 				terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
@@ -89,33 +68,12 @@ func TestElasticsearch(t *testing.T) {
 				)
 				logger.Log(t, "%s", curlResponse)
 			},
-
-			func() {
-				terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
-				terraform.Destroy(t, terraformOptions)
-				awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
-				aws.DeleteEC2KeyPair(t, awsKeyPair)
-			},
+			testFolder,
+			true,
 		},
 
 		{
 			"Public Access Cluster",
-			func() {
-				awsRegion := aws.GetRandomStableRegion(t, preferredRegions, excludedRegions)
-				test_structure.SaveString(t, testFolderPublic, "region", awsRegion)
-
-				uniqueID := strings.ToLower(random.UniqueId())
-				test_structure.SaveString(t, testFolderPublic, "uniqueID", uniqueID)
-			},
-
-			func() {
-				awsRegion := test_structure.LoadString(t, testFolderPublic, "region")
-				uniqueID := test_structure.LoadString(t, testFolderPublic, "uniqueID")
-
-				terraformOptions := createElasticsearchTerraformOptions(t, testFolderPublic, awsRegion, uniqueID, "")
-				test_structure.SaveTerraformOptions(t, testFolderPublic, terraformOptions)
-				terraform.InitAndApply(t, terraformOptions)
-			},
 
 			func() {
 				terraformOptions := test_structure.LoadTerraformOptions(t, testFolderPublic)
@@ -131,21 +89,60 @@ func TestElasticsearch(t *testing.T) {
 				validateUnsignedRequest(t, endpoint)
 				validateSignedRequest(t, endpoint, awsRegion)
 			},
-
-			func() {
-				terraformOptions := test_structure.LoadTerraformOptions(t, testFolderPublic)
-				terraform.Destroy(t, terraformOptions)
-			},
+			testFolderPublic,
+			false,
 		},
 	}
 
 	for _, testCase := range testCases {
+		// The following is necessary to make sure testCase's values don't
+		// get updated due to concurrency within the scope of t.Run(..) below
 		testCase := testCase
+
 		t.Run("Elasticsearch", func(*testing.T) {
 			t.Parallel()
-			defer test_structure.RunTestStage(t, "cleanup", testCase.cleanup)
-			test_structure.RunTestStage(t, "setup", testCase.setup)
-			test_structure.RunTestStage(t, "deploy_cluster", testCase.deploy)
+
+			defer test_structure.RunTestStage(t, "cleanup", func() {
+				terraformOptions := test_structure.LoadTerraformOptions(t, testCase.testFolder)
+				terraform.Destroy(t, terraformOptions)
+				if testCase.hasKeyPair {
+					awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
+					aws.DeleteEC2KeyPair(t, awsKeyPair)
+				}
+			})
+
+			test_structure.RunTestStage(t, "setup", func() {
+				awsRegion := aws.GetRandomStableRegion(t, preferredRegions, excludedRegions)
+				test_structure.SaveString(t, testCase.testFolder, "region", awsRegion)
+
+				uniqueID := strings.ToLower(random.UniqueId())
+				test_structure.SaveString(t, testCase.testFolder, "uniqueID", uniqueID)
+
+				if testCase.hasKeyPair {
+					awsKeyPair := aws.CreateAndImportEC2KeyPair(t, awsRegion, uniqueID)
+					test_structure.SaveEc2KeyPair(t, testFolder, awsKeyPair)
+				}
+			})
+
+			test_structure.RunTestStage(t, "deploy_cluster", func() {
+				awsRegion := test_structure.LoadString(t, testCase.testFolder, "region")
+				uniqueID := test_structure.LoadString(t, testCase.testFolder, "uniqueID")
+
+				if testCase.hasKeyPair {
+
+					awsKeyPair := test_structure.LoadEc2KeyPair(t, testCase.testFolder)
+
+					terraformOptions := createElasticsearchTerraformOptions(t, testCase.testFolder, awsRegion, uniqueID, awsKeyPair.Name)
+					test_structure.SaveTerraformOptions(t, testCase.testFolder, terraformOptions)
+					terraform.InitAndApply(t, terraformOptions)
+				} else {
+
+					terraformOptions := createElasticsearchTerraformOptions(t, testCase.testFolder, awsRegion, uniqueID, "")
+					test_structure.SaveTerraformOptions(t, testCase.testFolder, terraformOptions)
+					terraform.InitAndApply(t, terraformOptions)
+				}
+			})
+
 			test_structure.RunTestStage(t, "validate_cluster", testCase.validate)
 		})
 	}
