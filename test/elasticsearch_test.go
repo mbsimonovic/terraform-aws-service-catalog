@@ -39,56 +39,16 @@ func TestElasticsearch(t *testing.T) {
 
 	testCases := []struct {
 		name       string
-		validate   func()
 		testFolder string
 		hasKeyPair bool
 	}{
 		{
 			"VPC-based Cluster",
-
-			func() {
-				terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
-
-				terraform.OutputRequired(t, terraformOptions, "cluster_arn")
-				terraform.OutputRequired(t, terraformOptions, "cluster_domain_id")
-				endpoint := terraform.OutputRequired(t, terraformOptions, "cluster_endpoint")
-				terraform.OutputRequired(t, terraformOptions, "cluster_security_group_id")
-				ip := terraform.OutputRequired(t, terraformOptions, "aws_instance_public_ip")
-
-				awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
-				curlResponse := testSSHCommand(
-					t,
-					ip,
-					"ubuntu",
-					awsKeyPair,
-					fmt.Sprintf(
-						"curl --silent --location --fail --show-error -XGET %s/_cluster/settings?pretty=true",
-						fmt.Sprintf("https://%s", endpoint),
-					),
-				)
-				logger.Log(t, "%s", curlResponse)
-			},
 			testFolder,
 			true,
 		},
-
 		{
 			"Public Access Cluster",
-
-			func() {
-				terraformOptions := test_structure.LoadTerraformOptions(t, testFolderPublic)
-				awsRegion := test_structure.LoadString(t, testFolderPublic, "region")
-
-				terraform.OutputRequired(t, terraformOptions, "cluster_arn")
-				terraform.OutputRequired(t, terraformOptions, "cluster_domain_id")
-				endpoint := terraform.OutputRequired(t, terraformOptions, "cluster_endpoint")
-				terraform.OutputRequired(t, terraformOptions, "cluster_security_group_id")
-
-				// A public cluster with IAM arns should reject unsigned requests
-				// and permit requests signed with the right credentials
-				validateUnsignedRequest(t, endpoint)
-				validateSignedRequest(t, endpoint, awsRegion)
-			},
 			testFolderPublic,
 			false,
 		},
@@ -106,7 +66,7 @@ func TestElasticsearch(t *testing.T) {
 				terraformOptions := test_structure.LoadTerraformOptions(t, testCase.testFolder)
 				terraform.Destroy(t, terraformOptions)
 				if testCase.hasKeyPair {
-					awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
+					awsKeyPair := test_structure.LoadEc2KeyPair(t, testCase.testFolder)
 					aws.DeleteEC2KeyPair(t, awsKeyPair)
 				}
 			})
@@ -120,7 +80,7 @@ func TestElasticsearch(t *testing.T) {
 
 				if testCase.hasKeyPair {
 					awsKeyPair := aws.CreateAndImportEC2KeyPair(t, awsRegion, uniqueID)
-					test_structure.SaveEc2KeyPair(t, testFolder, awsKeyPair)
+					test_structure.SaveEc2KeyPair(t, testCase.testFolder, awsKeyPair)
 				}
 			})
 
@@ -143,9 +103,53 @@ func TestElasticsearch(t *testing.T) {
 				}
 			})
 
-			test_structure.RunTestStage(t, "validate_cluster", testCase.validate)
+			test_structure.RunTestStage(t, "validate_cluster", func() {
+				if testCase.testFolder == testFolder {
+					validateCluster(t, testCase.testFolder)
+				} else {
+					validatePublicCluster(t, testCase.testFolder)
+				}
+			})
 		})
 	}
+}
+
+func validateCluster(t *testing.T, testFolder string) {
+	terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
+
+	terraform.OutputRequired(t, terraformOptions, "cluster_arn")
+	terraform.OutputRequired(t, terraformOptions, "cluster_domain_id")
+	endpoint := terraform.OutputRequired(t, terraformOptions, "cluster_endpoint")
+	terraform.OutputRequired(t, terraformOptions, "cluster_security_group_id")
+	ip := terraform.OutputRequired(t, terraformOptions, "aws_instance_public_ip")
+
+	awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
+	curlResponse := testSSHCommand(
+		t,
+		ip,
+		"ubuntu",
+		awsKeyPair,
+		fmt.Sprintf(
+			"curl --silent --location --fail --show-error -XGET %s/_cluster/settings?pretty=true",
+			fmt.Sprintf("https://%s", endpoint),
+		),
+	)
+	logger.Log(t, "%s", curlResponse)
+}
+
+func validatePublicCluster(t *testing.T, testFolder string) {
+	terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
+	awsRegion := test_structure.LoadString(t, testFolder, "region")
+
+	terraform.OutputRequired(t, terraformOptions, "cluster_arn")
+	terraform.OutputRequired(t, terraformOptions, "cluster_domain_id")
+	endpoint := terraform.OutputRequired(t, terraformOptions, "cluster_endpoint")
+	terraform.OutputRequired(t, terraformOptions, "cluster_security_group_id")
+
+	// A public cluster with IAM arns should reject unsigned requests
+	// and permit requests signed with the right credentials
+	validateUnsignedRequest(t, endpoint)
+	validateSignedRequest(t, endpoint, awsRegion)
 }
 
 func validateUnsignedRequest(t *testing.T, endpoint string) {
