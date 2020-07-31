@@ -130,7 +130,7 @@ resource "aws_security_group_rule" "ingress_ssh_cidr_blocks" {
   security_group_id = aws_security_group.lc_security_group.id
 }
 
-resource "aws_security_group_rule" "ingress_ssh_cidr_blocks" {
+resource "aws_security_group_rule" "ingress_ssh_security_group_ids" {
   for_each = var.allow_ssh_security_group_ids
 
   type                     = "ingress"
