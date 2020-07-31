@@ -20,7 +20,7 @@ import (
 )
 
 func TestElasticsearch(t *testing.T) {
-	t.Parallel()
+	//t.Parallel()
 
 	// Uncomment the items below to skip certain parts of the test
 	// os.Setenv("TERRATEST_REGION", "eu-west-1")
