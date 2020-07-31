@@ -153,21 +153,23 @@ resource "aws_alb_listener_rule" "path_based_example" {
 # Demonstrates adding a security group rule allowing access to port 80 on the container instances. These instances run the ecs task
 # which also binds to port 80 allowing them to serve as web hosts
 resource "aws_security_group_rule" "ecs_cluster_instances_webserver" {
-  type              = "ingress"
-  from_port         = 80
-  to_port           = 80
-  protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
+  type      = "ingress"
+  from_port = 80
+  to_port   = 80
+  protocol  = "tcp"
+  # Only allow access to the EC2 container instances from the Application Load Balancer
+  cidr_blocks       = [module.alb.alb_security_group_id]
   security_group_id = var.ecs_instance_security_group_id
 }
 
 # Demonstrates adding a security group rule allowing access to port 22 on the container instance. You would want to do this if you need to debug your container instances by ssh'ing into them
 resource "aws_security_group_rule" "ecs_cluster_instance_ssh" {
-  type              = "ingress"
-  from_port         = 22
-  to_port           = 22
-  protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
+  type      = "ingress"
+  from_port = 22
+  to_port   = 22
+  protocol  = "tcp"
+  # Only allow access to the EC2 container instances from the Application Load Balancer
+  cidr_blocks       = [module.alb.alb_security_group_id]
   security_group_id = var.ecs_instance_security_group_id
 }
 
