@@ -39,12 +39,13 @@ resource "aws_elasticsearch_domain" "cluster" {
 
   dynamic "vpc_options" {
     for_each = (var.is_public ? [] : list(var.is_public))
-    # Elasticsearch requires you to specify exactly 1 or 2 subnets, depending on whether zone awareness is enabled.
+    # Elasticsearch lets you specify 2 or 3 availability zones, if zone awareness is enabled.
+    # NOTE: This will produce an error if the length of subnet_ids is less than var.availability_zone_count.
     content {
       subnet_ids = slice(
         var.subnet_ids,
         0,
-        var.zone_awareness_enabled ? 2 : 1,
+        var.zone_awareness_enabled ? var.availability_zone_count : 1
       )
       security_group_ids = [aws_security_group.elasticsearch_cluster[0].id]
     }

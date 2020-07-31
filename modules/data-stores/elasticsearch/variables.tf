@@ -54,9 +54,15 @@ variable "vpc_id" {
 }
 
 variable "subnet_ids" {
-  description = "VPC Subnet IDs for the Elasticsearch domain endpoints to be created in. If zone_awareness_enabled is true, the first two provided subnet ids are used; otherwise only the first one is used."
+  description = " List of VPC Subnet IDs for the Elasticsearch domain endpoints to be created in. If var.zone_awareness_enabled is true, the first 2 or 3 provided subnet ids are used, depending on var.availability_zone_count. Otherwise only the first one is used."
   type        = list(string)
   default     = []
+}
+
+variable "availability_zone_count" {
+  description = "Number of Availability Zones for the domain to use with var.zone_awareness_enabled. Defaults to 2. Valid values: 2 or 3."
+  type        = number
+  default     = 2
 }
 
 # Cluster configuration
