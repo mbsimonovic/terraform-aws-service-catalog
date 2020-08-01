@@ -2,18 +2,24 @@ package test
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"regexp"
 	"testing"
 
 	awsgo "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ecr"
+	"github.com/aws/aws-sdk-go/service/ecs"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/google/go-github/v32/github"
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/docker"
+	"github.com/gruntwork-io/terratest/modules/files"
 	"github.com/gruntwork-io/terratest/modules/shell"
+	"github.com/gruntwork-io/terratest/modules/terraform"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/oauth2"
 )
@@ -155,4 +161,88 @@ func newGithubClient(token string) (context.Context, *github.Client) {
 	oauth2Client := oauth2.NewClient(ctx, oauth2TokenSource)
 
 	return ctx, github.NewClient(oauth2Client)
+}
+
+// Make sure the `gruntwork-install` helper is available in the environment
+func requireGruntworkInstaller(t *testing.T) {
+	cmd := shell.Command{
+		Command: "gruntwork-install",
+		Args:    []string{"--help"},
+	}
+	shell.RunCommand(t, cmd)
+}
+
+func installInfrastructureDeployer(t *testing.T, targetDir string, tag string) {
+	cmd := shell.Command{
+		Command: "gruntwork-install",
+		Args: []string{
+			"--binary-name", "infrastructure-deployer",
+			"--repo", "https://github.com/gruntwork-io/module-ci",
+			"--tag", tag,
+			"--binary-install-dir", targetDir,
+			"--no-sudo",
+		},
+	}
+	shell.RunCommand(t, cmd)
+	require.Truef(t, files.FileExists(filepath.Join(targetDir, "infrastructure-deployer")), "infrastructure-deployer was not installed in the target dir %s", targetDir)
+}
+
+// Invoke the infrastructure-deployer CLI using a generic test module in module-ci to smoke test the stack. This will
+// also validate that the correct launch type was used, so that we can verify both EC2 and Fargate compatibility of the
+// service module.
+func invokeInfrastructureDeployer(
+	t *testing.T,
+	terraformOptions *terraform.Options,
+	infraDeployerBinPath string,
+	ecsLaunchType string,
+) {
+	invokerFunctionArn := terraform.Output(t, terraformOptions, "invoker_function_arn")
+	ecsClusterArn := terraform.Output(t, terraformOptions, "ecs_cluster_arn")
+	region := terraformOptions.Vars["aws_region"].(string)
+	cmd := shell.Command{
+		Command: infraDeployerBinPath,
+		Args: []string{
+			"--aws-region", region,
+			"--invoker-function-id", invokerFunctionArn,
+			"--task-launch-type", ecsLaunchType,
+			"--",
+			"terraform-applier",
+			"infrastructure-deploy-script",
+			"--ref", "master",
+			"--repo", moduleCIRepo,
+			"--deploy-path", "test/fixtures/tfpipeline/root/terragrunt",
+			"--binary", "terragrunt",
+			"--command", "apply",
+		},
+	}
+	out := shell.RunCommandAndGetOutput(t, cmd)
+	assert.Contains(t, out, "data = Hello world")
+	assert.Contains(t, out, "\"terragrunt apply\" exited with code 0")
+	assertECSLaunchType(t, region, ecsClusterArn, out, ecsLaunchType)
+}
+
+func assertECSLaunchType(t *testing.T, region string, ecsClusterArn string, launchLogs string, launchType string) {
+	// extract the ECS task ARN from the logs
+	re, err := regexp.Compile(
+		fmt.Sprintf(
+			`Waiting for ECS task (arn:aws:ecs:%s:%s:task/.+) to start`,
+			region,
+			aws.GetAccountId(t),
+		),
+	)
+	require.NoError(t, err)
+	matches := re.FindStringSubmatch(launchLogs)
+	require.Equal(t, len(matches), 2)
+	ecsTaskArn := matches[1]
+
+	// Validate the launch type of the task
+	ecsSvc := aws.NewEcsClient(t, region)
+	out, err := ecsSvc.DescribeTasks(&ecs.DescribeTasksInput{
+		Cluster: awsgo.String(ecsClusterArn),
+		Tasks:   awsgo.StringSlice([]string{ecsTaskArn}),
+	})
+	require.NoError(t, err)
+	require.Equal(t, len(out.Tasks), 1)
+	ecsTask := out.Tasks[0]
+	assert.Equal(t, launchType, awsgo.StringValue(ecsTask.LaunchType))
 }

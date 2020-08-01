@@ -14,21 +14,25 @@ exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
 # Include common functions
 source /etc/user-data/user-data-common.sh
 
-# Disable SSH grunt.
-readonly enable_ssh_grunt="false"
-readonly ssh_grunt_iam_group=""
-readonly ssh_grunt_iam_group_sudo=""
-readonly external_account_ssh_grunt_role_arn=""
+# Disable SSH grunt. Note that we prepend these vars with "hardcoded" so that there are no namespace collisions with
+# vars in /etc/user-data/user-data-common.sh.
+readonly hardcoded_enable_ssh_grunt="false"
+readonly hardcoded_ssh_grunt_iam_group=""
+readonly hardcoded_ssh_grunt_iam_group_sudo=""
+readonly hardcoded_external_account_ssh_grunt_role_arn=""
 
 start_ec2_baseline \
   "${enable_cloudwatch_log_aggregation}" \
-  "$enable_ssh_grunt" \
+  "$hardcoded_enable_ssh_grunt" \
   "${enable_fail2ban}" \
   "${enable_ip_lockdown}" \
-  "$ssh_grunt_iam_group" \
-  "$ssh_grunt_iam_group_sudo" \
+  "$hardcoded_ssh_grunt_iam_group" \
+  "$hardcoded_ssh_grunt_iam_group_sudo" \
   "${log_group_name}" \
-  "$external_account_ssh_grunt_role_arn" \
+  "$hardcoded_external_account_ssh_grunt_role_arn" \
   "${default_user}"
 
-configure-ecs-instance --ecs-cluster-name ${ecs_cluster_name} --docker-auth-type ecr
+configure-ecs-instance \
+  --ecs-cluster-name ${ecs_cluster_name} \
+  --ecr-aws-region ${aws_region} \
+  --docker-auth-type ecr

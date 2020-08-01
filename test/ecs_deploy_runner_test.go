@@ -16,7 +16,6 @@ import (
 	"github.com/gruntwork-io/terratest/modules/shell"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
-	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -41,6 +40,8 @@ func TestEcsDeployRunner(t *testing.T) {
 	//os.Setenv("SKIP_build_docker_image", "true")
 	//os.Setenv("SKIP_push_docker_image", "true")
 	//os.Setenv("SKIP_apply_deploy_runner", "true")
+	//os.Setenv("SKIP_validate_deploy_runner_ec2", "true")
+	//os.Setenv("SKIP_validate_deploy_runner_fargate", "true")
 	//os.Setenv("SKIP_destroy_deploy_runner", "true")
 	//os.Setenv("SKIP_delete_docker_image", "true")
 	//os.Setenv("SKIP_cleanup_ssh_private_key", "true")
@@ -50,10 +51,13 @@ func TestEcsDeployRunner(t *testing.T) {
 	// Test prerequisite checks:
 	// - Must have GITHUB_OAUTH_TOKEN defined so that `gruntwork-install` works in packer and docker.
 	// - Must have TERRATEST_SSH_PRIVATE_KEY_PATH defined.
+	// - Make sure infrastructure-deployer CLI is available
 	requireEnvVar(t, "GITHUB_OAUTH_TOKEN")
 	requireEnvVar(t, "TERRATEST_SSH_PRIVATE_KEY_PATH")
+	requireGruntworkInstaller(t)
 
 	modulePath := test_structure.CopyTerraformFolderToTemp(t, "..", "examples/for-learning-and-testing/mgmt/ecs-deploy-runner")
+	infraDeployerBinPath := filepath.Join(modulePath, "infrastructure-deployer")
 
 	// Create a directory path that won't conflict
 	workingDir := filepath.Join(".", "stages", t.Name())
@@ -65,6 +69,9 @@ func TestEcsDeployRunner(t *testing.T) {
 		uniqueID := strings.ToLower(random.UniqueId())
 		test_structure.SaveString(t, workingDir, "UniqueID", uniqueID)
 		test_structure.SaveString(t, workingDir, "AwsRegion", region)
+
+		// Use gruntwork-installer to install infrastructure-deployer into module dir so we can use it for testing
+		installInfrastructureDeployer(t, modulePath, moduleCITag)
 	})
 	uniqueID := test_structure.LoadString(t, workingDir, "UniqueID")
 	region := test_structure.LoadString(t, workingDir, "AwsRegion")
@@ -218,7 +225,7 @@ func TestEcsDeployRunner(t *testing.T) {
 					"docker_tag":   deployRunnerImgTag,
 				},
 				"iam_policy":                              map[string]interface{}{},
-				"infrastructure_live_repositories":        []string{serviceCatalogRepo},
+				"infrastructure_live_repositories":        []string{serviceCatalogRepo, moduleCIRepo},
 				"repo_access_ssh_key_secrets_manager_arn": sshSecretsManagerArn,
 				"secrets_manager_env_vars":                map[string]interface{}{},
 			},
@@ -228,7 +235,7 @@ func TestEcsDeployRunner(t *testing.T) {
 					"docker_tag":   deployRunnerImgTag,
 				},
 				"iam_policy":                       map[string]interface{}{},
-				"infrastructure_live_repositories": []string{serviceCatalogRepo},
+				"infrastructure_live_repositories": []string{serviceCatalogRepo, moduleCIRepo},
 				"allowed_update_variable_names":    []string{"tag", "docker_tag", "ami_version_tag", "ami"},
 				"allowed_apply_git_refs":           []string{"master"},
 				"machine_user_git_info": map[string]interface{}{
@@ -249,9 +256,20 @@ func TestEcsDeployRunner(t *testing.T) {
 		terraform.InitAndApply(t, deployOpts)
 	})
 
-	// TODO: invoke deployment as a test, both on EC2 and Fargate
-}
-
-func requireEnvVar(t *testing.T, envVarName string) {
-	require.NotEmptyf(t, os.Getenv(envVarName), "Environment variable %s must be set for this test.", envVarName)
+	// We use a synchronous subtest that then spawns two sub tests in parallel, so that the main thread blocks on
+	// the two tests completing. This way, we ensure all the defer calls only happen after the subtests complete.
+	t.Run("ECSLaunchType", func(t *testing.T) {
+		t.Run("EC2", func(t *testing.T) {
+			t.Parallel()
+			test_structure.RunTestStage(t, "validate_deploy_runner_ec2", func() {
+				invokeInfrastructureDeployer(t, deployOpts, infraDeployerBinPath, "EC2")
+			})
+		})
+		t.Run("FARGATE", func(t *testing.T) {
+			t.Parallel()
+			test_structure.RunTestStage(t, "validate_deploy_runner_fargate", func() {
+				invokeInfrastructureDeployer(t, deployOpts, infraDeployerBinPath, "FARGATE")
+			})
+		})
+	})
 }

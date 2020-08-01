@@ -23,8 +23,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_deploy_runner" {
-  # TODO: replace with release
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner?ref=yori-expose-iam-role"
+  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner?ref=v0.25.1"
 
   name                          = var.name
   container_images              = module.standard_config.container_images
@@ -122,8 +121,8 @@ module "standard_config" {
 module "ec2_baseline" {
   source = "../../base/ec2-baseline"
 
-  name         = var.name
-  iam_role_arn = module.ecs_deploy_runner.ecs_ec2_worker_iam_role.name
+  name          = var.name
+  iam_role_name = module.ecs_deploy_runner.ecs_ec2_worker_iam_role.name
 
   enable_cloudwatch_log_aggregation = (
     local.should_use_ec2_worker_pool
@@ -193,6 +192,7 @@ locals {
           enable_ip_lockdown                = lookup(var.ec2_worker_pool_configuration, "enable_ip_lockdown", true)
           default_user                      = lookup(var.ec2_worker_pool_configuration, "default_user", "ec2-user")
           ecs_cluster_name                  = var.name
+          aws_region                        = data.aws_region.current.name
         },
       )
     }
@@ -332,3 +332,10 @@ resource "aws_iam_group_policy_attachment" "attach_invoke_to_groups" {
   group      = each.key
   policy_arn = module.invoke_policy.arn
 }
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# DATA SOURCES
+# ---------------------------------------------------------------------------------------------------------------------
+
+data "aws_region" "current" {}
