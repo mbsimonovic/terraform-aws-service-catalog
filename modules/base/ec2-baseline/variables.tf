@@ -31,8 +31,8 @@ variable "enable_cloudwatch_log_aggregation" {
   default     = true
 }
 
-variable "iam_role_arn" {
-  description = "The ARN of an IAM role to use for the various IAM policies created in this module, including ssh-grunt permissions, CloudWatch Metrics, and CloudWatch Logs. This variable is required if any of the following variables are true: enable_ssh_grunt, enable_cloudwatch_metrics, enable_cloudwatch_log_aggregation."
+variable "iam_role_name" {
+  description = "The name of an IAM role to use for the various IAM policies created in this module, including ssh-grunt permissions, CloudWatch Metrics, and CloudWatch Logs. This variable is required if any of the following variables are true: enable_ssh_grunt, enable_cloudwatch_metrics, enable_cloudwatch_log_aggregation."
   type        = string
   default     = ""
 }
