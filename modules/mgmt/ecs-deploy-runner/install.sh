@@ -88,7 +88,6 @@ function install_ecs_container_instance {
     shift
   done
 
-  include_ec2_baseline
   assert_env_var_not_empty "GITHUB_OAUTH_TOKEN"
 
   # We disable SSH grunt because of the implications of what having SSH access to the deploy runner EC2 instances mean.
@@ -107,4 +106,5 @@ function install_ecs_container_instance {
   install_ecs_scripts "$module_ecs_version"
 }
 
+include_ec2_baseline
 install_ecs_container_instance "$@"
