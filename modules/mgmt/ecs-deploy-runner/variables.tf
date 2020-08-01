@@ -312,3 +312,53 @@ variable "container_max_memory" {
   type        = number
   default     = 8192
 }
+
+variable "ec2_worker_pool_configuration" {
+  description = "Worker configuration of a EC2 worker pool for the ECS cluster. An EC2 worker pool supports caching of Docker images, so your builds may run faster, whereas Fargate is serverless, so you have no persistent EC2 instances to manage and pay for. If null, no EC2 worker pool will be allocated and the deploy runner will be in Fargate only mode. Note that when this variable is set, this example module will automatically lookup and use the base ECS optimized AMI that AWS provides."
+  # We use type any so that the user doesn't have to provide all of these values and we can use sane defaults.
+  type    = any
+  default = null
+
+  # We expect the following attributes on this object:
+  # - ami [string] (REQUIRED) : The ID of an AMI to use when deploying the instance. Either ami or ami_filters must be
+  #                             provided.
+  # - ami_filters [AMIFilter] (REQUIRED) : Properties on the AMI that can be used to lookup a prevuild AMI for use with
+  #                                        the EC2 worker pool.
+  # - min_size [number] (default: 1) : The minimum number of EC2 Instances launchable for this ECS Cluster. Useful for
+  #                                    auto-scaling limits.
+  # - max_size [number] (default: 2) : The maximum number of EC2 Instances that must be running for this ECS Cluster. We
+  #                                    recommend making this twice min_size, even if you don't plan on scaling the
+  #                                    cluster up and down, as the extra capacity will be used to deploy updates to the
+  #                                    cluster.
+  # - instance_type [string] (default: m5.large) : Instance type (e.g. t2.micro) to use for the EC2 instances. We
+  #                                                recommend using at least large class instances.
+  # - cloud_init_parts [map(CloudInitPart)] (default: {}) : Cloud init scripts to run on the bastion host while it
+  #                                                         boots. See the part blocks in
+  #                                                         https://www.terraform.io/docs/providers/template/d/cloudinit_config.html
+  #                                                         for syntax.
+  # - enable_cloudwatch_log_aggregation [bool] (default: true) : Whether or not to send server logs to the CloudWatch
+  #                                                              Logs service.
+  # - enable_cloudwatch_metrics [bool] (default: true) : Whether or not to send metrics to the CloudWatch service.
+  # - enable_asg_cloudwatch_alarms [bool] (default: true) : Whether or not to configure cloudwatch alarms for the ASG.
+  # - enable_fail2ban [bool] (default: true) : Whether or not to enable the fail2ban service on the server.
+  # - enable_ip_lockdown [bool] (default: true) : Whether or not to enable the ip-lockdown service on the server.
+  # - alarms_sns_topic_arn [string] (default: null) : The ARN of an SNS topic for cloudwatch to send alerts to.
+  # - default_user [string] (default: ec2-user) : The default OS user that is created on the server.
+
+  # Example:
+  # ec2_worker_pool_configuration = {
+  #   ami_filters = {
+  #     owners = ["self"]
+  #     filters = [{
+  #       name   = "tag:version_tag"
+  #       values = ["v0.20.4"]
+  #     }]
+  #   }
+  # }
+}
+
+variable "container_default_launch_type" {
+  description = "The default launch type of the ECS deploy runner workers. This launch type will be used if it is not overridden during invocation of the lambda function. Must be FARGATE or EC2."
+  type        = string
+  default     = "FARGATE"
+}

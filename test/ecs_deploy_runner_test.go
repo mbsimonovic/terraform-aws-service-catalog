@@ -6,13 +6,17 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/docker"
+	"github.com/gruntwork-io/terratest/modules/git"
+	"github.com/gruntwork-io/terratest/modules/packer"
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/shell"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -21,7 +25,7 @@ const (
 	kanikoImgTag       = "kaniko-v1"
 
 	moduleCIRepo = "git@github.com:gruntwork-io/module-ci.git"
-	moduleCITag  = "v0.24.0"
+	moduleCITag  = "v0.25.0"
 )
 
 // TestEcsDeployRunner tests the ECS Deploy Runner module.
@@ -31,6 +35,7 @@ func TestEcsDeployRunner(t *testing.T) {
 	t.Parallel()
 
 	//os.Setenv("SKIP_setup", "true")
+	//os.Setenv("SKIP_build_worker_ami", "true")
 	//os.Setenv("SKIP_setup_ecr_repo", "true")
 	//os.Setenv("SKIP_setup_ssh_private_key", "true")
 	//os.Setenv("SKIP_build_docker_image", "true")
@@ -40,11 +45,19 @@ func TestEcsDeployRunner(t *testing.T) {
 	//os.Setenv("SKIP_delete_docker_image", "true")
 	//os.Setenv("SKIP_cleanup_ssh_private_key", "true")
 	//os.Setenv("SKIP_cleanup_ecr_repo", "true")
+	//os.Setenv("SKIP_cleanup_worker_ami", "true")
+
+	// Test prerequisite checks:
+	// - Must have GITHUB_OAUTH_TOKEN defined so that `gruntwork-install` works in packer and docker.
+	// - Must have TERRATEST_SSH_PRIVATE_KEY_PATH defined.
+	requireEnvVar(t, "GITHUB_OAUTH_TOKEN")
+	requireEnvVar(t, "TERRATEST_SSH_PRIVATE_KEY_PATH")
 
 	modulePath := test_structure.CopyTerraformFolderToTemp(t, "..", "examples/for-learning-and-testing/mgmt/ecs-deploy-runner")
 
 	// Create a directory path that won't conflict
 	workingDir := filepath.Join(".", "stages", t.Name())
+	branchName := git.GetCurrentBranchName(t)
 
 	// Setup test environment by choosing a region and generating a unique ID for namespacing resources.
 	test_structure.RunTestStage(t, "setup", func() {
@@ -57,6 +70,28 @@ func TestEcsDeployRunner(t *testing.T) {
 	region := test_structure.LoadString(t, workingDir, "AwsRegion")
 	repository := fmt.Sprintf("gruntwork/ecs-deploy-runner-%s", uniqueID)
 	deployRunnerName := fmt.Sprintf("ecs-deploy-runner-%s", uniqueID)
+
+	// Build AMI for EC2 worker pool
+	defer test_structure.RunTestStage(t, "cleanup_worker_ami", func() {
+		amiId := test_structure.LoadArtifactID(t, workingDir)
+		awsRegion := test_structure.LoadString(t, workingDir, "AwsRegion")
+		aws.DeleteAmiAndAllSnapshots(t, awsRegion, amiId)
+	})
+	test_structure.RunTestStage(t, "build_worker_ami", func() {
+		awsRegion := test_structure.LoadString(t, workingDir, "AwsRegion")
+		packerOptions := &packer.Options{
+			Template: "../modules/mgmt/ecs-deploy-runner/ecs-deploy-runner-worker-al2.json",
+			Vars: map[string]string{
+				"aws_region":          awsRegion,
+				"service_catalog_ref": branchName,
+				"version_tag":         branchName,
+			},
+			MaxRetries:         3,
+			TimeBetweenRetries: 5 * time.Second,
+		}
+		amiId := packer.BuildArtifact(t, packerOptions)
+		test_structure.SaveArtifactID(t, workingDir, amiId)
+	})
 
 	// Setup ECR repository
 	defer test_structure.RunTestStage(t, "cleanup_ecr_repo", func() {
@@ -203,6 +238,8 @@ func TestEcsDeployRunner(t *testing.T) {
 				"repo_access_ssh_key_secrets_manager_arn": sshSecretsManagerArn,
 				"secrets_manager_env_vars":                map[string]interface{}{},
 			},
+			"enable_ec2_worker_pool":          true,
+			"ec2_worker_pool_ami_version_tag": branchName,
 		},
 	}
 	defer test_structure.RunTestStage(t, "destroy_deploy_runner", func() {
@@ -211,4 +248,10 @@ func TestEcsDeployRunner(t *testing.T) {
 	test_structure.RunTestStage(t, "apply_deploy_runner", func() {
 		terraform.InitAndApply(t, deployOpts)
 	})
+
+	// TODO: invoke deployment as a test, both on EC2 and Fargate
+}
+
+func requireEnvVar(t *testing.T, envVarName string) {
+	require.NotEmptyf(t, os.Getenv(envVarName), "Environment variable %s must be set for this test.", envVarName)
 }
