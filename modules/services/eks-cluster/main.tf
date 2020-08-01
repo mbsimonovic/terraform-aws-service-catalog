@@ -249,7 +249,7 @@ module "ec2_baseline" {
   name                                = var.cluster_name
   external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
   enable_ssh_grunt                    = local.enable_ssh_grunt
-  iam_role_arn                        = module.eks_workers.eks_worker_iam_role_name
+  iam_role_name                       = module.eks_workers.eks_worker_iam_role_name
   enable_cloudwatch_metrics           = var.enable_cloudwatch_metrics
   enable_asg_cloudwatch_alarms        = var.enable_cloudwatch_alarms
   asg_names                           = module.eks_workers.eks_worker_asg_names

@@ -147,7 +147,7 @@ module "ec2_baseline" {
   enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
   # We use custom metrics for ECS, as specified above
   enable_cloudwatch_metrics = false
-  iam_role_arn              = module.ecs_cluster.ecs_instance_iam_role_name
+  iam_role_name             = module.ecs_cluster.ecs_instance_iam_role_name
   cloud_init_parts          = local.cloud_init_parts
   ami                       = var.cluster_instance_ami
   ami_filters               = var.cluster_instance_ami_filters

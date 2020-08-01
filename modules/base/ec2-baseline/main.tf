@@ -22,7 +22,7 @@ module "ssh_grunt_policies" {
 resource "aws_iam_role_policy" "ssh_grunt_permissions" {
   count  = var.enable_ssh_grunt ? 1 : 0
   name   = "ssh-grunt-permissions"
-  role   = var.iam_role_arn
+  role   = var.iam_role_name
   policy = var.external_account_ssh_grunt_role_arn == "" ? module.ssh_grunt_policies.ssh_grunt_permissions : module.ssh_grunt_policies.allow_access_to_other_accounts[0]
 }
 
@@ -41,7 +41,7 @@ module "cloudwatch_metrics" {
 resource "aws_iam_role_policy" "custom_cloudwatch_metrics" {
   count  = var.enable_cloudwatch_metrics ? 1 : 0
   name   = "custom-cloudwatch-metrics"
-  role   = var.iam_role_arn
+  role   = var.iam_role_name
   policy = module.cloudwatch_metrics.cloudwatch_metrics_read_write_permissions_json
 }
 
@@ -60,7 +60,7 @@ module "cloudwatch_log_aggregation" {
 resource "aws_iam_role_policy" "cloudwatch_log_aggregation" {
   count  = var.enable_cloudwatch_log_aggregation ? 1 : 0
   name   = "cloudwatch-log-aggregation"
-  role   = var.iam_role_arn
+  role   = var.iam_role_name
   policy = module.cloudwatch_log_aggregation.cloudwatch_logs_permissions_json
 }
 
