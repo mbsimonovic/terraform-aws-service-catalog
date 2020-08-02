@@ -180,7 +180,6 @@ func installInfrastructureDeployer(t *testing.T, targetDir string, tag string) {
 			"--repo", "https://github.com/gruntwork-io/module-ci",
 			"--tag", tag,
 			"--binary-install-dir", targetDir,
-			"--no-sudo",
 		},
 	}
 	shell.RunCommand(t, cmd)
