@@ -19,6 +19,11 @@ output "cluster_security_group_id" {
 }
 
 output "aws_instance_public_ip" {
-  description = "The public IP of the bastion host which you can SSH into to run curl commands against the Elasticsearch cluster."
+  description = "If the domain was created inside a VPC, the public IP of the bastion host which you can SSH into to run curl commands against the Elasticsearch cluster."
   value       = aws_instance.server.public_ip
+}
+
+output "kibana_endpoint" {
+  description = "Domain-specific endpoint for Kibana without https scheme."
+  value       = module.elasticsearch.kibana_endpoint
 }
