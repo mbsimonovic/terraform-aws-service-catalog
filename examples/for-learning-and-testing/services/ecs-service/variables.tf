@@ -8,22 +8,6 @@ variable "aws_region" {
   default     = "eu-west-1"
 }
 
-variable "service_name" {
-  description = "The name of the ECS service (e.g. my-service-stage)"
-  type        = string
-}
-
-variable "desired_number_of_tasks" {
-  description = "How many instances of the ECS Service to run across the ECS cluster"
-  type        = number
-  default     = 1
-}
-
-variable "ecs_node_port_mappings" {
-  description = "A map of ports used by the Docker containers on an ECS Node. The key should be the container port and the value should be what host port to map it to."
-  type        = map(number)
-}
-
 variable "ecs_cluster_arn" {
   description = "The ARN of the cluster to which the ecs service should be deployed"
   type        = string
@@ -58,6 +42,27 @@ variable "hosted_zone_id" {
 # OPTIONAL PARAMETERS
 # These values may optionally be overwritten by the calling Terraform code.
 # ---------------------------------------------------------------------------------------------------------------------
+
+variable "ecs_node_port_mappings" {
+  description = "A map of ports used by the Docker containers on an ECS Node. The key should be the container port and the value should be what host port to map it to."
+  type        = map(number)
+  default = {
+    "22" = 22
+    "80" = 80
+  }
+}
+
+variable "service_name" {
+  description = "The name of the ECS service (e.g. my-service-stage)"
+  type        = string
+  default     = "test-ecs-service"
+}
+
+variable "desired_number_of_tasks" {
+  description = "How many instances of the ECS Service to run across the ECS cluster"
+  type        = number
+  default     = 1
+}
 
 variable "high_cpu_utilization_threshold" {
   description = "Trigger an alarm if the ECS Service has a CPU utilization percentage above this threshold"
@@ -106,5 +111,4 @@ variable "ecs_cluster_name" {
   type        = string
   default     = null
 }
-
 
