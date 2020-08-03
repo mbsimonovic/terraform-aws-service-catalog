@@ -3,7 +3,7 @@
 
 set -e
 
-readonly DEFAULT_TERRAFORM_AWS_EKS_VERSION="v0.15.4"
+readonly DEFAULT_TERRAFORM_AWS_EKS_VERSION="v0.20.4"
 
 # TODO: Update ref to a tag when released
 readonly DEFAULT_EC2_BASELINE_REF="master"
