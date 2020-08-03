@@ -284,3 +284,21 @@ variable "iam_groups" {
   type        = list(string)
   default     = []
 }
+
+variable "enable_ec2_worker_pool" {
+  description = "Whether or not to deploy a minimal EC2 worker pool for use with the ECS deploy runner. An EC2 worker pool supports caching of Docker images, so your builds may run faster, whereas Fargate is serverless, so you have no persistent EC2 instances to manage and pay for."
+  type        = bool
+  default     = false
+}
+
+variable "ec2_worker_pool_ami_version_tag" {
+  description = "The version string of the AMI to run for the bastion host built from the template in modules/mgmt/ecs-deploy-runner/ecs-deploy-runner-worker-al2.json. This corresponds to the value passed in for version_tag in the Packer template. Only used if enable_ec2_worker_pool is true."
+  type        = string
+  default     = null
+}
+
+variable "container_default_launch_type" {
+  description = "The default launch type of the ECS deploy runner workers. This launch type will be used if it is not overridden during invocation of the lambda function. Must be FARGATE or EC2."
+  type        = string
+  default     = "FARGATE"
+}

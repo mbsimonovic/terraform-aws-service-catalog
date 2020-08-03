@@ -22,6 +22,27 @@ module "ecs_deploy_runner" {
   terraform_planner_config    = var.terraform_planner_config
   terraform_applier_config    = var.terraform_applier_config
 
+  ec2_worker_pool_configuration = (
+    var.enable_ec2_worker_pool
+    ? {
+      # NOTE: these filters assume you created an AMI using the packer build script in the service module.
+      ami_filters = {
+        owners = ["self"]
+        filters = [
+          {
+            name   = "tag:service"
+            values = ["ecs-deploy-runner-worker"]
+          },
+          {
+            name   = "tag:version"
+            values = [var.ec2_worker_pool_ami_version_tag]
+          },
+        ]
+      }
+    }
+    : null
+  )
+
   iam_users  = var.iam_users
   iam_groups = var.iam_groups
   iam_roles  = var.iam_roles

@@ -167,3 +167,7 @@ func testSSH(t *testing.T, ip string, sshUsername string, keyPair *aws.Ec2Keypai
 		},
 	)
 }
+
+func requireEnvVar(t *testing.T, envVarName string) {
+	require.NotEmptyf(t, os.Getenv(envVarName), "Environment variable %s must be set for this test.", envVarName)
+}

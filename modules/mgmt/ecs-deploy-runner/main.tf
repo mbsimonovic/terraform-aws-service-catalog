@@ -23,10 +23,12 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_deploy_runner" {
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner?ref=v0.24.1"
+  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner?ref=v0.25.1"
 
-  name             = var.name
-  container_images = module.standard_config.container_images
+  name                          = var.name
+  container_images              = module.standard_config.container_images
+  ec2_worker_pool_configuration = local.ec2_worker_pool_configuration
+  container_default_launch_type = var.container_default_launch_type
 
   vpc_id         = var.vpc_id
   vpc_subnet_ids = var.private_subnet_ids
@@ -110,6 +112,104 @@ module "standard_config" {
     : null
   )
 }
+
+# ---------------------------------------------------------------------------------------------------------------------
+# EC2 WORKER POOL SETTINGS
+# Configure the baseline IAM permissions for the various services, as well as the user data boot script.
+# ---------------------------------------------------------------------------------------------------------------------
+
+module "ec2_baseline" {
+  source = "../../base/ec2-baseline"
+
+  name          = var.name
+  iam_role_name = module.ecs_deploy_runner.ecs_ec2_worker_iam_role.name
+
+  enable_cloudwatch_log_aggregation = (
+    local.should_use_ec2_worker_pool
+    ? lookup(var.ec2_worker_pool_configuration, "enable_cloudwatch_log_aggregation", true)
+    : false
+  )
+  enable_cloudwatch_metrics = (
+    local.should_use_ec2_worker_pool
+    ? lookup(var.ec2_worker_pool_configuration, "enable_cloudwatch_metrics", true)
+    : false
+  )
+  enable_asg_cloudwatch_alarms = (
+    local.should_use_ec2_worker_pool
+    ? lookup(var.ec2_worker_pool_configuration, "enable_asg_cloudwatch_alarms", true)
+    : false
+  )
+  asg_names = [module.ecs_deploy_runner.ecs_ec2_worker_asg_name]
+  alarms_sns_topic_arn = (
+    local.should_use_ec2_worker_pool
+    ? lookup(var.ec2_worker_pool_configuration, "alarms_sns_topic_arn", null)
+    : null
+  )
+  cloud_init_parts = local.cloud_init_parts
+  ami = (
+    local.should_use_ec2_worker_pool
+    ? lookup(var.ec2_worker_pool_configuration, "ami", null)
+    : null
+  )
+  ami_filters = (
+    local.should_use_ec2_worker_pool
+    ? lookup(var.ec2_worker_pool_configuration, "ami_filters", null)
+    : null
+  )
+
+  # Disable ssh grunt, given the implications of such access to the CI/CD pipeline.
+  enable_ssh_grunt                    = false
+  external_account_ssh_grunt_role_arn = ""
+}
+
+locals {
+  should_use_ec2_worker_pool = var.ec2_worker_pool_configuration != null
+  ec2_worker_pool_configuration = (
+    local.should_use_ec2_worker_pool
+    ? {
+      min_size         = lookup(var.ec2_worker_pool_configuration, "min_size", 1)
+      max_size         = lookup(var.ec2_worker_pool_configuration, "max_size", 2)
+      instance_type    = lookup(var.ec2_worker_pool_configuration, "instance_type", "m5.large")
+      ami              = module.ec2_baseline.existing_ami
+      user_data_base64 = module.ec2_baseline.cloud_init_rendered
+      user_data        = null
+    }
+    : null
+  )
+
+  # Default cloud init script for this module
+  cloud_init = (
+    local.should_use_ec2_worker_pool
+    ? {
+      filename     = "ecs-deploy-runner-default-cloud-init"
+      content_type = "text/x-shellscript"
+      content = templatefile(
+        "${path.module}/user-data.sh",
+        {
+          log_group_name                    = var.name
+          enable_cloudwatch_log_aggregation = lookup(var.ec2_worker_pool_configuration, "enable_cloudwatch_log_aggregation", true)
+          enable_fail2ban                   = lookup(var.ec2_worker_pool_configuration, "enable_fail2ban", true)
+          enable_ip_lockdown                = lookup(var.ec2_worker_pool_configuration, "enable_ip_lockdown", true)
+          default_user                      = lookup(var.ec2_worker_pool_configuration, "default_user", "ec2-user")
+          ecs_cluster_name                  = var.name
+          aws_region                        = data.aws_region.current.name
+        },
+      )
+    }
+    : null
+  )
+
+  # Merge in all the cloud init scripts the user has passed in
+  cloud_init_parts = (
+    local.should_use_ec2_worker_pool
+    ? merge(
+      { default : local.cloud_init },
+      lookup(var.ec2_worker_pool_configuration, "cloud_init_parts", {}),
+    )
+    : null
+  )
+}
+
 
 # ---------------------------------------------------------------------------------------------------------------------
 # ATTACH AWS PERMISSIONS TO ECS TASKS
@@ -232,3 +332,10 @@ resource "aws_iam_group_policy_attachment" "attach_invoke_to_groups" {
   group      = each.key
   policy_arn = module.invoke_policy.arn
 }
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# DATA SOURCES
+# ---------------------------------------------------------------------------------------------------------------------
+
+data "aws_region" "current" {}
