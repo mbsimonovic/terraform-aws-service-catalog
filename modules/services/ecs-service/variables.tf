@@ -279,6 +279,28 @@ variable "force_destroy" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
+# ECS DEPLOYMENT CHECK OPTIONS
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "enable_ecs_deployment_check" {
+  description = "Whether or not to enable the ECS deployment check binary to make terraform wait for the task to be deployed. See ecs_deploy_check_binaries for more details. You must install the companion binary before the check can be used. Refer to the README for more details."
+  type        = bool
+  default     = true
+}
+
+variable "deployment_check_timeout_seconds" {
+  description = "Seconds to wait before timing out each check for verifying ECS service deployment. See ecs_deploy_check_binaries for more details."
+  type        = number
+  default     = 600
+}
+
+variable "deployment_check_loglevel" {
+  description = "Set the logging level of the deployment check script. You can set this to `error`, `warn`, or `info`, in increasing verbosity."
+  type        = string
+  default     = "info"
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
 # IAM ROLES AND POLICIES 
 # ---------------------------------------------------------------------------------------------------------------------
 

@@ -57,8 +57,8 @@ module "alb" {
   https_listener_ports_and_ssl_certs = []
   ssl_policy                         = "ELBSecurityPolicy-TLS-1-1-2017-01"
 
-  vpc_id         = var.vpc_id
-  vpc_subnet_ids = var.subnet_ids
+  vpc_id         = aws_default_vpc.default.id
+  vpc_subnet_ids = [aws_default_subnet.default_az1.id, aws_default_subnet.default_az2.id]
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -114,7 +114,7 @@ module "ecs_service" {
     }
   }
 
-  elb_target_group_vpc_id = var.vpc_id
+  elb_target_group_vpc_id = aws_default_vpc.default.id
 
   # Cloudwatch configuration 
   high_memory_utilization_threshold = var.high_memory_utilization_threshold
@@ -153,30 +153,41 @@ resource "aws_alb_listener_rule" "path_based_example" {
 # Demonstrates adding a security group rule allowing access to port 80 on the container instances. These instances run the ecs task
 # which also binds to port 80 allowing them to serve as web hosts
 resource "aws_security_group_rule" "ecs_cluster_instances_webserver" {
-  type      = "ingress"
-  from_port = 80
-  to_port   = 80
-  protocol  = "tcp"
-  # Only allow access to the EC2 container instances from the Application Load Balancer
-  cidr_blocks       = [module.alb.alb_security_group_id]
+  type              = "ingress"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
   security_group_id = var.ecs_instance_security_group_id
+  # Only allow access to the EC2 container instances from the Application Load Balancer
+  source_security_group_id = module.alb.alb_security_group_id
 }
 
 # Demonstrates adding a security group rule allowing access to port 22 on the container instance. You would want to do this if you need to debug your container instances by ssh'ing into them
 resource "aws_security_group_rule" "ecs_cluster_instance_ssh" {
-  type      = "ingress"
-  from_port = 22
-  to_port   = 22
-  protocol  = "tcp"
+  type              = "ingress"
+  from_port         = 22
+  to_port           = 22
+  protocol          = "tcp"
+  security_group_id = var.ecs_instance_security_group_id
   # NOTE: we are only leaving this open to make testing easy, but in prod this should be locked down 
   # to only trusted servers, such as a VPN server 
-  cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = var.ecs_instance_security_group_id
+  cidr_blocks = ["0.0.0.0/0"]
 }
 
 # Create an SNS topic to receive ecs-related alerts when defined service thresholds are breached
 resource "aws_sns_topic" "ecs-alerts" {
   name = "ecs-alerts-topic"
+}
+
+# Look up the default VPC
+resource "aws_default_vpc" "default" {}
+
+resource "aws_default_subnet" "default_az1" {
+  availability_zone = "${var.aws_region}a"
+}
+
+resource "aws_default_subnet" "default_az2" {
+  availability_zone = "${var.aws_region}b"
 }
 
 data "aws_caller_identity" "current" {}

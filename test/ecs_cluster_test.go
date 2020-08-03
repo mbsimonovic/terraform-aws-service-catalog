@@ -122,25 +122,12 @@ func deployECSCluster(t *testing.T, testFolder string) {
 	clusterName := test_structure.LoadString(t, testFolder, "clusterName")
 	awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
 
-	// Use the default VPC and subnets for testing, since they are already configured
-	// with an internet gateway and routes for public internet access
-	defaultVpc := aws.GetDefaultVpc(t, awsRegion)
-	vpcSubnets := aws.GetSubnetsForVpc(t, defaultVpc.Id, awsRegion)
-	var vpcSubnetIds []string
-	for _, sn := range vpcSubnets {
-		vpcSubnetIds = append(vpcSubnetIds, sn.Id)
-	}
-
-	test_structure.SaveString(t, testFolder, "vpcId", defaultVpc.Id)
-
 	terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
 	terraformOptions.Vars["cluster_name"] = clusterName
 	terraformOptions.Vars["cluster_min_size"] = 2
 	terraformOptions.Vars["cluster_max_size"] = 2
 	terraformOptions.Vars["cluster_instance_type"] = "t2.medium"
 	terraformOptions.Vars["cluster_instance_ami_version_tag"] = branchName
-	terraformOptions.Vars["vpc_id"] = defaultVpc.Id
-	terraformOptions.Vars["vpc_subnet_ids"] = vpcSubnetIds
 	terraformOptions.Vars["cluster_instance_keypair_name"] = awsKeyPair.Name
 	terraformOptions.Vars["enable_cloudwatch_log_aggregation"] = true
 	terraformOptions.Vars["enable_ecs_cloudwatch_alarms"] = true
@@ -176,15 +163,6 @@ func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestF
 
 	awsRegion := test_structure.LoadString(t, ecsClusterTestFolder, "region")
 
-	vpcId := test_structure.LoadString(t, ecsClusterTestFolder, "vpcId")
-	require.NotNil(t, vpcId)
-
-	vpcSubnets := aws.GetSubnetsForVpc(t, vpcId, awsRegion)
-	var vpcSubnetIds []string
-	for _, sn := range vpcSubnets {
-		vpcSubnetIds = append(vpcSubnetIds, sn.Id)
-	}
-
 	ecsClusterTerraformOptions := test_structure.LoadTerraformOptions(t, ecsClusterTestFolder)
 
 	ecsServiceTerraformOptions := &terraform.Options{
@@ -203,9 +181,8 @@ func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestF
 	domainName := fmt.Sprintf("ecs-service-test-%s.%s", uniqueID, TestDomainName)
 
 	portMappings := map[string]int{
-		"22":  22,
-		"80":  80,
-		"443": 443,
+		"22": 22,
+		"80": 80,
 	}
 
 	serviceName := fmt.Sprintf("nginx-%s", strings.ToLower(uniqueID))
@@ -215,8 +192,6 @@ func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestF
 	ecsServiceTerraformOptions.Vars["ecs_cluster_name"] = ecsClusterName
 	ecsServiceTerraformOptions.Vars["ecs_cluster_arn"] = ecsClusterArn
 	ecsServiceTerraformOptions.Vars["ecs_node_port_mappings"] = portMappings
-	ecsServiceTerraformOptions.Vars["vpc_id"] = vpcId
-	ecsServiceTerraformOptions.Vars["subnet_ids"] = vpcSubnetIds
 	ecsServiceTerraformOptions.Vars["ecs_instance_security_group_id"] = clusterInstanceSecurityGroupId
 	ecsServiceTerraformOptions.Vars["domain_name"] = domainName
 	ecsServiceTerraformOptions.Vars["hosted_zone_id"] = TestHostedZoneId

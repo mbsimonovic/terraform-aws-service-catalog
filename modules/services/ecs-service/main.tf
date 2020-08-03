@@ -43,6 +43,10 @@ module "ecs_service" {
   elb_target_groups       = var.elb_target_groups
   elb_target_group_vpc_id = var.elb_target_group_vpc_id
 
+  enable_ecs_deployment_check      = var.enable_ecs_deployment_check
+  deployment_check_timeout_seconds = var.deployment_check_timeout_seconds
+  deployment_check_loglevel        = var.deployment_check_loglevel
+
   dependencies = var.dependencies
 }
 

@@ -13,16 +13,6 @@ variable "ecs_cluster_arn" {
   type        = string
 }
 
-variable "vpc_id" {
-  description = "The ID of the VPC into which ECS and associated resources should be launched"
-  type        = string
-}
-
-variable "subnet_ids" {
-  description = "The ID of the subnet into which ECS and associated resources should be launched"
-  type        = list(string)
-}
-
 variable "ecs_instance_security_group_id" {
   description = "The ID of the security group that the ECS cluster module applied to all EC2 container instances"
   type        = string
