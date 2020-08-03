@@ -88,9 +88,9 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_iam_role_policy" "service_policy" {
-  count  = var.iam_role_name != "" && var.iam_role_exists == false ? 1 : 0
+  count  = var.iam_role_name != "" ? 1 : 0
   name   = "${var.iam_role_name}Policy"
-  role   = var.iam_role_name != "" && var.iam_role_exists == false ? aws_iam_role.ecs_task : data.aws_iam_role.existing_role[0].id
+  role   = aws_iam_role.ecs_task
   policy = data.aws_iam_policy_document.service_policy[0].json
 }
 
@@ -107,11 +107,6 @@ data "aws_iam_policy_document" "service_policy" {
       resources = statement.value.resources
     }
   }
-}
-
-data "aws_iam_role" "existing_role" {
-  count = var.iam_role_exists ? 1 : 0
-  name  = var.iam_role_name
 }
 
 # Create the ECS Task IAM Role
