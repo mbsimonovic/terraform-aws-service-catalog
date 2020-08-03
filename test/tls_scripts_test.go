@@ -5,7 +5,9 @@ import (
 	"os"
 	"testing"
 
+	"github.com/gruntwork-io/terratest/modules/docker"
 	"github.com/gruntwork-io/terratest/modules/files"
+	// "github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/shell"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 	"github.com/stretchr/testify/require"
@@ -19,6 +21,8 @@ func TestTlsScripts(t *testing.T) {
 	// os.Setenv("SKIP_deploy", "true")
 	// os.Setenv("SKIP_validate", "true")
 	// os.Setenv("SKIP_cleanup", "true")
+
+	requireEnvVar(t, "GITHUB_OAUTH_TOKEN")
 
 	scriptsPath := "../modules/tls-scripts"
 
@@ -35,6 +39,10 @@ func TestTlsScripts(t *testing.T) {
 	sslPath := "/tmp/ssl"
 	trustStoresFiles := []string{"kafka.server.ca.default.pem", "kafka.server.cert.default.pem", "keystore/kafka.server.keystore.default.jks", "truststore/kafka.server.truststore.default.jks"}
 
+	// Determined that this is set locally!
+	// ghtoken := os.Getenv("GITHUB_OAUTH_TOKEN")
+	// logger.Logf(t, "github token is %s", ghtoken)
+
 	var testCases = []struct {
 		name     string
 		deploy   func()
@@ -44,9 +52,20 @@ func TestTlsScripts(t *testing.T) {
 		{
 			"CreateTlsCert",
 			func() {
-				createTlsCert := shell.Command{
-					Command: fmt.Sprintf("%s/create-tls-cert.sh", scriptsPath),
-					Args: []string{
+				// Configure the tag to use on the Docker image.
+				tag := "gruntwork/tls-scripts-docker-image"
+				buildOptions := &docker.BuildOptions{
+					Tags:      []string{tag},
+					BuildArgs: []string{"GITHUB_OAUTH_TOKEN"}, // Let Docker look it up
+				}
+
+				// Build the Docker image.
+				docker.Build(t, scriptsPath, buildOptions)
+
+				// Run the Docker image.
+				runOpts := &docker.RunOptions{
+					Command: []string{
+						"/modules/tls-scripts/create-tls-cert.sh",
 						"--ca-path",
 						"ca.crt.pem",
 						"--cert-path",
@@ -60,11 +79,34 @@ func TestTlsScripts(t *testing.T) {
 						"--aws-region",
 						"us-east-1",
 					},
+					EnvironmentVariables: []string{"GITHUB_OAUTH_TOKEN"}, // ???
+					Volumes:              []string{"/Users/rhozen/Development/aws-service-catalog/modules/tls-scripts:/modules/tls-scripts", "/tmp:/tmp"},
 				}
 
-				shell.RunCommand(t, createTlsCert)
+				docker.Run(t, tag, runOpts)
+
+				// createTlsCert := shell.Command{
+				// 	Command: fmt.Sprintf("%s/create-tls-cert.sh", scriptsPath),
+				// 	Args: []string{
+				// 		"--ca-path",
+				// 		"ca.crt.pem",
+				// 		"--cert-path",
+				// 		"my-app.cert",
+				// 		"--key-path",
+				// 		"my-app.key.pem",
+				// 		"--company-name",
+				// 		"Acme",
+				// 		"--kms-key-id",
+				// 		"alias/cmk-dev",
+				// 		"--aws-region",
+				// 		"us-east-1",
+				// 	},
+				// }
+
+				// shell.RunCommand(t, createTlsCert)
 
 			},
+
 			func() {
 				for _, file := range createCertFiles {
 					require.Truef(
