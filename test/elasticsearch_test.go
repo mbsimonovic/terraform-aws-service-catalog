@@ -59,7 +59,7 @@ func TestElasticsearch(t *testing.T) {
 		// get updated due to concurrency within the scope of t.Run(..) below
 		testCase := testCase
 
-		t.Run(testCase.name, func(*testing.T) {
+		t.Run(testCase.name, func(t *testing.T) {
 			t.Parallel()
 
 			defer test_structure.RunTestStage(t, "cleanup", func() {
