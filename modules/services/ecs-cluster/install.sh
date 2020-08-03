@@ -5,7 +5,7 @@ set -e
 
 readonly DEFAULT_ECS_CLUSTER_VERSION="v0.20.2"
 
-# ECS tooling 
+# ECS tooling
 readonly DEFAULT_ECS_SCRIPTS_VERSION="v0.20.2"
 readonly DEFAULT_GRUNT_KMS_VERSION="v0.0.8"
 
@@ -32,13 +32,13 @@ function include_ec2_baseline {
   # Include common defaults and functions from the ec2-baseline install script
   # See: https://github.com/gruntwork-io/aws-service-catalog/blob/master/modules/base/ec2-baseline
   readonly EC2_BASELINE_RELATIVE_PATH="../../base/ec2-baseline"
-  readonly EC2_BASELINE_PATH="$(dirname $(realpath $0))/${EC2_BASELINE_RELATIVE_PATH}"
+  readonly EC2_BASELINE_PATH="$(dirname "$(realpath "$0")")/${EC2_BASELINE_RELATIVE_PATH}"
   if [[ ! -f "${EC2_BASELINE_PATH}/install.sh" ]]; then
     echo "ERROR: $EC2_BASELINE_PATH/install.sh not found."
     exit 1
   fi
 
-  source $EC2_BASELINE_PATH/install.sh
+  source "$EC2_BASELINE_PATH/install.sh"
 }
 
 
@@ -46,8 +46,8 @@ function install_ecs_cluster {
   # Read from env vars to make it easy to set these in a Packer template (without super-wide --module-param foo=bar code).
   # Fallback to default version if the env var is not set.
   local ecs_cluster_version="${ecs_cluster_version:-$DEFAULT_ECS_CLUSTER_VERSION}"
-  
-  while [[ $# > 0 ]]; do
+
+  while [[ $# -gt 0 ]]; do
     local key="$1"
 
     case "$key" in
