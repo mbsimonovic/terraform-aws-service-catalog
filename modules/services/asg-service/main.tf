@@ -109,13 +109,14 @@ resource "aws_security_group_rule" "ingress_alb_cidr_blocks" {
 }
 
 resource "aws_security_group_rule" "ingress_alb_security_group_ids" {
-  for_each = local.ingress_security_ids
+  //  for_each = local.ingress_security_ids
+  count = length(local.server_ports_array) * length(var.allow_inbound_from_security_group_ids)
 
   type                     = "ingress"
-  from_port                = each.value.port
-  to_port                  = each.value.port
+  from_port                = local.ingress_security_ids[count.index].port
+  to_port                  = local.ingress_security_ids[count.index].port
   protocol                 = "tcp"
-  source_security_group_id = each.value.security_group_id
+  source_security_group_id = local.ingress_security_ids[count.index].security_group_id
   security_group_id        = aws_security_group.lc_security_group.id
 }
 
@@ -131,13 +132,13 @@ resource "aws_security_group_rule" "ingress_ssh_cidr_blocks" {
 }
 
 resource "aws_security_group_rule" "ingress_ssh_security_group_ids" {
-  for_each = var.allow_ssh_security_group_ids
+  count = length(local.server_ports_array) * length(var.allow_ssh_security_group_ids)
 
   type                     = "ingress"
   from_port                = var.ssh_port
   to_port                  = var.ssh_port
   protocol                 = "tcp"
-  source_security_group_id = each.value
+  source_security_group_id = local.ingress_security_ids[count.index].security_group_id
   security_group_id        = aws_security_group.lc_security_group.id
 }
 
@@ -430,13 +431,13 @@ locals {
     item.server_port
   ]
 
-  ingress_security_ids = {
+  ingress_security_ids = [
     for item in setproduct(local.server_ports_array, var.allow_inbound_from_security_group_ids) :
-    "${item[0]}-${item[1]}" => {
+    {
       port              = item[0]
       security_group_id = item[1]
     }
-  }
+  ]
 }
 
 data "template_file" "user_data" {
