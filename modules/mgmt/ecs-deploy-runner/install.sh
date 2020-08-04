@@ -1,20 +1,11 @@
 #!/usr/bin/env bash
-# Install Kubernetes and Gruntwork dependencies on a Linux server
+# Set up an ECS EC2 container instance for use with the ECS deploy runner.
 
 set -e
 
-readonly DEFAULT_TERRAFORM_AWS_EKS_VERSION="v0.20.4"
-
 # TODO: Update ref to a tag when released
 readonly DEFAULT_EC2_BASELINE_REF="master"
-
-# NOTE: A few variables will be imported from ec2-baseline
-# - DEFAULT_MODULE_SECURITY_VERSION
-# - DEFAULT_MODULE_AWS_MONITORING_VERSION
-# - DEFAULT_BASH_COMMONS_VERSION
-# - DEFAULT_ENABLE_SSH_GRUNT
-# - DEFAULT_ENABLE_CLOUDWATCH_LOG_AGGREGATION
-# - DEFAULT_ENABLE_CLOUDWATCH_METRICS
+readonly DEFAULT_MODULE_ECS_VERSION="v0.20.10"
 
 function include_ec2_baseline {
   gruntwork-install \
@@ -34,15 +25,21 @@ function include_ec2_baseline {
   source "$EC2_BASELINE_PATH/install.sh"
 }
 
-function install_eks_scripts {
+function install_ecs_scripts {
+  local -r module_ecs_version="$1"
+  gruntwork-install \
+    --module-name "ecs-scripts" \
+    --repo "https://github.com/gruntwork-io/module-ecs" \
+    --tag "$module_ecs_version"
+}
+
+function install_ecs_container_instance {
   # Read from env vars to make it easy to set these in a Packer template (without super-wide --module-param foo=bar code).
   # Fallback to default version if the env var is not set.
-  local terraform_aws_eks_version="${terraform_aws_eks_version:-$DEFAULT_TERRAFORM_AWS_EKS_VERSION}"
+  local module_ecs_version="${module_ecs_version:-$DEFAULT_MODULE_ECS_VERSION}"
   local module_security_version="${module_security_version:-$DEFAULT_MODULE_SECURITY_VERSION}"
   local module_aws_monitoring_version="${module_aws_monitoring_version:-$DEFAULT_MODULE_AWS_MONITORING_VERSION}"
   local bash_commons_version="${bash_commons_version:-$DEFAULT_BASH_COMMONS_VERSION}"
-
-  local enable_ssh_grunt="${enable_ssh_grunt:-$DEFAULT_ENABLE_SSH_GRUNT}"
   local enable_cloudwatch_metrics="${enable_cloudwatch_metrics:-$DEFAULT_ENABLE_CLOUDWATCH_METRICS}"
   local enable_cloudwatch_log_aggregation="${enable_cloudwatch_log_aggregation:-$DEFAULT_ENABLE_CLOUDWATCH_LOG_AGGREGATION}"
 
@@ -50,9 +47,9 @@ function install_eks_scripts {
     local key="$1"
 
     case "$key" in
-      --terraform-aws-eks-version)
+      --module-ecs-version)
         assert_not_empty "$key" "$2"
-        terraform_aws_eks_version="$2"
+        module_ecs_version="$2"
         shift
         ;;
       --module-security-version)
@@ -93,6 +90,8 @@ function install_eks_scripts {
 
   assert_env_var_not_empty "GITHUB_OAUTH_TOKEN"
 
+  # We disable SSH grunt because of the implications of what having SSH access to the deploy runner EC2 instances mean.
+  local -r enable_ssh_grunt="false"
   install_gruntwork_modules \
     "$bash_commons_version" \
     "$module_security_version" \
@@ -101,12 +100,11 @@ function install_eks_scripts {
     "$enable_cloudwatch_metrics" \
     "$enable_cloudwatch_log_aggregation"
 
-  gruntwork-install --module-name 'eks-scripts' --repo 'https://github.com/gruntwork-io/terraform-aws-eks' --tag "$terraform_aws_eks_version"
-
   install_user_data \
     "${EC2_BASELINE_PATH}/user-data-common.sh"
+
+  install_ecs_scripts "$module_ecs_version"
 }
 
 include_ec2_baseline
-
-install_eks_scripts "$@"
+install_ecs_container_instance "$@"

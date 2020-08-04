@@ -75,7 +75,7 @@ module "ec2_baseline" {
   external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
   enable_ssh_grunt                    = var.enable_ssh_grunt
   enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
-  iam_role_arn                        = module.jenkins.jenkins_iam_role_id
+  iam_role_name                       = module.jenkins.jenkins_iam_role_id
   enable_cloudwatch_metrics           = var.enable_cloudwatch_metrics
   enable_asg_cloudwatch_alarms        = var.enable_cloudwatch_alarms
   asg_names                           = [module.jenkins.jenkins_asg_name]
