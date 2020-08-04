@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/logger"
-	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 	"github.com/stretchr/testify/assert"
@@ -22,11 +21,13 @@ func TestAccountBaseline(t *testing.T) {
 		isOrg      bool
 		createOrg  bool
 		isApp      bool
+		isLogs     bool
 	}{
 		{
 			"TestRootExistingOrgPlan",
 			"account-baseline-root",
 			true,
+			false,
 			false,
 			false,
 		},
@@ -36,6 +37,7 @@ func TestAccountBaseline(t *testing.T) {
 			true,
 			true,
 			false,
+			false,
 		},
 		{
 			"TestSecurityPlan",
@@ -43,6 +45,15 @@ func TestAccountBaseline(t *testing.T) {
 			false,
 			false,
 			false,
+			false,
+		},
+		{
+			"TestLogsPlan",
+			"account-baseline-app",
+			false,
+			false,
+			false,
+			true,
 		},
 		{
 			"TestAppPlan",
@@ -50,6 +61,7 @@ func TestAccountBaseline(t *testing.T) {
 			false,
 			false,
 			true,
+			false,
 		},
 	}
 
@@ -70,20 +82,36 @@ func TestAccountBaseline(t *testing.T) {
 				logger.Logf(t, "Bootstrapping variables")
 
 				awsRegion := pickAwsRegion(t)
-				uniqueId := random.UniqueId()
+
 				terraformOptions := createBaseTerraformOptions(t, _examplesDir, awsRegion)
 
 				if testCase.isOrg {
 					terraformOptions.Vars["create_organization"] = testCase.createOrg
 				}
-				terraformOptions.Vars["name_prefix"] = strings.ToLower(testCase.exampleDir)
+				terraformOptions.Vars["name_prefix"] = strings.ToLower(testCase.testName)
 
+				// Test using the account-baseline-app example for the purposes of deploying the logs account
+				if testCase.isLogs {
+					terraformOptions.Vars["config_s3_bucket_name"] = "gruntwork-lz-config-bucket"
+					terraformOptions.Vars["config_linked_accounts"] = []string{"123445678910", "123445678911"}
+					terraformOptions.Vars["cloudtrail_s3_bucket_name"] = "gruntwork-lz-cloudtrail-bucket"
+					terraformOptions.Vars["cloudtrail_kms_key_administrator_iam_arns"] = []string{"arn:aws:iam::123445678910:root"}
+					terraformOptions.Vars["cloudtrail_kms_key_user_iam_arns"] = []string{"arn:aws:iam::123445678910:root"}
+					terraformOptions.Vars["cloudtrail_external_aws_account_ids_with_write_access"] = []string{"123445678910", "123445678911"}
+					terraformOptions.Vars["allow_full_access_from_other_account_arns"] = []string{"arn:aws:iam::123445678910:root"}
+				}
+
+				// Simulate deploying the app account after the logs account exists
 				if testCase.isApp {
+					terraformOptions.Vars["config_s3_bucket_name"] = "gruntwork-lz-config-bucket"
+					terraformOptions.Vars["config_central_account_id"] = "123445678910"
+					terraformOptions.Vars["cloudtrail_s3_bucket_name"] = "gruntwork-lz-cloudtrail-bucket"
+					terraformOptions.Vars["cloudtrail_kms_key_administrator_iam_arns"] = []string{}
+					terraformOptions.Vars["cloudtrail_kms_key_arn"] = "arn:aws:kms:us-east-1:123445678910:key/12345678-1234-123a-b456-78889123456e3"
 					terraformOptions.Vars["allow_auto_deploy_from_other_account_arns"] = []string{"arn:aws:iam::123445678910:role/jenkins"}
 					terraformOptions.Vars["allow_read_only_access_from_other_account_arns"] = []string{"arn:aws:iam::123445678910:root"}
 					terraformOptions.Vars["auto_deploy_permissions"] = []string{"cloudwatch:*", "logs:*", "dynamodb:*", "ecr:*", "ecs:*"}
 					terraformOptions.Vars["dev_permitted_services"] = []string{"ec2", "s3", "rds", "dynamodb", "elasticache"}
-					terraformOptions.Vars["sns_topic_name"] = "test-topic-" + uniqueId
 				}
 
 				test_structure.SaveTerraformOptions(t, _examplesDir, terraformOptions)
@@ -99,8 +127,13 @@ func TestAccountBaseline(t *testing.T) {
 				configureTerraformForOrgTestAccount(t, terraformOptions)
 
 				// NOTE: Do *NOT* run apply for this test because destroy will not delete the child account,
-				// so eventually we'd be left with hundreds of unusable accounts
-				result, err := terraform.InitAndPlanE(t, terraformOptions)
+				// so eventually we'd be left with hundreds of unusable accounts. We also pass `-parallelism=4`
+				// to the terraform plan command as we've found the default value of 20 causes instability and
+				// eventual consistency issues when using the landing zone modules.
+				_, err := terraform.InitE(t, terraformOptions)
+				assert.NoError(t, err, "Should not get init error")
+
+				result, err := planWithParallelismE(t, terraformOptions)
 
 				assert.NoError(t, err, "Should not get plan error")
 

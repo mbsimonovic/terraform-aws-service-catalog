@@ -24,14 +24,25 @@ module "security_baseline" {
   aws_region     = var.aws_region
   name_prefix    = var.name_prefix
 
-  # Create a single global CMK for general use in the account
-  kms_customer_master_keys = {
-    account-default-cmk = {
-      region                                = var.aws_region
-      cmk_administrator_iam_arns            = var.kms_cmk_administrator_iam_arns
-      cmk_user_iam_arns                     = []
-      cmk_external_user_iam_arns            = []
-      allow_manage_key_permissions_with_iam = false
+  config_s3_bucket_name          = var.config_s3_bucket_name
+  config_should_create_s3_bucket = var.config_should_create_s3_bucket
+  config_central_account_id      = var.config_central_account_id
+
+  cloudtrail_kms_key_arn                = var.cloudtrail_kms_key_arn
+  cloudtrail_s3_bucket_already_exists   = var.cloudtrail_s3_bucket_already_exists
+  cloudtrail_s3_bucket_name             = var.cloudtrail_s3_bucket_name
+  cloudtrail_cloudwatch_logs_group_name = var.cloudtrail_cloudwatch_logs_group_name
+
+  users = {
+    alice = {
+      groups             = ["full-access"]
+      create_access_keys = false
+    }
+    bob = {
+      groups = ["ssh-grunt-sudo-users"]
+      tags = {
+        foo = "bar"
+      }
     }
   }
 }

@@ -118,5 +118,5 @@ function install_user_data {
   # This directory should have already been created by the gruntwork-installer,
   # but we create it here as a failsafe measure
   mkdir -p /etc/user-data
-  cp $user_data_script /etc/user-data
+  cp "$user_data_script" /etc/user-data
 }
