@@ -121,7 +121,7 @@ resource "aws_security_group_rule" "ingress_alb_security_group_ids" {
 }
 
 resource "aws_security_group_rule" "ingress_ssh_cidr_blocks" {
-  for_each = length(var.allow_ssh_from_cidr_blocks) == 0 ? [] : ["once"]
+  count = length(var.allow_ssh_from_cidr_blocks) == 0 ? 0 : 1
 
   type              = "ingress"
   from_port         = var.ssh_port
