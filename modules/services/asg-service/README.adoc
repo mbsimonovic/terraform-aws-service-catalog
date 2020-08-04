@@ -30,7 +30,7 @@ image:https://img.shields.io/badge/tf-~%3E%200.12.6-blue[Terraform version]
 
 This folder contains code to deploy https://aws.amazon.com/ec2/autoscaling/[Auto Scaling Groups] on AWS.
 
-image::../../../_docs/alb-architecture.png?raw=true[ASG architecture]
+image::../../../_docs/asg-architecture.png?raw=true[ASG architecture]
 
 toc::[]
 
