@@ -7,7 +7,7 @@ import (
 
 	"github.com/gruntwork-io/terratest/modules/docker"
 	"github.com/gruntwork-io/terratest/modules/files"
-	// "github.com/gruntwork-io/terratest/modules/logger"
+	"github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/shell"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 	"github.com/stretchr/testify/require"
@@ -39,10 +39,6 @@ func TestTlsScripts(t *testing.T) {
 	sslPath := "/tmp/ssl"
 	trustStoresFiles := []string{"kafka.server.ca.default.pem", "kafka.server.cert.default.pem", "keystore/kafka.server.keystore.default.jks", "truststore/kafka.server.truststore.default.jks"}
 
-	// Determined that this is set locally!
-	// ghtoken := os.Getenv("GITHUB_OAUTH_TOKEN")
-	// logger.Logf(t, "github token is %s", ghtoken)
-
 	var testCases = []struct {
 		name     string
 		deploy   func()
@@ -55,8 +51,12 @@ func TestTlsScripts(t *testing.T) {
 				// Configure the tag to use on the Docker image.
 				tag := "gruntwork/tls-scripts-docker-image"
 				buildOptions := &docker.BuildOptions{
-					Tags:      []string{tag},
-					BuildArgs: []string{"GITHUB_OAUTH_TOKEN"}, // Let Docker look it up
+					Tags: []string{tag},
+					BuildArgs: []string{
+						"GITHUB_OAUTH_TOKEN",
+						"AWS_ACCESS_KEY_ID",
+						"AWS_SECRET_ACCESS_KEY",
+					},
 				}
 
 				// Build the Docker image.
@@ -79,8 +79,12 @@ func TestTlsScripts(t *testing.T) {
 						"--aws-region",
 						"us-east-1",
 					},
-					EnvironmentVariables: []string{"GITHUB_OAUTH_TOKEN"}, // ???
-					Volumes:              []string{"/Users/rhozen/Development/aws-service-catalog/modules/tls-scripts:/modules/tls-scripts", "/tmp:/tmp"},
+					EnvironmentVariables: []string{
+						"GITHUB_OAUTH_TOKEN",
+						"AWS_ACCESS_KEY_ID",
+						"AWS_SECRET_ACCESS_KEY",
+					},
+					Volumes: []string{"/Users/rhozen/Development/aws-service-catalog/modules/tls-scripts:/modules/tls-scripts", "/tmp:/tmp"},
 				}
 
 				docker.Run(t, tag, runOpts)

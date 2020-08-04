@@ -30,8 +30,15 @@ RUN aws --version
 RUN curl -LsS "https://raw.githubusercontent.com/gruntwork-io/gruntwork-installer/master/bootstrap-gruntwork-installer.sh" | bash /dev/stdin --version v0.0.28
 
 # export github-oauth-token for accessing private repos
-# ARG ghtoken
-# ENV GITHUB_OAUTH_TOKEN=ghtoken
+ARG GITHUB_OAUTH_TOKEN
+# export aws cli envvars for running aws api calls
+ARG AWS_ACCESS_KEY_ID
+ARG AWS_SECRET_ACCESS_KEY
+
+# If the build-time args are not defined, make it clear to the user.
+RUN if [ -z "$GITHUB_OAUTH_TOKEN" ]; then echo "ERROR: You must set GITHUB_OAUTH_TOKEN as a Docker build arg."; exit 1; fi
+RUN if [ -z "$AWS_SECRET_ACCESS_KEY" ]; then echo "ERROR: You must set AWS_SECRET_ACCESS_KEY as a Docker build arg."; exit 1; fi
+RUN if [ -z "$AWS_ACCESS_KEY_ID" ]; then echo "ERROR: You must set AWS_ACCESS_KEY_ID as a Docker build arg."; exit 1; fi
 
 # install gruntkms
 RUN gruntwork-install --binary-name "gruntkms" --repo "https://github.com/gruntwork-io/gruntkms" --tag 'v0.0.8'
