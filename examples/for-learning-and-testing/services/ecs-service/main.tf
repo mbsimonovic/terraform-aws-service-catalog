@@ -102,7 +102,9 @@ module "ecs_service" {
 
   ecs_node_port_mappings = var.ecs_node_port_mappings
 
+  # Ensure the load balancer is provisioned before the ecs service is created 
   dependencies = [module.alb.alb_arn]
+
   # Load balancer configuration
   elb_target_groups = {
     alb = {
@@ -116,6 +118,29 @@ module "ecs_service" {
 
   elb_target_group_vpc_id = aws_default_vpc.default.id
 
+  # Load balancer listener rules
+  default_listener_arns  = module.alb.listener_arns
+  default_listener_ports = ["443"]
+
+  default_forward_target_group_arns = [
+    {
+      arn = module.ecs_service.target_group_arns["alb"]
+    }
+  ]
+
+  forward_rules = {
+    "test" = {
+      priority      = 120
+      port          = 80
+      path_patterns = ["/*"]
+
+      stickiness = {
+        enabled  = true
+        duration = 200
+      }
+    }
+  }
+
   # Cloudwatch configuration 
   high_memory_utilization_threshold = var.high_memory_utilization_threshold
   high_memory_utilization_period    = var.high_memory_utilization_period
@@ -125,31 +150,6 @@ module "ecs_service" {
   alarm_sns_topic_arns = [aws_sns_topic.ecs-alerts.arn]
 }
 
-# EXAMPLE OF A PATH-BASED LISTENER RULE
-# Path-based Listener Rules are used when you wish to route all requests received by the ALB that match a certain
-# "path" pattern to a given ECS Service. This is useful if you have one service that should receive all requests sent
-# to /api and another service that receives requests sent to /customers.
-resource "aws_alb_listener_rule" "path_based_example" {
-  # Get the Listener ARN associated with port 443 on the ALB
-  # In other words, this ALB has a Listener that listens for incoming traffic on port 443. That Listener has a unique
-  # Amazon Resource Name (ARN), which we must pass to this rule so it knows which ALB Listener to "attach" to. Fortunately,
-  # Our ALB module outputs values like http_listener_arns, https_listener_non_acm_cert_arns, and https_listener_acm_cert_arns
-  # so that we can easily look up the ARN by the port number.
-  listener_arn = module.alb.https_listener_acm_cert_arns["443"]
-
-  priority = 100
-
-  action {
-    type             = "forward"
-    target_group_arn = module.ecs_service.target_group_arns["alb"]
-  }
-
-  condition {
-    path_pattern {
-      values = ["/*"]
-    }
-  }
-}
 # Demonstrates adding a security group rule allowing access to port 80 on the container instances. These instances run the ecs task
 # which also binds to port 80 allowing them to serve as web hosts
 resource "aws_security_group_rule" "ecs_cluster_instances_webserver" {

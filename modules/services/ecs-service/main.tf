@@ -199,6 +199,23 @@ data "aws_iam_policy_document" "ecs_task" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
+# CONFIGURE THE ROUTING RULES FOR THIS SERVICE
+# Below, we configure the ALB to send requests that come in on certain ports (the listener_arn) and certain paths or
+# domain names (the condition block) to the Target Group that contains this ASG service.
+# ---------------------------------------------------------------------------------------------------------------------
+module "listener_rules" {
+  source                 = "git::git@github.com:gruntwork-io/module-load-balancer.git//modules/lb-listener-rules?ref=v0.20.2"
+  default_listener_arns  = var.default_listener_arns
+  default_listener_ports = var.default_listener_ports
+
+  default_forward_target_group_arns = var.default_forward_target_group_arns
+
+  forward_rules        = var.forward_rules
+  redirect_rules       = var.redirect_rules
+  fixed_response_rules = var.fixed_response_rules
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
 # ADD CLOUDWATCH ALARMS TO ALERT OPERATORS TO IMPORTANT ISSUES
 # ---------------------------------------------------------------------------------------------------------------------
 
