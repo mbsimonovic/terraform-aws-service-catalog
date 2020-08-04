@@ -54,6 +54,16 @@ variable "child_accounts" {
   #   permissions. If set to ´DENY´, then only the root user of the new account can access account billing information.
   #   Defaults to ´default_iam_user_access_to_billing´.
   #
+  # - enable_config_rules:
+  #   Set to `true` to enable AWS Config Rules for this account. Note: you can only do this after deploying a config
+  #   recorder in the account. That means you have to: 
+  #       (1) initially set enable_config_rules to false, 
+  #       (2) run 'apply' in this root module to create the child account, 
+  #       (3) go to the child account and create a config recorder in it, e.g., by running 'apply' on a security baseline 
+  #           in that account, 
+  #       (4) come back to this root module and set enable_config_rules to true, 
+  #       (5) run 'apply' again.
+  #
   # - tags:
   #   Key-value mapping of resource tags.
   #
@@ -62,10 +72,11 @@ variable "child_accounts" {
   #
   # child_accounts = {
   #   security = {
-  #     email                       = "security-master@acme.com",
-  #     parent_id                   = "my-org-unit-id",
-  #     role_name                   = "OrganizationAccountAccessRole",
-  #     iam_user_access_to_billing  = "DENY",
+  #     email                       = "security-master@acme.com"
+  #     parent_id                   = "my-org-unit-id"
+  #     role_name                   = "OrganizationAccountAccessRole"
+  #     iam_user_access_to_billing  = "DENY"
+  #     enable_config_rules         = true
   #     tags = {
   #       Tag-Key = "tag-value"
   #     }
@@ -92,6 +103,7 @@ variable "organizations_aws_service_access_principals" {
   type        = list(string)
   default = [
     "cloudtrail.amazonaws.com",
+    "config-multiaccountsetup.amazonaws.com",
     "config.amazonaws.com",
   ]
 }
@@ -131,6 +143,24 @@ variable "organizations_default_tags" {
 # These variables have reasonable defaults that can be overridden for further customizations.
 # ---------------------------------------------------------------------------------------------------------------------
 
+variable "enable_config" {
+  description = "Set to true to enable AWS Config in the root account. Set to false to disable AWS Config (note: all other AWS config variables will be ignored). Note that if you want to aggregate AWS Config data in an S3 bucket in a child account (e.g., a logs account), you MUST: (1) set this variable to false initially, as that S3 bucket doesn't exist yet in the child account, (2) run 'apply' to create the child account, (3) go to the child account and create the S3 bucket, e.g., by deploying a security baseline in that account, (4) come back to this root account and set this variable to true, and (5) run 'apply' again to enable AWS Config."
+  type        = bool
+  default     = true
+}
+
+variable "config_should_create_s3_bucket" {
+  description = "If true, create an S3 bucket of name var.config_s3_bucket_name for AWS Config data in this account. If false, assume var.config_s3_bucket_name is an S3 bucket in another AWS account. We recommend setting this to false and using an S3 bucket in a separate logs account. However, see the description of var.enable_config for the steps you have to take to make this work."
+  type        = bool
+  default     = false
+}
+
+variable "config_s3_bucket_name" {
+  description = "The name of the S3 Bucket where Config items will be stored. Can be in the same account or in another account."
+  type        = string
+  default     = null
+}
+
 variable "config_opt_in_regions" {
   description = "Creates resources in the specified regions. Note that the region must be enabled on your AWS account. Regions that are not enabled are automatically filtered from this list. When null (default), AWS Config will be enabled on all regions enabled on the account. Please note that the best practice is to enable AWS Config in all available regions. Use this list to provide an alternate region list for testing purposes"
   type        = list(string)
@@ -159,12 +189,6 @@ variable "config_tags" {
   description = "A map of tags to apply to the S3 Bucket. The key is the tag name and the value is the tag value."
   type        = map(string)
   default     = {}
-}
-
-variable "config_s3_bucket_name" {
-  description = "The name of the S3 Bucket where Config items will be stored. Can be in the same account or in another account."
-  type        = string
-  default     = null
 }
 
 variable "config_central_account_id" {
@@ -375,6 +399,12 @@ variable "should_create_iam_group_billing" {
   default     = true
 }
 
+variable "should_create_iam_group_logs" {
+  description = "Should we create the IAM Group for logs? Allows read access to logs in CloudTrail, AWS Config, and CloudWatch. If var.cloudtrail_kms_key_arn is specified, will also be given permissions to decrypt with the KMS CMK that is used to encrypt CloudTrail logs. (true or false)"
+  type        = bool
+  default     = false
+}
+
 variable "should_create_iam_group_developers" {
   description = "Should we create the IAM Group for developers? The permissions of that group are specified via var.iam_group_developers_permitted_services. (true or false)"
   type        = bool
@@ -504,6 +534,16 @@ variable "allow_billing_access_from_other_account_arns" {
   # ]
 }
 
+variable "allow_logs_access_from_other_account_arns" {
+  description = "A list of IAM ARNs from other AWS accounts that will be allowed read access to the logs in CloudTrail, AWS Config, and CloudWatch for this account. If var.cloudtrail_kms_key_arn is specified, will also be given permissions to decrypt with the KMS CMK that is used to encrypt CloudTrail logs."
+  type        = list(string)
+  default     = []
+  # Example:
+  # default = [
+  #   "arn:aws:iam::123445678910:root"
+  # ]
+}
+
 variable "allow_ssh_grunt_access_from_other_account_arns" {
   description = "A list of IAM ARNs from other AWS accounts that will be allowed read access to IAM groups and publish SSH keys. This is used for ssh-grunt."
   type        = list(string)
@@ -586,6 +626,12 @@ variable "guardduty_opt_in_regions" {
 # and you can instead inline the values directly in main.tf.
 # ---------------------------------------------------------------------------------------------------------------------
 
+variable "enable_cloudtrail" {
+  description = "Set to true to enable CloudTrail in the root account. Set to false to disable CloudTrail (note: all other CloudTrail variables will be ignored). Note that if you want to aggregate CloudTrail logs in an S3 bucket in a child account (e.g., a logs account), you MUST: (1) set this variable to false initially, as that S3 bucket doesn't exist yet in the child account, (2) run 'apply' to create the child account, (3) go to the child account and create the S3 bucket, e.g., by deploying a security baseline in that account, (4) come back to this root account and set this variable to true, and (5) run 'apply' again to enable CloudTrail."
+  type        = bool
+  default     = true
+}
+
 variable "cloudtrail_s3_bucket_name" {
   description = "The name of the S3 Bucket where CloudTrail logs will be stored. If value is `null`, defaults to `var.name_prefix`-cloudtrail"
   type        = string
@@ -641,3 +687,16 @@ variable "cloudtrail_force_destroy" {
   type        = bool
   default     = false
 }
+
+variable "cloudtrail_kms_key_arn" {
+  description = "All CloudTrail Logs will be encrypted with a KMS CMK (Customer Master Key) that governs access to write API calls older than 7 days and all read API calls. If that CMK already exists, set this to the ARN of that CMK. Otherwise, set this to null, and a new CMK will be created. We recommend setting this to the ARN of a CMK that already exists in a separate logs account. However, see the description of var.enable_cloudtrail for the steps you have to take to make this work."
+  type        = string
+  default     = null
+}
+
+variable "cloudtrail_cloudwatch_logs_group_name" {
+  description = "Specify the name of the CloudWatch Logs group to publish the CloudTrail logs to. This log group exists in the current account. Set this value to `null` to avoid publishing the trail logs to the logs group. The recommended configuration for CloudTrail is (a) for each child account to aggregate its logs in an S3 bucket in a single central account, such as a logs account and (b) to also store 14 days work of logs in CloudWatch in the child account itself for local debugging."
+  type        = string
+  default     = "cloudtrail-logs"
+}
+

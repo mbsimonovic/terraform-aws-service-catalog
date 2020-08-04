@@ -9,7 +9,7 @@ readonly JENKINS_USER="jenkins"
 readonly DEFAULT_JENKINS_VERSION="2.204.2"
 
 # Gruntwork module versions
-readonly DEFAULT_MODULE_CI_VERSION="v0.19.0"
+readonly DEFAULT_MODULE_CI_VERSION="v0.25.0"
 
 # Build tooling
 readonly DEFAULT_KUBERGRUNT_VERSION="v0.5.13"
