@@ -57,8 +57,8 @@ module "alb" {
   https_listener_ports_and_ssl_certs = []
   ssl_policy                         = "ELBSecurityPolicy-TLS-1-1-2017-01"
 
-  vpc_id         = aws_default_vpc.default.id
-  vpc_subnet_ids = [aws_default_subnet.default_az1.id, aws_default_subnet.default_az2.id]
+  vpc_id         = data.aws_default_vpc.default.id
+  vpc_subnet_ids = [data.aws_subnet.default_az1.id, data.aws_subnet.default_az2.id]
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -180,13 +180,15 @@ resource "aws_sns_topic" "ecs-alerts" {
 }
 
 # Look up the default VPC
-resource "aws_default_vpc" "default" {}
+data "aws_vpc" "default" {
+  default = true
+}
 
-resource "aws_default_subnet" "default_az1" {
+data "aws_subnet" "default_az1" {
   availability_zone = "${var.aws_region}a"
 }
 
-resource "aws_default_subnet" "default_az2" {
+data "aws_subnet" "default_az2" {
   availability_zone = "${var.aws_region}b"
 }
 
