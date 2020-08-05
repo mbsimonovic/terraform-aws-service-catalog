@@ -14,7 +14,7 @@ module "asg" {
 
   name = var.name
 
-  instance_type = "t3.micro"
+  instance_type = module.instance_type.recommended_instance_type
   ami           = var.ami
   ami_filters   = null
 
@@ -49,6 +49,10 @@ module "asg" {
   enable_cloudwatch_metrics = false
 }
 
+# ----------------------------------------------------------------------------------------------------------------------
+# DEPLOY AN ASG TO ROUTE TRAFFIC ACROSS THE ASG
+# ----------------------------------------------------------------------------------------------------------------------
+
 module "alb" {
   # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
   # to a specific version of the modules, such as the following example:
@@ -71,7 +75,8 @@ module "alb" {
   vpc_id         = data.aws_vpc.default.id
   vpc_subnet_ids = data.aws_subnet_ids.default.ids
 
-  # We need to set this to true so it’s easier to run destroy on this example as part of automated tests, but you should NOT set this to true in prod!
+  # We need to set this to true so it’s easier to run destroy on this example as part of automated tests, but you should
+  # NOT set this to true in prod!
   force_destroy = true
 }
 
@@ -84,8 +89,16 @@ locals {
     }
   }
 
+  # The server will listen on port 8080. The ALB will listen on port 80 (default port for HTTP) and route traffic to
+  # the server at port 8080.
   server_port    = 8080
   listener_ports = [80]
+}
+
+module "instance_type" {
+  source = "git::git@github.com:gruntwork-io/package-terraform-utilities.git//modules/instance-type?ref=v0.2.1"
+
+  instance_types = ["t2.micro", "t3.micro"]
 }
 
 data "template_file" "user_data" {

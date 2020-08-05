@@ -1,10 +1,10 @@
 :type: service
 :name: Auto Scaling Group (ASG)
-:description: Deploy the Auto Scaling Group (ASG) with zero-downtime deployment.
+:description: Deploy an AMI across an Auto Scaling Group (ASG), with support for zero-downtime, rolling deployment, load balancing, health checks, service discovery, and auto scaling.
 :icon: /_docs/asg-icon.png
 :category: services
 :cloud: aws
-:tags: asg
+:tags: asg, ec2
 :license: gruntwork
 :built-with: terraform
 
@@ -37,9 +37,11 @@ toc::[]
 
 == Features
 
-* Configure Listener Rules
+* Load balancer (ELB) integration
+* Listener Rules
+* Health checks
 * Zero-downtime rolling deployment
-* Create Route53 record
+* Route53 record
 
 == Learn
 

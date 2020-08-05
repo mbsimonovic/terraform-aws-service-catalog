@@ -9,7 +9,7 @@
   },
   "builders": [{
     "ami_name": "{{user `ami_name`}}-{{isotime | clean_resource_name}}",
-    "ami_description": "An Ubuntu AMI that is meant to be run as a busybox server.",
+    "ami_description": "An example AMI built on Ubuntu that runs a simple 'Hello, World' server.",
     "region": "{{user `aws_region`}}",
     "instance_type": "t3.micro",
     "type": "amazon-ebs",
