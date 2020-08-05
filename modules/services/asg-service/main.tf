@@ -131,13 +131,13 @@ resource "aws_security_group_rule" "ingress_ssh_cidr_blocks" {
 }
 
 resource "aws_security_group_rule" "ingress_ssh_security_group_ids" {
-  count = length(local.server_ports_array) * length(var.allow_ssh_security_group_ids)
+  count = length(var.allow_ssh_security_group_ids)
 
   type                     = "ingress"
   from_port                = var.ssh_port
   to_port                  = var.ssh_port
   protocol                 = "tcp"
-  source_security_group_id = local.ingress_security_ids[count.index].security_group_id
+  source_security_group_id = element(var.allow_ssh_security_group_ids, count.index)
   security_group_id        = aws_security_group.lc_security_group.id
 }
 
