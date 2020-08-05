@@ -52,11 +52,11 @@ module "ecs_service" {
 
 # Update the ECS Node Security Group to allow the ECS Service to be accessed directly from an ECS Node (versus only from the ELB).
 resource "aws_security_group_rule" "custom_permissions" {
-  count = var.expose_ecs_service_to_other_ecs_nodes ? length(var.ecs_node_port_mappings) : 0
+  for_each = var.expose_ecs_service_to_other_ecs_nodes ? var.ecs_node_port_mappings : {}
 
   type      = "ingress"
-  from_port = element(values(var.ecs_node_port_mappings), count.index)
-  to_port   = element(values(var.ecs_node_port_mappings), count.index)
+  from_port = each.value
+  to_port   = each.value
   protocol  = "tcp"
 
   source_security_group_id = var.ecs_instance_security_group_id
@@ -209,10 +209,9 @@ module "listener_rules" {
   default_listener_ports = var.default_listener_ports
 
   default_forward_target_group_arns = var.default_forward_target_group_arns
-
-  forward_rules        = var.forward_rules
-  redirect_rules       = var.redirect_rules
-  fixed_response_rules = var.fixed_response_rules
+  forward_rules                     = var.forward_rules
+  redirect_rules                    = var.redirect_rules
+  fixed_response_rules              = var.fixed_response_rules
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -256,3 +255,45 @@ module "metric_widget_ecs_service_memory_usage" {
     ["AWS/ECS", "MemoryUtilization", "ClusterName", var.ecs_cluster_name, "ServiceName", var.service_name],
   ]
 }
+
+# ------------------------------------------------------------------------------
+# CREATE A DNS RECORD USING ROUTE 53
+# ------------------------------------------------------------------------------
+
+resource "aws_route53_record" "service" {
+  count = var.create_route53_entry ? 1 : 0
+
+  zone_id = var.hosted_zone_id
+
+  name = var.domain_name
+  type = "A"
+
+  alias {
+    name                   = var.original_lb_dns_name
+    zone_id                = var.lb_hosted_zone_id
+    evaluate_target_health = true
+  }
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# ADD A ROUTE 53 HEALTHCHECK THAT TRIGGERS AN ALARM IF THE DOMAIN NAME IS UNRESPONSIVE
+# Note: Route 53 sends all of its CloudWatch metrics to us-east-1, so the health check, alarm, and SNS topic must ALL
+# live in us-east-1 as well! See https://github.com/hashicorp/terraform/issues/7371 for details.
+# ---------------------------------------------------------------------------------------------------------------------
+
+module "route53_health_check" {
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/route53-health-check-alarms?ref=v0.21.2"
+
+  create_resources = var.enable_route53_health_check
+
+  domain                         = var.domain_name
+  alarm_sns_topic_arns_us_east_1 = var.alarm_sns_topic_arns_us_east_1
+
+  path = var.health_check_path
+  type = var.health_check_protocol
+  port = var.server_port
+
+  failure_threshold = 2
+  request_interval  = 30
+}
+

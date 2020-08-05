@@ -567,6 +567,70 @@ variable "iam_policy" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
+# ROUTE 53 RECORD
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "create_route53_entry" {
+  description = "Set to true if you want a DNS record automatically created and pointed at the the load balancer for the ECS service"
+  type        = bool
+  default     = false
+}
+
+variable "domain_name" {
+  description = "The domain name to create a route 53 record for. This DNS record will point to the load balancer for the ECS service"
+  type        = string
+  default     = null
+}
+
+variable "hosted_zone_id" {
+  description = "The ID of the Route 53 hosted zone into which the Route 53 DNS record should be written"
+  type        = string
+  default     = null
+}
+
+variable "enable_route53_health_check" {
+  description = "Set this to true to create a route 53 health check and Cloudwatch alarm that will alert if your domain becomes unreachable"
+  type        = bool
+  default     = false
+}
+
+variable "alarm_sns_topic_arns_us_east_1" {
+  description = "A list of SNS topic ARNs to notify when the route53 health check changes to ALARM, OK, or INSUFFICIENT_DATA state. Note: these SNS topics MUST be in us-east-1! This is because Route 53 only sends CloudWatch metrics to us-east-1, so we must create the alarm in that region, and therefore, can only notify SNS topics in that region"
+  type        = list(string)
+  default     = []
+}
+
+variable "health_check_path" {
+  description = "The path, without any leading slash, that can be used as a health check (e.g. healthcheck). Should return a 200 OK when the service is up and running."
+  type        = string
+  default     = "/"
+}
+
+variable "health_check_protocol" {
+  description = "The protocol to use for health checks. Should be one of HTTP, HTTPS."
+  type        = string
+  default     = "HTTP"
+}
+
+variable "server_port" {
+  description = "The port the EC2 instances listen on for HTTP requests"
+  type        = number
+  default     = 80
+}
+
+variable "original_lb_dns_name" {
+  description = "The DNS name that was assigned by AWS to the load balancer upon creation"
+  type        = string
+  default     = null
+}
+
+variable "lb_hosted_zone_id" {
+  description = "The ID of the Route 53 Hosted Zone in which to create a DNS A record pointed to the ECS service's load balancer"
+  type        = string
+  default     = null
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
 # MODULE DEPENDENCIES
 # Workaround Terraform limitation where there is no module depends_on.
 # See https://github.com/hashicorp/terraform/issues/1178 for more details.

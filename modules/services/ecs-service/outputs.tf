@@ -17,3 +17,8 @@ output "metric_widget_ecs_service_memory_usage" {
 output "target_group_arns" {
   value = module.ecs_service.target_group_arns
 }
+
+output "route53_domain_name" {
+  description = "The domain name of the optional route53 record, which points at the load balancer for the ECS service"
+  value       = var.create_route53_entry ? aws_route53_record.service[0].name : null
+}

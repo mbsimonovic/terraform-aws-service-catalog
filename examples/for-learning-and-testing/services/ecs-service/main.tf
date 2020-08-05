@@ -33,6 +33,7 @@ locals {
   canary_container_definition = merge(local.container_definitions, local.canary_container_overrides)
 
   canary_container_definitions = [local.canary_container_definition]
+
 }
 
 module "alb" {
@@ -57,24 +58,8 @@ module "alb" {
   https_listener_ports_and_ssl_certs = []
   ssl_policy                         = "ELBSecurityPolicy-TLS-1-1-2017-01"
 
-  vpc_id         = data.aws_default_vpc.default.id
+  vpc_id         = data.aws_vpc.default.id
   vpc_subnet_ids = [data.aws_subnet.default_az1.id, data.aws_subnet.default_az2.id]
-}
-
-# ---------------------------------------------------------------------------------------------------------------------
-# POINT THE DOMAIN NAME AT THE LOAD BALANCER
-# --------------------------------------------------------------------------------------------------------------------- 
-
-resource "aws_route53_record" "alb" {
-  name    = var.domain_name
-  type    = "A"
-  zone_id = var.hosted_zone_id
-
-  alias {
-    name                   = module.alb.alb_dns_name
-    zone_id                = module.alb.alb_hosted_zone_id
-    evaluate_target_health = true
-  }
 }
 
 module "ecs_service" {
@@ -116,7 +101,7 @@ module "ecs_service" {
     }
   }
 
-  elb_target_group_vpc_id = aws_default_vpc.default.id
+  elb_target_group_vpc_id = data.aws_vpc.default.id
 
   # Load balancer listener rules
   default_listener_arns  = module.alb.listener_arns
@@ -140,6 +125,17 @@ module "ecs_service" {
       }
     }
   }
+
+  # Create a route 53 entry and point it at the load balancer 
+  create_route53_entry        = true
+  domain_name                 = var.domain_name
+  hosted_zone_id              = var.hosted_zone_id
+  enable_route53_health_check = true
+
+  health_check_protocol = "HTTPS"
+
+  original_lb_dns_name = module.alb.alb_dns_name
+  lb_hosted_zone_id    = module.alb.alb_hosted_zone_id
 
   alarm_sns_topic_arns = [aws_sns_topic.ecs-alerts.arn]
 }
@@ -180,10 +176,12 @@ data "aws_vpc" "default" {
 
 data "aws_subnet" "default_az1" {
   availability_zone = "${var.aws_region}a"
+  default_for_az    = true
 }
 
 data "aws_subnet" "default_az2" {
   availability_zone = "${var.aws_region}b"
+  default_for_az    = true
 }
 
 data "aws_caller_identity" "current" {}

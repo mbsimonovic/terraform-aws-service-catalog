@@ -32,8 +32,8 @@ func TestEcsCluster(t *testing.T) {
 	// os.Setenv("SKIP_build_ami", "true")
 	// os.Setenv("SKIP deploy_ecs_cluster", "true")
 	// os.Setenv("SKIP_validate_cluster", "true")
-	// os.Setenv("SKIP_deploy_service", "true")
-	// os.Setenv("SKIP_validate_service", "true")
+	//os.Setenv("SKIP_deploy_service", "true")
+	//os.Setenv("SKIP_validate_service", "true")
 	// os.Setenv("SKIP_destroy_service", "true")
 	// os.Setenv("SKIP_destroy_cluster", "true")
 	// os.Setenv("SKIP_cleanup_keypairs", "true")
@@ -181,7 +181,6 @@ func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestF
 	domainName := fmt.Sprintf("ecs-service-test-%s.%s", uniqueID, TestDomainName)
 
 	portMappings := map[string]int{
-		"22": 22,
 		"80": 80,
 	}
 
@@ -204,7 +203,7 @@ func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestF
 // Hit the load balancer via the route 53 record and ensure that nginx responds with the expected status code and response body
 func validateECSService(t *testing.T, ecsClusterTestFolder, ecsServiceTestFolder string) {
 	terraformOptions := test_structure.LoadTerraformOptions(t, ecsServiceTestFolder)
-	applicationLoadBalancerFqdn := terraform.OutputRequired(t, terraformOptions, "alb_fqdn")
+	applicationLoadBalancerFqdn := terraform.OutputRequired(t, terraformOptions, "route53_domain_name")
 
 	expectedBody := "If you see this page, the nginx web server is successfully installed"
 	body := bytes.NewReader([]byte(expectedBody))
