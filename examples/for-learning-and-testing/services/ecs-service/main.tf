@@ -141,12 +141,6 @@ module "ecs_service" {
     }
   }
 
-  # Cloudwatch configuration 
-  high_memory_utilization_threshold = var.high_memory_utilization_threshold
-  high_memory_utilization_period    = var.high_memory_utilization_period
-  high_cpu_utilization_threshold    = var.high_cpu_utilization_threshold
-  high_cpu_utilization_period       = var.high_cpu_utilization_period
-
   alarm_sns_topic_arns = [aws_sns_topic.ecs-alerts.arn]
 }
 

@@ -54,30 +54,6 @@ variable "desired_number_of_tasks" {
   default     = 1
 }
 
-variable "high_cpu_utilization_threshold" {
-  description = "Trigger an alarm if the ECS Service has a CPU utilization percentage above this threshold"
-  type        = number
-  default     = 90
-}
-
-variable "high_cpu_utilization_period" {
-  description = "The period, in seconds, over which to measure the CPU utilization percentage"
-  type        = number
-  default     = 300
-}
-
-variable "high_memory_utilization_threshold" {
-  description = "Trigger an alarm if the ECS Service has a memory utilization percentage above this threshold"
-  type        = number
-  default     = 90
-}
-
-variable "high_memory_utilization_period" {
-  description = "The period, in seconds, over which to measure the memory utilization percentage"
-  type        = number
-  default     = 300
-}
-
 variable "min_number_of_tasks" {
   description = "The minimum number of instances of the ECS Service to run. Auto scaling will never scale in below this number."
   type        = number
