@@ -530,12 +530,6 @@ variable "deployment_check_loglevel" {
 # IAM ROLES AND POLICIES 
 # ---------------------------------------------------------------------------------------------------------------------
 
-variable "iam_role_exists" {
-  description = "Whether or not the IAM role passed in `iam_role_name` already exists. Set to true if it exists, or false if it needs to be created. Defaults to false."
-  type        = bool
-  default     = false
-}
-
 variable "iam_role_name" {
   description = "The name of an IAM role that will be used by the pod to access the AWS API. If `iam_role_exists` is set to false, this role will be created. Leave as an empty string if you do not wish to use IAM role with Service Accounts."
   type        = string
