@@ -37,7 +37,6 @@ variable "ecs_node_port_mappings" {
   description = "A map of ports used by the Docker containers on an ECS Node. The key should be the container port and the value should be what host port to map it to."
   type        = map(number)
   default = {
-    "22" = 22
     "80" = 80
   }
 }
