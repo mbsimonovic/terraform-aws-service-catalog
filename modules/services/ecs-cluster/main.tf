@@ -17,7 +17,6 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_cluster" {
-  # TODO: Update me to a real reference after changes are merged and released 
   source = "git::git@github.com:gruntwork-io/module-ecs.git//modules/ecs-cluster?ref=v0.20.10"
 
   cluster_name     = var.cluster_name

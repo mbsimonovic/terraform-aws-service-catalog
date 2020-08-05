@@ -17,7 +17,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_service" {
-  source = "git::git@github.com:gruntwork-io/module-ecs.git//modules/ecs-service?ref=canary-task-unique-family-name"
+  source = "git::git@github.com:gruntwork-io/module-ecs.git//modules/ecs-service?ref=canary-task-depends"
 
   service_name     = var.service_name
   environment_name = var.service_name
