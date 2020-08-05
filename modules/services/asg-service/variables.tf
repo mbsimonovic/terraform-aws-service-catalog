@@ -46,13 +46,13 @@ variable "min_elb_capacity" {
 }
 
 variable "listener_ports" {
-  description = "The ports the EC2 instances listen on for HTTP requests"
-  type        = any
-  default     = {}
+  description = "The ports the ALB listens on for requests"
+  type        = list(number)
+  default     = []
 }
 
 variable "server_ports" {
-  description = ""
+  description = "The ports the EC2 instances listen on for requests"
   type        = any
   default     = {}
 
@@ -86,6 +86,17 @@ variable "server_ports" {
   # - lb_timeout             [number] : The amount of time, in seconds, during which no response means a
   #                                   failed health check. Defaults to 10.
 
+  # Example:
+  #
+  # server_ports = {
+  #   "default-http" = {
+  #     server_port            = "8080"
+  #     health_check_protocol  = "HTTP"
+  #     health_check_path      = "/health"
+  #     r53_health_check_path  = "/health"
+  #     enable_lb_health_check = false
+  #   }
+  # }
 }
 
 variable "ami_filters" {

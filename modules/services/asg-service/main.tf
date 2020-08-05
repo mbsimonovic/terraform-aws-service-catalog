@@ -108,8 +108,7 @@ resource "aws_security_group_rule" "ingress_alb_cidr_blocks" {
   security_group_id = aws_security_group.lc_security_group.id
 }
 
-resource "aws_security_group_rule" "ingress_alb_security_group_ids" {
-  //  for_each = local.ingress_security_ids
+resource "aws_security_group_rule" "ingress_server_ports_security_group_ids" {
   count = length(local.server_ports_array) * length(var.allow_inbound_from_security_group_ids)
 
   type                     = "ingress"

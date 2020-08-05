@@ -58,7 +58,7 @@ module "asg" {
   allow_inbound_from_security_group_ids = [module.alb.alb_security_group_id]
   allow_inbound_from_cidr_blocks        = []
 
-  // For testing, we are allowing ALL but for production, you should limit just for the servers you want to trust
+  # For testing, we are allowing ALL but for production, you should limit just for the servers you want to trust
   allow_ssh_from_cidr_blocks   = ["0.0.0.0/0"]
   allow_ssh_security_group_ids = []
 }
@@ -71,13 +71,13 @@ module "alb" {
 
   alb_name = var.name
 
-  // For public, user-facing services (i.e., those accessible from the public Internet), this should be set to false.
+  # For public, user-facing services (i.e., those accessible from the public Internet), this should be set to false.
   is_internal_alb = false
 
   num_days_after_which_archive_log_data = 0
   num_days_after_which_delete_log_data  = 0
 
-  // For testing, we are allowing ALL but for production, you should limit just for the servers you want to trust
+  # For testing, we are allowing ALL but for production, you should limit just for the servers you want to trust
   allow_inbound_from_cidr_blocks = ["0.0.0.0/0"]
 
   http_listener_ports = local.listener_ports
