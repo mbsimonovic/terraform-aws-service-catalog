@@ -23,7 +23,7 @@ module "asg" {
 
   launch_configuration_name = aws_launch_configuration.launch_configuration.name
   vpc_subnet_ids            = var.subnet_ids
-  target_group_arns         = [aws_alb_target_group.service.arn]
+  target_group_arns         = local.listeners_target_group_array
 
   min_size         = var.min_size
   max_size         = var.max_size
@@ -97,22 +97,48 @@ resource "aws_security_group_rule" "egress_all" {
 }
 
 # Inbound HTTP from the ALB
-resource "aws_security_group_rule" "ingress_alb" {
+resource "aws_security_group_rule" "ingress_server_ports_cidr_blocks" {
+  for_each = length(var.allow_inbound_from_cidr_blocks) == 0 ? {} : var.server_ports
+
   type              = "ingress"
-  from_port         = var.server_port
-  to_port           = var.server_port
+  from_port         = each.value.server_port
+  to_port           = each.value.server_port
   protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
+  cidr_blocks       = var.allow_inbound_from_cidr_blocks
   security_group_id = aws_security_group.lc_security_group.id
 }
 
-resource "aws_security_group_rule" "ingress_ssh" {
+resource "aws_security_group_rule" "ingress_server_ports_security_group_ids" {
+  count = length(local.server_ports_array) * length(var.allow_inbound_from_security_group_ids)
+
+  type                     = "ingress"
+  from_port                = local.ingress_security_ids[count.index].port
+  to_port                  = local.ingress_security_ids[count.index].port
+  protocol                 = "tcp"
+  source_security_group_id = local.ingress_security_ids[count.index].security_group_id
+  security_group_id        = aws_security_group.lc_security_group.id
+}
+
+resource "aws_security_group_rule" "ingress_ssh_cidr_blocks" {
+  count = length(var.allow_ssh_from_cidr_blocks) == 0 ? 0 : 1
+
   type              = "ingress"
-  from_port         = 22
-  to_port           = 22
+  from_port         = var.ssh_port
+  to_port           = var.ssh_port
   protocol          = "tcp"
-  cidr_blocks       = ["0.0.0.0/0"]
+  cidr_blocks       = var.allow_ssh_from_cidr_blocks
   security_group_id = aws_security_group.lc_security_group.id
+}
+
+resource "aws_security_group_rule" "ingress_ssh_security_group_ids" {
+  count = length(var.allow_ssh_security_group_ids)
+
+  type                     = "ingress"
+  from_port                = var.ssh_port
+  to_port                  = var.ssh_port
+  protocol                 = "tcp"
+  source_security_group_id = element(var.allow_ssh_security_group_ids, count.index)
+  security_group_id        = aws_security_group.lc_security_group.id
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -179,19 +205,26 @@ data "aws_iam_policy_document" "instance_role" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_alb_target_group" "service" {
-  name     = var.name
-  port     = var.server_port
-  protocol = var.health_check_protocol
+  for_each = local.target_groups
+
+  name     = "${var.name}-${each.key}"
+  port     = each.value.port
+  protocol = each.value.protocol
   vpc_id   = var.vpc_id
 
-  health_check {
-    healthy_threshold   = 2
-    unhealthy_threshold = 2
-    timeout             = 3
-    interval            = 10
-    port                = "traffic-port"
-    protocol            = var.health_check_protocol
-    path                = var.health_check_path
+  dynamic "health_check" {
+    for_each = each.value.enable_lb_health_check ? ["once"] : []
+
+    content {
+      port     = "traffic-port"
+      protocol = each.value.protocol
+      path     = each.value.path
+
+      healthy_threshold   = each.value.healthy_threshold
+      unhealthy_threshold = each.value.unhealthy_threshold
+      interval            = each.value.interval
+      timeout             = each.value.timeout
+    }
   }
 
   lifecycle {
@@ -213,7 +246,7 @@ module "listener_rules" {
 
   default_forward_target_group_arns = concat(
     var.default_forward_target_group_arns,
-    [{ arn = aws_alb_target_group.service.arn }]
+    local.listeners_target_group
   )
 
   forward_rules        = var.forward_listener_rules
@@ -248,19 +281,11 @@ resource "aws_route53_record" "service" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "route53_health_check" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/route53-health-check-alarms?ref=v0.21.2"
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/route53-health-check-alarms?ref=v0.22.1"
 
-  create_resources = var.enable_route53_health_check
-
-  domain                         = var.domain_name
+  create_resources               = var.enable_route53_health_check
+  alarm_configs                  = local.route53_alarm_configurations
   alarm_sns_topic_arns_us_east_1 = var.alarm_sns_topic_arns_us_east_1
-
-  path = var.health_check_path
-  type = var.health_check_protocol
-  port = var.server_port
-
-  failure_threshold = 2
-  request_interval  = 30
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -281,6 +306,60 @@ locals {
   cloud_init_parts = merge({ default : local.cloud_init }, var.cloud_init_parts)
 
   enable_ssh_grunt = var.ssh_grunt_iam_group == "" && var.ssh_grunt_iam_group_sudo == "" ? false : true
+
+  listeners_target_group = flatten([
+    for target_group in aws_alb_target_group.service : {
+      arn = target_group.arn
+    }
+  ])
+
+  listeners_target_group_array = [
+    for target_group in aws_alb_target_group.service :
+    target_group.arn
+  ]
+
+  route53_alarm_configurations = {
+    for key, item in var.server_ports :
+    key => {
+      domain = var.domain_name
+      port   = item.server_port
+      path   = lookup(item, "health_check_path", null)
+      tags   = lookup(item, "tags", {})
+
+      type              = lookup(item, "r53_health_check_type", null)
+      failure_threshold = lookup(item, "r53_health_check_failure_threshold", 2)
+      request_interval  = lookup(item, "r53_health_check_request_interval", 30)
+    }
+  }
+
+  target_groups = {
+    for key, item in var.server_ports :
+    key => {
+      port     = item.server_port
+      path     = lookup(item, "health_check_path", null)
+      protocol = lookup(item, "protocol", "HTTP")
+      tags     = lookup(item, "tags", {})
+
+      enable_lb_health_check = lookup(item, "enable_lb_health_check", true)
+      healthy_threshold      = lookup(item, "lb_healthy_threshold", 2)
+      unhealthy_threshold    = lookup(item, "lb_unhealthy_threshold", 2)
+      interval               = lookup(item, "lb_request_interval", 30)
+      timeout                = lookup(item, "lb_timeout", 10)
+    }
+  }
+
+  server_ports_array = [
+    for key, item in var.server_ports :
+    item.server_port
+  ]
+
+  ingress_security_ids = [
+    for item in setproduct(local.server_ports_array, var.allow_inbound_from_security_group_ids) :
+    {
+      port              = item[0]
+      security_group_id = item[1]
+    }
+  ]
 }
 
 data "template_file" "user_data" {

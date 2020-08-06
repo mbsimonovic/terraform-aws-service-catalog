@@ -45,9 +45,58 @@ variable "min_elb_capacity" {
   type        = number
 }
 
-variable "server_port" {
-  description = "The port the EC2 instances listen on for HTTP requests"
-  type        = number
+variable "listener_ports" {
+  description = "The ports the ALB listens on for requests"
+  type        = list(number)
+  default     = []
+}
+
+variable "server_ports" {
+  description = "The ports the EC2 instances listen on for requests"
+  type        = any
+  default     = {}
+
+  # Each entry in the map supports the following attributes:
+  #
+  # REQUIRED:
+  # - server_port        [number]      : The port of the endpoint to be checked (e.g. 80).
+  #
+  # OPTIONAL (defaults to value of corresponding module input):
+  # - tags              [map(string)] : A map of tags to apply to the metric alarm. The key is the tag name
+  #                                   and the value is the tag value.
+  #
+  # - r53_health_check_path              [string] : The path that you want Amazon Route 53 to request when
+  #                                                performing health checks (e.g. /status). Defaults to "/".
+  # - r53_health_check_type              [string] : The protocol to use when performing health checks. Valid
+  #                                               values are HTTP, HTTPS, HTTP_STR_MATCH, HTTPS_STR_MATCH,
+  #                                               TCP, CALCULATED and CLOUDWATCH_METRIC. Defaults to HTTP.
+  # - r53_health_check_failure_threshold [number] : The number of consecutive health checks that must pass
+  #                                               or fail for the health check to declare your site up or
+  #                                               down. Defaults to 2.
+  # - r53_health_check_request_interval  [number] : The number of seconds between health checks. Defaults to 30.
+  #
+  # - enable_lb_health_check [bool]   : Set to false if you want to disable Target Group health's check.
+  #                                   Defaults to true.
+  # - lb_healthy_threshold   [number] : The number of consecutive health checks *successes* required before
+  #                                    considering an unhealthy target healthy. Defaults to 3.
+  # - lb_unhealthy_threshold [number] : The number of consecutive health check *failures* required before
+  #                                    considering the target unhealthy. Defaults to 3.
+  # - lb_request_interval    [number] : The approximate amount of time, in seconds, between health checks
+  #                                   of an individual target. Defaults to 30.
+  # - lb_timeout             [number] : The amount of time, in seconds, during which no response means a
+  #                                   failed health check. Defaults to 10.
+
+  # Example:
+  #
+  # server_ports = {
+  #   "default-http" = {
+  #     server_port            = "8080"
+  #     health_check_protocol  = "HTTP"
+  #     health_check_path      = "/health"
+  #     r53_health_check_path  = "/health"
+  #     enable_lb_health_check = false
+  #   }
+  # }
 }
 
 variable "ami_filters" {
@@ -272,12 +321,6 @@ variable "listener_arns" {
   default     = {}
 }
 
-variable "listener_ports" {
-  description = "The default port numbers on the load balancer to attach listener rules to. You can override this default on a rule-by-rule basis by setting the listener_ports parameter in each rule. The port numbers specified in this variable and the listener_ports parameter must exist in var.listener_arns."
-  type        = list(string)
-  default     = []
-}
-
 variable "default_forward_target_group_arns" {
   description = "The ARN of the Target Group to which to route traffic. Required if using forward rules."
   type        = list(map(any))
@@ -288,16 +331,6 @@ variable "default_forward_target_group_arns" {
   # - arn    [string]: The ARN of the target group.
   # OPTIONAL:
   # - weight [number]: The weight. The range is 0 to 999. Only applies if len(target_group_arns) > 1.
-}
-
-variable "health_check_path" {
-  description = "The path, without any leading slash, that can be used as a health check (e.g. healthcheck). Should return a 200 OK when the service is up and running."
-  type        = string
-}
-
-variable "health_check_protocol" {
-  description = "The protocol to use for health checks. Should be one of HTTP, HTTPS."
-  type        = string
 }
 
 variable "vpc_id" {
@@ -355,6 +388,37 @@ variable "load_balancers" {
   type        = list(string)
   default     = []
 }
+
+variable "allow_inbound_from_security_group_ids" {
+  description = "The security group IDs from which to allow access to the ports in var.server_ports"
+  default     = []
+  type        = list(string)
+}
+
+variable "allow_inbound_from_cidr_blocks" {
+  description = "The CIDR blocks from which to allow access to the ports in var.server_ports"
+  default     = []
+  type        = list(string)
+}
+
+variable "allow_ssh_security_group_ids" {
+  description = "The security group IDs from which to allow SSH access"
+  default     = []
+  type        = list(string)
+}
+
+variable "allow_ssh_from_cidr_blocks" {
+  description = "The CIDR blocks from which to allow SSH access"
+  default     = []
+  type        = list(string)
+}
+
+variable "ssh_port" {
+  description = "The port at which SSH will be allowed from var.allow_ssh_from_cidr_blocks and var.allow_ssh_security_group_ids"
+  default     = 22
+  type        = string
+}
+
 
 variable "use_elb_health_checks" {
   description = "Whether or not ELB or ALB health checks should be enabled. If set to true, the load_balancers or target_groups_arns variable should be set depending on the load balancer type you are using. Useful for testing connectivity before health check endpoints are available."
