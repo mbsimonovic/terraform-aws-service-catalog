@@ -79,6 +79,12 @@ variable "alarms_sns_topic_arn" {
   default     = []
 }
 
+variable "should_combine_cloud_init" {
+  description = "Whether or not to combine the parts provided in cloud_init_parts in to a complete cloudinit configuration. Default is true."
+  type        = bool
+  default     = true
+}
+
 variable "cloud_init_parts" {
   description = "Cloud init scripts to run on the host while it boots. See the part blocks in https://www.terraform.io/docs/providers/template/d/cloudinit_config.html for syntax."
   type = map(object({
