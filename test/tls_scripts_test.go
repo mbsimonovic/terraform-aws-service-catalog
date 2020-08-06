@@ -46,9 +46,6 @@ func TestTlsScripts(t *testing.T) {
 		Tags: []string{tag},
 		BuildArgs: []string{
 			"GITHUB_OAUTH_TOKEN",
-			"SSH_PRIVATE_KEY=\"$(cat ~/.ssh/id_rsa)\"",
-			"SSH_PUBLIC_KEY=\"$(cat ~/.ssh/id_rsa.pub)\"",
-			"SSH_PASSPHRASE",
 		},
 	}
 
@@ -173,6 +170,7 @@ func TestTlsScripts(t *testing.T) {
 						"us-east-1",
 					},
 					EnvironmentVariables: []string{
+						"GITHUB_OAUTH_TOKEN",
 						"AWS_ACCESS_KEY_ID",
 						"AWS_SECRET_ACCESS_KEY",
 						"AWS_SESSION_TOKEN", // only set if you're using temporary creds, mfa, etc

@@ -34,33 +34,15 @@ RUN gruntkms --version
 FROM openjdk:8-jre-slim as without-secrets
 COPY --from=with-secrets /usr/local/bin/gruntkms /usr/local/bin/gruntkms
 
-# Copy over ssh keys for cloning private repo gruntwork-io/package-kafka
-# COPY --from=with-secrets /root/.ssh/* /root/.ssh/
-
 RUN apt-get update && \
       apt-get install -y \
       curl \
-      ssh \
       unzip \
       git \
       jq \
       pwgen \
       openssl && \
       rm -rf /var/lib/apt/lists/*
-
-# copy ssh keys to docker
-ARG SSH_PRIVATE_KEY
-ARG SSH_PUBLIC_KEY
-ARG SSH_PASSPHRASE
-RUN mkdir /root/.ssh/ && \
-      chmod 0700 /root/.ssh/ && \
-      ssh-keyscan github.com >> /root/.ssh/known_hosts
-RUN echo "${SSH_PRIVATE_KEY}" > /root/.ssh/id_rsa && \
-      echo "${SSH_PUBLIC_KEY}" > /root/.ssh/id_rsa.pub && \
-      chmod 0600 /root/.ssh/id_rsa && \
-      chmod 0600 /root/.ssh/id_rsa.pub
-# RUN eval `ssh-agent -s` && \
-#       printf "${SSH_PASSPHRASE}\n" | ssh-add
 
 # install terraform
 RUN curl -LsS "https://releases.hashicorp.com/terraform/0.12.18/terraform_0.12.18_linux_amd64.zip" -o "terraform.zip" && \
