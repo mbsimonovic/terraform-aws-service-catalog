@@ -3,12 +3,12 @@ package test
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/docker"
 	"github.com/gruntwork-io/terratest/modules/files"
 	"github.com/gruntwork-io/terratest/modules/logger"
-	"github.com/gruntwork-io/terratest/modules/shell"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 	"github.com/stretchr/testify/require"
 )
@@ -24,20 +24,36 @@ func TestTlsScripts(t *testing.T) {
 
 	requireEnvVar(t, "GITHUB_OAUTH_TOKEN")
 
-	scriptsPath := "../modules/tls-scripts"
+	scriptsDir := "../modules/tls-scripts"
+	tmpBaseDir := "/tmp"
 
 	// Download RDS CA Certs vars
-	downloadPath := fmt.Sprintf("%s/.test-data/rds-cert", scriptsPath)
+	downloadPath := filepath.Join(tmpBaseDir, "rds-cert")
 
 	// Create TLS Cert vars
-	certBasePath := "/tmp/vault-blueprint"
-	outputPath := fmt.Sprintf("%s/modules/private-tls-cert", certBasePath)
+	certBaseDir := filepath.Join(tmpBaseDir, "vault-blueprint")
+	certOutputDir := filepath.Join(certBaseDir, "modules/private-tls-cert")
 	createCertFiles := []string{"ca.crt.pem", "my-app.cert", "my-app.key.pem.kms.encrypted"}
 
 	// Generate Trust Stores vars
-	packageKafkaPath := "/tmp/package-kafka"
-	sslPath := "/tmp/ssl"
+	packageKafkaDir := filepath.Join(tmpBaseDir, "package-kafka")
+	sslDir := filepath.Join(tmpBaseDir, "ssl")
 	trustStoresFiles := []string{"kafka.server.ca.default.pem", "kafka.server.cert.default.pem", "keystore/kafka.server.keystore.default.jks", "truststore/kafka.server.truststore.default.jks"}
+
+	// Configure the tag to use on the Docker image.
+	tag := "gruntwork/tls-scripts-docker-image"
+	buildOptions := &docker.BuildOptions{
+		Tags: []string{tag},
+		BuildArgs: []string{
+			"GITHUB_OAUTH_TOKEN",
+			"SSH_PRIVATE_KEY=\"$(cat ~/.ssh/id_rsa)\"",
+			"SSH_PUBLIC_KEY=\"$(cat ~/.ssh/id_rsa.pub)\"",
+			"SSH_PASSPHRASE",
+		},
+	}
+
+	// Build the Docker image.
+	docker.Build(t, scriptsDir, buildOptions)
 
 	var testCases = []struct {
 		name     string
@@ -48,24 +64,10 @@ func TestTlsScripts(t *testing.T) {
 		{
 			"CreateTlsCert",
 			func() {
-				// Configure the tag to use on the Docker image.
-				tag := "gruntwork/tls-scripts-docker-image"
-				buildOptions := &docker.BuildOptions{
-					Tags: []string{tag},
-					BuildArgs: []string{
-						"GITHUB_OAUTH_TOKEN",
-						"AWS_ACCESS_KEY_ID",
-						"AWS_SECRET_ACCESS_KEY",
-					},
-				}
-
-				// Build the Docker image.
-				docker.Build(t, scriptsPath, buildOptions)
-
 				// Run the Docker image.
 				runOpts := &docker.RunOptions{
 					Command: []string{
-						"/modules/tls-scripts/create-tls-cert.sh",
+						"create-tls-cert.sh",
 						"--ca-path",
 						"ca.crt.pem",
 						"--cert-path",
@@ -80,62 +82,54 @@ func TestTlsScripts(t *testing.T) {
 						"us-east-1",
 					},
 					EnvironmentVariables: []string{
-						"GITHUB_OAUTH_TOKEN",
 						"AWS_ACCESS_KEY_ID",
 						"AWS_SECRET_ACCESS_KEY",
+						"AWS_SESSION_TOKEN", // only set if you're using temporary creds, mfa, etc
 					},
-					Volumes: []string{"/Users/rhozen/Development/aws-service-catalog/modules/tls-scripts:/modules/tls-scripts", "/tmp:/tmp"},
+
+					Volumes: []string{
+						fmt.Sprintf("%s:%s", tmpBaseDir, tmpBaseDir),
+					},
 				}
 
 				docker.Run(t, tag, runOpts)
-
-				// createTlsCert := shell.Command{
-				// 	Command: fmt.Sprintf("%s/create-tls-cert.sh", scriptsPath),
-				// 	Args: []string{
-				// 		"--ca-path",
-				// 		"ca.crt.pem",
-				// 		"--cert-path",
-				// 		"my-app.cert",
-				// 		"--key-path",
-				// 		"my-app.key.pem",
-				// 		"--company-name",
-				// 		"Acme",
-				// 		"--kms-key-id",
-				// 		"alias/cmk-dev",
-				// 		"--aws-region",
-				// 		"us-east-1",
-				// 	},
-				// }
-
-				// shell.RunCommand(t, createTlsCert)
-
 			},
 
 			func() {
 				for _, file := range createCertFiles {
 					require.Truef(
 						t,
-						files.FileExists(fmt.Sprintf("%s/%s", outputPath, file)),
+						files.FileExists(filepath.Join(certOutputDir, file)),
 						"Error Validating Create TLS Cert %s",
 						file,
 					)
 				}
 			},
 			func() {
-				os.RemoveAll(certBasePath)
+				os.RemoveAll(certOutputDir)
 			},
 		},
 		{
 			"DownloadRdsCaCert",
 			func() {
-				downloadRdsCaCerts := shell.Command{
-					Command: fmt.Sprintf("%s/download-rds-ca-certs.sh", scriptsPath),
-					Args: []string{
+				// Run the Docker image.
+				runOpts := &docker.RunOptions{
+					Command: []string{
+						"download-rds-ca-certs.sh",
 						downloadPath,
+					},
+					EnvironmentVariables: []string{
+						"AWS_ACCESS_KEY_ID",
+						"AWS_SECRET_ACCESS_KEY",
+						"AWS_SESSION_TOKEN", // only set if you're using temporary creds, mfa, etc
+					},
+
+					Volumes: []string{
+						fmt.Sprintf("%s:%s", tmpBaseDir, tmpBaseDir),
 					},
 				}
 
-				shell.RunCommand(t, downloadRdsCaCerts)
+				docker.Run(t, tag, runOpts)
 			},
 			func() {
 				require.True(
@@ -152,9 +146,11 @@ func TestTlsScripts(t *testing.T) {
 		{
 			"GenerateTrustStores",
 			func() {
-				generateTrustStores := shell.Command{
-					Command: fmt.Sprintf("%s/generate-trust-stores.sh", scriptsPath),
-					Args: []string{
+				// Run the Docker image.
+				logger.Logf(t, "%s", os.Getenv("GITHUB_OAUTH_TOKEN"))
+				runOpts := &docker.RunOptions{
+					Command: []string{
+						"generate-trust-stores.sh",
 						"--keystore-name",
 						"kafka",
 						"--store-path",
@@ -176,23 +172,32 @@ func TestTlsScripts(t *testing.T) {
 						"--aws-region",
 						"us-east-1",
 					},
+					EnvironmentVariables: []string{
+						"AWS_ACCESS_KEY_ID",
+						"AWS_SECRET_ACCESS_KEY",
+						"AWS_SESSION_TOKEN", // only set if you're using temporary creds, mfa, etc
+					},
+
+					Volumes: []string{
+						fmt.Sprintf("%s:%s", tmpBaseDir, tmpBaseDir),
+					},
 				}
 
-				shell.RunCommand(t, generateTrustStores)
+				docker.Run(t, tag, runOpts)
 			},
 			func() {
 				for _, file := range trustStoresFiles {
 					require.Truef(
 						t,
-						files.FileExists(fmt.Sprintf("%s/%s", sslPath, file)),
+						files.FileExists(fmt.Sprintf("%s/%s", sslDir, file)),
 						"Error Validating Generate Trust Stores %s",
 						file,
 					)
 				}
 			},
 			func() {
-				os.RemoveAll(packageKafkaPath)
-				os.RemoveAll(sslPath)
+				os.RemoveAll(packageKafkaDir)
+				os.RemoveAll(sslDir)
 			},
 		},
 	}
