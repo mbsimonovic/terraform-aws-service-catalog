@@ -85,7 +85,9 @@ module "ecs_service" {
   max_number_of_tasks     = var.max_number_of_tasks
   min_number_of_tasks     = var.min_number_of_tasks
 
-  ecs_node_port_mappings = var.ecs_node_port_mappings
+  # Open the security group for the EC2 instances backing the ECS cluster on ports 22 (ssh) and 80 (web)
+  expose_ecs_service_to_other_ecs_nodes = true
+  ecs_node_port_mappings                = var.ecs_node_port_mappings
 
   # Ensure the load balancer is provisioned before the ecs service is created 
   dependencies = [module.alb.alb_arn]
@@ -138,18 +140,6 @@ module "ecs_service" {
   lb_hosted_zone_id    = module.alb.alb_hosted_zone_id
 
   alarm_sns_topic_arns = [aws_sns_topic.ecs-alerts.arn]
-}
-
-# Demonstrates adding a security group rule allowing access to port 80 on the container instances. These instances run the ecs task
-# which also binds to port 80 allowing them to serve as web hosts
-resource "aws_security_group_rule" "ecs_cluster_instances_webserver" {
-  type              = "ingress"
-  from_port         = 80
-  to_port           = 80
-  protocol          = "tcp"
-  security_group_id = var.ecs_instance_security_group_id
-  # Only allow access to the EC2 container instances from the Application Load Balancer
-  source_security_group_id = module.alb.alb_security_group_id
 }
 
 # Demonstrates adding a security group rule allowing access to port 22 on the container instance. You would want to do this if you need to debug your container instances by ssh'ing into them
