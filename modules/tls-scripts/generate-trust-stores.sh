@@ -21,8 +21,7 @@ readonly script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$script_dir/helpers.sh"
 
 readonly PACKAGE_KAFKA_CHECKOUT_PATH="/tmp/package-kafka"
-#readonly PACKAGE_KAFKA_CHECKOUT_URL="git@github.com:gruntwork-io/package-kafka.git"
-readonly PACKAGE_KAFKA_CHECKOUT_URL="https://github.com/gruntwork-io/package-kafka.git"
+readonly PACKAGE_KAFKA_CHECKOUT_URL="https://${GITHUB_OAUTH_TOKEN}@github.com/gruntwork-io/package-kafka.git"
 
 readonly DEFAULT_KEYSTORE_PASSWORD_LENGTH=32
 

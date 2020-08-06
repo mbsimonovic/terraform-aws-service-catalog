@@ -8,7 +8,6 @@ import (
 
 	"github.com/gruntwork-io/terratest/modules/docker"
 	"github.com/gruntwork-io/terratest/modules/files"
-	"github.com/gruntwork-io/terratest/modules/logger"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 	"github.com/stretchr/testify/require"
 )
@@ -103,7 +102,7 @@ func TestTlsScripts(t *testing.T) {
 				}
 			},
 			func() {
-				os.RemoveAll(certOutputDir)
+				os.RemoveAll(certBaseDir)
 			},
 		},
 		{
@@ -144,7 +143,6 @@ func TestTlsScripts(t *testing.T) {
 			"GenerateTrustStores",
 			func() {
 				// Run the Docker image.
-				logger.Logf(t, "%s", os.Getenv("GITHUB_OAUTH_TOKEN"))
 				runOpts := &docker.RunOptions{
 					Command: []string{
 						"generate-trust-stores.sh",
@@ -170,7 +168,7 @@ func TestTlsScripts(t *testing.T) {
 						"us-east-1",
 					},
 					EnvironmentVariables: []string{
-						"GITHUB_OAUTH_TOKEN",
+						"GITHUB_OAUTH_TOKEN", // need to pass this in for the script to download package-kafka
 						"AWS_ACCESS_KEY_ID",
 						"AWS_SECRET_ACCESS_KEY",
 						"AWS_SESSION_TOKEN", // only set if you're using temporary creds, mfa, etc

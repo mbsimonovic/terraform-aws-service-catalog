@@ -14,7 +14,7 @@ ARG GITHUB_OAUTH_TOKEN
 RUN if [ -z "$GITHUB_OAUTH_TOKEN" ]; then echo "ERROR: You must set GITHUB_OAUTH_TOKEN as a Docker build arg."; exit 1; fi
 
 # Install dependencies
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+RUN apt-get update && apt-get install -y \
       curl && \
       rm -rf /var/lib/apt/lists/*
 
@@ -30,7 +30,7 @@ RUN gruntkms --version
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # everything else
 
-# Start from openjdk because we need keytool
+# Start from openjdk to easily get keytool
 FROM openjdk:8-jre-slim as without-secrets
 COPY --from=with-secrets /usr/local/bin/gruntkms /usr/local/bin/gruntkms
 
@@ -52,7 +52,6 @@ RUN curl -LsS "https://releases.hashicorp.com/terraform/0.12.18/terraform_0.12.1
       rm -f "terraform.zip"
 
 # install aws
-# RUN pip install aws
 RUN curl -LsS "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
       unzip awscliv2.zip && \
       ./aws/install && \
