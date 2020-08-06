@@ -34,8 +34,9 @@ variable "aws_region" {
 }
 
 variable "ecs_node_port_mappings" {
-  description = "A map of ports used by the Docker containers on an ECS Node. The key should be the container port and the value should be what host port to map it to."
-  type        = map(number)
+  description = "A map of ports to be opened via security groups applied to the EC2 instances that back the ECS cluster, when not using fargate. The key should be the container port and the value should be what host port to map it to."
+
+  type = map(number)
   default = {
     "80" = 80
   }
