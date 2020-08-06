@@ -142,18 +142,6 @@ module "ecs_service" {
   alarm_sns_topic_arns = [aws_sns_topic.ecs-alerts.arn]
 }
 
-# Demonstrates adding a security group rule allowing access to port 22 on the container instance. You would want to do this if you need to debug your container instances by ssh'ing into them
-resource "aws_security_group_rule" "ecs_cluster_instance_ssh" {
-  type              = "ingress"
-  from_port         = 22
-  to_port           = 22
-  protocol          = "tcp"
-  security_group_id = var.ecs_instance_security_group_id
-  # NOTE: we are only leaving this open to make testing easy, but in prod this should be locked down 
-  # to only trusted servers, such as a VPN server 
-  cidr_blocks = ["0.0.0.0/0"]
-}
-
 # Create an SNS topic to receive ecs-related alerts when defined service thresholds are breached
 resource "aws_sns_topic" "ecs-alerts" {
   name = "ecs-alerts-topic"

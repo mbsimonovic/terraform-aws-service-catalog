@@ -29,7 +29,6 @@ module "ecs_cluster" {
     ]
   }
 
-
   cluster_max_size = var.cluster_max_size
   cluster_min_size = var.cluster_min_size
 
