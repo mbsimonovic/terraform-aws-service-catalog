@@ -190,6 +190,7 @@ module "customer_master_keys" {
   global_tags          = var.kms_cmk_global_tags
   opt_in_regions       = var.kms_cmk_opt_in_regions
 }
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # CREATE A MANAGEMENT VPC
 # To avoid commingling the management systems with application traffic (e.g. the ecs-deploy-runner), we
@@ -199,22 +200,23 @@ module "customer_master_keys" {
 module "vpc" {
   source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-mgmt?ref=v0.9.1"
 
+  create_resources                = var.mgmt_vpc_enabled
   aws_region                      = var.aws_region
-  vpc_name                        = var.vpc_name
-  cidr_block                      = var.cidr_block
-  num_nat_gateways                = var.num_nat_gateways
-  num_availability_zones          = var.num_availability_zones
-  availability_zone_exclude_names = var.availability_zone_exclude_names
-  availability_zone_exclude_ids   = var.availability_zone_exclude_ids
-  availability_zone_state         = var.availability_zone_state
-  public_subnet_bits              = var.public_subnet_bits
-  private_subnet_bits             = var.private_subnet_bits
-  subnet_spacing                  = var.subnet_spacing
-  public_subnet_cidr_blocks       = var.public_subnet_cidr_blocks
-  private_subnet_cidr_blocks      = var.private_subnet_cidr_blocks
-  custom_tags                     = var.custom_tags
-  vpc_custom_tags                 = var.vpc_custom_tags
-  public_subnet_custom_tags       = var.public_subnet_custom_tags
-  private_subnet_custom_tags      = var.private_subnet_custom_tags
-  nat_gateway_custom_tags         = var.nat_gateway_custom_tags
+  vpc_name                        = var.mgmt_vpc_name
+  cidr_block                      = var.mgmt_vpc_cidr_block
+  num_nat_gateways                = var.mgmt_vpc_num_nat_gateways
+  num_availability_zones          = var.mgmt_vpc_num_availability_zones
+  availability_zone_exclude_names = var.mgmt_vpc_availability_zone_exclude_names
+  availability_zone_exclude_ids   = var.mgmt_vpc_availability_zone_exclude_ids
+  availability_zone_state         = var.mgmt_vpc_availability_zone_state
+  public_subnet_bits              = var.mgmt_vpc_public_subnet_bits
+  private_subnet_bits             = var.mgmt_vpc_private_subnet_bits
+  subnet_spacing                  = var.mgmt_vpc_subnet_spacing
+  public_subnet_cidr_blocks       = var.mgmt_vpc_public_subnet_cidr_blocks
+  private_subnet_cidr_blocks      = var.mgmt_vpc_private_subnet_cidr_blocks
+  custom_tags                     = var.mgmt_vpc_custom_tags
+  vpc_custom_tags                 = var.mgmt_vpc_custom_tags_vpc_only
+  public_subnet_custom_tags       = var.mgmt_vpc_public_subnet_custom_tags
+  private_subnet_custom_tags      = var.mgmt_vpc_private_subnet_custom_tags
+  nat_gateway_custom_tags         = var.mgmt_vpc_nat_gateway_custom_tags
 }
