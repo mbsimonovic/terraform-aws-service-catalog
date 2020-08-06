@@ -608,7 +608,7 @@ variable "health_check_protocol" {
 }
 
 variable "server_port" {
-  description = "The port the EC2 instances listen on for HTTP requests"
+  description = "The port the EC2 instances listen on for health checks"
   type        = number
   default     = 80
 }
