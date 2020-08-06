@@ -86,7 +86,7 @@ variable "cloud_init_parts" {
     content_type = string
     content      = string
   }))
-  default = {}
+  default = null
 }
 
 variable "ami" {

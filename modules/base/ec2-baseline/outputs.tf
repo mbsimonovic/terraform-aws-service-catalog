@@ -45,7 +45,7 @@ output "cloudwatch_metrics_read_write_permissions_json" {
 
 output "cloud_init_rendered" {
   description = "The final rendered cloud-init config used to initialize the instance."
-  value       = data.template_cloudinit_config.cloud_init.rendered
+  value       = data.template_cloudinit_config.cloud_init[0].rendered
 }
 
 output "existing_ami" {
