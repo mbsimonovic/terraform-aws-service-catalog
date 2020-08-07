@@ -88,6 +88,7 @@ module "ecs_service" {
   # Open the security group for the EC2 instances backing the ECS cluster on ports 22 (ssh) and 80 (web)
   expose_ecs_service_to_other_ecs_nodes = true
   ecs_node_port_mappings                = var.ecs_node_port_mappings
+  ecs_instance_security_group_id        = var.ecs_instance_security_group_id
 
   # Ensure the load balancer is provisioned before the ecs service is created 
   dependencies = [module.alb.alb_arn]
@@ -109,16 +110,10 @@ module "ecs_service" {
   default_listener_arns  = module.alb.listener_arns
   default_listener_ports = ["443"]
 
-  default_forward_target_group_arns = [
-    {
-      arn = module.ecs_service.target_group_arns["alb"]
-    }
-  ]
-
   forward_rules = {
     "test" = {
       priority      = 120
-      port          = 80
+      port          = 443
       path_patterns = ["/*"]
 
       stickiness = {

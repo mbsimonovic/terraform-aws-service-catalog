@@ -195,18 +195,6 @@ variable "default_listener_ports" {
   type        = list(string)
 }
 
-variable "default_forward_target_group_arns" {
-  description = "The ARN of the Target Group to which to route traffic. Required if using forward rules."
-  type        = list(map(any))
-  default     = []
-
-  # Each entry in the map supports the following attributes:
-  # REQUIRED:
-  # - arn    [string]: The ARN of the target group.
-  # OPTIONAL:
-  # - weight [number]: The weight. The range is 0 to 999. Only applies if len(target_group_arns) > 1.
-}
-
 variable "forward_rules" {
   type    = any
   default = {}

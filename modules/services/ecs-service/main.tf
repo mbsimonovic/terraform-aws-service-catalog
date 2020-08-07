@@ -81,6 +81,8 @@ locals {
 
   cloudwatch_log_group_name = var.cloudwatch_log_group_name != null ? var.cloudwatch_log_group_name : var.service_name
   cloudwatch_log_prefix     = "ecs-service"
+
+
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -208,10 +210,15 @@ module "listener_rules" {
   default_listener_arns  = var.default_listener_arns
   default_listener_ports = var.default_listener_ports
 
-  default_forward_target_group_arns = var.default_forward_target_group_arns
-  forward_rules                     = var.forward_rules
-  redirect_rules                    = var.redirect_rules
-  fixed_response_rules              = var.fixed_response_rules
+  default_forward_target_group_arns = flatten([
+    for key, target_group_arn in module.ecs_service.target_group_arns : {
+      arn = target_group_arn
+    }
+  ])
+
+  forward_rules        = var.forward_rules
+  redirect_rules       = var.redirect_rules
+  fixed_response_rules = var.fixed_response_rules
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

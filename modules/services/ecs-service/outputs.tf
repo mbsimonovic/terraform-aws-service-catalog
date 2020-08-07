@@ -80,12 +80,6 @@ output "capacity_provider_strategy" {
   value       = module.ecs_service.capacity_provider_strategy
 }
 
-
-output "ecs_task_iam_role_arn" {
-  description = "The ARN of the IAM role associated with the ECS task"
-  value       = module.ecs_service.ecs_task_iam_role_arn
-}
-
 output "ecs_node_port_mappings" {
   description = "A map representing the instance host and container ports that should be opened"
   value       = var.ecs_node_port_mappings
