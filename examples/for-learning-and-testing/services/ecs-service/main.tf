@@ -137,6 +137,18 @@ module "ecs_service" {
   alarm_sns_topic_arns = [aws_sns_topic.ecs-alerts.arn]
 }
 
+# Create a security group rule allowing traffic from the load balancer to reach
+# the target groups on the EC2 instances backing the EC2 cluster
+resource "aws_security_group_rule" "ecs_cluster_instances_webserver" {
+  type              = "ingress"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
+  security_group_id = var.ecs_instance_security_group_id
+  # Only allow access to the EC2 container instances from the Application Load Balancer
+  source_security_group_id = module.alb.alb_security_group_id
+}
+
 # Create an SNS topic to receive ecs-related alerts when defined service thresholds are breached
 resource "aws_sns_topic" "ecs-alerts" {
   name = "ecs-alerts-topic"
