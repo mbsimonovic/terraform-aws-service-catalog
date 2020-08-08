@@ -1,12 +1,19 @@
 {
   "variables": {
     "version_tag": "1",
-    "aws_region": "eu-central-1",
-    "ami_name": "asg-example-rename-me",
+    "aws_region": "",
+    "ami_name": "asg-example",
     "encrypt_boot": "false",
-    "service_catalog_ref": "iac-1421-asg-migration",
-    "github_auth_token": "{{env `GITHUB_OAUTH_TOKEN`}}"
+    "service_catalog_ref": "",
+    "github_auth_token": "{{env `GITHUB_OAUTH_TOKEN`}}",
+    "module_security_version": "",
+    "module_aws_monitoring_version": "",
+    "bash_commons_version": "",
+    "enable_ssh_grunt": "true",
+    "enable_cloudwatch_metrics": "true",
+    "enable_cloudwatch_log_aggregation": "true"
   },
+  "sensitive-variables": ["github_auth_token"],
   "builders": [{
     "ami_name": "{{user `ami_name`}}-{{isotime | clean_resource_name}}",
     "ami_description": "An example AMI built on Ubuntu that runs a simple 'Hello, World' server.",
@@ -38,10 +45,16 @@
       "sudo DEBIAN_FRONTEND=noninteractive apt-get -y autoclean",
       "sudo DEBIAN_FRONTEND=noninteractive apt-get -y install busybox jq curl",
       "curl -Ls https://raw.githubusercontent.com/gruntwork-io/gruntwork-installer/master/bootstrap-gruntwork-installer.sh | bash /dev/stdin --version v0.0.22",
-      "gruntwork-install --module-name services/asg-service --repo https://github.com/gruntwork-io/aws-service-catalog --branch {{user `service_catalog_ref`}}"
+      "gruntwork-install --module-name services/asg-service --repo https://github.com/gruntwork-io/aws-service-catalog --ref {{user `service_catalog_ref`}}"
     ],
     "environment_vars": [
-      "GITHUB_OAUTH_TOKEN={{user `github_auth_token`}}"
+      "GITHUB_OAUTH_TOKEN={{user `github_auth_token`}}",
+      "module_security_version={{user `module_security_version`}}",
+      "module_aws_monitoring_version={{user `module_aws_monitoring_version`}}",
+      "bash_commons_version={{user `bash_commons_version`}}",
+      "enable_ssh_grunt={{user `enable_ssh_grunt`}}",
+      "enable_cloudwatch_metrics={{user `enable_cloudwatch_metrics`}}",
+      "enable_cloudwatch_log_aggregation={{user `enable_cloudwatch_log_aggregation`}}"
     ],
     "pause_before": "30s"
   }]

@@ -159,6 +159,7 @@ module "ec2_baseline" {
   num_asg_names                       = 1
   cloud_init_parts                    = local.cloud_init_parts
   ami                                 = var.ami
+  ami_filters                         = var.ami_filters
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
