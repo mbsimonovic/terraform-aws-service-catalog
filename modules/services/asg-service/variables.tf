@@ -117,8 +117,8 @@ variable "ami_filters" {
 
 variable "forward_listener_rules" {
   description = "Listener rules for a forward action that distributes requests among one or more target groups. See comments below for information about the parameters."
-  type    = any
-  default = {}
+  type        = any
+  default     = {}
 
   # Each entry in the map supports the following attributes:
   #
@@ -251,8 +251,8 @@ variable "redirect_listener_rules" {
 
 variable "fixed_response_listener_rules" {
   description = "Listener rules for a fixed-response action. See comments below for information about the parameters."
-  type    = map(any)
-  default = {}
+  type        = map(any)
+  default     = {}
 
   # Each entry in the map supports the following attributes:
   #
