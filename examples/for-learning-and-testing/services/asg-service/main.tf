@@ -28,12 +28,12 @@ module "asg" {
 
   server_ports = {
     "default-http" = {
-      server_port           = "8080"
+      server_port           = local.server_port_1
       health_check_protocol = "HTTP"
       health_check_path     = "/"
     },
     "another-port" = {
-      server_port           = "3000"
+      server_port           = local.server_port_2
       health_check_protocol = "HTTP"
       health_check_path     = "/"
     }
@@ -105,7 +105,8 @@ locals {
 
   # The server will listen on port 8080. The ALB will listen on port 80 (default port for HTTP) and route traffic to
   # the server at port 8080.
-  server_port    = 8080
+  server_port_1  = "8080"
+  server_port_2  = "3000"
   listener_ports = [80]
 }
 
@@ -117,6 +118,11 @@ module "instance_type" {
 
 data "template_file" "user_data" {
   template = file("${path.module}/user-data.sh")
+
+  vars = {
+    server_port_1 = local.server_port_1
+    server_port_2 = local.server_port_2
+  }
 }
 
 
