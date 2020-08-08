@@ -59,7 +59,7 @@ module "alb" {
   ssl_policy                         = "ELBSecurityPolicy-TLS-1-1-2017-01"
 
   vpc_id         = data.aws_vpc.default.id
-  vpc_subnet_ids = [data.aws_subnet.default_az1.id, data.aws_subnet.default_az2.id]
+  vpc_subnet_ids = tolist(data.aws_subnet_ids.default.ids)
 }
 
 module "ecs_service" {
@@ -139,7 +139,7 @@ module "ecs_service" {
 
 # Create a security group rule allowing traffic from the load balancer to reach
 # the target groups on the EC2 instances backing the EC2 cluster
-resource "aws_security_group_rule" "ecs_cluster_instances_webserver" {
+resource "aws_security_group_rule" "loadbalancer_to_ec2" {
   type              = "ingress"
   from_port         = 80
   to_port           = 80
@@ -159,14 +159,9 @@ data "aws_vpc" "default" {
   default = true
 }
 
-data "aws_subnet" "default_az1" {
-  availability_zone = "${var.aws_region}a"
-  default_for_az    = true
-}
-
-data "aws_subnet" "default_az2" {
-  availability_zone = "${var.aws_region}b"
-  default_for_az    = true
+# Look up the default VPC's subnets
+data "aws_subnet_ids" "default" {
+  vpc_id = data.aws_vpc.default.id
 }
 
 data "aws_caller_identity" "current" {}

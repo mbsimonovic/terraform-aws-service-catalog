@@ -39,7 +39,7 @@ module "ecs_cluster" {
   enable_ssh_grunt              = false
 
   vpc_id         = data.aws_vpc.default.id
-  vpc_subnet_ids = [data.aws_subnet.default_az1.id, data.aws_subnet.default_az2.id]
+  vpc_subnet_ids = tolist(data.aws_subnet_ids.default.ids)
 
   # cloud-init / user-data variables
   enable_cloudwatch_log_aggregation = var.enable_cloudwatch_log_aggregation
@@ -54,12 +54,7 @@ data "aws_vpc" "default" {
   default = true
 }
 
-data "aws_subnet" "default_az1" {
-  availability_zone = "${var.aws_region}a"
-  default_for_az    = true
-}
-
-data "aws_subnet" "default_az2" {
-  availability_zone = "${var.aws_region}b"
-  default_for_az    = true
+# Look up the default VPC's subnets
+data "aws_subnet_ids" "default" {
+  vpc_id = data.aws_vpc.default.id
 }
