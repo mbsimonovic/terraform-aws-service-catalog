@@ -250,7 +250,7 @@ variable "redirect_listener_rules" {
 }
 
 variable "fixed_response_listener_rules" {
-  description = "Listener rules for a redirect action. See comments below for information about the parameters."
+  description = "Listener rules for a fixed-response action. See comments below for information about the parameters."
   type    = map(any)
   default = {}
 
