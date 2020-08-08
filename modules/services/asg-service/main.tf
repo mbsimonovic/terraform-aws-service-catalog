@@ -58,12 +58,7 @@ resource "aws_launch_configuration" "launch_configuration" {
   user_data_base64     = module.ec2_baseline.cloud_init_rendered
 
   # Important note: whenever using a launch configuration with an auto scaling group, you must set
-  # create_before_destroy = true. However, as soon as you set create_before_destroy = true in one resource, you must
-  # also set it in every resource that it depends on, or you'll get an error about cyclic dependencies (especially when
-  # removing resources). For more info, see:
-  #
-  # https://www.terraform.io/docs/providers/aws/r/launch_configuration.html
-  # https://terraform.io/docs/configuration/resources.html
+  # create_before_destroy = true. https://www.terraform.io/docs/providers/aws/r/launch_configuration.html
   lifecycle {
     create_before_destroy = true
   }
@@ -77,13 +72,6 @@ resource "aws_security_group" "lc_security_group" {
   name        = "${var.name}-lc"
   description = "Security group for the ${var.name} launch configuration"
   vpc_id      = var.vpc_id
-
-  # aws_launch_configuration.launch_configuration in this module sets create_before_destroy to true, which means
-  # everything it depends on, including this resource, must set it as well, or you'll get cyclic dependency errors
-  # when you try to do a terraform destroy.
-  lifecycle {
-    create_before_destroy = true
-  }
 }
 
 # Outbound everything
@@ -169,25 +157,11 @@ module "ec2_baseline" {
 resource "aws_iam_instance_profile" "instance_profile" {
   name = var.name
   role = aws_iam_role.instance_role.name
-
-  # aws_launch_configuration.launch_configuration in this module sets create_before_destroy to true, which means
-  # everything it depends on, including this resource, must set it as well, or you'll get cyclic dependency errors
-  # when you try to do a terraform destroy.
-  lifecycle {
-    create_before_destroy = true
-  }
 }
 
 resource "aws_iam_role" "instance_role" {
   name               = var.name
   assume_role_policy = data.aws_iam_policy_document.instance_role.json
-
-  # aws_iam_instance_profile.instance_profile in this module sets create_before_destroy to true, which means
-  # everything it depends on, including this resource, must set it as well, or you'll get cyclic dependency errors
-  # when you try to do a terraform destroy.
-  lifecycle {
-    create_before_destroy = true
-  }
 }
 
 data "aws_iam_policy_document" "instance_role" {
@@ -226,10 +200,6 @@ resource "aws_alb_target_group" "service" {
       interval            = each.value.interval
       timeout             = each.value.timeout
     }
-  }
-
-  lifecycle {
-    create_before_destroy = true
   }
 }
 
