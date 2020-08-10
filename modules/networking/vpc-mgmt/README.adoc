@@ -1,0 +1,126 @@
+:type: service
+:name: Management VPC
+:description: Deploy a VPC  on AWS for administrative and management functions.
+:icon: /_docs/amazon-vpc-icon.png
+:category: networking
+:cloud: aws
+:tags: vpc, ec2
+:license: gruntwork
+:built-with: terraform
+
+// AsciiDoc TOC settings
+:toc:
+:toc-placement!:
+:toc-title:
+
+// GitHub specific settings. See https://gist.github.com/dcode/0cfbf2699a1fe9b46ff04c41721dda74 for details.
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+
+= Management VPC
+
+image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
+image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
+
+This folder contains code to deploy a [Virtual Private Cloud (VPC)](https://aws.amazon.com/vpc/) on AWS that can be used for administrative and management purposes, such as CI/CD services.
+
+image::../../../_docs/vpc-architecture.png?raw=true[VPC architecture]
+
+
+toc::[]
+
+
+
+
+== Features
+
+* The VPC itself.
+* Subnets, which are isolated subdivisions within the VPC. There are 2 "tiers" of subnets, public and private, spanning multiple availability zones.
+* Route tables, which provide routing rules for the subnets.
+* Internet Gateways to route traffic to the public Internet from public subnets.
+* NATs to route traffic to the public Internet from private subnets.
+
+
+== Learn
+
+NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog//[Gruntwork Service Catalog], a collection of
+reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
+sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catallog/[How to use the Gruntwork
+Service Catalog]!
+
+
+Under the hood, this is all implemented using Terraform modules from the Gruntwork
+https://github.com/gruntwork-io/module-vpc[module-vpc] repo. If you don't have access to this repo, email
+support@gruntwork.io.
+
+
+=== Core concepts
+
+To understand core concepts like what's a VPC, how subnets are configured, how network ACLs work, and more, see the
+documentation in the https://github.com/gruntwork-io/terraform-aws-vpc[terraform-aws-vpc] repo.
+
+=== Repo organization
+
+* link:/modules[modules]: The main implementation code for this repo, broken down into multiple standalone, orthogonal submodules.
+* link:/examples[examples]: This folder contains working examples of how to use the submodules.
+* link:/test[test]: Automated tests for the modules and examples.
+
+
+
+
+== Deploy
+
+=== Non-production deployment (quick start for learning)
+
+If you just want to try this repo out for experimenting and learning, check out the following resources:
+
+* link:/examples/for-learning-and-testing[examples/for-learning-and-testing folder]: The
+  `examples/for-learning-and-testing` folder contains standalone sample code optimized for learning, experimenting, and
+  testing (but not direct production usage).
+
+=== Production deployment
+
+If you want to deploy this repo in production, check out the following resources:
+
+* link:/examples/for-production[examples/for-production folder]: The `examples/for-production` folder contains sample
+  code optimized for direct usage in production. This is code from the
+  https://gruntwork.io/reference-architecture/:[Gruntwork Reference Architecture], and it shows you how we build an
+  end-to-end, integrated tech stack on top of the Gruntwork Service Catalog.
+* https://gruntwork.io/guides/networking/how-to-deploy-production-grade-vpc-aws[How to deploy a production-grade VPC on AWS]
+* https://gruntwork.io/guides/automation-and-workflows/how-to-configure-a-production-grade-ci-cd-setup-for-apps-and-infrastructure-code/[How
+  to configure a production-grade CI/CD workflow for application and infrastructure code]: step-by-step guide on how to
+  configure CI / CD for your apps and infrastructure.
+
+
+
+
+
+== Support
+
+If you need help with this repo or anything else related to infrastructure or DevOps, Gruntwork offers
+https://gruntwork.io/support/[Commercial Support] via Slack, email, and phone/video. If you're already a Gruntwork
+customer, hop on Slack and ask away! If not, https://www.gruntwork.io/pricing/[subscribe now]. If you're not sure,
+feel free to email us at link:mailto:support@gruntwork.io[support@gruntwork.io].
+
+
+
+
+== Contributions
+
+Contributions to this repo are very welcome and appreciated! If you find a bug or want to add a new feature or even
+contribute an entirely new module, we are very happy to accept pull requests, provide feedback, and run your changes
+through our automated test suite.
+
+Please see https://gruntwork.io/guides/foundations/how-to-use-gruntwork-infrastructure-as-code-library/#contributing-to-the-gruntwork-infrastructure-as-code-library
+[Contributing to the Gruntwork Service Catalog]
+for instructions.
+
+
+== License
+
+Please see link:/LICENSE.txt[LICENSE.txt] for details on how the code in this repo is licensed.
