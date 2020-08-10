@@ -1,10 +1,10 @@
 #!/bin/bash
 # This script is meant to be used to automatically generate a Key Store and Trust Store, which are typically used with
 # Java apps to securely store SSL certificates. If they don't already exist, the Key Store, Trust Store, and public cert
-# / CA will be generated to the specified paths, and the Key Store password will be stored in AWS Secrets Manager. The
+# / CA will be generated to the specified paths. The
 # script writes the KMS-encrypted password for the Key Store to stdout.
 #
-# Note: You must be authenticated to the AWS account for KMS based encryption and uploading to IAM to work.
+# Note: You must be authenticated to the AWS account for KMS based encryption to work.
 #
 # Script dependencies:
 # - gruntkms
@@ -33,7 +33,7 @@ function print_usage {
   log
   log "Usage: generate-trust-stores.sh [OPTIONS]"
   log
-  log "This script is meant to be used to automatically generate a Key Store and Trust Store, which are typically used with Java apps to securely store SSL certificates. If they don't already exist, the Key Store, Trust Store, and public cert / CA will be generated to the specified paths, and the Key Store password will be stored in AWS Secrets Manager. The script writes the KMS-encrypted password for the Key Store to stdout."
+  log "This script is meant to be used to automatically generate a Key Store and Trust Store, which are typically used with Java apps to securely store SSL certificates. If they don't already exist, the Key Store, Trust Store, and public cert / CA will be generated to the specified paths. The script writes the KMS-encrypted password for the Key Store to stdout."
   log
   log "Required Arguments:"
   log
@@ -46,7 +46,7 @@ function print_usage {
   log "  --company-state\t\t\tThe state the company is in."
   log "  --company-country\t\t\tThe country the company is in."
   log "  --kms-key-id\t\tThe ID of the CMK to use for encryption. This value can be a globally unique identifier (e.g. 12345678-1234-1234-1234-123456789012), a fully specified ARN (e.g. arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012), or an alias name prefixed by \"alias/\" (e.g. alias/MyAliasName). Optional."
-  log "  --aws-region\t\t\t\tThe AWS region where to store the keystore passwords in AWS Secrets Manager."
+  log "  --aws-region\t\t\t\tThe AWS region where the kms-key-id is located."
   log
   log "Optional Arguments:"
   log
