@@ -39,6 +39,9 @@ toc::[]
 Bash scripts that simplify working with TLS certificates. You will typically only need
 these scripts to configure end-to-end encryption in your Reference Architecture.
 
+* Create TLS Cert
+include::create-tls-cert.sh[]
+
 * `create-tls-cert.sh`: This script will automatically create a CA cert and a TLS cert signed by that CA, assuming
    those certs don't already exist. The TLS cert private key will be encrypted with gruntkms. Optionally, this script
    can also upload the cert to IAM, so it can be used with an ELB or ALB. These certs are meant for private/internal
@@ -54,6 +57,13 @@ these scripts to configure end-to-end encryption in your Reference Architecture.
 * `download-rds-ca-certs.sh`: Download the CA certs for RDS so that applications can validate the certs when
    connecting to RDS over SSL.
 
+
+
+== Using these scripts
+
+
+
+== Testing these scripts
 
 
 
