@@ -2,7 +2,7 @@
 :name: TLS Scripts
 :description: Create TLS certificates, download CA certs for RDS, and generate trust stores.
 :icon: // TODO
-:category: // TODO
+:category: tools
 :cloud: aws
 :tags: TLS, SSL, certificates, certificate authority, trust store, key store
 :license: gruntwork

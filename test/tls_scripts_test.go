@@ -6,9 +6,13 @@ import (
 	"path/filepath"
 	"testing"
 
+	// awsgo "github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/iam"
+	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/docker"
 	"github.com/gruntwork-io/terratest/modules/random"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -120,6 +124,14 @@ func TestTlsScripts(t *testing.T) {
 			},
 			func() {
 				os.RemoveAll(certBaseDir)
+
+				// Remove server certificate from IAM
+				sess, err := aws.NewAuthenticatedSession(awsRegion)
+				require.NoError(t, err)
+				iamClient := iam.New(sess)
+				input := iam.DeleteServerCertificateInput{ServerCertificateName: &certNameInIam}
+				_, err = iamClient.DeleteServerCertificate(&input)
+				require.NoError(t, err)
 			},
 		},
 		{
