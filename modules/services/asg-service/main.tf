@@ -142,7 +142,7 @@ module "ec2_baseline" {
   external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
   enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
   enable_cloudwatch_metrics           = var.enable_cloudwatch_metrics
-  iam_role_arn                        = aws_iam_role.instance_role.id
+  iam_role_name                       = aws_iam_role.instance_role.name
   asg_names                           = [module.asg.asg_name]
   num_asg_names                       = 1
   cloud_init_parts                    = local.cloud_init_parts

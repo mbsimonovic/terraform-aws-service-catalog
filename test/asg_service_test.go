@@ -2,13 +2,13 @@ package test
 
 import (
 	"fmt"
+	"github.com/gruntwork-io/terratest/modules/git"
 	http_helper "github.com/gruntwork-io/terratest/modules/http-helper"
 	"github.com/gruntwork-io/terratest/modules/random"
 	"testing"
 	"time"
 
 	"github.com/gruntwork-io/terratest/modules/aws"
-	"github.com/gruntwork-io/terratest/modules/git"
 	"github.com/gruntwork-io/terratest/modules/packer"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
@@ -61,6 +61,7 @@ func buildASGAmi(t *testing.T, testFolder string) {
 		Vars: map[string]string{
 			"aws_region":                    awsRegion,
 			"version_tag":                   branchName,
+			"service_catalog_ref":           branchName,
 			"bash_commons_version":          "v0.1.2",
 			"module_aws_monitoring_version": "v0.19.0",
 			"module_security_version":       "v0.25.1",
