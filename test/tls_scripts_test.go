@@ -7,10 +7,15 @@ import (
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/docker"
-	"github.com/gruntwork-io/terratest/modules/files"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 	"github.com/stretchr/testify/require"
 )
+
+/*
+ * To run this test, docker needs to be running, your github-oauth-token
+ * must be exported in GITHUB_OAUTH_TOKEN, and you need to have AWS credentials
+ * set.
+ */
 
 func TestTlsScripts(t *testing.T) {
 	t.Parallel()
@@ -51,6 +56,12 @@ func TestTlsScripts(t *testing.T) {
 	// Build the Docker image.
 	docker.Build(t, scriptsDir, buildOptions)
 
+	// This kms-key-id is used for testing against Gruntwork's test account.
+	// You will have to change it to use a key available in your account.
+	kmsKeyId := "alias/dedicated-test-key"
+	// The region where the key is located.
+	awsRegion := "us-east-1"
+
 	var testCases = []struct {
 		name     string
 		deploy   func()
@@ -60,6 +71,7 @@ func TestTlsScripts(t *testing.T) {
 		{
 			"CreateTlsCert",
 			func() {
+
 				// Run the Docker image.
 				runOpts := &docker.RunOptions{
 					Command: []string{
@@ -73,9 +85,9 @@ func TestTlsScripts(t *testing.T) {
 						"--company-name",
 						"Acme",
 						"--kms-key-id",
-						"alias/cmk-dev",
+						kmsKeyId,
 						"--aws-region",
-						"us-east-1",
+						awsRegion,
 					},
 					EnvironmentVariables: []string{
 						"AWS_ACCESS_KEY_ID",
@@ -93,9 +105,9 @@ func TestTlsScripts(t *testing.T) {
 
 			func() {
 				for _, file := range createCertFiles {
-					require.Truef(
+					require.FileExistsf(
 						t,
-						files.FileExists(filepath.Join(certOutputDir, file)),
+						filepath.Join(certOutputDir, file),
 						"Error Validating Create TLS Cert %s",
 						file,
 					)
@@ -114,12 +126,6 @@ func TestTlsScripts(t *testing.T) {
 						"download-rds-ca-certs.sh",
 						downloadPath,
 					},
-					EnvironmentVariables: []string{
-						"AWS_ACCESS_KEY_ID",
-						"AWS_SECRET_ACCESS_KEY",
-						"AWS_SESSION_TOKEN", // only set if you're using temporary creds, mfa, etc
-					},
-
 					Volumes: []string{
 						fmt.Sprintf("%s:%s", tmpBaseDir, tmpBaseDir),
 					},
@@ -128,9 +134,9 @@ func TestTlsScripts(t *testing.T) {
 				docker.Run(t, tag, runOpts)
 			},
 			func() {
-				require.True(
+				require.FileExistsf(
 					t,
-					files.FileExists(downloadPath),
+					downloadPath,
 					"Error Validating Download RDS CA Cert %s",
 					downloadPath,
 				)
@@ -163,9 +169,9 @@ func TestTlsScripts(t *testing.T) {
 						"--company-country",
 						"US",
 						"--kms-key-id",
-						"alias/cmk-dev",
+						kmsKeyId,
 						"--aws-region",
-						"us-east-1",
+						awsRegion,
 					},
 					EnvironmentVariables: []string{
 						"GITHUB_OAUTH_TOKEN", // need to pass this in for the script to download package-kafka
@@ -183,9 +189,9 @@ func TestTlsScripts(t *testing.T) {
 			},
 			func() {
 				for _, file := range trustStoresFiles {
-					require.Truef(
+					require.FileExistsf(
 						t,
-						files.FileExists(fmt.Sprintf("%s/%s", sslDir, file)),
+						fmt.Sprintf("%s/%s", sslDir, file),
 						"Error Validating Generate Trust Stores %s",
 						file,
 					)
@@ -199,14 +205,11 @@ func TestTlsScripts(t *testing.T) {
 	}
 
 	for _, testCase := range testCases {
-		defer test_structure.RunTestStage(t, "cleanup", testCase.cleanup)
-	}
-
-	for _, testCase := range testCases {
-		test_structure.RunTestStage(t, "deploy", testCase.deploy)
-	}
-
-	for _, testCase := range testCases {
-		test_structure.RunTestStage(t, "validate", testCase.validate)
+		testCase := testCase
+		t.Run(testCase.name, func(t *testing.T) {
+			defer test_structure.RunTestStage(t, "cleanup", testCase.cleanup)
+			test_structure.RunTestStage(t, "deploy", testCase.deploy)
+			test_structure.RunTestStage(t, "validate", testCase.validate)
+		})
 	}
 }

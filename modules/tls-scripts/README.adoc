@@ -1,0 +1,98 @@
+:type: module
+:name: TLS Scripts
+:description: Create TLS certificates, download CA certs for RDS, and generate trust stores.
+:icon: // TODO
+:category: // TODO
+:cloud: aws
+:tags: TLS, SSL, certificates, certificate authority, trust store, key store
+:license: gruntwork
+:built-with: terraform, bash, docker
+
+// AsciiDoc TOC settings
+:toc:
+:toc-placement!:
+:toc-title:
+
+// GitHub specific settings. See https://gist.github.com/dcode/0cfbf2699a1fe9b46ff04c41721dda74 for details.
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+
+= TLS Scripts
+
+image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
+image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
+
+This folder contains code to generate TLS certificates and trust stores, and download RDS CA certificates from AWS.
+
+toc::[]
+
+
+
+
+== Features
+
+Bash scripts that simplify working with TLS certificates. You will typically only need
+these scripts to configure end-to-end encryption in your Reference Architecture.
+
+* `create-tls-cert.sh`: This script will automatically create a CA cert and a TLS cert signed by that CA, assuming
+   those certs don't already exist. The TLS cert private key will be encrypted with gruntkms. Optionally, this script
+   can also upload the cert to IAM, so it can be used with an ELB or ALB. These certs are meant for private/internal
+   use only, such as to set up end-to-end encryption within an AWS account. The only IP address in the cert will be
+   127.0.0.1 and localhost, so you can test your servers locally. You can also use the servers with the ELB or ALB, as
+   the AWS load balancers don't verify the CA. Also see [Loading TLS secrets from AWS Secrets Manager](https://github.com/gruntwork-io/aws-sample-app/blob/master/core-concepts.md#loading-tls-secrets-from-aws-secrets-manager)
+
+* `generate-trust-stores.sh`: This script is meant to be used to automatically generate a Key Store and Trust Store,
+   which are typically used with Java apps to securely store SSL certificates. If they don't already exist, the Key
+   Store, Trust Store, and public cert / CA will be generated to the specified paths, and the Key Store password will
+   be stored in AWS Secrets Manager. The script writes the KMS-encrypted password for the Key Store to stdout.
+
+* `download-rds-ca-certs.sh`: Download the CA certs for RDS so that applications can validate the certs when
+   connecting to RDS over SSL.
+
+
+
+
+== Learn
+
+NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog//[Gruntwork Service Catalog], a collection of
+reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
+sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catallog/[How to use the Gruntwork
+Service Catalog]!
+
+
+
+
+
+
+
+== Support
+
+If you need help with this repo or anything else related to infrastructure or DevOps, Gruntwork offers
+https://gruntwork.io/support/[Commercial Support] via Slack, email, and phone/video. If you're already a Gruntwork
+customer, hop on Slack and ask away! If not, https://www.gruntwork.io/pricing/[subscribe now]. If you're not sure,
+feel free to email us at link:mailto:support@gruntwork.io[support@gruntwork.io].
+
+
+
+
+== Contributions
+
+Contributions to this repo are very welcome and appreciated! If you find a bug or want to add a new feature or even
+contribute an entirely new module, we are very happy to accept pull requests, provide feedback, and run your changes
+through our automated test suite.
+
+Please see
+https://gruntwork.io/guides/foundations/how-to-use-gruntwork-infrastructure-as-code-library#_contributing_to_the_gruntwork_infrastructure_as_code_library[Contributing to the Gruntwork Service Catalog]
+for instructions.
+
+
+
+
+== License
+
+Please see link:/LICENSE.txt[LICENSE.txt] for details on how the code in this repo is licensed.

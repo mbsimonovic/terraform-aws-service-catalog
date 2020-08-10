@@ -4,17 +4,18 @@ MAINTAINER Gruntwork "gruntwork.io"
 
 # Build Phase 1: With Secrets
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# only gruntkms and whatever it needs
+# Install gruntkms and whatever it needs
+# Clone package-kafka
 
-# export github-oauth-token for accessing private repos
+# github-oauth-token for accessing private repos
 ARG GITHUB_OAUTH_TOKEN
-# make version an arg
 
 # If the build-time args are not defined, make it clear to the user.
 RUN if [ -z "$GITHUB_OAUTH_TOKEN" ]; then echo "ERROR: You must set GITHUB_OAUTH_TOKEN as a Docker build arg."; exit 1; fi
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
+      git \
       curl && \
       rm -rf /var/lib/apt/lists/*
 
@@ -25,6 +26,10 @@ RUN curl -LsS "https://raw.githubusercontent.com/gruntwork-io/gruntwork-installe
 RUN gruntwork-install --binary-name "gruntkms" --repo "https://github.com/gruntwork-io/gruntkms" --tag 'v0.0.8' --no-sudo true
 RUN gruntkms --version
 
+# install package-kafka script
+RUN git clone "https://${GITHUB_OAUTH_TOKEN}@github.com/gruntwork-io/package-kafka.git" "/tmp/package-kafka" && \
+      mv /tmp/package-kafka/modules/generate-key-stores/generate-key-stores.sh /usr/local/bin/ && \
+      rm -rf /tmp/package-kafka/
 
 # Build Phase 2: Without Secrets
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
