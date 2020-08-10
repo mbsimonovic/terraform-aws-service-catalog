@@ -70,7 +70,7 @@ password for the Key Store to `stdout`.
 == Running these scripts in Docker
 
 We've provided a `Dockerfile` in this module for you to use for both running and testing the TLS scripts.
-Open a terminal in this directory and run `docker build -t {image name} --build-arg BITHUB_OAUTH_TOKEN={your github-oauth-token} .` to create a docker container with all the dependencies needed to run the scripts and the tests.
+Open a terminal in this directory and run `docker build -t {image name} --build-arg GITHUB_OAUTH_TOKEN={your github-oauth-token} .` to create a docker container with all the dependencies needed to run the scripts and the tests.
 Then you can run `docker run --rm -it {image name} bash` to run the scripts interactively in the container and check their outputs.
 
 === Create TLS Cert
