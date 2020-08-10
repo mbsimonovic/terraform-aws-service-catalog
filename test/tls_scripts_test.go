@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/docker"
+	"github.com/gruntwork-io/terratest/modules/random"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 	"github.com/stretchr/testify/require"
 )
@@ -61,6 +62,7 @@ func TestTlsScripts(t *testing.T) {
 	kmsKeyId := "alias/dedicated-test-key"
 	// The region where the key is located.
 	awsRegion := "us-east-1"
+	certNameInIam := fmt.Sprintf("acme-tls-test-%s", random.UniqueId())
 
 	var testCases = []struct {
 		name     string
@@ -88,6 +90,9 @@ func TestTlsScripts(t *testing.T) {
 						kmsKeyId,
 						"--aws-region",
 						awsRegion,
+						"--upload-to-iam",
+						"--cert-name-in-iam",
+						certNameInIam,
 					},
 					EnvironmentVariables: []string{
 						"AWS_ACCESS_KEY_ID",
@@ -174,7 +179,6 @@ func TestTlsScripts(t *testing.T) {
 						awsRegion,
 					},
 					EnvironmentVariables: []string{
-						"GITHUB_OAUTH_TOKEN", // need to pass this in for the script to download package-kafka
 						"AWS_ACCESS_KEY_ID",
 						"AWS_SECRET_ACCESS_KEY",
 						"AWS_SESSION_TOKEN", // only set if you're using temporary creds, mfa, etc

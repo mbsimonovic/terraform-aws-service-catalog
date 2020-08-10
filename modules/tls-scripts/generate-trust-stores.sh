@@ -14,14 +14,13 @@
 # - aws cli
 # - keytool
 # - openssl
+# - github.com/gruntwork-io/package-kafka/modules/generate-key-stores/generate-key-stores.sh must be installed and its path added to the PATH environment variable
+#   - This is automatically done in the Dockerfile in this module folder.
 
 set -e
 
 readonly script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$script_dir/helpers.sh"
-
-readonly PACKAGE_KAFKA_CHECKOUT_PATH="/tmp/package-kafka"
-readonly PACKAGE_KAFKA_CHECKOUT_URL="https://${GITHUB_OAUTH_TOKEN}@github.com/gruntwork-io/package-kafka.git"
 
 readonly DEFAULT_KEYSTORE_PASSWORD_LENGTH=32
 
@@ -76,14 +75,13 @@ function generate_key_store_password {
   generate_and_store_password "$vpc_name-$keystore_name-keystore-password" "$DEFAULT_KEYSTORE_PASSWORD_LENGTH" "The keystore password for $keystore_name in $vpc_name" "$aws_region"
 }
 
-function clone_package_kafka {
-  local -r checkout_path="$1"
+function verify_installed_script {
+  local -r installed_script="$1"
 
-  if [[ -d "$checkout_path" ]]; then
-    log "$checkout_path exists already. Will not clone package-kafka again."
-  else
-    log "Cloning package-kafka to $checkout_path"
-    git clone "$PACKAGE_KAFKA_CHECKOUT_URL" "$checkout_path"
+  if ! command -v $installed_script &> /dev/null
+  then
+    log "ERROR: $installed_script does not exist. The script needs to be installed and its path included in the PATH environment variable."
+    exit 1
   fi
 }
 
@@ -226,6 +224,8 @@ function generate_trust_stores {
   local key_store_password
   key_store_password=$(generate_key_store_password "$keystore_name" "$vpc_name" "$aws_region")
 
+  local -r installed_script="generate-key-stores.sh"
+
   if [[ -f "$key_store_path" && -f "$trust_store_path" ]]; then
     log "The Key Store at $key_store_path and Trust Store at $trust_store_path already exist. Will not create again."
   elif [[ -f "$key_store_path" || -f "$trust_store_path" ]]; then
@@ -234,7 +234,7 @@ function generate_trust_stores {
   else
     log "Generating Key Store to $key_store_path and Trust Store to $trust_store_path"
 
-    clone_package_kafka "$PACKAGE_KAFKA_CHECKOUT_PATH"
+    verify_installed_script "$installed_script"
 
     mkdir -p "$(dirname $key_store_path)"
     mkdir -p "$(dirname $trust_store_path)"
@@ -273,7 +273,7 @@ function generate_trust_stores {
       args+=("$cur_ip")
     done
 
-    KEY_STORE_PASSWORD="$key_store_password" TRUST_STORE_PASSWORD="$key_store_password" "$PACKAGE_KAFKA_CHECKOUT_PATH/modules/generate-key-stores/generate-key-stores.sh" "${args[@]}" 1>&2
+    KEY_STORE_PASSWORD="$key_store_password" TRUST_STORE_PASSWORD="$key_store_password" "generate-key-stores.sh" "${args[@]}" 1>&2
   fi
 
   local password_ciphertext

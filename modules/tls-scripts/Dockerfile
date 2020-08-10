@@ -29,6 +29,7 @@ RUN gruntkms --version
 # install package-kafka script
 RUN git clone "https://${GITHUB_OAUTH_TOKEN}@github.com/gruntwork-io/package-kafka.git" "/tmp/package-kafka" && \
       mv /tmp/package-kafka/modules/generate-key-stores/generate-key-stores.sh /usr/local/bin/ && \
+      chmod +x /usr/local/bin/generate-key-stores.sh && \
       rm -rf /tmp/package-kafka/
 
 # Build Phase 2: Without Secrets
@@ -38,6 +39,7 @@ RUN git clone "https://${GITHUB_OAUTH_TOKEN}@github.com/gruntwork-io/package-kaf
 # Start from openjdk to easily get keytool
 FROM openjdk:8-jre-slim as without-secrets
 COPY --from=with-secrets /usr/local/bin/gruntkms /usr/local/bin/gruntkms
+COPY --from=with-secrets /usr/local/bin/generate-key-stores.sh /usr/local/bin/generate-key-stores.sh
 
 RUN apt-get update && \
       apt-get install -y \

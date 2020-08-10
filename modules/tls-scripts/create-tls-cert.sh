@@ -203,7 +203,7 @@ function upload_to_iam {
   local output
   local cert_arn
 
-  output=$(aws iam upload-server-certificate --region "$aws_region" --server-certificate-name "$cert_name" --certificate-body "file://$cert_public_key_path" --private-key "file://$cert_private_key_path")
+  output=$(aws iam upload-server-certificate --region "$aws_region" --server-certificate-name "$cert_name" --certificate-body "file://${VAULT_TLS_MODULE_PATH}/$cert_public_key_path" --private-key "file://${VAULT_TLS_MODULE_PATH}/$cert_private_key_path")
   cert_arn="$(echo "$output" | jq -r '.ServerCertificateMetadata.Arn')"
 
   log "Certificate uploaded. ARN: $cert_arn."
