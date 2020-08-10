@@ -52,7 +52,6 @@ func TestTlsScripts(t *testing.T) {
 	certNameInIam := fmt.Sprintf("tls-scripts-test-%s", random.UniqueId())
 
 	// Generate Trust Stores vars
-	packageKafkaDir := filepath.Join(tmpBaseDir, "package-kafka")
 	sslDir := filepath.Join(tmpBaseDir, "ssl")
 	trustStoresFiles := []string{"kafka.server.ca.default.pem", "kafka.server.cert.default.pem", "keystore/kafka.server.keystore.default.jks", "truststore/kafka.server.truststore.default.jks"}
 
@@ -222,7 +221,6 @@ func TestTlsScripts(t *testing.T) {
 				}
 			},
 			func() {
-				os.RemoveAll(packageKafkaDir)
 				os.RemoveAll(sslDir)
 			},
 		},
