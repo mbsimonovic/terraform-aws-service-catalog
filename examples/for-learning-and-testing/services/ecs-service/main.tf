@@ -115,11 +115,6 @@ module "ecs_service" {
       priority      = 120
       port          = 443
       path_patterns = ["/*"]
-
-      stickiness = {
-        enabled  = true
-        duration = 200
-      }
     }
   }
 
