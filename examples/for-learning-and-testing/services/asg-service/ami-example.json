@@ -2,13 +2,13 @@
   "variables": {
     "version_tag": "1",
     "aws_region": "",
-    "ami_name": "asg-example",
-    "encrypt_boot": "false",
     "service_catalog_ref": "",
-    "github_auth_token": "{{env `GITHUB_OAUTH_TOKEN`}}",
     "module_security_version": "",
     "module_aws_monitoring_version": "",
     "bash_commons_version": "",
+    "ami_name": "asg-example",
+    "encrypt_boot": "false",
+    "github_auth_token": "{{env `GITHUB_OAUTH_TOKEN`}}",
     "enable_ssh_grunt": "true",
     "enable_cloudwatch_metrics": "true",
     "enable_cloudwatch_log_aggregation": "true"
