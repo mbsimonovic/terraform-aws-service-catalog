@@ -136,7 +136,7 @@ module "high_asg_disk_usage_root_volume_alarms" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 data "template_cloudinit_config" "cloud_init" {
-  count = var.should_combine_cloud_init ? 1 : 0
+  count = local.should_combine_cloud_init ? 1 : 0
 
   gzip          = true
   base64_encode = true
@@ -152,6 +152,9 @@ data "template_cloudinit_config" "cloud_init" {
   }
 }
 
+locals {
+  should_combine_cloud_init = var.cloud_init_parts == null || var.cloud_init_parts == {} ? false : true
+}
 
 # ---------------------------------------------------------------------------------------------------------------------
 # LOOKUP EXISTING AMI USING PROVIDED FILTERS
