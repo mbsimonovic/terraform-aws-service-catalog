@@ -17,16 +17,16 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_cluster" {
-  source = "git::git@github.com:gruntwork-io/module-ecs.git//modules/ecs-cluster?ref=v0.20.5"
+  source = "git::git@github.com:gruntwork-io/module-ecs.git//modules/ecs-cluster?ref=v0.20.10"
 
   cluster_name     = var.cluster_name
   cluster_min_size = var.cluster_min_size
   cluster_max_size = var.cluster_max_size
 
-  cluster_instance_ami          = module.ec2_baseline.existing_ami
-  cluster_instance_type         = var.cluster_instance_type
-  cluster_instance_keypair_name = var.cluster_instance_keypair_name
-  cluster_instance_user_data    = data.template_file.user_data.rendered
+  cluster_instance_ami              = module.ec2_baseline.existing_ami
+  cluster_instance_type             = var.cluster_instance_type
+  cluster_instance_keypair_name     = var.cluster_instance_keypair_name
+  cluster_instance_user_data_base64 = module.ec2_baseline.cloud_init_rendered
 
   vpc_id                            = var.vpc_id
   vpc_subnet_ids                    = var.vpc_subnet_ids
@@ -59,14 +59,16 @@ data "template_file" "user_data" {
   template = file("${path.module}/user-data.sh")
 
   vars = {
-    log_group_name                      = var.cluster_name
+    cluster_name                        = var.cluster_name
+    aws_region                          = data.aws_region.current.name
     enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
     enable_ssh_grunt                    = var.enable_ssh_grunt
-    enable_fail2ban                     = var.enable_fail2ban
-    enable_ip_lockdown                  = var.enable_ip_lockdown
     ssh_grunt_iam_group                 = var.ssh_grunt_iam_group
     ssh_grunt_iam_group_sudo            = var.ssh_grunt_iam_group_sudo
+    log_group_name                      = "${var.cluster_name}-logs"
     external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
+    enable_fail2ban                     = var.enable_fail2ban
+    enable_ip_lockdown                  = var.enable_ip_lockdown
   }
 }
 
