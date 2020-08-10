@@ -45,7 +45,7 @@ toc::[]
 * Define arbitrary tasks via JSON 
 * Optionally deploy a canary task for testing release candidates 
 * Configure and deploy load balancing and optional DNS records 
-* Auto scaling of ecs tasks  
+* Auto scaling of ECS tasks  
 * Cloudwatch metrics and alerts
 
 
@@ -118,6 +118,5 @@ Please see https://gruntwork.io/guides/foundations/how-to-use-gruntwork-infrastr
 == License
 
 Please see link:/LICENSE.txt[LICENSE.txt] for details on how the code in this repo is licensed.
-
 
 
