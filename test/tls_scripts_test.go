@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"testing"
 
-	// awsgo "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/iam"
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/docker"
