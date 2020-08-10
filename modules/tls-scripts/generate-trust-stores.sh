@@ -273,7 +273,7 @@ function generate_trust_stores {
       args+=("$cur_ip")
     done
 
-    KEY_STORE_PASSWORD="$key_store_password" TRUST_STORE_PASSWORD="$key_store_password" "generate-key-stores.sh" "${args[@]}" 1>&2
+    KEY_STORE_PASSWORD="$key_store_password" TRUST_STORE_PASSWORD="$key_store_password" "$installed_script" "${args[@]}" 1>&2
   fi
 
   local password_ciphertext
