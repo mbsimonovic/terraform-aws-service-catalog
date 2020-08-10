@@ -1,5 +1,5 @@
 #!/bin/bash
-# Download the CA certs for RDS so that the applications validate the certs when connecting to RDS over SSL.
+# Download the CA certs for RDS so that the applications validate the certs when connecting to RDS over TLS.
 #
 # Script dependencies:
 # - curl
