@@ -39,32 +39,57 @@ toc::[]
 Bash scripts that simplify working with TLS certificates. You will typically only need
 these scripts to configure end-to-end encryption in your Reference Architecture.
 
-* Create TLS Cert
-include::create-tls-cert.sh[]
-
-* `create-tls-cert.sh`: This script will automatically create a CA cert and a TLS cert signed by that CA, assuming
-   those certs don't already exist. The TLS cert private key will be encrypted with gruntkms. Optionally, this script
-   can also upload the cert to IAM, so it can be used with an ELB or ALB. These certs are meant for private/internal
-   use only, such as to set up end-to-end encryption within an AWS account. The only IP address in the cert will be
-   127.0.0.1 and localhost, so you can test your servers locally. You can also use the servers with the ELB or ALB, as
-   the AWS load balancers don't verify the CA. Also see [Loading TLS secrets from AWS Secrets Manager](https://github.com/gruntwork-io/aws-sample-app/blob/master/core-concepts.md#loading-tls-secrets-from-aws-secrets-manager)
-
-* `generate-trust-stores.sh`: This script is meant to be used to automatically generate a Key Store and Trust Store,
-   which are typically used with Java apps to securely store SSL certificates. If they don't already exist, the Key
-   Store, Trust Store, and public cert / CA will be generated to the specified paths, and the Key Store password will
-   be stored in AWS Secrets Manager. The script writes the KMS-encrypted password for the Key Store to stdout.
-
-* `download-rds-ca-certs.sh`: Download the CA certs for RDS so that applications can validate the certs when
-   connecting to RDS over SSL.
 
 
 
-== Using these scripts
+== About these scripts
+
+=== Create TLS Cert
+
+This script will automatically create a CA cert and a TLS cert signed by that CA, assuming
+those certs don't already exist. The TLS cert private key is encrypted with `gruntkms`.
+
+Optionally with the `--upload-to-iam` flag, this script can also upload the cert to IAM, so it can be used with an ELB or ALB.
+These certs are meant for private/internal use only, such as to set up end-to-end encryption within an AWS account.
+The only IP address in the cert will be 127.0.0.1 and localhost, so you can test your servers locally.
+You can also use the servers with the ELB or ALB, as the AWS load balancers don't verify the CA.
+Also see [Loading TLS secrets from AWS Secrets Manager](https://github.com/gruntwork-io/aws-sample-app/blob/master/core-concepts.md#loading-tls-secrets-from-aws-secrets-manager)
+
+=== Download RDS CA Certificates
+This script downloads the Certificate Authority certs for RDS so that applications can validate the certs when
+connecting to RDS over TLS.
+
+=== Generate Trust Stores
+This script automatically generates a Key Store and Trust Store, which are typically used with Java apps to securely
+store TLS certificates. If they don't already exist, the Key Store, Trust Store, and public cert / CA will be generated
+to the specified paths, and the Key Store password will be stored in AWS Secrets Manager. The script writes the KMS-encrypted
+password for the Key Store to `stdout`.
 
 
 
-== Testing these scripts
+== Running and testing these scripts
 
+We've provided a `Dockerfile` in this module for you to use for both running and testing the TLS scripts.
+Open a terminal in this directory and run `docker build -t {image name} --build-arg BITHUB_OAUTH_TOKEN={your github-oauth-token} .` to create a docker container with all the dependencies needed to run the scripts and the tests.
+Then you can run `docker run --rm -it {image name} bash` to run the scripts interactively in the container and check their outputs.
+
+For example, to run the `create-tls-cert.sh` script interactively in Docker, you'll have to pass in environment variables to the `run` command.
+
+[source,bash]
+----
+docker run --rm -it -e AWS_ACCESS_KEY_ID={your key id} -e AWS_SECRET_ACCESS_KEY={your secret key} {image name} bash
+----
+
+Then while in the container's shell, you can run the example call, which doesn't upload the cert to IAM:
+
+[source,bash]
+----
+create-tls-cert.sh --ca-path ca.crt.pem --cert-path my-app.crt.pem --key-path my-app.key.pem.kms.encrypted --company-name Acme --kms-key-id alias/cmk-dev --aws-region us-east-1
+----
+
+The generated cert files are located in `/tmp/vault-blueprint/modules/private-tls-cert/`.
+
+To upload the cert to IAM, include the `--upload-to-iam` flag along with the correct KMS key id in `--kms-key-id`, and the correct region for that key in `--aws-region`. The cert is uploaded to IAM as a Server Certificate, which cannot be managed using the AWS Console UI. You must use the AWS API to upload, update, and delete these certs.
 
 
 == Learn

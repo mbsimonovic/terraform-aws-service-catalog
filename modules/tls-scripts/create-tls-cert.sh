@@ -18,10 +18,14 @@
 
 set -e
 
+if [[ -z $AWS_ACCESS_KEY_ID ]] || [[ -z $AWS_SECRET_ACCESS_KEY ]]; then
+  echo "ERROR: AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY is not set."
+  exit 1
+fi
+
 readonly script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$script_dir/helpers.sh"
 
-# readonly VAULT_BLUEPRINT_CLONE_URL="git@github.com:hashicorp/terraform-aws-vault.git"
 readonly VAULT_BLUEPRINT_CLONE_URL="https://github.com/hashicorp/terraform-aws-vault.git"
 readonly VAULT_BLUEPRINT_CHECKOUT_PATH="/tmp/vault-blueprint"
 readonly VAULT_TLS_MODULE_PATH="/tmp/vault-blueprint/modules/private-tls-cert"
