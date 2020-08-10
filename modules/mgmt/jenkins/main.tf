@@ -125,7 +125,6 @@ data "template_file" "user_data" {
     ssh_grunt_iam_group_sudo            = var.ssh_grunt_iam_group_sudo
     external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
     default_user                        = var.default_user
-    owner                               = var.jenkins_user
   }
 }
 
