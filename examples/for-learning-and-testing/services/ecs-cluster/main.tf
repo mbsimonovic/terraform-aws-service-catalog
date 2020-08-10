@@ -29,7 +29,6 @@ module "ecs_cluster" {
     ]
   }
 
-
   cluster_max_size = var.cluster_max_size
   cluster_min_size = var.cluster_min_size
 
@@ -39,8 +38,8 @@ module "ecs_cluster" {
   cluster_instance_keypair_name = var.cluster_instance_keypair_name
   enable_ssh_grunt              = false
 
-  vpc_id         = module.vpc.vpc_id
-  vpc_subnet_ids = module.vpc.private_app_subnet_ids
+  vpc_id         = data.aws_vpc.default.id
+  vpc_subnet_ids = tolist(data.aws_subnet_ids.default.ids)
 
   # cloud-init / user-data variables
   enable_cloudwatch_log_aggregation = var.enable_cloudwatch_log_aggregation
@@ -50,18 +49,12 @@ module "ecs_cluster" {
 
 }
 
-# ----------------------------------------------------------------------------------------------------------------------
-# CREATE A VPC
-# ----------------------------------------------------------------------------------------------------------------------
-
-module "vpc" {
-  source = "../../../../modules/networking/vpc"
-
-  aws_region       = var.aws_region
-  cidr_block       = "10.0.0.0/16"
-  num_nat_gateways = 1
-  vpc_name         = var.cluster_name
-  create_flow_logs = false
+# Look up the default VPC
+data "aws_vpc" "default" {
+  default = true
 }
 
-
+# Look up the default VPC's subnets
+data "aws_subnet_ids" "default" {
+  vpc_id = data.aws_vpc.default.id
+}
