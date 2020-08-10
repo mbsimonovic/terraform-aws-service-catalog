@@ -16,11 +16,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-/*
- * To run this test, docker needs to be running, your github-oauth-token
- * must be exported in GITHUB_OAUTH_TOKEN, and you need to have AWS credentials
- * set.
- */
+// To run this test suite, a number of requirements must be met:
+// - docker needs to be running
+// - your github-oauth-token must be exported in GITHUB_OAUTH_TOKEN
+// - AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY need to be set
+// - if you're using temporary credentials, AWS_SESSION_TOKEN needs to be set
+// - you need to provide a KMS CMK in TLS_SCRIPTS_KMS_KEY_ID and its region in TLS_SCRIPTS_AWS_REGION
 
 func TestTlsScripts(t *testing.T) {
 	t.Parallel()
@@ -32,6 +33,10 @@ func TestTlsScripts(t *testing.T) {
 	// os.Setenv("SKIP_cleanup", "true")
 
 	requireEnvVar(t, "GITHUB_OAUTH_TOKEN")
+	requireEnvVar(t, "AWS_ACCESS_KEY_ID")
+	requireEnvVar(t, "AWS_SECRET_ACCESS_KEY")
+	requireEnvVar(t, "TLS_SCRIPTS_KMS_KEY_ID")
+	requireEnvVar(t, "TLS_SCRIPTS_AWS_REGION")
 
 	scriptsDir := "../modules/tls-scripts"
 	tmpBaseDir := "/tmp"
@@ -43,6 +48,8 @@ func TestTlsScripts(t *testing.T) {
 	certBaseDir := filepath.Join(tmpBaseDir, "vault-blueprint")
 	certOutputDir := filepath.Join(certBaseDir, "modules/private-tls-cert")
 	createCertFiles := []string{"ca.crt.pem", "my-app.cert", "my-app.key.pem.kms.encrypted"}
+	// The name of the server certificate that we upload to IAM.
+	certNameInIam := fmt.Sprintf("tls-scripts-test-%s", random.UniqueId())
 
 	// Generate Trust Stores vars
 	packageKafkaDir := filepath.Join(tmpBaseDir, "package-kafka")
@@ -61,12 +68,13 @@ func TestTlsScripts(t *testing.T) {
 	// Build the Docker image.
 	docker.Build(t, scriptsDir, buildOptions)
 
-	// This kms-key-id is used for testing against Gruntwork's test account.
+	// This kmsKeyId is used for testing against Gruntwork's test account.
 	// You will have to change it to use a key available in your account.
-	kmsKeyId := "alias/dedicated-test-key"
-	// The region where the key is located.
-	awsRegion := "us-east-1"
-	certNameInIam := fmt.Sprintf("acme-tls-test-%s", random.UniqueId())
+	// kmsKeyId := "alias/dedicated-test-key"
+	kmsKeyId := os.Getenv("TLS_SCRIPTS_KMS_KEY_ID")
+	// This region should match where the key is located.
+	// awsRegion := "us-east-1"
+	awsRegion := os.Getenv("TLS_SCRIPTS_AWS_REGION")
 
 	var testCases = []struct {
 		name     string
