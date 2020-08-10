@@ -136,8 +136,6 @@ module "high_asg_disk_usage_root_volume_alarms" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 data "template_cloudinit_config" "cloud_init" {
-  count = local.should_combine_cloud_init ? 1 : 0
-
   gzip          = true
   base64_encode = true
 
@@ -145,15 +143,11 @@ data "template_cloudinit_config" "cloud_init" {
     for_each = var.cloud_init_parts
 
     content {
-      filename     = part.value["filename"]
-      content_type = part.value["content_type"]
-      content      = part.value["content"]
+      filename     = part.value.filename
+      content_type = part.value.content_type
+      content      = part.value.content
     }
   }
-}
-
-locals {
-  should_combine_cloud_init = var.cloud_init_parts == null || var.cloud_init_parts == {} ? false : true
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
