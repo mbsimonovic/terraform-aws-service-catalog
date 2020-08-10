@@ -67,11 +67,13 @@ password for the Key Store to `stdout`.
 
 
 
-== Running and testing these scripts
+== Running these scripts in Docker
 
 We've provided a `Dockerfile` in this module for you to use for both running and testing the TLS scripts.
 Open a terminal in this directory and run `docker build -t {image name} --build-arg BITHUB_OAUTH_TOKEN={your github-oauth-token} .` to create a docker container with all the dependencies needed to run the scripts and the tests.
 Then you can run `docker run --rm -it {image name} bash` to run the scripts interactively in the container and check their outputs.
+
+=== Create TLS Cert
 
 For example, to run the `create-tls-cert.sh` script interactively in Docker, you'll have to pass in environment variables to the `run` command.
 
@@ -92,9 +94,23 @@ The generated cert files are located in `/tmp/vault-blueprint/modules/private-tl
 To upload the cert to IAM, include the `--upload-to-iam` flag along with the correct KMS key id in `--kms-key-id`, and the correct region for that key in `--aws-region`. The cert is uploaded to IAM as a Server Certificate, which cannot be managed using the AWS Console UI. You must use the AWS API to upload, update, and delete these certs.
 
 
+=== Download RDS CA Cert
+
+=== Generate Trust Stores
+
+
+== Testing these scripts in Docker
+
+=== Create TLS Cert
+
+=== Download RDS CA Cert
+
+=== Generate Trust Stores
+
+
 == Learn
 
-NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog//[Gruntwork Service Catalog], a collection of
+NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog/[Gruntwork Service Catalog], a collection of
 reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
 sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catallog/[How to use the Gruntwork
 Service Catalog]!
