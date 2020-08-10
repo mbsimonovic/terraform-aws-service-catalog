@@ -100,6 +100,10 @@ function install_host {
 
 }
 
+echo "[INFO] include_ec2_baseline"
 include_ec2_baseline
 
+echo "[INFO] install_host"
 install_host "$@"
+
+echo "[INFO] finished include_ec2_baseline and install_host"
