@@ -1,6 +1,6 @@
 :type: module
 :name: TLS Scripts
-:description: Create TLS certificates, download CA certs for RDS, and generate trust stores.
+:description: Create TLS certificates, download CA certs for RDS, and generate JVM trust stores.
 :icon: /_docs/tls-icon.png
 :category: tools
 :cloud: aws
