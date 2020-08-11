@@ -46,8 +46,15 @@ these scripts to configure end-to-end encryption in your Reference Architecture.
 
 === Create TLS Cert
 
-This script will automatically create a CA cert and a TLS cert signed by that CA, assuming
-those certs don't already exist. The TLS cert private key is encrypted with `gruntkms`.
+You can use this script to create self-signed TLS certificates. These are appropriate for private / internal services (e.g., for your microservices talking to each other). If you need TLS certificates for public use—e.g., for services directly accessed by your users—you'll need to use a well-known commercial Certificate Authority (CA) such as [AWS Certificate Manager (ACM)](https://aws.amazon.com/certificate-manager/) or [LetsEncrypt](https://letsencrypt.org/) instead.
+
+This script does the following:
+
+1. Create private CA, including a private key and public key.
+1. Create a TLS certificate, including a private key and public key, that is signed by that CA.
+1. Delete the private key of the CA so no one can ever use it again. However, the public key of the CA is kept around so anyone who needs to call your service can use that CA public key to verify your TLS certificate.
+1. Optionally encrypt the private key of the TLS cert with KMS.
+1. Optionally upload the TLS certificate to IAM so you can use it with an internal ELB or ALB.
 
 Optionally with the `--upload-to-iam` flag, this script can also upload the cert to IAM, so it can be used with an ELB or ALB.
 These certs are meant for private/internal use only, such as to set up end-to-end encryption within an AWS account.
