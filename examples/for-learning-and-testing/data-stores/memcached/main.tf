@@ -27,8 +27,8 @@ module "memcached" {
   # production you'll probably want to enable this feature.
   enable_cloudwatch_alarms = false
 
-  # Since this is just an example, we are using a small ElastiCache cluster with only 10GB of storage and only one
-  # node. You'll want to tweak all of these settings for production usage.
+  # Since this is just an example, we are using a small ElastiCache cluster with only one node. You'll want to tweak
+  # all of these settings for production usage.
   instance_type      = "cache.t3.micro"
   apply_immediately  = true
   num_cache_nodes    = 1
