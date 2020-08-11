@@ -27,7 +27,7 @@ endif::[]
 image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
 image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
 
-This folder contains code to generate TLS certificates and trust stores, and download RDS CA certificates from AWS.
+This folder contains scripts that simplify the process of creating and managing TLS certificates, JVM key stores and trust stores, and RDS CA certificates.
 
 toc::[]
 
