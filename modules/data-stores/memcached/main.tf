@@ -1,9 +1,6 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # LAUNCH A MEMCACHED CLUSTER WITH AMAZON ELASTICACHE
-# This module can be used to deploy a Memcached Cluster using Amazon ElastiCache. It creates the following resources:
-#
-# - A cluster with 1 or more Memcached nodes using ElastiCache.
-# - CloudWatch alarms for monitoring performance issues with the Memcached cache cluster.
+# This module can be used to deploy a Memcached Cluster using Amazon ElastiCache.
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
