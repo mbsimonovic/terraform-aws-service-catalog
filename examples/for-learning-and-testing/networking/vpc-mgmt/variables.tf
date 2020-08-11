@@ -38,3 +38,9 @@ variable "create_flow_logs" {
   type        = bool
   default     = false
 }
+
+variable "instance_types" {
+  description = "A list of instance types to look up in the current AWS region."
+  type        = list(string)
+  default     = ["t3.micro", "t2.micro"]
+}

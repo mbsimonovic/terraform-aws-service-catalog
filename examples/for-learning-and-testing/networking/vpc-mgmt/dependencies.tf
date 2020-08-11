@@ -1,3 +1,9 @@
+module "instance_types" {
+  source = "../../modules/instance-type"
+
+  instance_types = var.instance_types
+}
+
 data "aws_ami" "ubuntu" {
   most_recent = true
   owners      = ["099720109477"] # Canonical

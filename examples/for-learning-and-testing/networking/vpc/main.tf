@@ -36,7 +36,7 @@ resource "aws_security_group" "example" {
 
 resource "aws_instance" "example" {
   ami                         = data.aws_ami.ubuntu.id
-  instance_type               = "t3.micro"
+  instance_type               = module.instance_types.recommended_instance_type
   subnet_id                   = element(module.vpc.public_subnet_ids, 0)
   vpc_security_group_ids      = [aws_security_group.example.id]
   associate_public_ip_address = true
