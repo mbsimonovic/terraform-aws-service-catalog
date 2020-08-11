@@ -15,6 +15,10 @@ module "vpc" {
   create_flow_logs = var.create_flow_logs
 }
 
+# ----------------------------------------------------------------------------------------------------------------------
+# Deploy an instance with a security group to this VPC for testing purposes
+# ----------------------------------------------------------------------------------------------------------------------
+
 resource "aws_security_group" "example" {
   vpc_id = module.vpc.vpc_id
 

@@ -19,6 +19,10 @@ module "vpc" {
   kms_key_arn = data.aws_kms_key.kms_key.arn
 }
 
+# ----------------------------------------------------------------------------------------------------------------------
+# Deploy an instance with a security group to this VPC for testing purposes
+# ----------------------------------------------------------------------------------------------------------------------
+
 resource "aws_security_group" "example" {
   vpc_id = module.vpc.vpc_id
 
