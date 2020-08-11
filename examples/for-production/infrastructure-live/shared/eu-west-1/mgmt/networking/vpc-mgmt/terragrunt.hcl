@@ -46,5 +46,5 @@ locals {
 inputs = {
   vpc_name         = "${local.account_vars.locals.account_name}-vpc"
   num_nat_gateways = 1
-  create_flow_logs = false
+  create_flow_logs = true
 }

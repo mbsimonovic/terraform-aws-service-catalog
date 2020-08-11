@@ -1,6 +1,6 @@
 # VPC Example
 
-This is an example of how to use the [VPC module](/modules/networking/vpc) to create a VPC with Security Groups for an EC2 Instance.
+This is an example of how to use the [vpc-mgmt module](/modules/networking/vpc-mgmt) to create a VPC with Security Groups for an EC2 Instance.
 This example is optimized for learning, experimenting, and testing (but not direct production usage). If you want
 to deploy this module directly in production, check out the [examples/for-production folder](/examples/for-production).
 

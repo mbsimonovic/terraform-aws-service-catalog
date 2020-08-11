@@ -27,6 +27,12 @@ variable "vpc_name" {
   default     = "service-catalog-test"
 }
 
+variable "sg_ingress_port" {
+  description = "A port number to allow in the security group used by the example EC2 instance."
+  type        = number
+  default     = 8080
+}
+
 variable "kms_key_id" {
   description = "The ID of a KMS key to use for encrypting VPC the flow log."
   type        = string

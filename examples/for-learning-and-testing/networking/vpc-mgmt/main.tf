@@ -12,19 +12,20 @@ module "vpc" {
   aws_region       = var.aws_region
   cidr_block       = var.cidr_block
   num_nat_gateways = var.num_nat_gateways
-
-  // Providing an existing key avoids the need to create a new 
-  // one on each test, which is nice since each costs $1/month
-  kms_key_arn = data.aws_kms_key.kms_key.arn
+  create_flow_logs = var.create_flow_logs
 }
 
 resource "aws_security_group" "example" {
   vpc_id = module.vpc.vpc_id
 
   ingress {
-    from_port   = 8080
-    to_port     = 8080
-    protocol    = "tcp"
+    from_port = var.sg_ingress_port
+    to_port   = var.sg_ingress_port
+    protocol  = "tcp"
+
+    # To simplify testing and for example purposes, we allow access to the instance from anywhere.
+    # In production, you'll want to limit access to trusted systems only 
+    # (e.g., solely a bastion host or VPN server).
     cidr_blocks = ["0.0.0.0/0"]
   }
 }
@@ -39,6 +40,6 @@ resource "aws_instance" "example" {
   user_data = <<-EOF
               #!/bin/bash
               echo "Hello, World" > index.html
-              nohup busybox httpd -f -p 8080 &
+              nohup busybox httpd -f -p ${var.sg_ingress_port} &
               EOF
 }
