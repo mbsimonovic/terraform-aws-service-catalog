@@ -80,7 +80,7 @@ variable "alarms_sns_topic_arn" {
 }
 
 variable "cloud_init_parts" {
-  description = "Cloud init scripts to run on the host while it boots. See the part blocks in https://www.terraform.io/docs/providers/template/d/cloudinit_config.html for syntax."
+  description = "Cloud init scripts to run on the host while it boots. See the part blocks in https://www.terraform.io/docs/providers/template/d/cloudinit_config.html for syntax. If a null value or empty map is passed, no cloud init will be rendered in the output."
   type = map(object({
     filename     = string
     content_type = string

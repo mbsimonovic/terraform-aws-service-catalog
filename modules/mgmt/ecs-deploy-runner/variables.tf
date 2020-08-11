@@ -332,7 +332,7 @@ variable "ec2_worker_pool_configuration" {
   #                                    cluster.
   # - instance_type [string] (default: m5.large) : Instance type (e.g. t2.micro) to use for the EC2 instances. We
   #                                                recommend using at least large class instances.
-  # - cloud_init_parts [map(CloudInitPart)] (default: {}) : Cloud init scripts to run on the bastion host while it
+  # - cloud_init_parts [map(CloudInitPart)] (default: {}) : Cloud init scripts to run on the host while it
   #                                                         boots. See the part blocks in
   #                                                         https://www.terraform.io/docs/providers/template/d/cloudinit_config.html
   #                                                         for syntax.

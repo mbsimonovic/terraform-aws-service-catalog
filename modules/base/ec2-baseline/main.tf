@@ -143,13 +143,12 @@ data "template_cloudinit_config" "cloud_init" {
     for_each = var.cloud_init_parts
 
     content {
-      filename     = part.value["filename"]
-      content_type = part.value["content_type"]
-      content      = part.value["content"]
+      filename     = part.value.filename
+      content_type = part.value.content_type
+      content      = part.value.content
     }
   }
 }
-
 
 # ---------------------------------------------------------------------------------------------------------------------
 # LOOKUP EXISTING AMI USING PROVIDED FILTERS
