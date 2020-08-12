@@ -169,6 +169,9 @@ create-tls-cert.sh \
 --upload-to-iam
 ```
 
+Check `/tmp/vault-blueprint/modules/private-tls-cert/` for output cert files.
+If you used the above example, you should see `ca.crt.pem`, `my-app.crt.pem`, and `my-app.key.pem.kms.encrypted`.
+
 [back to readme](README.adoc#running)
 
 ## How do I use Docker to download CA public keys for validating RDS TLS connections?
@@ -176,6 +179,8 @@ create-tls-cert.sh \
 ```sh
 download-rds-ca-certs.sh PATH
 ```
+
+Check `/tmp/` for a file named `rds-cert`. This is the downloaded file.
 
 [back to readme](README.adoc#running)
 
@@ -191,31 +196,39 @@ generate-trust-stores.sh \
 --company-city Phoenix \
 --company-state AZ \
 --company-country US \
---kms-key-id alias/cmk-dev \
+--kms-key-id alias/test-key \
 --aws-region us-east-1
 ```
+
+Check `/tmp/ssl/` for all your created files:
+`kafka.server.ca.default.pem`, `kafka.server.cert.default.pem`, `keystore/kafka.server.keystore.default.jks`,
+and `truststore/kafka.server.truststore.default.jks`
 
 [back to readme](README.adoc#running)
 
 ## How do I use Docker to test these scripts?
 
+### Setup
 1. First make sure Docker is running.
 1. Export your github oauth token into `GITHUB_OAUTH_TOKEN`. For example, if you're using [pass](passwordstore.org),
-you might run `export GITHUB_OAUTH_TOKEN=$(pass github-oauth-token)`. If you need to paste your token into the
-terminal in plain text, use a leading space before ` export GITHUB_OAUTH_TOKEN=...` so that your shell history does
+you might run `export GITHUB_OAUTH_TOKEN=$(pass github-oauth-token)`. If you are pasting your token into the
+terminal in plain text, use a leading space in ` export GITHUB_OAUTH_TOKEN=...` so that your shell history does
 not save that token.
+<!-- TODO link to best practices for local secrets -->
+
 1. Make sure `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are set in your environment.
   - If you're using temporary credentials, `AWS_SESSION_TOKEN` also must be set.
 1. Export a KMS key (CMK) in `TLS_SCRIPTS_KMS_KEY_ID` and its region in `TLS_SCRIPTS_AWS_REGION`.
 
-Okay, now you're ready to run the test suite (all three tests) in the [test file](../../test/tls_scripts_test.go).
+### Test
+1. Okay, now you're ready to run the test suite (all three tests) in the [test file](../../test/tls_scripts_test.go).
 
 ```sh
 # Assuming you're in this directory:
 cd ../../test
-go test -v -timeout 45m -run TestTlsScripts
+go test -v -timeout 15m -run TestTlsScripts
 ```
-
+1. The test suite builds a docker image and runs commands against it. The tests do their own cleanup, so you will not see files created in your system.
 
 
 [back to readme](README.adoc#testing)
