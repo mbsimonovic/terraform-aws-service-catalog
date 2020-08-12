@@ -123,7 +123,7 @@ Secrets Manager. The script writes the KMS-encrypted password for the Key Store 
 ## How do I run these scripts using Docker?
 
 We've provided a [Dockerfile](Dockerfile) in this module for you to use for both running and testing the TLS scripts.
-Open a terminal in this directory and run `docker build -t {image name} --build-arg GITHUB_OAUTH_TOKEN={your github-oauth-token} .` to create a docker container with all the dependencies needed to run the scripts and the tests.
+Open a terminal in this directory and run `docker build -t {image name} --build-arg GITHUB_OAUTH_TOKEN={your github-oauth-token} .` to create a Docker container with all the dependencies needed to run the scripts and the tests.
 Then you can run `docker run --rm -it -v /tmp:/tmp {image name} bash` to run the scripts interactively in the container and check their outputs.
 
 [back to readme](README.adoc#running)
@@ -151,7 +151,7 @@ create-tls-cert.sh \
 --company-name Acme
 ```
 
-The generated cert files are located in `/tmp/vault-blueprint/modules/private-tls-cert/`, both in the docker container
+The generated cert files are located in `/tmp/vault-blueprint/modules/private-tls-cert/`, both in the Docker container
 and in your local machine. This is because we used `-v /tmp:/tmp` to bind-mount the `/tmp` volume of the container to your machine.
 
 To upload the cert to IAM, include the `--upload-to-iam` flag along with the correct KMS key id in `--kms-key-id`, and the correct
@@ -225,7 +225,7 @@ not save that token. <!-- TODO link to best practices for local secrets -->
     cd ../../test
     go test -v -timeout 15m -run TestTlsScripts
     ```
-1. The test suite builds a docker image and runs commands against it. The tests do their own cleanup, so you will not see files created in your system.
+1. The test suite builds a Docker image and runs commands against it. The tests do their own cleanup, so you will not see files created in your system.
 
 
 [back to readme](README.adoc#testing)
