@@ -1,5 +1,5 @@
 module "instance_types" {
-  source = "../../modules/instance-type"
+  source = "git::git@github.com:gruntwork-io/package-terraform-utilities.git//modules/instance-type?ref=v0.2.1"
 
   instance_types = var.instance_types
 }
