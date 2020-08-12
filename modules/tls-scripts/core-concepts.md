@@ -124,9 +124,9 @@ Secrets Manager. The script writes the KMS-encrypted password for the Key Store 
 
 We've provided a [Dockerfile](Dockerfile) in this module for you to use for both running and testing the TLS scripts.
 Open a terminal in this directory and run `docker build -t {image name} --build-arg GITHUB_OAUTH_TOKEN={your github-oauth-token} .` to create a docker container with all the dependencies needed to run the scripts and the tests.
-Then you can run `docker run --rm -it {image name} bash` to run the scripts interactively in the container and check their outputs.
+Then you can run `docker run --rm -it -v /tmp:/tmp {image name} bash` to run the scripts interactively in the container and check their outputs.
 
-[back to readme](README.adoc#deploy)
+[back to readme](README.adoc#running)
 
 ## How do I use Docker to create TLS certs?
 
@@ -135,6 +135,7 @@ For example, to run the [create-tls-cert.sh](create-tls-cert.sh) script interact
 ```sh
 docker run \
 --rm -it \
+-v /tmp:/tmp \
 -e AWS_ACCESS_KEY_ID={your key id} \
 -e AWS_SECRET_ACCESS_KEY={your secret key} \
 {image name} bash
@@ -150,9 +151,12 @@ create-tls-cert.sh \
 --company-name Acme
 ```
 
-The generated cert files are located in `/tmp/vault-blueprint/modules/private-tls-cert/`.
+The generated cert files are located in `/tmp/vault-blueprint/modules/private-tls-cert/`, both in the docker container
+and in your local machine. This is because we used `-v /tmp:/tmp` to bind-mount the `/tmp` volume of the container to your machine.
 
-To upload the cert to IAM, include the `--upload-to-iam` flag along with the correct KMS key id in `--kms-key-id`, and the correct region for that key in `--aws-region`. The cert is uploaded to IAM as a Server Certificate, which cannot be managed using the AWS Console UI. You must use the AWS API to upload, update, and delete these certs.
+To upload the cert to IAM, include the `--upload-to-iam` flag along with the correct KMS key id in `--kms-key-id`, and the correct
+region for that key in `--aws-region`. The cert is uploaded to IAM as a Server Certificate, which cannot be managed using the AWS
+Console UI. You must use the AWS API to upload, update, and delete these certs.
 
 ```sh
 create-tls-cert.sh \
@@ -165,7 +169,7 @@ create-tls-cert.sh \
 --upload-to-iam
 ```
 
-[back to readme](README.adoc#deploy)
+[back to readme](README.adoc#running)
 
 ## How do I use Docker to download CA public keys for validating RDS TLS connections?
 
@@ -173,7 +177,7 @@ create-tls-cert.sh \
 download-rds-ca-certs.sh PATH
 ```
 
-[back to readme](README.adoc#deploy)
+[back to readme](README.adoc#running)
 
 ## How do I use Docker to generate key stores and trust stores to manage TLS certificates for JVM apps?
 
@@ -191,7 +195,30 @@ generate-trust-stores.sh \
 --aws-region us-east-1
 ```
 
-[back to readme](README.adoc#deploy)
+[back to readme](README.adoc#running)
+
+## How do I use Docker to test these scripts?
+
+1. First make sure Docker is running.
+1. Export your github oauth token into `GITHUB_OAUTH_TOKEN`. For example, if you're using [pass](passwordstore.org),
+you might run `export GITHUB_OAUTH_TOKEN=$(pass github-oauth-token)`. If you need to paste your token into the
+terminal in plain text, use a leading space before ` export GITHUB_OAUTH_TOKEN=...` so that your shell history does
+not save that token.
+1. Make sure `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are set in your environment.
+  - If you're using temporary credentials, `AWS_SESSION_TOKEN` also must be set.
+1. Export a KMS key (CMK) in `TLS_SCRIPTS_KMS_KEY_ID` and its region in `TLS_SCRIPTS_AWS_REGION`.
+
+Okay, now you're ready to run the test suite (all three tests) in the [test file](../../test/tls_scripts_test.go).
+
+```sh
+# Assuming you're in this directory:
+cd ../../test
+go test -v -timeout 45m -run TestTlsScripts
+```
+
+
+
+[back to readme](README.adoc#testing)
 
 ## How do I use these certs with my apps?
 
