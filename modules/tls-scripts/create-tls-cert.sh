@@ -55,9 +55,10 @@ function print_usage {
   log "  --aws-region\t\tThe AWS region where the kms-key lives. Required if --kms-key-id is set."
   log "  --role-arn\t\tThe AWS ARN of the IAM role to assume. Optional."
   log
-  log "Example:"
+  log "Examples:"
   log
-  log "  create-tls-cert.sh --ca-path ca.crt.pem --cert-path my-app.crt.pem --key-path my-app.key.pem.kms.encrypted --company-name Acme --kms-key-id alias/cmk-dev --aws-region us-east-1"
+  log "  create-tls-cert.sh --ca-path ca.crt.pem --cert-path my-app.crt.pem --key-path my-app.key.pem.kms.encrypted --company-name Acme"
+  log "  create-tls-cert.sh --ca-path ca.crt.pem --cert-path my-app.crt.pem --key-path my-app.key.pem.kms.encrypted --company-name Acme --upload-to-iam --kms-key-id alias/cmk-dev --aws-region us-east-1"
 }
 
 # The Vault blueprint has a Terraform module that can be used to generate private TLS certs
