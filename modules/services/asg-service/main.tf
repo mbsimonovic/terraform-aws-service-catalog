@@ -84,7 +84,6 @@ resource "aws_security_group_rule" "egress_all" {
   security_group_id = aws_security_group.lc_security_group.id
 }
 
-# Inbound HTTP from the ALB
 resource "aws_security_group_rule" "ingress_server_ports_cidr_blocks" {
   for_each = length(var.allow_inbound_from_cidr_blocks) == 0 ? {} : var.server_ports
 

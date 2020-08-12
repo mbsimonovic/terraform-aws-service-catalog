@@ -9,7 +9,7 @@ variable "name" {
 }
 
 variable "ami" {
-  description = "The ID of the AMI to run on each EC2 Instance in the ASG."
+  description = "The ID of the AMI to run on each instance in the ASG. The AMI needs to have `ec2-baseline` installed, since by default it will run `start_ec2_baseline` on the User Data."
   type        = string
 }
 
@@ -52,7 +52,7 @@ variable "listener_ports" {
 }
 
 variable "server_ports" {
-  description = "The ports the EC2 instances listen on for requests"
+  description = "The ports the EC2 instances listen on for requests. A Target Group will be created for each port and any rules specified in var.forward_rules will forward traffic to these Target Groups."
   type        = any
   default     = {}
 
@@ -116,7 +116,7 @@ variable "ami_filters" {
 }
 
 variable "forward_listener_rules" {
-  description = "Listener rules for a forward action that distributes requests among one or more target groups. See comments below for information about the parameters."
+  description = "Listener rules for a forward action that distributes requests among one or more target groups. By default, sends traffic to the target groups created for the ports in var.server_ports. See comments below for information about the parameters."
   type        = any
   default     = {}
 
@@ -326,7 +326,7 @@ variable "listener_arns" {
 
 variable "default_forward_target_group_arns" {
   description = "The ARN of the Target Group to which to route traffic. Required if using forward rules."
-  type        = list(map(any))
+  type        = list(any)
   default     = []
 
   # Each entry in the map supports the following attributes:

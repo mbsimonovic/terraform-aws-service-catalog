@@ -2,7 +2,7 @@
 # REQUIRED PARAMETERS
 # ---------------------------------------------------------------------------------------------------------------------
 variable "ami" {
-  description = "The ID of the AMI to run on each instance in the ASG"
+  description = "The ID of the AMI to run on each instance in the ASG. The AMI needs to have `ec2-baseline` installed, since by default it will run `start_ec2_baseline` on the User Data."
   type        = string
 }
 
