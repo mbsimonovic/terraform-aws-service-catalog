@@ -31,100 +31,44 @@ This folder contains scripts that simplify the process of creating and managing 
 
 toc::[]
 
-
-
-
 == Features
 
 Bash scripts that simplify working with TLS certificates. You will typically only need
 these scripts to configure end-to-end encryption in your Reference Architecture.
 
-
-
-
-== About these scripts
-
-=== Create TLS Cert
-
-You can use this script to create self-signed TLS certificates. These are appropriate for private / internal services (e.g., for your microservices talking to each other). If you need TLS certificates for public use—e.g., for services directly accessed by your users—you'll need to use a well-known commercial Certificate Authority (CA) such as [AWS Certificate Manager (ACM)](https://aws.amazon.com/certificate-manager/) or [LetsEncrypt](https://letsencrypt.org/) instead.
-
-This script does the following:
-
-1. Create private CA, including a private key and public key.
-1. Create a TLS certificate, including a private key and public key, that is signed by that CA.
-1. Delete the private key of the CA so no one can ever use it again. However, the public key of the CA is kept around so anyone who needs to call your service can use that CA public key to verify your TLS certificate.
-1. Optionally encrypt the private key of the TLS cert with KMS.
-1. Optionally upload the TLS certificate to IAM so you can use it with an internal ELB or ALB.
-
-Optionally with the `--upload-to-iam` flag, this script can also upload the cert to IAM, so it can be used with an ELB or ALB.
-These certs are meant for private/internal use only, such as to set up end-to-end encryption within an AWS account.
-The only IP address in the cert will be 127.0.0.1 and localhost, so you can test your servers locally.
-You can also use the servers with the ELB or ALB, as the AWS load balancers don't verify the CA.
-Also see [Loading TLS secrets from AWS Secrets Manager](https://github.com/gruntwork-io/aws-sample-app/blob/master/core-concepts.md#loading-tls-secrets-from-aws-secrets-manager)
-
-=== Download RDS CA Certificates
-This script downloads the Certificate Authority certs for RDS so that applications can validate the certs when
-connecting to RDS over TLS.
-
-=== Generate Trust Stores
-This script automatically generates a Key Store and Trust Store, which are typically used with Java apps to securely
-store TLS certificates. If they don't already exist, the Key Store, Trust Store, and public cert / CA will be generated
-to the specified paths, and the Key Store password will be stored in AWS Secrets Manager. The script writes the KMS-encrypted
-password for the Key Store to `stdout`.
-
-
-
-== Running these scripts in Docker
-
-We've provided a `Dockerfile` in this module for you to use for both running and testing the TLS scripts.
-Open a terminal in this directory and run `docker build -t {image name} --build-arg GITHUB_OAUTH_TOKEN={your github-oauth-token} .` to create a docker container with all the dependencies needed to run the scripts and the tests.
-Then you can run `docker run --rm -it {image name} bash` to run the scripts interactively in the container and check their outputs.
-
-=== Create TLS Cert
-
-For example, to run the `create-tls-cert.sh` script interactively in Docker, you'll have to pass in environment variables to the `run` command.
-
-[source,bash]
-----
-docker run --rm -it -e AWS_ACCESS_KEY_ID={your key id} -e AWS_SECRET_ACCESS_KEY={your secret key} {image name} bash
-----
-
-Then while in the container's shell, you can run the example call, which doesn't upload the cert to IAM:
-
-[source,bash]
-----
-create-tls-cert.sh --ca-path ca.crt.pem --cert-path my-app.crt.pem --key-path my-app.key.pem.kms.encrypted --company-name Acme --kms-key-id alias/cmk-dev --aws-region us-east-1
-----
-
-The generated cert files are located in `/tmp/vault-blueprint/modules/private-tls-cert/`.
-
-To upload the cert to IAM, include the `--upload-to-iam` flag along with the correct KMS key id in `--kms-key-id`, and the correct region for that key in `--aws-region`. The cert is uploaded to IAM as a Server Certificate, which cannot be managed using the AWS Console UI. You must use the AWS API to upload, update, and delete these certs.
-
-
-=== Download RDS CA Cert
-
-=== Generate Trust Stores
-
-
-== Testing these scripts in Docker
-
-=== Create TLS Cert
-
-=== Download RDS CA Cert
-
-=== Generate Trust Stores
-
+* Simplify creating self-signed TLS certificates
+* Encrypt TLS certificates using KMS
+* Upload TLS certificates to AWS for use with ELBs
+* Download CA public keys for validating RDS TLS connections
+* Simplify creating key stores and trust stores to manage TLS certificates for JVM apps
+* Run from a Docker container so you don't need to install any dependencies locally
 
 == Learn
 
 NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog/[Gruntwork Service Catalog], a collection of
 reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
-sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catallog/[How to use the Gruntwork
+sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/[How to use the Gruntwork
 Service Catalog]!
 
+=== About TLS
+* link:core-concepts.md#how-does-tls-ssl-work[How does TLS/SSL work?]
+* link:core-concepts.md#what-are-commercial-or-public-certificate-authorities[What are commercial or public Certificate Authorities?]
+* link:core-concepts.md#how-does-gruntwork-generate-a-tls-cert-for-private-services[How does Gruntwork generate a TLS cert for private services?]
+
+=== About the scripts specifically
+* link:core-concepts.md#how-does-create-tls-cert-work[How does create-tls-cert work?]
+* link:core-concepts.md#how-does-download-rds-ca-certs-work[How does download-rds-ca-certs work?]
+* link:core-concepts.md#how-does-generate-trust-stores-work[How does generate-trust-stores work?]
+
+== Deploy
+
+* link:core-concepts.md#how-do-i-use-docker-to-run-these-scripts[How do I use Docker to run these scripts?]
+* link:core-concepts.md#how-do-i-use-docker-to-create-tls-certs[How do I use Docker to create TLS certs?]
+* link:core-concepts.md#how-do-i-use-docker-to-download-CA-public-keys-for-validating-rds-tls-connections[How do I use Docker to download CA public keys for validating RDS TLS connections?]
+* link:core-concepts.md#how-do-i-use-docker-to[How do I use Docker to generate key stores and trust stores to manage TLS certificates for JVM app to manage TLS certificates for JVM apps?]
 
 
-
+== Operate
 
 
 
@@ -136,8 +80,6 @@ customer, hop on Slack and ask away! If not, https://www.gruntwork.io/pricing/[s
 feel free to email us at link:mailto:support@gruntwork.io[support@gruntwork.io].
 
 
-
-
 == Contributions
 
 Contributions to this repo are very welcome and appreciated! If you find a bug or want to add a new feature or even
@@ -147,8 +89,6 @@ through our automated test suite.
 Please see
 https://gruntwork.io/guides/foundations/how-to-use-gruntwork-infrastructure-as-code-library#_contributing_to_the_gruntwork_infrastructure_as_code_library[Contributing to the Gruntwork Service Catalog]
 for instructions.
-
-
 
 
 == License
