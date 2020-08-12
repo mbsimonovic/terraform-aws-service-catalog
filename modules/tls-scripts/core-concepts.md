@@ -120,7 +120,7 @@ Secrets Manager. The script writes the KMS-encrypted password for the Key Store 
 
 [back to readme](README.adoc#about-the-scripts-specifically)
 
-## How do I use Docker to run these scripts?
+## How do I run these scripts using Docker?
 
 We've provided a [Dockerfile](Dockerfile) in this module for you to use for both running and testing the TLS scripts.
 Open a terminal in this directory and run `docker build -t {image name} --build-arg GITHUB_OAUTH_TOKEN={your github-oauth-token} .` to create a docker container with all the dependencies needed to run the scripts and the tests.
@@ -128,7 +128,7 @@ Then you can run `docker run --rm -it -v /tmp:/tmp {image name} bash` to run the
 
 [back to readme](README.adoc#running)
 
-## How do I use Docker to create TLS certs?
+## How do I create TLS certs?
 
 For example, to run the [create-tls-cert.sh](create-tls-cert.sh) script interactively in Docker, you'll have to pass in environment variables to the `run` command.
 
@@ -174,7 +174,7 @@ If you used the above example, you should see `ca.crt.pem`, `my-app.crt.pem`, an
 
 [back to readme](README.adoc#running)
 
-## How do I use Docker to download CA public keys for validating RDS TLS connections?
+## How do I download CA public keys for validating RDS TLS connections?
 
 ```sh
 download-rds-ca-certs.sh PATH
@@ -184,7 +184,7 @@ Check `/tmp/` for a file named `rds-cert`. This is the downloaded file.
 
 [back to readme](README.adoc#running)
 
-## How do I use Docker to generate key stores and trust stores to manage TLS certificates for JVM apps?
+## How do I generate key stores and trust stores to manage TLS certificates for JVM apps?
 
 ```sh
 generate-trust-stores.sh \
@@ -206,7 +206,7 @@ and `truststore/kafka.server.truststore.default.jks`
 
 [back to readme](README.adoc#running)
 
-## How do I use Docker to test these scripts?
+## How do I test these scripts using Docker?
 
 ### Setup
 1. First make sure Docker is running.
