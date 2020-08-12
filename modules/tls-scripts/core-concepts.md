@@ -82,7 +82,7 @@ that it trusts this CA, and thereby the TLS cert it issued to the private servic
 - Contrast this to protecting your CA private key. There are trade-offs either way so choose the option that makes
 the most sense for your organization.
 
-[back to readme](README.adoc)
+[back to readme](README.adoc#about-tls)
 
 ## How does create-tls-cert work?
 
@@ -102,14 +102,14 @@ The only IP address in the cert will be 127.0.0.1 and localhost, so you can test
 You can also use the servers with the ELB or ALB, as the AWS load balancers don't verify the CA.
 Also see [Loading TLS secrets from AWS Secrets Manager](https://github.com/gruntwork-io/aws-sample-app/blob/master/core-concepts.md#loading-tls-secrets-from-aws-secrets-manager)
 
-[back to readme](README.adoc)
+[back to readme](README.adoc#about-the-scripts-specifically)
 
 ## How does download-rds-ca-certs work?
 
 This script downloads the Certificate Authority certs for RDS so that applications can validate the certs
 when connecting to RDS over TLS.
 
-[back to readme](README.adoc)
+[back to readme](README.adoc#about-the-scripts-specifically)
 
 ## How does generate-trust-stores work?
 
@@ -118,7 +118,7 @@ securely store TLS certificates. If they don't already exist, the Key Store, Tru
 cert / CA will be generated to the specified paths, and the Key Store password will be stored in AWS
 Secrets Manager. The script writes the KMS-encrypted password for the Key Store to `stdout`.
 
-[back to readme](README.adoc)
+[back to readme](README.adoc#about-the-scripts-specifically)
 
 ## How do I use Docker to run these scripts?
 
@@ -126,7 +126,7 @@ We've provided a [Dockerfile](Dockerfile) in this module for you to use for both
 Open a terminal in this directory and run `docker build -t {image name} --build-arg GITHUB_OAUTH_TOKEN={your github-oauth-token} .` to create a docker container with all the dependencies needed to run the scripts and the tests.
 Then you can run `docker run --rm -it {image name} bash` to run the scripts interactively in the container and check their outputs.
 
-[back to readme](README.adoc)
+[back to readme](README.adoc#deploy)
 
 ## How do I use Docker to create TLS certs?
 
@@ -165,16 +165,16 @@ create-tls-cert.sh \
 --upload-to-iam
 ```
 
-[back to readme](README.adoc)
+[back to readme](README.adoc#deploy)
 
 ## How do I use Docker to download CA public keys for validating RDS TLS connections?
 
 
 
-[back to readme](README.adoc)
+[back to readme](README.adoc#deploy)
 
 ## How do I use Docker to generate key stores and trust stores to manage TLS certificates for JVM apps?
 
 
 
-[back to readme](README.adoc)
+[back to readme](README.adoc#deploy)
