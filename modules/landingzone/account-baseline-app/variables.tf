@@ -392,8 +392,8 @@ variable "kms_customer_master_keys" {
   # Structure of CMKUser object:
   # - name          [list(string)]             : The list of names of the AWS principal (e.g.: arn:aws:iam::0000000000:user/dev).
   # - conditions    [list(object[Condition])]  : (Optional) List of conditions to apply to the permissions for the CMK User
-  #                                              Use this to apply conditions on the permissions for accessing the KMS key 
-  #                                              (e.g., only allow access for certain encryption contexts). 
+  #                                              Use this to apply conditions on the permissions for accessing the KMS key
+  #                                              (e.g., only allow access for certain encryption contexts).
   #                                              The condition object accepts the same fields as the condition
   #                                              block on the IAM policy document (See
   #                                              https://www.terraform.io/docs/providers/aws/d/iam_policy_document.html#condition).
@@ -450,3 +450,4 @@ variable "kms_cmk_opt_in_regions" {
   type        = list(string)
   default     = null
 }
+

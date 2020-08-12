@@ -252,3 +252,4 @@ module "customer_master_keys" {
   global_tags          = var.kms_cmk_global_tags
   opt_in_regions       = var.kms_cmk_opt_in_regions
 }
+

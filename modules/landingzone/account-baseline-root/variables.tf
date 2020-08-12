@@ -56,12 +56,12 @@ variable "child_accounts" {
   #
   # - enable_config_rules:
   #   Set to `true` to enable AWS Config Rules for this account. Note: you can only do this after deploying a config
-  #   recorder in the account. That means you have to: 
-  #       (1) initially set enable_config_rules to false, 
-  #       (2) run 'apply' in this root module to create the child account, 
-  #       (3) go to the child account and create a config recorder in it, e.g., by running 'apply' on a security baseline 
-  #           in that account, 
-  #       (4) come back to this root module and set enable_config_rules to true, 
+  #   recorder in the account. That means you have to:
+  #       (1) initially set enable_config_rules to false,
+  #       (2) run 'apply' in this root module to create the child account,
+  #       (3) go to the child account and create a config recorder in it, e.g., by running 'apply' on a security baseline
+  #           in that account,
+  #       (4) come back to this root module and set enable_config_rules to true,
   #       (5) run 'apply' again.
   #
   # - tags:

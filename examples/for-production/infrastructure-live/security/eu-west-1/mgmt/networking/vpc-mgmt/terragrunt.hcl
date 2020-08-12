@@ -11,8 +11,8 @@
 terraform {
   # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
   # to a specific version of the modules, such as the following example:
-  # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc?ref=v1.0.8"
-  source = "../../../../../../../../modules//networking/vpc"
+  # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc-mgmt?ref=v1.0.8"
+  source = "../../../../../../../../modules//networking/vpc-mgmt"
 }
 
 # Include all settings from the root terragrunt.hcl file
@@ -45,7 +45,6 @@ locals {
 
 inputs = {
   vpc_name         = "${local.account_vars.locals.account_name}-vpc"
-  cidr_block       = local.common_vars.locals.vpc_cidr_blocks[local.account_vars.locals.account_name]
   num_nat_gateways = 1
   create_flow_logs = true
 }

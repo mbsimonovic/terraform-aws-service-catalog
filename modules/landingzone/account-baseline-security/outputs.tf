@@ -387,3 +387,4 @@ output "invalid_cmk_inputs" {
   description = "Map of CMKs from the input var.customer_master_keys that had an invalid region, and thus were not created. The structure of the map is the same as the input. This will only include KMS key inputs that were not created because the region attribute was invalid (either not a valid region identifier, the region is not enabled on the account, or the region is not included in the var.opt_in_regions input)."
   value       = module.customer_master_keys.invalid_cmk_inputs
 }
+

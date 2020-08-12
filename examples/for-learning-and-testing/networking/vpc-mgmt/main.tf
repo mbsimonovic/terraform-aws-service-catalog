@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------------------------------------------------
-# DEPLOY AN APP VPC, WITH THREE SUBNET TIERS
+# DEPLOY A MANAGEMENT VPC, WITH TWO SUBNET TIERS
 # ----------------------------------------------------------------------------------------------------------------------
 
 provider "aws" {
@@ -7,16 +7,12 @@ provider "aws" {
 }
 
 module "vpc" {
-  source = "../../../../modules/networking/vpc"
+  source = "../../../../modules/networking/vpc-mgmt"
 
   aws_region       = var.aws_region
   cidr_block       = var.cidr_block
   num_nat_gateways = var.num_nat_gateways
-  vpc_name         = var.vpc_name
-
-  // Providing an existing key avoids to create a new one every run,
-  // this is good to avoid since each costs $1/month
-  kms_key_arn = data.aws_kms_key.kms_key.arn
+  create_flow_logs = var.create_flow_logs
 }
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -27,9 +23,13 @@ resource "aws_security_group" "example" {
   vpc_id = module.vpc.vpc_id
 
   ingress {
-    from_port   = var.sg_ingress_port
-    to_port     = var.sg_ingress_port
-    protocol    = "tcp"
+    from_port = var.sg_ingress_port
+    to_port   = var.sg_ingress_port
+    protocol  = "tcp"
+
+    # To simplify testing and for example purposes, we allow access to the instance from anywhere.
+    # In production, you'll want to limit access to trusted systems only 
+    # (e.g., solely a bastion host or VPN server).
     cidr_blocks = ["0.0.0.0/0"]
   }
 }

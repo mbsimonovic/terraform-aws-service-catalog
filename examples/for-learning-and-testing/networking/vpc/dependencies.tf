@@ -1,3 +1,9 @@
+module "instance_types" {
+  source = "git::git@github.com:gruntwork-io/package-terraform-utilities.git//modules/instance-type?ref=v0.2.1"
+
+  instance_types = var.instance_types
+}
+
 data "aws_kms_key" "kms_key" {
   //   If you get an error like "AccessDeniedException: The specified KMS key does not exist or is not
   //   allowed to be used with LogGroup", you need to check if the key has the right permissions.
