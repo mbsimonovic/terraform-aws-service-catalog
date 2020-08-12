@@ -53,9 +53,9 @@ toc::[]
 
 == Learn
 
-NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog//[Gruntwork Service Catalog], a collection of
+NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog/[Gruntwork Service Catalog], a collection of
 reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
-sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catallog/[How to use the Gruntwork
+sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/[How to use the Gruntwork
 Service Catalog]!
 
 * https://github.com/gruntwork-io/module-data-storage/blob/master/modules/aurora/core-concepts.md#what-is-amazon-rds[What is Amazon RDS?]
