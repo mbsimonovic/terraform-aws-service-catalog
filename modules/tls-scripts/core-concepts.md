@@ -213,21 +213,18 @@ and `truststore/kafka.server.truststore.default.jks`
 1. Export your github oauth token into `GITHUB_OAUTH_TOKEN`. For example, if you're using [pass](passwordstore.org),
 you might run `export GITHUB_OAUTH_TOKEN=$(pass github-oauth-token)`. If you are pasting your token into the
 terminal in plain text, use a leading space in ` export GITHUB_OAUTH_TOKEN=...` so that your shell history does
-not save that token.
-<!-- TODO link to best practices for local secrets -->
-
+not save that token. <!-- TODO link to best practices for local secrets -->
 1. Make sure `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are set in your environment.
-  - If you're using temporary credentials, `AWS_SESSION_TOKEN` also must be set.
+    - If you're using temporary credentials, `AWS_SESSION_TOKEN` also must be set.
 1. Export a KMS key (CMK) in `TLS_SCRIPTS_KMS_KEY_ID` and its region in `TLS_SCRIPTS_AWS_REGION`.
 
 ### Test
 1. Okay, now you're ready to run the test suite (all three tests) in the [test file](../../test/tls_scripts_test.go).
-
-```sh
-# Assuming you're in this directory:
-cd ../../test
-go test -v -timeout 15m -run TestTlsScripts
-```
+    ```sh
+    # Assuming you're in this directory:
+    cd ../../test
+    go test -v -timeout 15m -run TestTlsScripts
+    ```
 1. The test suite builds a docker image and runs commands against it. The tests do their own cleanup, so you will not see files created in your system.
 
 
