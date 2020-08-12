@@ -178,3 +178,15 @@ create-tls-cert.sh \
 
 
 [back to readme](README.adoc#deploy)
+
+## How do I use these certs with my apps?
+
+(e.g., passing the public and private key to a Node app)
+
+[back to readme](README.adoc#operate)
+
+## How do I talk to other apps that are listening with certs?
+
+(i.e., by using the CA public key to validate the connection)
+
+[back to readme](README.adoc#operate)
