@@ -62,11 +62,17 @@ Service Catalog]!
 
 == Deploy
 
+=== Running
 * link:core-concepts.md#how-do-i-use-docker-to-run-these-scripts[How do I use Docker to run these scripts?]
 * link:core-concepts.md#how-do-i-use-docker-to-create-tls-certs[How do I use Docker to create TLS certs?]
 * link:core-concepts.md#how-do-i-use-docker-to-download-CA-public-keys-for-validating-rds-tls-connections[How do I use Docker to download CA public keys for validating RDS TLS connections?]
 * link:core-concepts.md#how-do-i-use-docker-to-generate-key-stores-and-trust-stores-to-manage-tls-certificates-for-jvm-apps[How do I use Docker to generate key stores and trust stores to manage TLS certificates for JVM apps?]
 
+=== Testing
+* link:core-concepts.md#how-do-i-use-docker-to-run-these-scripts[How do I use Docker to test these scripts?]
+* link:core-concepts.md#how-do-i-use-docker-to-create-tls-certs[How do I test creating TLS certs?]
+* link:core-concepts.md#how-do-i-use-docker-to-download-CA-public-keys-for-validating-rds-tls-connections[How do I test downloading CA public keys for validating RDS TLS connections?]
+* link:core-concepts.md#how-do-i-use-docker-to-generate-key-stores-and-trust-stores-to-manage-tls-certificates-for-jvm-apps[How do I test generating key stores and trust stores to manage TLS certificates for JVM apps?]
 
 == Operate
 

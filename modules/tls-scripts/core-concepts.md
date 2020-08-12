@@ -169,13 +169,27 @@ create-tls-cert.sh \
 
 ## How do I use Docker to download CA public keys for validating RDS TLS connections?
 
-
+```sh
+download-rds-ca-certs.sh PATH
+```
 
 [back to readme](README.adoc#deploy)
 
 ## How do I use Docker to generate key stores and trust stores to manage TLS certificates for JVM apps?
 
-
+```sh
+generate-trust-stores.sh \
+--keystore-name kafka \
+--store-path /tmp/ssl \
+--vpc-name default \
+--company-name Acme \
+--company-org-unit IT \
+--company-city Phoenix \
+--company-state AZ \
+--company-country US \
+--kms-key-id alias/cmk-dev \
+--aws-region us-east-1
+```
 
 [back to readme](README.adoc#deploy)
 
