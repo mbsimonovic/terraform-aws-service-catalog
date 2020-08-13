@@ -51,10 +51,10 @@ inputs = {
   name              = "ref-arch-lite-${local.account_vars.locals.account_name}-memcached"
   memcached_version = "1.5.16"
   port              = 11211
-  instance_type     = "cache.t3.micro"
+  instance_type     = "cache.m5.large"
 
-  num_cache_nodes = 1
-  az_mode         = "single-az"
+  num_cache_nodes = 2
+  az_mode         = "cross-az"
 
   # We deploy RDS into the App VPC, inside the private persistence tier.
   vpc_id     = dependency.vpc.outputs.vpc_id

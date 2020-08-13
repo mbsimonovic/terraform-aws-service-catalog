@@ -67,6 +67,6 @@ inputs = {
 
   # Only apply changes during the scheduled maintenance window, as certain DB changes cause degraded performance or
   # downtime. For more info, see: https://docs.aws.amazon.com/AmazonElastiCache/latest/mem-ug/Clusters.Modify.html
-  # Set this to true to immediately roll out the changes.
-  apply_immediately = false
+  # We set this to true to immediately roll out the changes in non-prod environments.
+  apply_immediately = true
 }
