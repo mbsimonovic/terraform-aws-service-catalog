@@ -3,7 +3,7 @@
 
 set -e
 
-readonly DEFAULT_TERRAFORM_AWS_EKS_VERSION="v0.15.4"
+readonly DEFAULT_TERRAFORM_AWS_EKS_VERSION="v0.20.4"
 
 # TODO: Update ref to a tag when released
 readonly DEFAULT_EC2_BASELINE_REF="master"
@@ -25,13 +25,13 @@ function include_ec2_baseline {
   # Include common defaults and functions from the ec2-baseline install script
   # See: https://github.com/gruntwork-io/aws-service-catalog/blob/master/modules/base/ec2-baseline
   readonly EC2_BASELINE_RELATIVE_PATH="../../base/ec2-baseline"
-  readonly EC2_BASELINE_PATH="$(dirname $(realpath $0))/${EC2_BASELINE_RELATIVE_PATH}"
+  readonly EC2_BASELINE_PATH="$(dirname "$(realpath "$0")")/${EC2_BASELINE_RELATIVE_PATH}"
   if [[ ! -f "${EC2_BASELINE_PATH}/install.sh" ]]; then
     echo "ERROR: $EC2_BASELINE_PATH/install.sh not found."
     exit 1
   fi
 
-  source $EC2_BASELINE_PATH/install.sh
+  source "$EC2_BASELINE_PATH/install.sh"
 }
 
 function install_eks_scripts {

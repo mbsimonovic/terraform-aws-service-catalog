@@ -23,7 +23,7 @@ module "bastion" {
 
   name             = var.name
   instance_type    = var.instance_type
-  ami              = var.ami
+  ami              = module.ec2_baseline.existing_ami
   user_data_base64 = module.ec2_baseline.cloud_init_rendered
   tenancy          = var.tenancy
 
@@ -99,11 +99,12 @@ module "ec2_baseline" {
   external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
   enable_ssh_grunt                    = var.enable_ssh_grunt
   enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
-  iam_role_arn                        = module.bastion.iam_role_id
+  iam_role_name                       = module.bastion.iam_role_id
   enable_cloudwatch_metrics           = var.enable_cloudwatch_metrics
   enable_instance_cloudwatch_alarms   = var.enable_cloudwatch_alarms
   instance_id                         = module.bastion.id
   alarms_sns_topic_arn                = var.alarms_sns_topic_arn
   cloud_init_parts                    = local.cloud_init_parts
+  ami                                 = var.ami
+  ami_filters                         = var.ami_filters
 }
-

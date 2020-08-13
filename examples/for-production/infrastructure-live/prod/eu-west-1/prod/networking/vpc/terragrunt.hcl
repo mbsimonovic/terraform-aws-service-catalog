@@ -9,7 +9,10 @@
 # locally, you can use --terragrunt-source /path/to/local/checkout/of/module to override the source parameter to a
 # local check out of the module for faster iteration.
 terraform {
-  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc?ref=master"
+  # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
+  # to a specific version of the modules, such as the following example:
+  # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc?ref=v1.0.8"
+  source = "../../../../../../../../modules//networking/vpc"
 }
 
 # Include all settings from the root terragrunt.hcl file
@@ -44,5 +47,5 @@ inputs = {
   vpc_name         = "${local.account_vars.locals.account_name}-vpc"
   cidr_block       = local.common_vars.locals.vpc_cidr_blocks[local.account_vars.locals.account_name]
   num_nat_gateways = 3
-  create_flow_logs = false
+  create_flow_logs = true
 }

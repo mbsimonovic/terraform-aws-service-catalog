@@ -17,12 +17,15 @@ module "mysql_rds" {
   source = "../../../../modules/data-stores/rds"
 
   name           = local.cluster_name
-  engine         = "mysql"
+  db_name        = var.db_name
+  port           = var.port
+  engine         = var.engine
   engine_version = "8.0.17"
-  port           = 3306
 
   master_username = var.master_username
   master_password = var.master_password
+
+  db_config_secrets_manager_id = var.db_config_secrets_manager_id
 
   vpc_id     = data.aws_vpc.default.id
   subnet_ids = data.aws_subnet_ids.default.ids
@@ -41,7 +44,6 @@ module "mysql_rds" {
   # and no automatic backups. You'll want to tweak all of these settings for production usage.
   instance_type = "db.t3.micro"
 
-  db_name                 = var.db_name
   allocated_storage       = 10
   multi_az                = false
   backup_retention_period = 0

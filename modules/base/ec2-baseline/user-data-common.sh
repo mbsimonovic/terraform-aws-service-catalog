@@ -40,7 +40,7 @@ function replace_or_append_in_file {
   local -r replacement_text="$2"
   local -r file="$3"
 
-  if $(file_exists "$file") && $(file_contains_text "$original_text_regex" "$file"); then
+  if file_exists "$file" && file_contains_text "$original_text_regex" "$file"; then
     replace_text_in_file "$original_text_regex" "$replacement_text" "$file"
   else
     append_text_in_file "$replacement_text" "$file"
@@ -67,11 +67,11 @@ function attach_eip {
 
   source "$BASH_COMMONS_DIR/aws.sh"
 
-  echo 'Attaching EIP $eip_id...'
+  echo "Attaching EIP $eip_id..."
   aws ec2 associate-address  \
-   --instance-id $(aws_get_instance_id)  \
+   --instance-id "$(aws_get_instance_id)"  \
    --allocation-id "$eip_id"  \
-   --region $(aws_get_instance_region)  \
+   --region "$(aws_get_instance_region)"  \
    --allow-reassociation
 }
 

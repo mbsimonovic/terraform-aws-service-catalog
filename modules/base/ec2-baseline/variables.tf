@@ -31,8 +31,8 @@ variable "enable_cloudwatch_log_aggregation" {
   default     = true
 }
 
-variable "iam_role_arn" {
-  description = "The ARN of an IAM role to use for the various IAM policies created in this module, including ssh-grunt permissions, CloudWatch Metrics, and CloudWatch Logs. This variable is required if any of the following variables are true: enable_ssh_grunt, enable_cloudwatch_metrics, enable_cloudwatch_log_aggregation."
+variable "iam_role_name" {
+  description = "The name of an IAM role to use for the various IAM policies created in this module, including ssh-grunt permissions, CloudWatch Metrics, and CloudWatch Logs. This variable is required if any of the following variables are true: enable_ssh_grunt, enable_cloudwatch_metrics, enable_cloudwatch_log_aggregation."
   type        = string
   default     = ""
 }
@@ -80,11 +80,34 @@ variable "alarms_sns_topic_arn" {
 }
 
 variable "cloud_init_parts" {
-  description = "Cloud init scripts to run on the host while it boots. See the part blocks in https://www.terraform.io/docs/providers/template/d/cloudinit_config.html for syntax."
+  description = "Cloud init scripts to run on the host while it boots. See the part blocks in https://www.terraform.io/docs/providers/template/d/cloudinit_config.html for syntax. If a null value or empty map is passed, no cloud init will be rendered in the output."
   type = map(object({
     filename     = string
     content_type = string
     content      = string
   }))
   default = {}
+}
+
+variable "ami" {
+  description = "The ID of an AMI to use for deploying servers. This provides a convenience function for choosing between looking up an AMI with filters, or returning a hard coded AMI ID. Used if var.ami_filters is null."
+  type        = string
+  default     = null
+}
+
+variable "ami_filters" {
+  description = "Properties on the AMI that can be used to lookup a prebuilt AMI."
+  type = object({
+    # List of owners to limit the search. Set to null if you do not wish to limit the search by AMI owners.
+    owners = list(string)
+
+    # Name/Value pairs to filter the AMI off of. There are several valid keys, for a full reference, check out the
+    # documentation for describe-images in the AWS CLI reference
+    # (https://docs.aws.amazon.com/cli/latest/reference/ec2/describe-images.html).
+    filters = list(object({
+      name   = string
+      values = list(string)
+    }))
+  })
+  default = null
 }

@@ -9,7 +9,10 @@
 # locally, you can use --terragrunt-source /path/to/local/checkout/of/module to override the source parameter to a
 # local check out of the module for faster iteration.
 terraform {
-  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/services/eks-core-services?ref=master"
+  # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
+  # to a specific version of the modules, such as the following example:
+  # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/services/eks-core-services?ref=v1.0.8"
+  source = "../../../../../../../../modules//services/eks-core-services"
 }
 
 # Include all settings from the root terragrunt.hcl file
@@ -65,20 +68,18 @@ dependency "aurora" {
 
 dependency "applications_namespace" {
   config_path = "../eks-applications-namespace"
-}
 
-# Generate a Kubernetes provider configuration for authenticating against the EKS cluster.
-generate "k8s_helm" {
-  path      = "k8s_helm_provider.tf"
-  if_exists = "overwrite_terragrunt"
-  contents = templatefile(
-    find_in_parent_folders("provider_k8s_helm_for_eks.template.hcl"),
-    { eks_cluster_name = dependency.eks_cluster.outputs.eks_cluster_name },
-  )
+  mock_outputs = {
+    namespace_name = "applications"
+  }
+  mock_outputs_allowed_terraform_commands = ["validate"]
 }
 
 # Locals are named constants that are reusable within the configuration.
 locals {
+  # Automatically load common variables shared across all accounts
+  common_vars = read_terragrunt_config(find_in_parent_folders("common.hcl"))
+
   # Automatically load region-level variables
   region_vars = read_terragrunt_config(find_in_parent_folders("region.hcl"))
 }
@@ -113,12 +114,12 @@ inputs = {
     rds = {
       target_dns  = dependency.rds.outputs.primary_host
       target_port = dependency.rds.outputs.port
-      namespace   = "applications"
+      namespace   = dependency.applications_namespace.outputs.namespace_name
     }
     aurora = {
       target_dns  = dependency.aurora.outputs.primary_host
       target_port = dependency.aurora.outputs.port
-      namespace   = "applications"
+      namespace   = dependency.applications_namespace.outputs.namespace_name
     }
   }
 }

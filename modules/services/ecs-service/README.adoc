@@ -1,0 +1,121 @@
+:type: service
+:name: Amazon ECS Service
+:description: Deploy an Amazon ECS Service
+:icon: /_docs/ecs-service-icon.png
+:category: docker-orchestration
+:cloud: aws
+:tags: docker, orchestration, ecs, containers
+:license: gruntwork
+:built-with: terraform, bash, python, go
+
+// AsciiDoc TOC settings
+:toc:
+:toc-placement!:
+:toc-title:
+
+// GitHub specific settings. See https://gist.github.com/dcode/0cfbf2699a1fe9b46ff04c41721dda74 for details.
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+
+= Amazon ECS
+
+image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
+image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
+
+This folder contains https://www.terraform.io[Terraform] code to deploy a production-grade ECS service on https://aws.amazon.com[AWS] using
+https://docs.aws.amazon.com/AmazonECS/latest/developerguide/Welcome.html[Elastic
+Container Service (ECS)].
+
+image::/_docs/ecs-architecture.png?raw=true[ECS architecture]
+
+toc::[]
+
+
+
+
+== Features
+
+* Deploy an ECS Service onto an existing ECS cluster
+* Define arbitrary tasks via JSON 
+* Optionally deploy a canary task for testing release candidates 
+* Configure and deploy load balancing and optional DNS records 
+* Auto scaling of ECS tasks  
+* Cloudwatch metrics and alerts
+
+
+
+
+== Learn
+
+NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog/[Gruntwork Service Catalog], a collection of
+reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
+sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/[How to use the Gruntwork
+Service Catalog]!
+
+Under the hood, this is all implemented using Terraform modules from the Gruntwork
+https://github.com/gruntwork-io/module-vpc[module-vpc] repo. If you don't have access to this repo, email
+support@gruntwork.io.
+
+
+=== Core concepts
+
+To understand core concepts like what is ECS, the different cluster types, how to authenticate to Kubernetes, and
+more, see the documentation in the
+https://github.com/gruntwork-io/module-ecs[ecs module] repo.
+
+=== Repo organization
+
+* link:/modules[modules]: the main implementation code for this repo, broken down into multiple standalone, orthogonal submodules.
+* link:/examples[examples]: This folder contains working examples of how to use the submodules.
+* link:/test[test]: Automated tests for the modules and examples.
+
+
+== Deploy
+
+=== Non-production deployment (quick start for learning)
+
+If you just want to try this repo out for experimenting and learning, check out the following resources:
+
+* link:/examples/for-learning-and-testing[examples/for-learning-and-testing folder]: The
+  `examples/for-learning-and-testing` folder contains standalone sample code optimized for learning, experimenting, and
+  testing (but not direct production usage).
+
+=== Production deployment
+
+If you want to deploy this repo in production, check out the following resources:
+
+* link:/examples/for-production[examples/for-production folder]: The `examples/for-production` folder contains sample
+  code optimized for direct usage in production. This is code from the
+  https://gruntwork.io/reference-architecture/:[Gruntwork Reference Architecture], and it shows you how we build an
+  end-to-end, integrated tech stack on top of the Gruntwork Service Catalog.
+
+
+
+
+== Manage
+
+For information on how to manage your ECS service, see the documentation in the
+https://github.com/gruntwork-io/module-ecs[module ecs] repo.
+
+
+
+
+== Contributions
+
+Contributions to this repo are very welcome and appreciated! If you find a bug or want to add a new feature or even contribute an entirely new module, we are very happy to accept pull requests, provide feedback, and run your changes through our automated test suite.
+
+Please see https://gruntwork.io/guides/foundations/how-to-use-gruntwork-infrastructure-as-code-library/#contributing-to-the-gruntwork-infrastructure-as-code-library[Contributing to the Gruntwork Infrastructure as Code Library] for instructions.
+
+
+
+
+== License
+
+Please see link:/LICENSE.txt[LICENSE.txt] for details on how the code in this repo is licensed.
+
+

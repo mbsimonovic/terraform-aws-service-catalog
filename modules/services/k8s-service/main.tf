@@ -24,7 +24,7 @@ resource "helm_release" "application" {
   name       = var.application_name
   repository = "https://helmcharts.gruntwork.io"
   chart      = "k8s-service"
-  version    = "v0.1.0"
+  version    = "v0.1.1"
   namespace  = var.namespace
 
   values = [yamlencode(local.helm_chart_input)]
@@ -104,6 +104,53 @@ locals {
     },
   )
 
+  iam_role = (
+    var.iam_role_name != ""
+    ? (
+      var.iam_role_exists
+      ? data.aws_iam_role.existing_role[0].arn
+      : aws_iam_role.new_role[0].arn
+    )
+    : ""
+  )
+
+  alb_health_check = {
+    "alb.ingress.kubernetes.io/healthcheck-port"             = var.alb_health_check_port
+    "alb.ingress.kubernetes.io/healthcheck-protocol"         = var.alb_health_check_protocol
+    "alb.ingress.kubernetes.io/healthcheck-path"             = var.alb_health_check_path
+    "alb.ingress.kubernetes.io/healthcheck-interval-seconds" = tostring(var.alb_health_check_interval)
+    "alb.ingress.kubernetes.io/healthcheck-timeout-seconds"  = tostring(var.alb_health_check_timeout)
+    "alb.ingress.kubernetes.io/healthy-threshold-count"      = tostring(var.alb_health_check_healthy_threshold)
+    "alb.ingress.kubernetes.io/success-codes"                = var.alb_health_check_success_codes
+  }
+
+  # Assemble a complete map of ingress annotations
+  ingress_annotations = merge(
+    {
+      "kubernetes.io/ingress.class"      = "alb"
+      "alb.ingress.kubernetes.io/scheme" = var.expose_type == "external" ? "internet-facing" : "internal"
+      # We manually construct the list as a string here to avoid the values being converted as string, as opposed to
+      # ints
+      "alb.ingress.kubernetes.io/listen-ports"             = "[${join(",", data.template_file.ingress_listener_protocol_ports.*.rendered)}]"
+      "alb.ingress.kubernetes.io/backend-protocol"         = var.ingress_backend_protocol
+      "alb.ingress.kubernetes.io/load-balancer-attributes" = "access_logs.s3.enabled=true,access_logs.s3.bucket=${module.alb_access_logs_bucket.s3_bucket_name},access_logs.s3.prefix=${var.application_name}"
+    },
+    try(
+      var.ingress_configure_ssl_redirect
+      ? {
+        "alb.ingress.kubernetes.io/actions.ssl-redirect" : "{\"Type\": \"redirect\", \"RedirectConfig\": { \"Protocol\": \"HTTPS\", \"Port\": \"443\", \"StatusCode\": \"HTTP_301\"}}",
+      }
+      : tomap(false),
+      {},
+    ),
+    {
+      "alb.ingress.kubernetes.io/certificate-arn" : join(",", var.alb_acm_certificate_arns),
+    },
+    local.alb_health_check,
+    var.ingress_annotations,
+
+  )
+
   # Refer to the values.yaml file for helm-kubernetes-services/k8s-service for more information on the available input
   # parameters:
   # https://github.com/gruntwork-io/helm-kubernetes-services/blob/master/charts/k8s-service/values.yaml
@@ -156,30 +203,22 @@ locals {
       }
     }
 
+    serviceAccount = {
+      # Create a new service account if service_account_name is not blank and it is not referring to an existing Service
+      # Account
+      create = (! var.service_account_exists) && var.service_account_name != ""
+
+      name        = var.service_account_name
+      namespace   = var.namespace
+      annotations = local.iam_role == "" ? {} : { "eks.amazonaws.com/role-arn" = local.iam_role }
+    }
+
     ingress = {
       enabled     = var.expose_type != "cluster-internal"
       path        = "'${var.ingress_path}'"
       hosts       = var.create_route53_entry ? [var.domain_name] : []
       servicePort = "app"
-      annotations = merge(
-        {
-          "kubernetes.io/ingress.class"      = "alb"
-          "alb.ingress.kubernetes.io/scheme" = var.expose_type == "external" ? "internet-facing" : "internal"
-          # We manually construct the list as a string here to avoid the values being converted as string, as opposed to
-          # ints
-          "alb.ingress.kubernetes.io/listen-ports"             = "[${join(",", data.template_file.ingress_listener_protocol_ports.*.rendered)}]"
-          "alb.ingress.kubernetes.io/backend-protocol"         = var.ingress_backend_protocol
-          "alb.ingress.kubernetes.io/load-balancer-attributes" = "access_logs.s3.enabled=true,access_logs.s3.bucket=${module.alb_access_logs_bucket.s3_bucket_name},access_logs.s3.prefix=${var.application_name}"
-        },
-        try(
-          var.ingress_configure_ssl_redirect
-          ? {
-            "alb.ingress.kubernetes.io/actions.ssl-redirect" : "{\"Type\": \"redirect\", \"RedirectConfig\": { \"Protocol\": \"HTTPS\", \"Port\": \"443\", \"StatusCode\": \"HTTP_301\"}}",
-          }
-          : tomap(false),
-          {},
-        ),
-      )
+      annotations = local.ingress_annotations
       # Only configure the redirect path if using ssl redirect
       additionalPathsHigherPriority = (
         var.ingress_configure_ssl_redirect
@@ -201,7 +240,7 @@ locals {
       var.enable_liveness_probe
       ? {
         httpGet = {
-          port   = "liveness"
+          port   = var.liveness_probe_port
           path   = var.liveness_probe_path
           scheme = var.liveness_probe_protocol
         }
@@ -215,7 +254,7 @@ locals {
       var.enable_readiness_probe
       ? {
         httpGet = {
-          port   = "readiness"
+          port   = var.readiness_probe_port
           path   = var.readiness_probe_path
           scheme = var.readiness_probe_protocol
         }
@@ -267,11 +306,62 @@ locals {
 
 
 # ---------------------------------------------------------------------------------------------------------------------
+# SET UP IAM ROLE FOR SERVICE ACCOUNT
+# Set up IRSA if a service account and IAM role are configured.
+# ---------------------------------------------------------------------------------------------------------------------
+
+resource "aws_iam_role" "new_role" {
+  count              = var.iam_role_name != "" && var.iam_role_exists == false ? 1 : 0
+  name               = var.iam_role_name
+  assume_role_policy = module.service_account_assume_role_policy.assume_role_policy_json
+}
+
+module "service_account_assume_role_policy" {
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-iam-role-assume-role-policy-for-service-account?ref=v0.20.4"
+
+  eks_openid_connect_provider_arn = var.eks_iam_role_for_service_accounts_config.openid_connect_provider_arn
+  eks_openid_connect_provider_url = var.eks_iam_role_for_service_accounts_config.openid_connect_provider_url
+  namespaces                      = []
+  service_accounts = [{
+    name      = var.service_account_name
+    namespace = var.namespace
+  }]
+}
+
+resource "aws_iam_role_policy" "service_policy" {
+  count  = var.iam_role_name != "" && var.iam_role_exists == false ? 1 : 0
+  name   = "${var.iam_role_name}Policy"
+  role   = var.iam_role_name != "" && var.iam_role_exists == false ? aws_iam_role.new_role[0].id : data.aws_iam_role.existing_role[0].id
+  policy = data.aws_iam_policy_document.service_policy[0].json
+}
+
+data "aws_iam_policy_document" "service_policy" {
+  count = var.iam_role_name != "" ? 1 : 0
+
+  dynamic "statement" {
+    for_each = var.iam_policy == null ? {} : var.iam_policy
+
+    content {
+      sid       = statement.key
+      effect    = statement.value.effect
+      actions   = statement.value.actions
+      resources = statement.value.resources
+    }
+  }
+}
+
+data "aws_iam_role" "existing_role" {
+  count = var.iam_role_exists ? 1 : 0
+  name  = var.iam_role_name
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
 # EMIT HELM CHART VALUES TO DISK FOR DEBUGGING
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "local_file" "debug_values" {
-  count    = var.values_file_path != null ? 1 : 0
-  content  = yamlencode(local.helm_chart_input)
-  filename = var.values_file_path
+  count           = var.values_file_path != null ? 1 : 0
+  content         = yamlencode(local.helm_chart_input)
+  filename        = var.values_file_path
+  file_permission = "0644"
 }

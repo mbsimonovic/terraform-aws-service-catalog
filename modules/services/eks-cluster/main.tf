@@ -14,10 +14,6 @@ terraform {
   required_version = "~> 0.12.6"
 
   required_providers {
-    # There is a regression in autoscaling groups tags introduced in 2.64.0 that consistently cause "inconsistent final
-    # plan" errors, so we lock the version to 2.63.0 until that is resolved.
-    aws = "= 2.63.0"
-
     # Pin to this specific version to work around a bug introduced in 1.11.0:
     # https://github.com/terraform-providers/terraform-provider-kubernetes/issues/759
     # (Only for EKS)
@@ -62,8 +58,7 @@ data "aws_eks_cluster_auth" "kubernetes_token" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "eks_cluster" {
-  # TODO: bump to released version
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.20.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.20.4"
 
   cluster_name = var.cluster_name
 
@@ -81,7 +76,7 @@ module "eks_cluster" {
 }
 
 module "eks_workers" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.20.0"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.20.4"
   create_resources = length(var.autoscaling_group_configurations) > 0
 
   # Use the output from control plane module as the cluster name to ensure the module only looks up the information
@@ -91,7 +86,7 @@ module "eks_workers" {
   autoscaling_group_configurations  = var.autoscaling_group_configurations
   include_autoscaler_discovery_tags = var.autoscaling_group_include_autoscaler_discovery_tags
 
-  cluster_instance_ami              = var.cluster_instance_ami
+  cluster_instance_ami              = module.ec2_baseline.existing_ami
   cluster_instance_type             = var.cluster_instance_type
   cluster_instance_keypair_name     = var.cluster_instance_keypair_name
   cluster_instance_user_data_base64 = module.ec2_baseline.cloud_init_rendered
@@ -168,7 +163,7 @@ resource "null_resource" "delete_autocreated_aws_auth" {
 }
 
 module "eks_k8s_role_mapping" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.20.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.20.4"
 
   eks_worker_iam_role_arns = (
     length(var.autoscaling_group_configurations) > 0
@@ -254,13 +249,15 @@ module "ec2_baseline" {
   name                                = var.cluster_name
   external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
   enable_ssh_grunt                    = local.enable_ssh_grunt
-  iam_role_arn                        = module.eks_workers.eks_worker_iam_role_name
+  iam_role_name                       = module.eks_workers.eks_worker_iam_role_name
   enable_cloudwatch_metrics           = var.enable_cloudwatch_metrics
   enable_asg_cloudwatch_alarms        = var.enable_cloudwatch_alarms
   asg_names                           = module.eks_workers.eks_worker_asg_names
   num_asg_names                       = length(var.autoscaling_group_configurations)
   alarms_sns_topic_arn                = var.alarms_sns_topic_arn
   cloud_init_parts                    = local.cloud_init_parts
+  ami                                 = var.cluster_instance_ami
+  ami_filters                         = var.cluster_instance_ami_filters
 
   // CloudWatch log aggregation is handled separately in EKS
   enable_cloudwatch_log_aggregation = false

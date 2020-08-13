@@ -4,10 +4,6 @@
 
 provider "aws" {
   region = var.aws_region
-
-  # There is a regression in autoscaling groups tags introduced in 2.64.0 that consistently cause "inconsistent final
-  # plan" errors, so we lock the version to 2.63.0 until that is resolved.
-  version = "= 2.63.0"
 }
 
 module "eks_cluster" {
@@ -17,9 +13,22 @@ module "eks_cluster" {
   source = "../../../../modules/services/eks-cluster"
 
   cluster_name                               = var.cluster_name
-  cluster_instance_ami                       = var.cluster_instance_ami_id
   cluster_instance_type                      = "t3.small"
   schedule_control_plane_services_on_fargate = true
+  cluster_instance_ami                       = null
+  cluster_instance_ami_filters = {
+    owners = ["self"]
+    filters = [
+      {
+        name   = "tag:service"
+        values = ["eks-workers"]
+      },
+      {
+        name   = "tag:version"
+        values = [var.cluster_instance_ami_version_tag]
+      },
+    ]
+  }
 
   # For this simple example, use a regular key pair instead of ssh-grunt
   cluster_instance_keypair_name = var.keypair_name

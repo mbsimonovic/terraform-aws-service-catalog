@@ -2,8 +2,8 @@
 # REQUIRED PARAMETERS
 # ---------------------------------------------------------------------------------------------------------------------
 
-variable "cluster_instance_ami_id" {
-  description = "The ID of the AMI to run for the EKS workers. Should be built from the Packer template in modules/services/eks-cluster/eks-node-al2.json."
+variable "cluster_instance_ami_version_tag" {
+  description = "The version string of the AMI to run for the EKS workers built from the template in modules/services/eks-cluster/eks-node-al2.json. This corresponds to the value passed in for version_tag in the Packer template."
   type        = string
 }
 

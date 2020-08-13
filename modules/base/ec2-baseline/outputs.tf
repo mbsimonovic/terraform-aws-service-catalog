@@ -47,3 +47,8 @@ output "cloud_init_rendered" {
   description = "The final rendered cloud-init config used to initialize the instance."
   value       = data.template_cloudinit_config.cloud_init.rendered
 }
+
+output "existing_ami" {
+  description = "The ID of an existing AMI that was retrieved using ami_filters, or provided as input."
+  value       = local.use_ami_lookup ? data.aws_ami.existing[0].id : var.ami
+}

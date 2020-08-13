@@ -39,6 +39,9 @@ IGNORE_PREFIX_LIST = [
 
     # Ignore test fixture changes
     'test/fixtures',
+
+    # Ignore legacy packer file
+    'modules/services/ecs-cluster/packer/ecs-node.json',
 ]
 IGNORE_SUFFIX_LIST = [
     # Ignore go meta files
@@ -52,6 +55,9 @@ IGNORE_SUFFIX_LIST = [
 
     # Ignore test helpers changes, as that will trigger all tests and thus defeats the purpose of this pre-commit hook.
     'test_helpers.go',
+
+    # Ignore html files
+    '.html',
 ]
 
 

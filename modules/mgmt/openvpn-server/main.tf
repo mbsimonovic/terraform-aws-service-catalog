@@ -31,7 +31,7 @@ module "openvpn" {
   name = var.name
 
   instance_type    = var.instance_type
-  ami              = var.ami_id
+  ami              = module.ec2_baseline.existing_ami
   user_data_base64 = module.ec2_baseline.cloud_init_rendered
 
   request_queue_name    = var.request_queue_name
@@ -136,13 +136,15 @@ module "ec2_baseline" {
   external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
   enable_ssh_grunt                    = var.enable_ssh_grunt
   enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
-  iam_role_arn                        = module.openvpn.iam_role_id
+  iam_role_name                       = module.openvpn.iam_role_id
   enable_cloudwatch_metrics           = var.enable_cloudwatch_metrics
   enable_asg_cloudwatch_alarms        = var.enable_cloudwatch_alarms
   asg_names                           = [module.openvpn.autoscaling_group_id]
   num_asg_names                       = 1
   alarms_sns_topic_arn                = var.alarms_sns_topic_arn
   cloud_init_parts                    = local.cloud_init_parts
+  ami                                 = var.ami
+  ami_filters                         = var.ami_filters
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

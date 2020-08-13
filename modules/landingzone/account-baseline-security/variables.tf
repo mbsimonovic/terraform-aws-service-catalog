@@ -71,6 +71,12 @@ variable "config_linked_accounts" {
   default     = []
 }
 
+variable "config_central_account_id" {
+  description = "If the S3 bucket and SNS topics used for AWS Config live in a different AWS account, set this variable to the ID of that account. If the S3 bucket and SNS topics live in this account, set this variable to null. We recommend setting this to the ID of a separate logs account."
+  type        = string
+  default     = null
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL IAM-GROUPS PARAMETERS
 # These variables have defaults, but may be overridden by the operator.
@@ -126,6 +132,12 @@ variable "should_create_iam_group_billing" {
   default     = false
 }
 
+variable "should_create_iam_group_logs" {
+  description = "Should we create the IAM Group for logs? Allows read access to CloudTrail, AWS Config, and CloudWatch. If var.cloudtrail_kms_key_arn is set, will also give decrypt access to a KMS CMK. (true or false)"
+  type        = bool
+  default     = false
+}
+
 variable "should_create_iam_group_developers" {
   description = "Should we create the IAM Group for developers? The permissions of that group are specified via var.iam_group_developers_permitted_services. (true or false)"
   type        = bool
@@ -138,8 +150,20 @@ variable "should_create_iam_group_read_only" {
   default     = false
 }
 
+variable "should_create_iam_group_support" {
+  description = "Should we create the IAM Group for support users? Allows users to access AWS support."
+  type        = bool
+  default     = false
+}
+
 variable "should_create_iam_group_user_self_mgmt" {
   description = "Should we create the IAM Group for user self-management? Allows users to manage their own IAM user accounts, but not other IAM users. (true or false)"
+  type        = bool
+  default     = false
+}
+
+variable "should_create_iam_group_iam_admin" {
+  description = "Should we create the IAM Group for IAM administrator access? Allows users to manage all IAM entities, effectively granting administrator access. (true or false)"
   type        = bool
   default     = false
 }
@@ -160,6 +184,96 @@ variable "should_create_iam_group_houston_cli_users" {
   description = "Should we create the IAM Group for houston CLI users? Allows users to use the houston CLI for managing and deploying services."
   type        = bool
   default     = false
+}
+
+variable "should_create_iam_group_cross_account_access_all" {
+  description = "Should we create the IAM Group for access to all external AWS accounts? "
+  type        = bool
+  default     = true
+}
+
+variable "iam_group_name_full_access" {
+  description = "The name to be used for the IAM Group that grants full access to all AWS resources."
+  type        = string
+  default     = "full-access"
+}
+
+variable "iam_group_name_billing" {
+  description = "The name to be used for the IAM Group that grants read/write access to all billing features in AWS."
+  type        = string
+  default     = "billing"
+}
+
+variable "iam_group_name_logs" {
+  description = "The name to be used for the IAM Group that grants read access to CloudTrail, AWS Config, and CloudWatch in AWS."
+  type        = string
+  default     = "logs"
+}
+
+variable "iam_group_name_developers" {
+  description = "The name to be used for the IAM Group that grants IAM Users a reasonable set of permissions for developers."
+  type        = string
+  default     = "developers"
+}
+
+variable "iam_group_name_read_only" {
+  description = "The name to be used for the IAM Group that grants read-only access to all AWS resources."
+  type        = string
+  default     = "read-only"
+}
+
+variable "iam_group_names_ssh_grunt_sudo_users" {
+  description = "The list of names to be used for the IAM Group that enables its members to SSH as a sudo user into any server configured with the ssh-grunt Gruntwork module. Pass in multiple to configure multiple different IAM groups to control different groupings of access at the server level. Pass in empty list to disable creation of the IAM groups."
+  type        = list(string)
+  default     = ["ssh-grunt-sudo-users"]
+}
+
+variable "iam_group_names_ssh_grunt_users" {
+  description = "The name to be used for the IAM Group that enables its members to SSH as a non-sudo user into any server configured with the ssh-grunt Gruntwork module. Pass in multiple to configure multiple different IAM groups to control different groupings of access at the server level. Pass in empty list to disable creation of the IAM groups."
+  type        = list(string)
+  default     = ["ssh-grunt-users"]
+}
+
+variable "iam_group_name_use_existing_iam_roles" {
+  description = "The name to be used for the IAM Group that grants IAM Users the permissions to use existing IAM Roles when launching AWS Resources. This does NOT grant the permission to create new IAM Roles."
+  type        = string
+  default     = "use-existing-iam-roles"
+}
+
+variable "iam_group_name_auto_deploy" {
+  description = "The name of the IAM Group that allows automated deployment by graning the permissions specified in var.auto_deploy_permissions."
+  type        = string
+  default     = "_machine.ecs-auto-deploy"
+}
+
+variable "iam_group_name_houston_cli" {
+  description = "The name of the IAM Group that allows access to houston CLI."
+  type        = string
+  default     = "houston-cli-users"
+}
+
+variable "iam_group_name_support" {
+  description = "The name of the IAM Group that allows access to AWS Support."
+  type        = string
+  default     = "support"
+}
+
+variable "iam_group_name_iam_user_self_mgmt" {
+  description = "The name to be used for the IAM Group that grants IAM Users the permissions to manage their own IAM User account."
+  type        = string
+  default     = "iam-user-self-mgmt"
+}
+
+variable "iam_policy_iam_user_self_mgmt" {
+  description = "The name to be used for the IAM Policy that grants IAM Users the permissions to manage their own IAM User account."
+  type        = string
+  default     = "iam-user-self-mgmt"
+}
+
+variable "iam_group_name_iam_admin" {
+  description = "The name to be used for the IAM Group that grants IAM administrative access. Effectively grants administrator access."
+  type        = string
+  default     = "iam-admin"
 }
 
 variable "cross_account_access_all_group_name" {
@@ -295,6 +409,16 @@ variable "allow_read_only_access_from_other_account_arns" {
 
 variable "allow_billing_access_from_other_account_arns" {
   description = "A list of IAM ARNs from other AWS accounts that will be allowed full (read and write) access to the billing info for this account."
+  type        = list(string)
+  default     = []
+  # Example:
+  # default = [
+  #   "arn:aws:iam::123445678910:root"
+  # ]
+}
+
+variable "allow_logs_access_from_other_account_arns" {
+  description = "A list of IAM ARNs from other AWS accounts that will be allowed access to the logs in CloudTrail, AWS Config, and CloudWatch for this account. Will also be given permissions to decrypt with the KMS CMK that is used to encrypt CloudTrail logs."
   type        = list(string)
   default     = []
   # Example:
@@ -441,6 +565,12 @@ variable "cloudtrail_force_destroy" {
   default     = false
 }
 
+variable "cloudtrail_cloudwatch_logs_group_name" {
+  description = "Specify the name of the CloudWatch Logs group to publish the CloudTrail logs to. This log group exists in the current account. Set this value to `null` to avoid publishing the trail logs to the logs group. The recommended configuration for CloudTrail is (a) for each child account to aggregate its logs in an S3 bucket in a single central account, such as a logs account and (b) to also store 14 days work of logs in CloudWatch in the child account itself for local debugging."
+  type        = string
+  default     = "cloudtrail-logs"
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL KMS PARAMETERS
 # These variables must be passed in by the operator. In a real-world usage, some of these variables might not be needed
@@ -461,7 +591,7 @@ variable "kms_customer_master_keys" {
   # - cmk_administrator_iam_arns            [list(string)] : A list of IAM ARNs for users who should be given
   #                                                          administrator access to this CMK (e.g.
   #                                                          arn:aws:iam::<aws-account-id>:user/<iam-user-arn>).
-  # - cmk_user_iam_arns                     [list(string)] : A list of IAM ARNs for users who should be given
+  # - cmk_user_iam_arns                     [list(object[CMKUser])] : A list of IAM ARNs for users who should be given
   #                                                          permissions to use this CMK (e.g.
   #                                                          arn:aws:iam::<aws-account-id>:user/<iam-user-arn>).
   # - cmk_external_user_iam_arns            [list(string)] : A list of IAM ARNs for users from external AWS accounts
@@ -503,14 +633,26 @@ variable "kms_customer_master_keys" {
   #                                              contexts). The condition object accepts the same fields as the condition
   #                                              block on the IAM policy document (See
   #                                              https://www.terraform.io/docs/providers/aws/d/iam_policy_document.html#condition).
-
+  # Structure of CMKUser object:
+  # - name          [list(string)]             : The list of names of the AWS principal (e.g.: arn:aws:iam::0000000000:user/dev).
+  # - conditions    [list(object[Condition])]  : (Optional) List of conditions to apply to the permissions for the CMK User
+  #                                              Use this to apply conditions on the permissions for accessing the KMS key
+  #                                              (e.g., only allow access for certain encryption contexts).
+  #                                              The condition object accepts the same fields as the condition
+  #                                              block on the IAM policy document (See
+  #                                              https://www.terraform.io/docs/providers/aws/d/iam_policy_document.html#condition).
   #
   # Example:
   # customer_master_keys = {
   #   cmk-stage = {
   #     region                                = "us-west-1"
   #     cmk_administrator_iam_arns            = ["arn:aws:iam::0000000000:user/admin"]
-  #     cmk_user_iam_arns                     = ["arn:aws:iam::0000000000:user/dev"]
+  #     cmk_user_iam_arns                     = [
+  #       {
+  #         name = ["arn:aws:iam::0000000000:user/dev"]
+  #         conditions = []
+  #       }
+  #     ]
   #     cmk_external_user_iam_arns            = ["arn:aws:iam::1111111111:user/root"]
   #     cmk_service_principals                = [
   #       {
@@ -523,7 +665,12 @@ variable "kms_customer_master_keys" {
   #   cmk-prod = {
   #     region                                = "us-west-1"
   #     cmk_administrator_iam_arns            = ["arn:aws:iam::0000000000:user/admin"]
-  #     cmk_user_iam_arns                     = ["arn:aws:iam::0000000000:user/dev"]
+  #     cmk_user_iam_arns                     = [
+  #       {
+  #         name = ["arn:aws:iam::0000000000:user/prod"]
+  #         conditions = []
+  #       }
+  #     ]
   #     allow_manage_key_permissions_with_iam = true
   #     # Override the default value for all keys configured with var.default_deletion_window_in_days
   #     deletion_window_in_days = 7
@@ -547,3 +694,10 @@ variable "kms_cmk_opt_in_regions" {
   type        = list(string)
   default     = null
 }
+
+variable "cloudtrail_kms_key_arn" {
+  description = "All CloudTrail Logs will be encrypted with a KMS CMK (Customer Master Key) that governs access to write API calls older than 7 days and all read API calls. If that CMK already exists, set this to the ARN of that CMK. Otherwise, set this to null, and a new CMK will be created. We recommend setting this to the ARN of a CMK that already exists in a separate logs account."
+  type        = string
+  default     = null
+}
+

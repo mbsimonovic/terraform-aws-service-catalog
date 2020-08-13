@@ -9,7 +9,10 @@
 # locally, you can use --terragrunt-source /path/to/local/checkout/of/module to override the source parameter to a
 # local check out of the module for faster iteration.
 terraform {
-  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/mgmt/openvpn-server?ref=master"
+  # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
+  # to a specific version of the modules, such as the following example:
+  # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/mgmt/openvpn-server?ref=v1.0.8"
+  source = "../../../../../../../../modules//mgmt/openvpn-server"
 }
 
 # Include all settings from the root terragrunt.hcl file
@@ -46,6 +49,10 @@ locals {
   account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
 
   openvpn_backup_bucket_name = "${local.common_vars.locals.name_prefix}-openvpn-backup-bucket-${local.account_vars.locals.account_name}"
+
+  # Version tag to use when looking up AMI. By separating out into its own local, we can update this with
+  # terraform-update-variable.
+  ami_version_tag = "v1.0.0"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -56,7 +63,20 @@ locals {
 inputs = {
   vpc_id    = dependency.vpc.outputs.vpc_id
   subnet_id = dependency.vpc.outputs.public_subnet_ids[0]
-  ami       = "ami-abcd1234"
+  ami       = null
+  ami_filters = {
+    owners = ["self"]
+    filters = [
+      {
+        name   = "tag:service"
+        values = ["openvpn-server"]
+      },
+      {
+        name   = "tag:version"
+        values = [local.ami_version_tag]
+      },
+    ]
+  }
 
   # Access to the vpn should be limited to specific, known CIDR blocks
   allow_vpn_from_cidr_list = local.common_vars.locals.office_cidr_blocks

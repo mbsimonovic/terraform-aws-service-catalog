@@ -12,7 +12,7 @@ locals {
     prod     = "087285199408"
   }
 
-  # Centrally define all domain names  
+  # Centrally define all domain names
   domain_names = {
     shared = "refarch-sbox-shared-gruntwork.com"
     dev    = "refarch-sbox-dev-gruntwork.com"
@@ -20,7 +20,7 @@ locals {
     prod   = "refarch-sbox-prod-gruntwork.com"
   }
 
-  # Prefix resources with this name 
+  # Prefix resources with this name
   name_prefix = "gw-ra-service-catalog"
 
   # Send all CloudTrail logs from all child accounts to this S3 bucket
