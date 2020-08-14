@@ -29,6 +29,7 @@ source "$script_dir/helpers.sh"
 readonly VAULT_BLUEPRINT_CLONE_URL="https://github.com/hashicorp/terraform-aws-vault.git"
 readonly VAULT_BLUEPRINT_CHECKOUT_PATH="/tmp/vault-blueprint"
 readonly VAULT_TLS_MODULE_PATH="/tmp/vault-blueprint/modules/private-tls-cert"
+readonly TLS_PATH="/tmp/tls"
 
 readonly DEFAULT_DNS_NAMES=("localhost")
 readonly DEFAULT_IP_ADDRESSES=("127.0.0.1")
@@ -57,8 +58,8 @@ function print_usage {
   log
   log "Examples:"
   log
-  log "  create-tls-cert.sh --ca-path ca.crt.pem --cert-path my-app.crt.pem --key-path my-app.key.pem.kms.encrypted --company-name Acme"
-  log "  create-tls-cert.sh --ca-path ca.crt.pem --cert-path my-app.crt.pem --key-path my-app.key.pem.kms.encrypted --company-name Acme --upload-to-iam --kms-key-id alias/cmk-dev --aws-region us-east-1"
+  log "  create-tls-cert.sh --ca-path ca.crt.pem --cert-path my-app.crt.pem --key-path my-app.key.pem --company-name Acme"
+  log "  create-tls-cert.sh --ca-path ca.crt.pem --cert-path my-app.crt.pem --key-path my-app.key.pem --company-name Acme --upload-to-iam --kms-key-id alias/cmk-dev --aws-region us-east-1"
 }
 
 # The Vault blueprint has a Terraform module that can be used to generate private TLS certs
@@ -152,6 +153,22 @@ function prepare_folders {
   mkdir -p "$(dirname "$cert_private_key_path")"
 }
 
+function move_files {
+  local -r ca_public_key_path="$1"
+  local -r cert_public_key_path="$2"
+  local -r cert_private_key_path="$3"
+  local -r kms_key_id="$4"
+  local -r aws_region="$5"
+
+  mkdir -p "${TLS_PATH}/"
+
+  if [[ -z $kms_key_id ]] || [[ -z $aws_region ]]; then
+    mv "${VAULT_TLS_MODULE_PATH}/$ca_public_key_path" "${VAULT_TLS_MODULE_PATH}/$cert_public_key_path" "${VAULT_TLS_MODULE_PATH}/$cert_private_key_path" "${TLS_PATH}/"
+  else
+    mv "${VAULT_TLS_MODULE_PATH}/$ca_public_key_path" "${VAULT_TLS_MODULE_PATH}/$cert_public_key_path" "${VAULT_TLS_MODULE_PATH}/$cert_private_key_path.kms.encrypted" "${TLS_PATH}/"
+  fi
+}
+
 function terraform_init {
   local -r tls_module_path="$1"
   log "Running terraform init in $tls_module_path"
@@ -164,8 +181,8 @@ function exit_if_cert_file_exists {
   local -r cert_name="$3"
   local -r aws_region="$4"
 
-  if [[ -f "$path" ]]; then
-    log "$path already exists. Will not generate again."
+  if [[ -f "${TLS_PATH}/$path" ]]; then
+    log "${TLS_PATH}/$path already exists. Will not generate again."
     print_cert_arn_from_iam "$should_upload_to_iam" "$cert_name" "$aws_region"
     exit 0
   fi
@@ -258,6 +275,7 @@ function do_create {
   cleanup_tls_module_terraform_state "$VAULT_TLS_MODULE_PATH"
   upload_to_iam "$upload_to_iam" "$cert_public_key_path" "$cert_private_key_path" "$cert_name_in_iam" "$aws_region"
   encrypt_private_key "$cert_private_key_path" "$kms_key_id" "$aws_region"
+  move_files "$ca_public_key_path" "$cert_public_key_path" "$cert_private_key_path" "$kms_key_id" "$aws_region"
 
   log "Done with TLS cert generation!"
 }

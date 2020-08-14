@@ -177,8 +177,7 @@ We highly recommend including these two options, so that you don't have an unenc
 By providing both `--kms-key-id` and `--aws-region`, the script will automatically encrypt the private key and delete the
 unencrypted key.
 
-After running that command, the generated cert files will be located on your local machine here: `./tmp/vault-blueprint/modules/private-tls-cert/`.
-<!-- TODO: maybe we make the script copy/move those files into a the root tmp directory -->
+After running that command, the generated cert files will be located on your local machine here: `./tmp/tls/`.
 
 If you used the above example, you should see:
 - `ca.crt.pem`: This is the CA public key, or CA certificate, in PEM format.
