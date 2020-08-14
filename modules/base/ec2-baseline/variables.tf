@@ -79,8 +79,14 @@ variable "alarms_sns_topic_arn" {
   default     = []
 }
 
+variable "should_render_cloud_init" {
+  description = "If true, combine the parts in var.cloud_init_parts using a template_cloudinit_config data source and provide the rendered result as an output. If false, no output will be rendered. If true, cloud_init_parts is required. Defaults to true."
+  type        = bool
+  default     = true
+}
+
 variable "cloud_init_parts" {
-  description = "Cloud init scripts to run on the host while it boots. See the part blocks in https://www.terraform.io/docs/providers/template/d/cloudinit_config.html for syntax. If a null value or empty map is passed, no cloud init will be rendered in the output."
+  description = "Cloud init scripts to run on the host while it boots. See the part blocks in https://www.terraform.io/docs/providers/template/d/cloudinit_config.html for syntax."
   type = map(object({
     filename     = string
     content_type = string

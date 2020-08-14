@@ -136,6 +136,8 @@ module "high_asg_disk_usage_root_volume_alarms" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 data "template_cloudinit_config" "cloud_init" {
+  count = var.should_render_cloud_init ? 1 : 0
+
   gzip          = true
   base64_encode = true
 
