@@ -159,48 +159,51 @@ Then you can run `docker run --rm -it -v /tmp:/tmp {image name} bash` to run the
 
 ## How do I create TLS certs?
 
-For example, to run the [create-tls-cert.sh](create-tls-cert.sh) script interactively in Docker, you'll have to pass in environment variables to the `run` command.
+To create a TLS cert for your app, the easiest way is to use our provided [docker-compose.yml](docker-compose.yml)
+and [Dockerfile](Dockerfile), and run the following command (which calls [create-tls-cert.sh](create-tls-cert.sh)):
 
 ```sh
-docker run \
---rm -it \
--v /tmp:/tmp \
--e AWS_ACCESS_KEY_ID={your key id} \
--e AWS_SECRET_ACCESS_KEY={your secret key} \
-{image name} bash
-```
-
-Then while in the container's shell, you can run the example call, which doesn't upload the cert to IAM:
-
-```sh
-create-tls-cert.sh \
+docker-compose run tls \
 --ca-path ca.crt.pem \
 --cert-path my-app.crt.pem \
---key-path my-app.key.pem.kms.encrypted \
---company-name Acme
-```
-
-The generated cert files are located in `/tmp/vault-blueprint/modules/private-tls-cert/`, both in the Docker container
-and in your local machine. This is because we used `-v /tmp:/tmp` to bind-mount the `/tmp` volume of the container to your machine.
-
-To upload the cert to IAM, include the `--upload-to-iam` flag, the name of the cert in `--cert-name-in-iam`, the correct KMS key id in `--kms-key-id`, and the correct
-region for that key in `--aws-region`. The cert is uploaded to IAM as a Server Certificate, which cannot be managed using the AWS
-Console UI. You must use the AWS API to upload, update, and delete these certs.
-
-```sh
-create-tls-cert.sh \
---ca-path ca.crt.pem \
---cert-path my-app.crt.pem \
---key-path my-app.key.pem.kms.encrypted \
+--key-path my-app.key.pem \
 --company-name Acme \
---upload-to-iam
---cert-name-in-iam tls-scripts-test
---kms-key-id alias/test-key \
---aws-region us-east-1 \
+--kms-key-id alias/test-key \ # change this to be correct
+--aws-region us-east-1 # change this to be correct
 ```
 
-Check `/tmp/vault-blueprint/modules/private-tls-cert/` for output cert files.
-If you used the above example, you should see `ca.crt.pem`, `my-app.crt.pem`, and `my-app.key.pem.kms.encrypted`.
+You'll notice that you need to pass in the correct KMS key id in `--kms-key-id`, and the region where it's located in `--aws-region`.
+We highly recommend including these two options, so that you don't have an unencrypted private key on your system.
+By providing both `--kms-key-id` and `--aws-region`, the script will automatically encrypt the private key and delete the
+unencrypted key.
+
+After running that command, the generated cert files will be located on your local machine here: `./tmp/vault-blueprint/modules/private-tls-cert/`.
+<!-- TODO: maybe we make the script copy/move those files into a the root tmp directory -->
+
+If you used the above example, you should see:
+- `ca.crt.pem`: This is the CA public key, or CA certificate, in PEM format.
+- `my-app.crt.pem`: This is the app's public key, or TLS certificate, signed by the CA cert, in PEM format.
+- `my-app.key.pem.kms.encrypted`: This is the app's private key in PEM format, encrypted with the KMS key you provided.
+
+Optionally, you can upload the certificate to IAM. Simply add two more flags to the previous command.
+- `--upload-to-iam`
+- `--cert-name-in-iam` followed by a name you want to use
+
+E.g.:
+```sh
+docker-compose run tls \
+--ca-path ca.crt.pem \
+--cert-path my-app.crt.pem \
+--key-path my-app.key.pem \
+--company-name Acme \
+--kms-key-id alias/test-key \ # change this to be correct
+--aws-region us-east-1 \ # change this to be correct
+--upload-to-iam \
+--cert-name-in-iam tls-scripts-test
+```
+
+The cert is uploaded to IAM as a Server Certificate, which cannot be managed using the AWS Console UI.
+You must use the AWS API to upload, update, and delete these certs.
 
 [back to readme](README.adoc#running)
 

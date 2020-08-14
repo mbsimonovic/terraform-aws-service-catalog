@@ -1,0 +1,29 @@
+version: '2.0'
+services:
+  tls:
+    build: .
+    entrypoint: /scripts/create-tls-cert.sh
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_SESSION_TOKEN
+    volumes:
+      - ./tmp:/tmp
+      # TODO: remove
+      - .:/scripts # only for development
+  rds:
+    build: .
+    entrypoint: /scripts/download-rds-ca-cert.sh
+    volumes:
+      # TODO: remove
+      - .:/scripts # only for development
+  trust-stores:
+    build: .
+    entrypoint: /scripts/generate-trust-stores.sh
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_SESSION_TOKEN
+    volumes:
+      # TODO: remove
+      - .:/scripts # only for development
