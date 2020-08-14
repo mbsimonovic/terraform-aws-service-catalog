@@ -230,7 +230,7 @@ function do_create {
   local -r no_ips="${12}"
 
   if [[ "$upload_to_iam" == true && -z "$cert_name_in_iam" ]]; then
-    log "The --cert-name parameter cannot be empty if the --upload-to-iam flag is set"
+    log "The --cert-name-in-iam parameter cannot be empty if the --upload-to-iam flag is set"
     exit 1
   fi
 

@@ -37,7 +37,6 @@ func TestTlsScripts(t *testing.T) {
 	requireEnvVar(t, "TLS_SCRIPTS_KMS_KEY_ID")
 	requireEnvVar(t, "TLS_SCRIPTS_AWS_REGION")
 
-	testFolder := "."
 	scriptsDir := "../modules/tls-scripts"
 	tmpBaseDir := "/tmp"
 
@@ -82,11 +81,10 @@ func TestTlsScripts(t *testing.T) {
 		{
 			"CreateTlsCert",
 			func() {
-
 				// Store the cert name in .test_data so we can clean it up
 				// if test stages are skipped
 				certNameInIam := fmt.Sprintf("tls-scripts-test-%s", random.UniqueId())
-				test_structure.SaveString(t, testFolder, "certNameInIam", certNameInIam)
+				test_structure.SaveString(t, scriptsDir, "certNameInIam", certNameInIam)
 
 				// Run the Docker image.
 				runOpts := &docker.RunOptions{
@@ -100,13 +98,13 @@ func TestTlsScripts(t *testing.T) {
 						"my-app.key.pem",
 						"--company-name",
 						"Acme",
+						"--upload-to-iam",
+						"--cert-name-in-iam",
+						certNameInIam,
 						"--kms-key-id",
 						kmsKeyId,
 						"--aws-region",
 						awsRegion,
-						"--upload-to-iam",
-						"--cert-name-in-iam",
-						certNameInIam,
 					},
 					EnvironmentVariables: []string{
 						"AWS_ACCESS_KEY_ID",
@@ -136,7 +134,7 @@ func TestTlsScripts(t *testing.T) {
 				os.RemoveAll(certBaseDir)
 
 				// Remove server certificate from IAM
-				certNameInIam := test_structure.LoadString(t, testFolder, "certNameInIam")
+				certNameInIam := test_structure.LoadString(t, scriptsDir, "certNameInIam")
 				sess, err := aws.NewAuthenticatedSession(awsRegion)
 				require.NoError(t, err)
 				iamClient := iam.New(sess)

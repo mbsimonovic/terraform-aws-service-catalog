@@ -7,80 +7,109 @@
 The industry-standard way to add encryption for data in motion is to use TLS (the successor to SSL). There are many examples
 online explaining how TLS works, but here are the basics:
 
-- Some entity decides to be a "Certificate Authority" ("CA") meaning it will issue TLS certificates to websites or other services
+- Some entity decides to be a _Certificate Authority_ (_CA_) meaning it will issue TLS certificates to websites or
+    other services.
 - An entity becomes a Certificate Authority by creating a public/private key pair and publishing the public portion (typically
-    known as the "CA Cert"). The private key is kept under the tightest possible security since anyone who possesses it could issue
-TLS certificates as if they were this Certificate Authority!
-- In fact, the consequences of a CA's private key being compromised are so disastrous that CA's typically create an "intermediate"
-CA keypair with their "root" CA key, and only issue TLS certificates with the intermediate key.
+    known as the _CA Cert_). The private key is kept under the tightest possible security since anyone who possesses it could issue
+    TLS certificates as if they were this Certificate Authority!
+- In fact, the consequences of a CA's private key being compromised are so disastrous that CAs typically create an _intermediate_
+    CA keypair with their _root_ CA key, and only issue TLS certificates with the intermediate key.
 - Your client (e.g. a web browser) can decide to trust this newly created Certificate Authority by including its CA Cert
-(the CA's public key) when making an outbound request to a service that uses the TLS certificate.
-- When CAs issue a TLS certificate ("TLS cert") to a service, they again create a public/private keypair, but this time
-the public key is "signed" by the CA. That public key is what you view when you click on the lock icon in a web browser
-and what a service "advertises" to any clients such as web browsers to declare who it is. When we say that the CA
-signed a public key, we mean that, cryptographically, any possessor of the CA Cert can validate that this same CA issued
-this particular public key.
+    (the CA's public key) when making an outbound request to a service that uses the TLS certificate.
+- When CAs issue a TLS certificate to a service, they again create a public/private keypair, but this time the
+    public key is _signed_ by the CA. That public key is what you see when you click on the lock icon in a web browser
+    and what a service _advertises_ to any clients, such as web browsers, to declare who it is. When we say that the CA
+    signed a public key, we mean that cryptographically any possessor of the CA Cert can validate that this same CA
+    issued this particular public key.
 - The public key is more generally known as the TLS cert.
-- The private key created by the CA must be kept secret by the service since the possessor of the private key can "prove"
-they are whoever the TLS cert (public key) claims to be as part of the TLS protocol.
-- How does that "proof" work? Well, your web browser will attempt to validate the TLS cert in two ways:
-- First, it will ensure this public key (TLS cert) is in fact signed by a CA it trusts.
-- Second, using the TLS protocol, your browser will encrypt a message with the public key (TLS cert) that only the
-possessor of the corresponding private key can decrypt. In this manner, your browser will be able to come up with a
-symmetric encryption key it can use to encrypt all traffic for just that one web session.
+- The private key created by the CA must be kept secret by the service since the possessor of the private key can prove
+    they are whomever the TLS cert (public key) claims to be as part of the TLS protocol.
+- How does that proof work? Well, your web browser will attempt to validate the TLS cert in two ways:
+    - First, the web browser will ensure this public key (TLS cert) is in fact signed by a CA it trusts.
+    - Second, using the TLS protocol, the browser will encrypt a message with the public key (TLS cert) that only the
+        possessor of the corresponding private key can decrypt. In this manner, your browser will be able to come up with a
+        symmetric encryption key it can use to encrypt all traffic for just that one web session.
 - Now your client/browser has:
-- declared which CA it will trust
-- verified that the service it's connecting to possesses a certificate issued by a CA it trusts
-- used that service's public key (TLS cert) to establish a secure session
+    - declared which CA it will trust,
+    - verified that the service it's connecting to possesses a certificate issued by a CA it trusts,
+    - and used that service's public key (TLS cert) to establish a secure session.
 
 ### What are commercial or public Certificate Authorities?
 
-For public services like banks, healthcare, and the like, it makes sense to use a "Commercial CA" like Verisign, Thawte,
-    or Digicert, or better yet a widely trusted but free service like [Let's Encrypt](https://letsencrypt.org/).
-    (For additional information on Let's Encrypt, see [Alternative Solutions Considered](#alternative-solutions-considered)
-     in this document.) That's because every web browser comes pre-configured with a set of CA's that it trusts. This means
-    the client connecting to the bank doesn't have to know anything about CA's at all. Instead, their web browser is
-    configured to trust the CA that happened to issue the bank's certificate.
+For public services like banks, healthcare, and the like, it makes sense to use a _Commercial CA_ like Verisign, Thawte,
+or Digicert, or better yet a widely trusted but free service like [Let's Encrypt](https://letsencrypt.org/).
+(For additional information on Let's Encrypt, see [Alternative Solutions Considered](#alternative-solutions-considered)
+in this document.) That's because every web browser comes pre-configured with a set of CAs that it trusts. This means
+the client connecting to the bank doesn't have to know anything about CAs at all. Instead, their web browser is
+configured to trust the CA that happened to issue the bank's certificate.
 
 Connecting securely to private services is similar to connecting to your bank's website over TLS, with one primary
 difference: **We want total control over the CA.**
 
 Imagine if we used a commercial CA to issue our private TLS certificate and that commercial or public CA -- which we
 don't control -- were compromised. Now the attackers of that commercial or public CA could impersonate our private server.
-And indeed, [it](https://www.theguardian.com/technology/2011/sep/05/diginotar-certificate-hack-cyberwar) [has](https://www.schneier.com/blog/archives/2012/02/verisign_hacked.html) [happened](http://www.infoworld.com/article/2623707/hacking/the-real-security-issue-behind-the-comodo-hack.html)
+And indeed,
+[it](https://www.theguardian.com/technology/2011/sep/05/diginotar-certificate-hack-cyberwar)
+[has](https://www.schneier.com/blog/archives/2012/02/verisign_hacked.html)
+[happened](http://www.infoworld.com/article/2623707/hacking/the-real-security-issue-behind-the-comodo-hack.html)
 multiple times.
 
 ### How does Gruntwork generate a TLS cert for private services?
 
 One option is to be very selective about choosing a commercial CA, but to what benefit? What we want instead is assurance
-that our private service really was launched by people we trust. Those same people -- let's call them our "operators" --
+that our private service really was launched by people we trust. Those same people -- let's call them our _operators_ --
 can become their *own* CA and generate their *own* TLS certificate for the private service.
 
 Sure, no one else in the world will trust this CA, but we don't care because we only need our organization to trust this CA.
 
-So here's our strategy for issuing a TLS Cert for a private service:
+So here's our strategy for issuing a TLS cert for a private service:
 
 1. **Create our own CA.**
-- If a client wishes to trust our CA, they need only reference this CA public key.
-- We'll deal with the private key in a moment.
+    - If a client wishes to trust our CA, they need only reference this CA public key.
+    - We'll deal with the private key in a moment.
 
-1. **Using our CA, issue a TLS Certificate for our private service.**
-- Create a public/private key pair for the private service, and have the CA sign the public key.
-- This means anyone who trusts the CA will trust that the possessor the private key that corresponds to this public key
-is who they claim to be.
-- We will be extremely careful with the TLS private key since anyone who obtains it can impersonate our private service!
-For this reason, we recommend immediately encrypting the private key with [AWS KMS](https://aws.amazon.com/kms/) by
-using [gruntkms](https://github.com/gruntwork-io/gruntkms).
+1. **Using our CA, issue a TLS certificate for our private service.**
+    - Create a public/private key pair for the private service, and have the CA sign the public key.
+    - This means anyone who trusts the CA will trust that the possessor the private key that corresponds to this public key
+    is who they claim to be.
+    - We will be extremely careful with the TLS private key since anyone who obtains it can impersonate our private service!
+    This is why we recommend immediately encrypting the private key with [AWS KMS](https://aws.amazon.com/kms/) by
+    using [gruntkms](https://github.com/gruntwork-io/gruntkms).
 
 1. **Freely advertise our CA's public key to all internal services.**
-- Any service that wishes to connect securely to our private service will need our CA's public key so it can declare
-that it trusts this CA, and thereby the TLS cert it issued to the private service.
+    - Any service that wishes to connect securely to our private service will need our CA's public key. That way the
+    service can declare that it trusts this CA, and thereby the TLS cert that the CA issued to the private service.
 
 1. **Finally, consider throwing away the CA private key.**
-- By erasing a CA private key it's impossible for the CA to be compromised, because there's no private key to steal!
-- Future certs can be generated with a new CA.
-- Contrast this to protecting your CA private key. There are trade-offs either way so choose the option that makes
-the most sense for your organization.
+    - By erasing a CA private key it's impossible for the CA to be compromised, because there's no private key to steal!
+    - Future certs can be generated with a new CA.
+    - Contrast this to protecting your CA private key. There are trade-offs either way so choose the option that makes
+    the most sense for your organization.
+
+[back to readme](README.adoc#about-tls)
+
+## Alternative Solutions Considered
+
+### Terraform's TLS Provider
+
+A compelling alternative is to use Teraform's built-in [TLS Provider](https://www.terraform.io/docs/providers/tls/index.html).
+The primary concern with this approach is that the TLS private key generated by the `tls_private_key` Terraform resource
+is stored in plaintext in the Terraform state and is therefore not recommended for production use.
+
+### Let's Encrypt
+
+[Let's Encrypt](https://letsencrypt.org) behaves in every way like a traditional commercial Certificate Authority (CA),
+except that it's free. Because Let's Encrypt has good documentation around how to generate and automatically renew a
+TLS Certificate, it seemed like a good solution to solve our problem.
+
+Unfortunately, Let's Encrypt is optimized for public services, not private ones. As a result, when issuing a new TLS
+certificate, operators must prove ownership of their domain name by either provisioning a DNS record under `example.com`
+or provisioning an HTTP resource under a well-known URI on `https://example.com`. This means it's not possible to
+generate a TLS cert for a service with a private DNS address since Let's Encrypt would have no way of either resolving
+the domain name (because it's private) or reaching the service to validate an HTTP document (because, again, it's private).
+
+While Let's Encrypt is not the ideal solution for the intent of this module, it's well-suited to automatically generating
+TLS certificates for any public services.
 
 [back to readme](README.adoc#about-tls)
 
@@ -154,7 +183,7 @@ create-tls-cert.sh \
 The generated cert files are located in `/tmp/vault-blueprint/modules/private-tls-cert/`, both in the Docker container
 and in your local machine. This is because we used `-v /tmp:/tmp` to bind-mount the `/tmp` volume of the container to your machine.
 
-To upload the cert to IAM, include the `--upload-to-iam` flag along with the correct KMS key id in `--kms-key-id`, and the correct
+To upload the cert to IAM, include the `--upload-to-iam` flag, the name of the cert in `--cert-name-in-iam`, the correct KMS key id in `--kms-key-id`, and the correct
 region for that key in `--aws-region`. The cert is uploaded to IAM as a Server Certificate, which cannot be managed using the AWS
 Console UI. You must use the AWS API to upload, update, and delete these certs.
 
@@ -164,9 +193,10 @@ create-tls-cert.sh \
 --cert-path my-app.crt.pem \
 --key-path my-app.key.pem.kms.encrypted \
 --company-name Acme \
+--upload-to-iam
+--cert-name-in-iam tls-scripts-test
 --kms-key-id alias/test-key \
 --aws-region us-east-1 \
---upload-to-iam
 ```
 
 Check `/tmp/vault-blueprint/modules/private-tls-cert/` for output cert files.
