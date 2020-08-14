@@ -136,6 +136,11 @@ module "high_asg_disk_usage_root_volume_alarms" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 data "template_cloudinit_config" "cloud_init" {
+  # Ideally, we could use var.cloud_init_parts in the count conditional. However, 
+  # the value may not be known until runtime, and hence using that may result in an error.
+  # Instead, we fall back to a boolean.
+  count = var.should_render_cloud_init ? 1 : 0
+
   gzip          = true
   base64_encode = true
 

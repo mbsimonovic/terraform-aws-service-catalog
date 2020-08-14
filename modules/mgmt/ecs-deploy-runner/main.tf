@@ -145,7 +145,8 @@ module "ec2_baseline" {
     ? lookup(var.ec2_worker_pool_configuration, "alarms_sns_topic_arn", null)
     : null
   )
-  cloud_init_parts = local.cloud_init_parts
+  should_render_cloud_init = local.should_use_ec2_worker_pool
+  cloud_init_parts         = local.cloud_init_parts
   ami = (
     local.should_use_ec2_worker_pool
     ? lookup(var.ec2_worker_pool_configuration, "ami", null)
@@ -206,7 +207,7 @@ locals {
       { default : local.cloud_init },
       lookup(var.ec2_worker_pool_configuration, "cloud_init_parts", {}),
     )
-    : null
+    : {}
   )
 }
 
