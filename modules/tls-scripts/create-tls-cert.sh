@@ -74,6 +74,13 @@ function clone_vault_blueprint {
   fi
 }
 
+function cleanup_vault_blueprint {
+  local -r checkout_path="$1"
+
+  log "Cleaning up $checkout_path"
+  rm -r "$checkout_path"
+}
+
 # Use the TLS module in the vault-aws-blueprint to generate a CA public key and a TLS cert public and private key
 # signed by the CA.
 function generate_tls_cert {
@@ -160,6 +167,7 @@ function move_files {
   local -r kms_key_id="$4"
   local -r aws_region="$5"
 
+  log "Moving generated files to ${TLS_PATH}"
   mkdir -p "${TLS_PATH}/"
 
   if [[ -z $kms_key_id ]] || [[ -z $aws_region ]]; then
@@ -276,6 +284,7 @@ function do_create {
   upload_to_iam "$upload_to_iam" "$cert_public_key_path" "$cert_private_key_path" "$cert_name_in_iam" "$aws_region"
   encrypt_private_key "$cert_private_key_path" "$kms_key_id" "$aws_region"
   move_files "$ca_public_key_path" "$cert_public_key_path" "$cert_private_key_path" "$kms_key_id" "$aws_region"
+  cleanup_vault_blueprint "$VAULT_BLUEPRINT_CHECKOUT_PATH"
 
   log "Done with TLS cert generation!"
 }
