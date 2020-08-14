@@ -206,7 +206,7 @@ locals {
       { default : local.cloud_init },
       lookup(var.ec2_worker_pool_configuration, "cloud_init_parts", {}),
     )
-    : null
+    : {}
   )
 }
 
