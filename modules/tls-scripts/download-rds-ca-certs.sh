@@ -27,4 +27,5 @@ else
   log "Downloading $RDS_CA_BUNDLE_URL to $download_path"
   mkdir -p "$(dirname $download_path)"
   curl -s "$RDS_CA_BUNDLE_URL" > "$download_path"
+  log "Done."
 fi

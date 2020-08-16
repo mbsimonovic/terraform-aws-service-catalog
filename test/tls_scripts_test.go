@@ -16,11 +16,11 @@ import (
 )
 
 // To run this test suite, a number of requirements must be met:
-// - docker needs to be running
-// - your github-oauth-token must be exported in GITHUB_OAUTH_TOKEN
+// - Docker needs to be running
+// - Your github-oauth-token must be exported in GITHUB_OAUTH_TOKEN
 // - AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY need to be set
-// - if you're using temporary credentials, AWS_SESSION_TOKEN needs to be set
-// - you need to provide a KMS CMK in TLS_SCRIPTS_KMS_KEY_ID and its region in TLS_SCRIPTS_AWS_REGION
+// - If you're using temporary credentials, AWS_SESSION_TOKEN needs to be set
+// - You need to provide a KMS CMK in TLS_SCRIPTS_KMS_KEY_ID and its region in TLS_SCRIPTS_AWS_REGION
 
 func TestTlsScripts(t *testing.T) {
 	t.Parallel()
@@ -38,14 +38,14 @@ func TestTlsScripts(t *testing.T) {
 	requireEnvVar(t, "TLS_SCRIPTS_AWS_REGION")
 
 	scriptsDir := "../modules/tls-scripts"
-	tmpBaseDir := "/tmp"
+	// tmpBaseDir := filepath.Join(scriptsDir, "tmp")
+	tmpBaseDir := "tmp"
 
 	// Download RDS CA Certs vars
 	downloadPath := filepath.Join(tmpBaseDir, "rds-cert")
 
 	// Create TLS Cert vars
-	certBaseDir := filepath.Join(tmpBaseDir, "vault-blueprint")
-	certOutputDir := filepath.Join(certBaseDir, "modules/private-tls-cert")
+	createTLSDir := filepath.Join(tmpBaseDir, "tls")
 	createCertFiles := []string{"ca.crt.pem", "my-app.cert", "my-app.key.pem.kms.encrypted"}
 
 	// Generate Trust Stores vars
@@ -86,52 +86,43 @@ func TestTlsScripts(t *testing.T) {
 				certNameInIam := fmt.Sprintf("tls-scripts-test-%s", random.UniqueId())
 				test_structure.SaveString(t, scriptsDir, "certNameInIam", certNameInIam)
 
-				// Run the Docker image.
-				runOpts := &docker.RunOptions{
-					Command: []string{
-						"create-tls-cert.sh",
-						"--ca-path",
-						"ca.crt.pem",
-						"--cert-path",
-						"my-app.cert",
-						"--key-path",
-						"my-app.key.pem",
-						"--company-name",
-						"Acme",
-						"--upload-to-iam",
-						"--cert-name-in-iam",
-						certNameInIam,
-						"--kms-key-id",
-						kmsKeyId,
-						"--aws-region",
-						awsRegion,
-					},
-					EnvironmentVariables: []string{
-						"AWS_ACCESS_KEY_ID",
-						"AWS_SECRET_ACCESS_KEY",
-						"AWS_SESSION_TOKEN", // only set if you're using temporary creds, mfa, etc
-					},
-
-					Volumes: []string{
-						fmt.Sprintf("%s:%s", tmpBaseDir, tmpBaseDir),
-					},
-				}
-
-				docker.Run(t, tag, runOpts)
+				docker.RunDockerCompose(
+					t,
+					&docker.Options{},
+					"-f",
+					filepath.Join(scriptsDir, "docker-compose.yml"),
+					"run",
+					"tls",
+					"--ca-path",
+					"ca.crt.pem",
+					"--cert-path",
+					"my-app.cert",
+					"--key-path",
+					"my-app.key.pem",
+					"--company-name",
+					"Acme",
+					"--upload-to-iam",
+					"--cert-name-in-iam",
+					certNameInIam,
+					"--kms-key-id",
+					kmsKeyId,
+					"--aws-region",
+					awsRegion,
+				)
 			},
 
 			func() {
 				for _, file := range createCertFiles {
 					require.FileExistsf(
 						t,
-						filepath.Join(certOutputDir, file),
+						filepath.Join(scriptsDir, createTLSDir, file),
 						"Error Validating Create TLS Cert %s",
-						file,
+						filepath.Join(scriptsDir, createTLSDir, file),
 					)
 				}
 			},
 			func() {
-				os.RemoveAll(certBaseDir)
+				os.RemoveAll(filepath.Join(scriptsDir, createTLSDir))
 
 				// Remove server certificate from IAM
 				certNameInIam := test_structure.LoadString(t, scriptsDir, "certNameInIam")
@@ -146,84 +137,72 @@ func TestTlsScripts(t *testing.T) {
 		{
 			"DownloadRdsCaCert",
 			func() {
-				// Run the Docker image.
-				runOpts := &docker.RunOptions{
-					Command: []string{
-						"download-rds-ca-certs.sh",
-						downloadPath,
-					},
-					Volumes: []string{
-						fmt.Sprintf("%s:%s", tmpBaseDir, tmpBaseDir),
-					},
-				}
-
-				docker.Run(t, tag, runOpts)
-			},
-			func() {
-				require.FileExistsf(
+				docker.RunDockerCompose(
 					t,
-					downloadPath,
-					"Error Validating Download RDS CA Cert %s",
+					&docker.Options{},
+					"-f",
+					filepath.Join(scriptsDir, "docker-compose.yml"),
+					"run",
+					"rds",
 					downloadPath,
 				)
 			},
 			func() {
-				os.RemoveAll(downloadPath)
+				require.FileExistsf(
+					t,
+					filepath.Join(scriptsDir, downloadPath),
+					"Error Validating Download RDS CA Cert %s",
+					filepath.Join(scriptsDir, downloadPath),
+				)
+			},
+			func() {
+				os.RemoveAll(filepath.Join(scriptsDir, downloadPath))
 			},
 		},
 		{
 			"GenerateTrustStores",
 			func() {
-				// Run the Docker image.
-				runOpts := &docker.RunOptions{
-					Command: []string{
-						"generate-trust-stores.sh",
-						"--keystore-name",
-						"kafka",
-						"--store-path",
-						"/tmp/ssl",
-						"--vpc-name",
-						"default",
-						"--company-name",
-						"Acme",
-						"--company-org-unit",
-						"IT",
-						"--company-city",
-						"Phoenix",
-						"--company-state",
-						"AZ",
-						"--company-country",
-						"US",
-						"--kms-key-id",
-						kmsKeyId,
-						"--aws-region",
-						awsRegion,
-					},
-					EnvironmentVariables: []string{
-						"AWS_ACCESS_KEY_ID",
-						"AWS_SECRET_ACCESS_KEY",
-						"AWS_SESSION_TOKEN", // only set if you're using temporary creds, mfa, etc
-					},
-
-					Volumes: []string{
-						fmt.Sprintf("%s:%s", tmpBaseDir, tmpBaseDir),
-					},
-				}
-
-				docker.Run(t, tag, runOpts)
+				docker.RunDockerCompose(
+					t,
+					&docker.Options{},
+					"-f",
+					filepath.Join(scriptsDir, "docker-compose.yml"),
+					"run",
+					"trust-stores",
+					"--keystore-name",
+					"kafka",
+					"--store-path",
+					sslDir,
+					"--vpc-name",
+					"default",
+					"--company-name",
+					"Acme",
+					"--company-org-unit",
+					"IT",
+					"--company-city",
+					"Phoenix",
+					"--company-state",
+					"AZ",
+					"--company-country",
+					"US",
+					"--kms-key-id",
+					kmsKeyId,
+					"--aws-region",
+					awsRegion,
+				)
 			},
 			func() {
 				for _, file := range trustStoresFiles {
 					require.FileExistsf(
 						t,
-						fmt.Sprintf("%s/%s", sslDir, file),
+						filepath.Join(scriptsDir, sslDir, file),
 						"Error Validating Generate Trust Stores %s",
-						file,
+						filepath.Join(scriptsDir, sslDir, file),
 					)
 				}
 			},
 			func() {
-				os.RemoveAll(sslDir)
+				os.RemoveAll(filepath.Join(scriptsDir, sslDir))
 			},
 		},
 	}

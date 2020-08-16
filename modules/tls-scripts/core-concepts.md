@@ -151,38 +151,53 @@ Secrets Manager. The script writes the KMS-encrypted password for the Key Store 
 
 ## How do I run these scripts using Docker?
 
-We've provided a [Dockerfile](Dockerfile) in this module for you to use for both running and testing the TLS scripts.
-Open a terminal in this directory and run `docker build -t {image name} --build-arg GITHUB_OAUTH_TOKEN={your github-oauth-token} .` to create a Docker container with all the dependencies needed to run the scripts and the tests.
-Then you can run `docker run --rm -it -v /tmp:/tmp {image name} bash` to run the scripts interactively in the container and check their outputs.
+We've provided a [Dockerfile](Dockerfile) in this module for you to use for both using and testing the TLS scripts.
+
+All the scripts require some environment variables to be set.
+1. Export your GitHub OAuth token in `GITHUB_OAUTH_TOKEN`.
+1. Export your `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
+1. If you're using temporary credentials, which is the case if you're assuming an IAM role, using SAML, or using an MFA token,
+also export your `AWS_SESSION_TOKEN`.
+1. Start Docker.
+
+Now you're ready to run the scripts via Docker.
+
+<!--- TODO Give advice -->
+Link to blog post on how to authenticate to AWS.
+Do not use the `~/.aws/credentials` file.
+Use aws-vault, aws-auth, passwordstore, or something to export environment variables.
 
 [back to readme](README.adoc#running)
 
 ## How do I create TLS certs?
 
 To create a TLS cert for your app, the easiest way is to use our provided [docker-compose.yml](docker-compose.yml)
-and [Dockerfile](Dockerfile), and run the following command (which calls [create-tls-cert.sh](create-tls-cert.sh)):
+and [Dockerfile](Dockerfile).
 
-```sh
-docker-compose run tls \
---ca-path ca.crt.pem \
---cert-path my-app.crt.pem \
---key-path my-app.key.pem \
---company-name Acme \
---kms-key-id alias/test-key \ # change this to be correct
---aws-region us-east-1 # change this to be correct
-```
-
+1. First make sure you followed [#how-do-i-run-these-scripts-using-docker](these instructions), so that environment
+variables are set, and Docker is running.
+1. Run the following command (which calls [create-tls-cert.sh](create-tls-cert.sh)):
+    ```sh
+    docker-compose run tls \
+    --ca-path ca.crt.pem \
+    --cert-path my-app.crt.pem \
+    --key-path my-app.key.pem \
+    --company-name Acme \
+    --kms-key-id alias/test-key \ # change this to be correct
+    --aws-region us-east-1 # change this to be correct
+    ```
 You'll notice that you need to pass in the correct KMS key id in `--kms-key-id`, and the region where it's located in `--aws-region`.
-We highly recommend including these two options, so that you don't have an unencrypted private key on your system.
-By providing both `--kms-key-id` and `--aws-region`, the script will automatically encrypt the private key and delete the
-unencrypted key.
-
-After running that command, the generated cert files will be located on your local machine here: `./tmp/tls/`.
+_We highly recommend including these two options, so that you don't have an unencrypted private key on your system._
+By providing both `--kms-key-id` and `--aws-region`, the script will automatically encrypt the private key, save it as
+`my-app.key.pem.kms.encrypted`, and delete the unencrypted key, `my-app.key.pem`.
+1. After running that command, the generated cert files will be located on your local machine here: `tmp/tls/`. That is, in the same
+directory as this module, within a new `tmp` folder.
 
 If you used the above example, you should see:
 - `ca.crt.pem`: This is the CA public key, or CA certificate, in PEM format.
 - `my-app.crt.pem`: This is the app's public key, or TLS certificate, signed by the CA cert, in PEM format.
 - `my-app.key.pem.kms.encrypted`: This is the app's private key in PEM format, encrypted with the KMS key you provided.
+- If you see `my-app.key.pem`, the script was not able to encrypt your private key using the KMS key you provided.
 
 Optionally, you can upload the certificate to IAM. Simply add two more flags to the previous command.
 - `--upload-to-iam`
@@ -201,54 +216,61 @@ docker-compose run tls \
 --cert-name-in-iam tls-scripts-test
 ```
 
-The cert is uploaded to IAM as a Server Certificate, which cannot be managed using the AWS Console UI.
-You must use the AWS API to upload, update, and delete these certs.
+The certificate is uploaded to IAM as a Server Certificate, which cannot be managed using the AWS Console UI.
+You must use the AWS API to upload, update, and delete these certs! If you need to list, rename, or delete them,
+consult the [https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_server-certs.html](AWS API guide for Server Certificate management).
 
 [back to readme](README.adoc#running)
 
 ## How do I download CA public keys for validating RDS TLS connections?
 
-```sh
-download-rds-ca-certs.sh PATH
-```
-
-Check `/tmp/` for a file named `rds-cert`. This is the downloaded file.
+1. First make sure you followed [#how-do-i-run-these-scripts-using-docker](these instructions), so that environment
+variables are set, and Docker is running.
+1. Run the following command (which calls [download-rds-ca-certs.sh](download-rds-ca-certs.sh)):
+    ```sh
+    docker-compose run rds tmp/rds-cert
+    ```
+1. Check `tmp/` in the current directory for a file named `rds-cert`. This is the downloaded file.
 
 [back to readme](README.adoc#running)
 
 ## How do I generate key stores and trust stores to manage TLS certificates for JVM apps?
 
-```sh
-generate-trust-stores.sh \
---keystore-name kafka \
---store-path /tmp/ssl \
---vpc-name default \
---company-name Acme \
---company-org-unit IT \
---company-city Phoenix \
---company-state AZ \
---company-country US \
---kms-key-id alias/test-key \
---aws-region us-east-1
-```
-
-Check `/tmp/ssl/` for all your created files:
-`kafka.server.ca.default.pem`, `kafka.server.cert.default.pem`, `keystore/kafka.server.keystore.default.jks`,
-and `truststore/kafka.server.truststore.default.jks`
+1. First make sure you followed [#how-do-i-run-these-scripts-using-docker](these instructions), so that environment
+variables are set, and Docker is running.
+1. Run the following command (which calls [generate-trust-stores.sh](generate-trust-stores.sh)):
+    ```sh
+    generate-trust-stores.sh \
+    --keystore-name kafka \
+    --store-path /tmp/ssl \
+    --vpc-name default \
+    --company-name Acme \
+    --company-org-unit IT \
+    --company-city Phoenix \
+    --company-state AZ \
+    --company-country US \
+    --kms-key-id alias/test-key \
+    --aws-region us-east-1
+    ```
+1. Check `tmp/ssl/` in the current directory for all your created files:
+- `kafka.server.ca.default.pem`
+- `kafka.server.cert.default.pem`
+- `keystore/kafka.server.keystore.default.jks`
+- `truststore/kafka.server.truststore.default.jks`
 
 [back to readme](README.adoc#running)
 
 ## How do I test these scripts using Docker?
 
 ### Setup
-1. First make sure Docker is running.
-1. Export your github oauth token into `GITHUB_OAUTH_TOKEN`. For example, if you're using [pass](passwordstore.org),
-you might run `export GITHUB_OAUTH_TOKEN=$(pass github-oauth-token)`. If you are pasting your token into the
-terminal in plain text, use a leading space in ` export GITHUB_OAUTH_TOKEN=...` so that your shell history does
-not save that token. <!-- TODO link to best practices for local secrets -->
-1. Make sure `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are set in your environment.
-    - If you're using temporary credentials, `AWS_SESSION_TOKEN` also must be set.
-1. Export a KMS key (CMK) in `TLS_SCRIPTS_KMS_KEY_ID` and its region in `TLS_SCRIPTS_AWS_REGION`.
+1. First make sure you followed [#how-do-i-run-these-scripts-using-docker](these instructions), so that environment
+variables are set, and Docker is running.
+1. Run `export TLS_SCRIPTS_KMS_KEY_ID=[your-key-name]`, setting it to the ID of the CMK to use for encryption.
+This value can be a globally unique identifier (e.g. 12345678-1234-1234-1234-123456789012), a fully specified ARN
+(e.g. arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012), or an alias name prefixed by
+`alias/` (e.g. `alias/MyAliasName`).
+1. Run `export TLS_SCRIPTS_AWS_REGION=[your-key-region]`, setting it to the AWS region where the KMS key is located
+(e.g. `us-east-1`).
 
 ### Test
 1. Okay, now you're ready to run the test suite (all three tests) in the [test file](../../test/tls_scripts_test.go).
@@ -257,8 +279,8 @@ not save that token. <!-- TODO link to best practices for local secrets -->
     cd ../../test
     go test -v -timeout 15m -run TestTlsScripts
     ```
-1. The test suite builds a Docker image and runs commands against it. The tests do their own cleanup, so you will not see files created in your system.
-
+1. The test suite builds a Docker image and runs commands against it. The tests do their own cleanup, so you will
+not see files created in your system, but the tests should pass.
 
 [back to readme](README.adoc#testing)
 
