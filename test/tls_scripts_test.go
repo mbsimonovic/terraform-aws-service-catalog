@@ -38,7 +38,6 @@ func TestTlsScripts(t *testing.T) {
 	requireEnvVar(t, "TLS_SCRIPTS_AWS_REGION")
 
 	scriptsDir := "../modules/tls-scripts"
-	// tmpBaseDir := filepath.Join(scriptsDir, "tmp")
 	tmpBaseDir := "tmp"
 
 	// Download RDS CA Certs vars
@@ -51,18 +50,6 @@ func TestTlsScripts(t *testing.T) {
 	// Generate Trust Stores vars
 	sslDir := filepath.Join(tmpBaseDir, "ssl")
 	trustStoresFiles := []string{"kafka.server.ca.default.pem", "kafka.server.cert.default.pem", "keystore/kafka.server.keystore.default.jks", "truststore/kafka.server.truststore.default.jks"}
-
-	// Configure the tag to use on the Docker image.
-	tag := "gruntwork/tls-scripts-docker-image"
-	buildOptions := &docker.BuildOptions{
-		Tags: []string{tag},
-		BuildArgs: []string{
-			"GITHUB_OAUTH_TOKEN",
-		},
-	}
-
-	// Build the Docker image.
-	docker.Build(t, scriptsDir, buildOptions)
 
 	// This kmsKeyId is used for testing against Gruntwork's test account.
 	// You will have to change it to use a key available in your account.
