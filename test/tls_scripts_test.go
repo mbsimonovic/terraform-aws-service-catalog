@@ -17,7 +17,7 @@ import (
 
 // To run this test suite, a number of requirements must be met:
 // - Docker needs to be running
-// - Your github-oauth-token must be exported in GITHUB_OAUTH_TOKEN
+// - Your GitHub OAuth token must be exported in GITHUB_OAUTH_TOKEN
 // - AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY need to be set
 // - If you're using temporary credentials, AWS_SESSION_TOKEN needs to be set
 // - You need to provide a KMS CMK in TLS_SCRIPTS_KMS_KEY_ID and its region in TLS_SCRIPTS_AWS_REGION
