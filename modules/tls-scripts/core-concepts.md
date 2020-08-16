@@ -277,10 +277,9 @@ This value can be a globally unique identifier (e.g. 12345678-1234-1234-1234-123
     ```sh
     # Assuming you're in this directory:
     cd ../../test
-    go test -v -timeout 15m -run TestTlsScripts
+    go test -v -timeout 5m -run TestTlsScripts
     ```
-1. The test suite builds a Docker image and runs commands against it. The tests do their own cleanup, so you will
-not see files created in your system, but the tests should pass.
+1. The tests do their own cleanup, so you will not see files created in your system, but the tests should pass.
 
 [back to readme](README.adoc#testing)
 
