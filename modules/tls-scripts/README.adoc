@@ -51,7 +51,7 @@ sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-servic
 Service Catalog]!
 
 === About TLS
-* link:core-concepts.md#how-does-tls-ssl-work[How does TLS/SSL work?]
+* link:core-concepts.md#how-does-tlsssl-work[How does TLS/SSL work?]
 * link:core-concepts.md#what-are-commercial-or-public-certificate-authorities[What are commercial or public Certificate Authorities?]
 * link:core-concepts.md#how-does-gruntwork-generate-a-tls-cert-for-private-services[How does Gruntwork generate a TLS cert for private services?]
 

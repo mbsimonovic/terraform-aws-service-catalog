@@ -34,6 +34,8 @@ online explaining how TLS works, but here are the basics:
     - verified that the service it's connecting to possesses a certificate issued by a CA it trusts,
     - and used that service's public key (TLS cert) to establish a secure session.
 
+[back to readme](README.adoc#about-tls)
+
 ### What are commercial or public Certificate Authorities?
 
 For public services like banks, healthcare, and the like, it makes sense to use a _Commercial CA_ like Verisign, Thawte,
@@ -53,6 +55,8 @@ And indeed,
 [has](https://www.schneier.com/blog/archives/2012/02/verisign_hacked.html)
 [happened](http://www.infoworld.com/article/2623707/hacking/the-real-security-issue-behind-the-comodo-hack.html)
 multiple times.
+
+[back to readme](README.adoc#about-tls)
 
 ### How does Gruntwork generate a TLS cert for private services?
 
@@ -129,7 +133,7 @@ Optionally with the `--upload-to-iam` flag, [create-tls-cert.sh](create-tls-cert
 These certs are meant for private/internal use only, such as to set up end-to-end encryption within an AWS account.
 The only IP address in the cert will be 127.0.0.1 and localhost, so you can test your servers locally.
 You can also use the servers with the ELB or ALB, as the AWS load balancers don't verify the CA.
-Also see [Loading TLS secrets from AWS Secrets Manager](https://github.com/gruntwork-io/aws-sample-app/blob/master/core-concepts.md#loading-tls-secrets-from-aws-secrets-manager)
+Also see [Loading TLS secrets from AWS Secrets Manager](https://github.com/gruntwork-io/aws-sample-app/blob/master/core-concepts.md#loading-tls-secrets-from-aws-secrets-manager).
 
 [back to readme](README.adoc#about-the-scripts-specifically)
 
@@ -174,7 +178,7 @@ Use aws-vault, aws-auth, passwordstore, or something to export environment varia
 To create a TLS cert for your app, the easiest way is to use our provided [docker-compose.yml](docker-compose.yml)
 and [Dockerfile](Dockerfile).
 
-1. First make sure you followed [#how-do-i-run-these-scripts-using-docker](these instructions), so that environment
+1. First make sure you followed [these instructions](#how-do-i-run-these-scripts-using-docker), so that environment
 variables are set, and Docker is running.
 1. Run the following command (which calls [create-tls-cert.sh](create-tls-cert.sh)):
     ```sh
@@ -186,10 +190,10 @@ variables are set, and Docker is running.
     --kms-key-id alias/test-key \ # change this to be correct
     --aws-region us-east-1 # change this to be correct
     ```
-You'll notice that you need to pass in the correct KMS key id in `--kms-key-id`, and the region where it's located in `--aws-region`.
-_We highly recommend including these two options, so that you don't have an unencrypted private key on your system._
-By providing both `--kms-key-id` and `--aws-region`, the script will automatically encrypt the private key, save it as
-`my-app.key.pem.kms.encrypted`, and delete the unencrypted key, `my-app.key.pem`.
+    You'll notice that you need to pass in the correct KMS key id in `--kms-key-id`, and the region where it's located in `--aws-region`.
+    _We highly recommend including these two options, so that you don't have an unencrypted private key on your system._
+    By providing both `--kms-key-id` and `--aws-region`, the script will automatically encrypt the private key, save it as
+    `my-app.key.pem.kms.encrypted`, and delete the unencrypted key, `my-app.key.pem`.
 1. After running that command, the generated cert files will be located on your local machine here: `tmp/tls/`. That is, in the same
 directory as this module, within a new `tmp` folder.
 
@@ -218,13 +222,13 @@ docker-compose run tls \
 
 The certificate is uploaded to IAM as a Server Certificate, which cannot be managed using the AWS Console UI.
 You must use the AWS API to upload, update, and delete these certs! If you need to list, rename, or delete them,
-consult the [https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_server-certs.html](AWS API guide for Server Certificate management).
+consult the [AWS API guide for Server Certificate management](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_server-certs.html).
 
 [back to readme](README.adoc#running)
 
 ## How do I download CA public keys for validating RDS TLS connections?
 
-1. First make sure you followed [#how-do-i-run-these-scripts-using-docker](these instructions), so that environment
+1. First make sure you followed [these instructions](#how-do-i-run-these-scripts-using-docker), so that environment
 variables are set, and Docker is running.
 1. Run the following command (which calls [download-rds-ca-certs.sh](download-rds-ca-certs.sh)):
     ```sh
@@ -236,7 +240,7 @@ variables are set, and Docker is running.
 
 ## How do I generate key stores and trust stores to manage TLS certificates for JVM apps?
 
-1. First make sure you followed [#how-do-i-run-these-scripts-using-docker](these instructions), so that environment
+1. First make sure you followed [these instructions](#how-do-i-run-these-scripts-using-docker), so that environment
 variables are set, and Docker is running.
 1. Run the following command (which calls [generate-trust-stores.sh](generate-trust-stores.sh)):
     ```sh
@@ -263,7 +267,7 @@ variables are set, and Docker is running.
 ## How do I test these scripts using Docker?
 
 ### Setup
-1. First make sure you followed [#how-do-i-run-these-scripts-using-docker](these instructions), so that environment
+1. First make sure you followed [these instructions](#how-do-i-run-these-scripts-using-docker), so that environment
 variables are set, and Docker is running.
 1. Run `export TLS_SCRIPTS_KMS_KEY_ID=[your-key-name]`, setting it to the ID of the CMK to use for encryption.
 This value can be a globally unique identifier (e.g. 12345678-1234-1234-1234-123456789012), a fully specified ARN
