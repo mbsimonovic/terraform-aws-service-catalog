@@ -166,10 +166,8 @@ also export your `AWS_SESSION_TOKEN`.
 
 Now you're ready to run the scripts via Docker.
 
-<!--- TODO Give advice -->
-Link to blog post on how to authenticate to AWS.
-Do not use the `~/.aws/credentials` file.
-Use aws-vault, aws-auth, passwordstore, or something to export environment variables.
+_NOTE: Read [this guide](https://blog.gruntwork.io/authenticating-to-aws-with-environment-variables-e793d6f6d02e)_
+_for how to authenticate to AWS with environment variables._
 
 [back to readme](README.adoc#running)
 
@@ -289,12 +287,14 @@ This value can be a globally unique identifier (e.g. 12345678-1234-1234-1234-123
 
 ## How do I use these certs with my apps?
 
-(e.g., passing the public and private key to a Node app)
+Instructions to come soon!
+<!-- TODO: (e.g., passing the public and private key to a Node app) -->
 
 [back to readme](README.adoc#operate)
 
 ## How do I talk to other apps that are listening with certs?
 
-(i.e., by using the CA public key to validate the connection)
+Instructions to come soon!
+<!-- TODO: (i.e., by using the CA public key to validate the connection) -->
 
 [back to readme](README.adoc#operate)

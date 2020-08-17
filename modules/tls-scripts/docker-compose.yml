@@ -12,8 +12,6 @@ services:
       - AWS_SESSION_TOKEN
     volumes:
       - ./tmp:/tmp
-      # TODO: remove
-      - .:/scripts # only for development
   rds:
     build:
       context: .
@@ -22,8 +20,6 @@ services:
     entrypoint: /scripts/download-rds-ca-certs.sh
     volumes:
       - ./tmp:/tmp
-      # TODO: remove
-      - .:/scripts # only for development
   trust-stores:
     build:
       context: .
@@ -36,5 +32,3 @@ services:
       - AWS_SESSION_TOKEN
     volumes:
       - ./tmp:/tmp
-      # TODO: remove
-      - .:/scripts # only for development
