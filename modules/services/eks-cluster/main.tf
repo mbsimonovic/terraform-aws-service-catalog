@@ -66,9 +66,10 @@ module "eks_cluster" {
   vpc_master_subnet_ids        = var.control_plane_vpc_subnet_ids
   endpoint_public_access_cidrs = var.allow_inbound_api_access_from_cidr_blocks
 
-  enabled_cluster_log_types = var.enabled_control_plane_log_types
-  kubernetes_version        = var.kubernetes_version
-  endpoint_public_access    = var.endpoint_public_access
+  enabled_cluster_log_types              = var.enabled_control_plane_log_types
+  kubernetes_version                     = var.kubernetes_version
+  endpoint_public_access                 = var.endpoint_public_access
+  secret_envelope_encryption_kms_key_arn = var.secret_envelope_encryption_kms_key_arn
 
   # Options for configuring control plane services on Fargate
   schedule_control_plane_services_on_fargate = var.schedule_control_plane_services_on_fargate
