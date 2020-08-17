@@ -23,6 +23,11 @@ if [[ -z $AWS_ACCESS_KEY_ID ]] || [[ -z $AWS_SECRET_ACCESS_KEY ]]; then
   exit 1
 fi
 
+if [[ -z $UID ]]; then
+  echo "ERROR: UID is not set."
+  exit 1
+fi
+
 readonly script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$script_dir/helpers.sh"
 
@@ -169,6 +174,7 @@ function move_files {
 
   log "Moving generated files to ${TLS_PATH}"
   mkdir -p "${TLS_PATH}/"
+  chown "${UID}:${UID}" "${TLS_PATH}"
 
   if [[ -z $kms_key_id ]] || [[ -z $aws_region ]]; then
     mv "${VAULT_TLS_MODULE_PATH}/$ca_public_key_path" "${VAULT_TLS_MODULE_PATH}/$cert_public_key_path" "${VAULT_TLS_MODULE_PATH}/$cert_private_key_path" "${TLS_PATH}/"

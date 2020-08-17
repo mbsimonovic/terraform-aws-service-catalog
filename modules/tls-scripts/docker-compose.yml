@@ -10,6 +10,7 @@ services:
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
       - AWS_SESSION_TOKEN
+      - UID
     volumes:
       - ./tmp:/tmp
       # TODO: remove
@@ -20,6 +21,8 @@ services:
       args:
         - GITHUB_OAUTH_TOKEN
     entrypoint: /scripts/download-rds-ca-certs.sh
+    environment:
+      - UID
     volumes:
       - ./tmp:/tmp
       # TODO: remove
@@ -34,6 +37,7 @@ services:
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
       - AWS_SESSION_TOKEN
+      - UID
     volumes:
       - ./tmp:/tmp
       # TODO: remove
