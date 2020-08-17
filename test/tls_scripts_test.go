@@ -10,6 +10,7 @@ import (
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/docker"
 	"github.com/gruntwork-io/terratest/modules/random"
+	"github.com/gruntwork-io/terratest/modules/shell"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 
 	"github.com/stretchr/testify/require"
@@ -109,6 +110,17 @@ func TestTlsScripts(t *testing.T) {
 				}
 			},
 			func() {
+				// Because CircleCI runs this test as root, the output folders cannot be cleaned up
+				// as the test/circleci user. Therefore we have to sudo chown that directory.
+				cmd := shell.Command{
+					Command: "sudo chown",
+					Args: []string{
+						"-R",
+						fmt.Sprintf("%d:%d", os.Getuid(), os.Getuid()),
+						filepath.Join(scriptsDir, tmpBaseDir),
+					},
+				}
+				shell.RunCommand(t, cmd)
 				os.RemoveAll(filepath.Join(scriptsDir, createTLSDir))
 
 				// Remove server certificate from IAM
