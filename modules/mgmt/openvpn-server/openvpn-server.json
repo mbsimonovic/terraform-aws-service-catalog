@@ -6,6 +6,7 @@
     "ami_name": "openvpn-server",
     "github_auth_token": "{{env `GITHUB_OAUTH_TOKEN`}}",
     "encrypt_boot": "false",
+    "encrypt_kms_key_id": "",
     "vpc_filter_key": "isDefault",
     "vpc_filter_value": "true",
     "vpc_subnet_filter_key": "default-for-az",
@@ -50,6 +51,7 @@
     },
     "ssh_username": "ubuntu",
     "encrypt_boot": "{{user `encrypt_boot`}}",
+    "kms_key_id": "{{user `encrypt_kms_key_id`}}",
     "ami_users": "{{user `ami_users`}}",
     "ami_regions": "{{user `copy_to_regions`}}",
     "tags": {
