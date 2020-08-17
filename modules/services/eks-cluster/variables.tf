@@ -193,7 +193,7 @@ variable "tenancy" {
 variable "kubernetes_version" {
   description = "Version of Kubernetes to use. Refer to EKS docs for list of available versions (https://docs.aws.amazon.com/eks/latest/userguide/platform-versions.html)."
   type        = string
-  default     = "1.15"
+  default     = "1.17"
 }
 
 variable "endpoint_public_access" {
