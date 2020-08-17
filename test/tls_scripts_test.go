@@ -10,6 +10,7 @@ import (
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/docker"
 	"github.com/gruntwork-io/terratest/modules/random"
+	"github.com/gruntwork-io/terratest/modules/shell"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 
 	"github.com/stretchr/testify/require"
@@ -38,30 +39,18 @@ func TestTlsScripts(t *testing.T) {
 	requireEnvVar(t, "TLS_SCRIPTS_AWS_REGION")
 
 	scriptsDir := "../modules/tls-scripts"
-	tmpBaseDir := "/tmp"
+	tmpBaseDir := "tmp"
 
 	// Download RDS CA Certs vars
 	downloadPath := filepath.Join(tmpBaseDir, "rds-cert")
 
 	// Create TLS Cert vars
-	certOutputDir := filepath.Join(tmpBaseDir, "tls")
+	createTLSDir := filepath.Join(tmpBaseDir, "tls")
 	createCertFiles := []string{"ca.crt.pem", "my-app.cert", "my-app.key.pem.kms.encrypted"}
 
 	// Generate Trust Stores vars
 	trustStoresDir := filepath.Join(tmpBaseDir, "trust-stores")
 	trustStoresFiles := []string{"kafka.server.ca.default.pem", "kafka.server.cert.default.pem", "keystore/kafka.server.keystore.default.jks", "truststore/kafka.server.truststore.default.jks"}
-
-	// Configure the tag to use on the Docker image.
-	tag := "gruntwork/tls-scripts-docker-image"
-	buildOptions := &docker.BuildOptions{
-		Tags: []string{tag},
-		BuildArgs: []string{
-			"GITHUB_OAUTH_TOKEN",
-		},
-	}
-
-	// Build the Docker image.
-	docker.Build(t, scriptsDir, buildOptions)
 
 	// This kmsKeyId is used for testing against Gruntwork's test account.
 	// You will have to change it to use a key available in your account.
@@ -85,52 +74,55 @@ func TestTlsScripts(t *testing.T) {
 				certNameInIam := fmt.Sprintf("tls-scripts-test-%s", random.UniqueId())
 				test_structure.SaveString(t, scriptsDir, "certNameInIam", certNameInIam)
 
-				// Run the Docker image.
-				runOpts := &docker.RunOptions{
-					Command: []string{
-						"create-tls-cert.sh",
-						"--ca-path",
-						"ca.crt.pem",
-						"--cert-path",
-						"my-app.cert",
-						"--key-path",
-						"my-app.key.pem",
-						"--company-name",
-						"Acme",
-						"--upload-to-iam",
-						"--cert-name-in-iam",
-						certNameInIam,
-						"--kms-key-id",
-						kmsKeyId,
-						"--aws-region",
-						awsRegion,
-					},
-					EnvironmentVariables: []string{
-						"AWS_ACCESS_KEY_ID",
-						"AWS_SECRET_ACCESS_KEY",
-						"AWS_SESSION_TOKEN", // only set if you're using temporary creds, mfa, etc
-					},
-
-					Volumes: []string{
-						fmt.Sprintf("%s:%s", tmpBaseDir, tmpBaseDir),
-					},
-				}
-
-				docker.Run(t, tag, runOpts)
+				docker.RunDockerCompose(
+					t,
+					&docker.Options{},
+					"-f",
+					filepath.Join(scriptsDir, "docker-compose.yml"),
+					"run",
+					"tls",
+					"--ca-path",
+					"ca.crt.pem",
+					"--cert-path",
+					"my-app.cert",
+					"--key-path",
+					"my-app.key.pem",
+					"--company-name",
+					"Acme",
+					"--upload-to-iam",
+					"--cert-name-in-iam",
+					certNameInIam,
+					"--kms-key-id",
+					kmsKeyId,
+					"--aws-region",
+					awsRegion,
+				)
 			},
 
 			func() {
 				for _, file := range createCertFiles {
 					require.FileExistsf(
 						t,
-						filepath.Join(certOutputDir, file),
+						filepath.Join(scriptsDir, createTLSDir, file),
 						"Error Validating Create TLS Cert %s",
-						filepath.Join(certOutputDir, file),
+						filepath.Join(scriptsDir, createTLSDir, file),
 					)
 				}
 			},
 			func() {
-				os.RemoveAll(certOutputDir)
+				// Because CircleCI runs this test as root, the output folders cannot be cleaned up
+				// as the test/circleci user. Therefore we have to sudo chown that directory.
+				cmd := shell.Command{
+					Command: "sudo",
+					Args: []string{
+						"chown",
+						"-R",
+						fmt.Sprintf("%d:%d", os.Getuid(), os.Getuid()),
+						filepath.Join(scriptsDir, tmpBaseDir),
+					},
+				}
+				shell.RunCommand(t, cmd)
+				os.RemoveAll(filepath.Join(scriptsDir, createTLSDir))
 
 				// Remove server certificate from IAM
 				certNameInIam := test_structure.LoadString(t, scriptsDir, "certNameInIam")
@@ -145,84 +137,72 @@ func TestTlsScripts(t *testing.T) {
 		{
 			"DownloadRdsCaCert",
 			func() {
-				// Run the Docker image.
-				runOpts := &docker.RunOptions{
-					Command: []string{
-						"download-rds-ca-certs.sh",
-						downloadPath,
-					},
-					Volumes: []string{
-						fmt.Sprintf("%s:%s", tmpBaseDir, tmpBaseDir),
-					},
-				}
-
-				docker.Run(t, tag, runOpts)
-			},
-			func() {
-				require.FileExistsf(
+				docker.RunDockerCompose(
 					t,
-					downloadPath,
-					"Error Validating Download RDS CA Cert %s",
+					&docker.Options{},
+					"-f",
+					filepath.Join(scriptsDir, "docker-compose.yml"),
+					"run",
+					"rds",
 					downloadPath,
 				)
 			},
 			func() {
-				os.RemoveAll(downloadPath)
+				require.FileExistsf(
+					t,
+					filepath.Join(scriptsDir, downloadPath),
+					"Error Validating Download RDS CA Cert %s",
+					filepath.Join(scriptsDir, downloadPath),
+				)
+			},
+			func() {
+				os.RemoveAll(filepath.Join(scriptsDir, downloadPath))
 			},
 		},
 		{
 			"GenerateTrustStores",
 			func() {
-				// Run the Docker image.
-				runOpts := &docker.RunOptions{
-					Command: []string{
-						"generate-trust-stores.sh",
-						"--keystore-name",
-						"kafka",
-						"--store-path",
-						trustStoresDir,
-						"--vpc-name",
-						"default",
-						"--company-name",
-						"Acme",
-						"--company-org-unit",
-						"IT",
-						"--company-city",
-						"Phoenix",
-						"--company-state",
-						"AZ",
-						"--company-country",
-						"US",
-						"--kms-key-id",
-						kmsKeyId,
-						"--aws-region",
-						awsRegion,
-					},
-					EnvironmentVariables: []string{
-						"AWS_ACCESS_KEY_ID",
-						"AWS_SECRET_ACCESS_KEY",
-						"AWS_SESSION_TOKEN", // only set if you're using temporary creds, mfa, etc
-					},
-
-					Volumes: []string{
-						fmt.Sprintf("%s:%s", tmpBaseDir, tmpBaseDir),
-					},
-				}
-
-				docker.Run(t, tag, runOpts)
+				docker.RunDockerCompose(
+					t,
+					&docker.Options{},
+					"-f",
+					filepath.Join(scriptsDir, "docker-compose.yml"),
+					"run",
+					"trust-stores",
+					"--keystore-name",
+					"kafka",
+					"--store-path",
+					trustStoresDir,
+					"--vpc-name",
+					"default",
+					"--company-name",
+					"Acme",
+					"--company-org-unit",
+					"IT",
+					"--company-city",
+					"Phoenix",
+					"--company-state",
+					"AZ",
+					"--company-country",
+					"US",
+					"--kms-key-id",
+					kmsKeyId,
+					"--aws-region",
+					awsRegion,
+				)
 			},
 			func() {
 				for _, file := range trustStoresFiles {
 					require.FileExistsf(
 						t,
-						fmt.Sprintf("%s/%s", trustStoresDir, file),
+						filepath.Join(scriptsDir, trustStoresDir, file),
 						"Error Validating Generate Trust Stores %s",
-						fmt.Sprintf("%s/%s", trustStoresDir, file),
+						filepath.Join(scriptsDir, trustStoresDir, file),
 					)
 				}
 			},
 			func() {
-				os.RemoveAll(trustStoresDir)
+				os.RemoveAll(filepath.Join(scriptsDir, trustStoresDir))
 			},
 		},
 	}
