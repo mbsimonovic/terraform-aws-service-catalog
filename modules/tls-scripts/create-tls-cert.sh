@@ -174,7 +174,8 @@ function move_files {
 
   log "Moving generated files to ${TLS_PATH}"
   mkdir -p "${TLS_PATH}/"
-  chown "${UID}:${UID}" "${TLS_PATH}"
+  log "UID is ${UID}"
+#  chown "${UID}:${UID}" "${TLS_PATH}"
 
   if [[ -z $kms_key_id ]] || [[ -z $aws_region ]]; then
     mv "${VAULT_TLS_MODULE_PATH}/$ca_public_key_path" "${VAULT_TLS_MODULE_PATH}/$cert_public_key_path" "${VAULT_TLS_MODULE_PATH}/$cert_private_key_path" "${TLS_PATH}/"
