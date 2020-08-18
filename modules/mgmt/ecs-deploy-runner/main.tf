@@ -23,7 +23,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_deploy_runner" {
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner?ref=v0.25.1"
+  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner?ref=v0.26.0"
 
   name                          = var.name
   container_images              = module.standard_config.container_images
@@ -40,7 +40,7 @@ module "ecs_deploy_runner" {
 }
 
 module "standard_config" {
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner-standard-configuration?ref=v0.24.1"
+  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner-standard-configuration?ref=v0.26.0"
 
   docker_image_builder = (
     var.docker_image_builder_config != null
@@ -304,11 +304,103 @@ data "aws_iam_policy_document" "terraform_applier" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
+# CREATE KMS GRANTS TO ALLOW RESPECTIVE CONTAINERS FOR SNAPSHOTS
+# Creates the following grants for each snapshot encryption key:
+# - ami-builder
+#     - Encrypt
+#     - Decrypt
+#     - ReEncryptFrom
+#     - ReEncryptTo
+#     - GenerateDataKey
+#     - GenerateDataKeyWithoutPlaintext
+#     - DescribeKey
+#     - CreateGrant
+# - terraform-applier
+#     - Encrypt
+#     - Decrypt
+#     - ReEncryptFrom
+#     - ReEncryptTo
+#     - GenerateDataKey
+#     - GenerateDataKeyWithoutPlaintext
+#     - DescribeKey
+#     - CreateGrant
+#
+# See https://docs.aws.amazon.com/autoscaling/ec2/userguide/key-policy-requirements-EBS-encryption.html for more
+# details.
+# ---------------------------------------------------------------------------------------------------------------------
+
+module "kms_grants" {
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-grant-multi-region?ref=yori-manage-grants"
+
+  seed_region       = data.aws_region.current.name
+  kms_grant_regions = local.kms_grant_regions
+  kms_grants        = local.kms_grants
+}
+
+locals {
+  key_use_actions = [
+    "Encrypt",
+    "Decrypt",
+    "ReEncryptFrom",
+    "ReEncryptTo",
+    "GenerateDataKey",
+    "GenerateDataKeyWithoutPlaintext",
+    "DescribeKey",
+    "CreateGrant",
+  ]
+
+  ami_builder_kms_grant_regions = (
+    var.ami_builder_config != null
+    ? {
+      for name, cmk_arn in var.snapshot_encryption_kms_cmk_arns :
+      "ami-builder-${name}" => regex("arn:[^:]*:[^:]*:([^:]+):.+", cmk_arn)[1]
+    }
+    : {}
+  )
+  ami_builder_kms_grants = (
+    var.ami_builder_config != null
+    ? {
+      for name, cmk_arn in var.snapshot_encryption_kms_cmk_arns :
+      "ami-builder-${name}" => {
+        kms_cmk_arn        = cmk_arn
+        grantee_principal  = module.ecs_deploy_runner.ecs_task_iam_roles["ami-builder"].name
+        granted_operations = local.key_use_actions
+      }
+    }
+    : {}
+  )
+
+  terraform_applier_kms_grant_regions = (
+    var.terraform_applier_config != null
+    ? {
+      for name, cmk_arn in var.snapshot_encryption_kms_cmk_arns :
+      "terraform-applier-${name}" => regex("arn:[^:]*:[^:]*:([^:]+):.+", cmk_arn)[1]
+    }
+    : {}
+  )
+  terraform_applier_kms_grants = (
+    var.terraform_applier_config != null
+    ? {
+      for name, cmk_arn in var.snapshot_encryption_kms_cmk_arns :
+      "terraform-applier-${name}" => {
+        kms_cmk_arn        = cmk_arn
+        grantee_principal  = module.ecs_deploy_runner.ecs_task_iam_roles["terraform-applier"].name
+        granted_operations = local.key_use_actions
+      }
+    }
+    : {}
+  )
+
+  kms_grant_regions = merge(local.ami_builder_kms_grant_regions, local.terraform_applier_kms_grant_regions)
+  kms_grants        = merge(local.ami_builder_kms_grants, local.terraform_applier_kms_grants)
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
 # CREATE IAM POLICY WITH PERMISSIONS TO INVOKE THE ECS DEPLOY RUNNER ATTACH TO IAM ENTITIES
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "invoke_policy" {
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner-invoke-iam-policy?ref=master"
+  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner-invoke-iam-policy?ref=v0.26.0"
 
   name                                      = "invoke-${var.name}"
   deploy_runner_invoker_lambda_function_arn = module.ecs_deploy_runner.invoker_function_arn

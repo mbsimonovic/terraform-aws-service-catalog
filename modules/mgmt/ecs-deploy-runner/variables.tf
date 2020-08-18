@@ -289,6 +289,12 @@ variable "iam_groups" {
   default     = []
 }
 
+variable "snapshot_encryption_kms_cmk_arns" {
+  description = "Map of names to ARNs of KMS CMKs that are used to encrypt snapshots (including AMIs). This module will create the necessary KMS key grants to allow the respective deploy containers access to utilize the keys for managing the encrypted snapshots. The keys are arbitrary names that are used to identify the key."
+  type        = map(string)
+  default     = {}
+}
+
 variable "container_cpu" {
   description = "The default CPU units for the instances that Fargate will spin up. The invoker allows users to override the CPU at run time, but this value will be used if the user provides no value for the CPU. Options here: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate.html#fargate-tasks-size."
   type        = number
