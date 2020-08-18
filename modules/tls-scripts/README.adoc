@@ -1,0 +1,100 @@
+:type: module
+:name: TLS Scripts
+:description: Create TLS certificates, download CA certs for RDS, and generate JVM trust stores.
+:icon: /_docs/tls-icon.png
+:category: tools
+:cloud: aws
+:tags: TLS, SSL, certificates, certificate authority, trust store, key store
+:license: gruntwork
+:built-with: terraform, bash, docker
+
+// AsciiDoc TOC settings
+:toc:
+:toc-placement!:
+:toc-title:
+
+// GitHub specific settings. See https://gist.github.com/dcode/0cfbf2699a1fe9b46ff04c41721dda74 for details.
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+
+= TLS Scripts
+
+image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
+image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
+
+This folder contains scripts that simplify the process of creating and managing TLS certificates, JVM key stores and trust stores, and RDS CA certificates.
+
+toc::[]
+
+== Features
+
+Bash scripts that simplify working with TLS certificates. You will typically only need
+these scripts to configure end-to-end encryption in your Reference Architecture.
+
+* Simplify creating self-signed TLS certificates
+* Encrypt TLS certificates using KMS
+* Upload TLS certificates to AWS for use with ELBs
+* Download CA public keys for validating RDS TLS connections
+* Simplify creating key stores and trust stores to manage TLS certificates for JVM apps
+* Run from a Docker container so you don't need to install any dependencies locally
+
+== Learn
+
+NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog/[Gruntwork Service Catalog], a collection of
+reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
+sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/[How to use the Gruntwork
+Service Catalog]!
+
+=== About TLS
+* link:core-concepts.md#how-does-tlsssl-work[How does TLS/SSL work?]
+* link:core-concepts.md#what-are-commercial-or-public-certificate-authorities[What are commercial or public Certificate Authorities?]
+* link:core-concepts.md#how-does-gruntwork-generate-a-tls-cert-for-private-services[How does Gruntwork generate a TLS cert for private services?]
+
+=== About the scripts specifically
+* link:core-concepts.md#how-does-create-tls-cert-work[How does create-tls-cert work?]
+* link:core-concepts.md#how-does-download-rds-ca-certs-work[How does download-rds-ca-certs work?]
+* link:core-concepts.md#how-does-generate-trust-stores-work[How does generate-trust-stores work?]
+
+== Deploy
+
+=== Running
+* link:core-concepts.md#how-do-i-run-these-scripts-using-docker[How do I run these scripts using Docker?]
+* link:core-concepts.md#how-do-i-create-tls-certs[How do I create TLS certs?]
+* link:core-concepts.md#how-do-i-download-CA-public-keys-for-validating-rds-tls-connections[How do I download CA public keys for validating RDS TLS connections?]
+* link:core-concepts.md#how-do-i-generate-key-stores-and-trust-stores-to-manage-tls-certificates-for-jvm-apps[How do I generate key stores and trust stores to manage TLS certificates for JVM apps?]
+
+=== Testing
+* link:core-concepts.md#how-do-i-test-these-scripts-using-docker[How do I test these scripts using Docker?]
+
+== Operate
+
+* link:core-concepts.md#how-do-i-use-these-certs-with-my-apps[How do I use these certs with my apps?]
+* link:core-concepts.md#how-do-i-talk-to-other-apps-that-are-listening-with-certs[How do I talk to other apps that are listening with certs?]
+
+== Support
+
+If you need help with this repo or anything else related to infrastructure or DevOps, Gruntwork offers
+https://gruntwork.io/support/[Commercial Support] via Slack, email, and phone/video. If you're already a Gruntwork
+customer, hop on Slack and ask away! If not, https://www.gruntwork.io/pricing/[subscribe now]. If you're not sure,
+feel free to email us at link:mailto:support@gruntwork.io[support@gruntwork.io].
+
+
+== Contributions
+
+Contributions to this repo are very welcome and appreciated! If you find a bug or want to add a new feature or even
+contribute an entirely new module, we are very happy to accept pull requests, provide feedback, and run your changes
+through our automated test suite.
+
+Please see
+https://gruntwork.io/guides/foundations/how-to-use-gruntwork-infrastructure-as-code-library#_contributing_to_the_gruntwork_infrastructure_as_code_library[Contributing to the Gruntwork Service Catalog]
+for instructions.
+
+
+== License
+
+Please see link:/LICENSE.txt[LICENSE.txt] for details on how the code in this repo is licensed.
