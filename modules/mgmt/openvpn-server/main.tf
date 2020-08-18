@@ -97,7 +97,7 @@ locals {
 
   kms_key_arn                = var.kms_key_arn != null ? var.kms_key_arn : module.kms_cmk.key_arn[var.name]
   cmk_administrator_iam_arns = length(var.cmk_administrator_iam_arns) == 0 ? [data.aws_caller_identity.current.arn] : var.cmk_administrator_iam_arns
-  cmk_user_iam_arns          = length(var.cmk_user_iam_arns) == 0 ? [data.aws_caller_identity.current.arn] : var.cmk_user_iam_arns
+  cmk_user_iam_arns          = length(var.cmk_user_iam_arns) == 0 ? [{ name = data.aws_caller_identity.current.arn, conditions = [] }] : var.cmk_user_iam_arns
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -106,7 +106,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "kms_cmk" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-master-key?ref=v0.32.0"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-master-key?ref=v0.35.0"
   customer_master_keys = (
     var.kms_key_arn == null
     ? {

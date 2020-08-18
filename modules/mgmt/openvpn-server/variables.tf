@@ -101,9 +101,16 @@ variable "cmk_administrator_iam_arns" {
 }
 
 variable "cmk_user_iam_arns" {
-  description = "A list of IAM ARNs for users who should be given permissions to use this CMK (e.g.  arn:aws:iam::<aws-account-id>:user/<iam-user-arn>). If this list is empty, and var.kms_key_arn is null, the ARN of the current user will be used."
-  type        = list(string)
-  default     = []
+  description = "A list of IAM ARNs for users who should be given permissions to use this KMS Master Key (e.g. arn:aws:iam::1234567890:user/foo)."
+  type = list(object({
+    name = list(string)
+    conditions = list(object({
+      test     = string
+      variable = string
+      values   = list(string)
+    }))
+  }))
+  default = []
 }
 
 variable "cmk_external_user_iam_arns" {
