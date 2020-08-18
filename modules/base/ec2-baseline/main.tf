@@ -1,7 +1,6 @@
-
 # ---------------------------------------------------------------------------------------------------------------------
 # GIVE SSH-GRUNT PERMISSIONS TO TALK TO IAM
-# We add an IAM policy to our bastion host that allows ssh-grunt to make API calls to IAM to fetch IAM user and group
+# We add an IAM policy that allows ssh-grunt to make API calls to IAM to fetch IAM user and group
 # data.
 # ---------------------------------------------------------------------------------------------------------------------
 
@@ -15,8 +14,9 @@ module "ssh_grunt_policies" {
   trust_policy_should_require_mfa = false
 
   # Since our IAM users are defined in a separate AWS account, we need to give ssh-grunt permission to make API calls to
-  # that account.
-  allow_access_to_other_account_arns = var.external_account_ssh_grunt_role_arn == "" ? [] : [var.external_account_ssh_grunt_role_arn]
+  # that account. The input takes a map with group name as the key, but the key is only used in the output. In this case, 
+  # we won't use the output, so the "ssh-grunt" key is just a placeholder.
+  allow_access_to_other_account_arns = var.external_account_ssh_grunt_role_arn == "" ? {} : { "ssh-grunt" = [var.external_account_ssh_grunt_role_arn] }
 }
 
 resource "aws_iam_role_policy" "ssh_grunt_permissions" {
