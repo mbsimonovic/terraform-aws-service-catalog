@@ -60,9 +60,9 @@ variable "vpc_id" {
   type        = string
 }
 
-variable "subnet_id" {
-  description = "The ID of the subnet in which to deploy the OpenVPN server. Must be a subnet in var.vpc_id."
-  type        = string
+variable "subnet_ids" {
+  description = "The ids of the subnets where this server should be deployed."
+  type        = list(string)
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

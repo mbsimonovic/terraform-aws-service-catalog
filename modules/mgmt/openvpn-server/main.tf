@@ -44,8 +44,8 @@ module "openvpn" {
   kms_key_arn        = local.kms_key_arn
   backup_bucket_name = var.backup_bucket_name
 
-  vpc_id    = var.vpc_id
-  subnet_id = var.subnet_id
+  vpc_id     = var.vpc_id
+  subnet_ids = var.subnet_ids
 
   external_account_arns = var.external_account_arns
 
