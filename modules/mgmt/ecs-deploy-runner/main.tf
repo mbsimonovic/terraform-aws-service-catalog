@@ -332,6 +332,7 @@ data "aws_iam_policy_document" "terraform_applier" {
 module "kms_grants" {
   source = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-grant-multi-region?ref=yori-manage-grants"
 
+  aws_account_id    = data.aws_caller_identity.current.account_id
   seed_region       = data.aws_region.current.name
   kms_grant_regions = local.kms_grant_regions
   kms_grants        = local.kms_grants
@@ -432,3 +433,5 @@ resource "aws_iam_group_policy_attachment" "attach_invoke_to_groups" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 data "aws_region" "current" {}
+
+data "aws_caller_identity" "current" {}
