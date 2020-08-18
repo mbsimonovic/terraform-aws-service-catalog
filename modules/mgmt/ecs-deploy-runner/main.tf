@@ -359,7 +359,7 @@ locals {
     var.ami_builder_config != null
     ? {
       for name, cmk_arn in var.snapshot_encryption_kms_cmk_arns :
-      "ami-builder-${name}" => regex("arn:[^:]*:[^:]*:([^:]+):.+", cmk_arn)[1]
+      "ami-builder-${name}" => regex("arn:[^:]*:[^:]*:([^:]+):.+", cmk_arn)[0]
     }
     : {}
   )
@@ -380,7 +380,7 @@ locals {
     var.terraform_applier_config != null
     ? {
       for name, cmk_arn in var.snapshot_encryption_kms_cmk_arns :
-      "terraform-applier-${name}" => regex("arn:[^:]*:[^:]*:([^:]+):.+", cmk_arn)[1]
+      "terraform-applier-${name}" => regex("arn:[^:]*:[^:]*:([^:]+):.+", cmk_arn)[0]
     }
     : {}
   )
