@@ -701,3 +701,21 @@ variable "cloudtrail_kms_key_arn" {
   default     = null
 }
 
+variable "kms_grants" {
+  description = "Create the specified KMS grants to allow entities to use the KMS key without modifying the KMS policy or IAM. This is necessary to allow AWS services (e.g. ASG) to use CMKs encrypt and decrypt resources. The input is a map of grant name to grant properties. The name must be unique per account."
+  type = map(object({
+    # ARN of the KMS CMK that the grant applies to. Note that the region is introspected based on the ARN.
+    kms_cmk_arn = string
+
+    # The principal that is given permission to perform the operations that the grant permits. This must be in ARN
+    # format. For example, the grantee principal for ASG is:
+    # arn:aws:iam::111122223333:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling
+    grantee_principal = string
+
+    # A list of operations that the grant permits. The permitted values are:
+    # Decrypt, Encrypt, GenerateDataKey, GenerateDataKeyWithoutPlaintext, ReEncryptFrom, ReEncryptTo, CreateGrant,
+    # RetireGrant, DescribeKey
+    granted_operations = list(string)
+  }))
+  default = {}
+}
