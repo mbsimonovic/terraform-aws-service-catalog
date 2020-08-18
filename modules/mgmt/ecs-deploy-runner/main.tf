@@ -369,7 +369,7 @@ locals {
       for name, cmk_arn in var.snapshot_encryption_kms_cmk_arns :
       "ami-builder-${name}" => {
         kms_cmk_arn        = cmk_arn
-        grantee_principal  = module.ecs_deploy_runner.ecs_task_iam_roles["ami-builder"].name
+        grantee_principal  = module.ecs_deploy_runner.ecs_task_iam_roles["ami-builder"].arn
         granted_operations = local.key_use_actions
       }
     }
@@ -390,7 +390,7 @@ locals {
       for name, cmk_arn in var.snapshot_encryption_kms_cmk_arns :
       "terraform-applier-${name}" => {
         kms_cmk_arn        = cmk_arn
-        grantee_principal  = module.ecs_deploy_runner.ecs_task_iam_roles["terraform-applier"].name
+        grantee_principal  = module.ecs_deploy_runner.ecs_task_iam_roles["terraform-applier"].arn
         granted_operations = local.key_use_actions
       }
     }
