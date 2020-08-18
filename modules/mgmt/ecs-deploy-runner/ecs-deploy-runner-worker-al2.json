@@ -22,7 +22,7 @@
   },
   "sensitive-variables": ["github_auth_token"],
   "builders": [{
-    "ami_name": "{{user `ami_name`}}-{{isotime | clean_resource_name}}",
+    "ami_name": "{{user `ami_name`}}-{{user `version_tag`}}-{{isotime | clean_resource_name}}",
     "ami_description": "An AL2 ECS Optimized AMI that is meant to be run as an EC2 worker for ECS deploy runner.",
     "region": "{{user `aws_region`}}",
     "instance_type": "t3.micro",
