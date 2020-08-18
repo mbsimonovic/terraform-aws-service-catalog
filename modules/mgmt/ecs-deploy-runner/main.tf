@@ -44,8 +44,9 @@ module "standard_config" {
 
   docker_image_builder = (
     var.docker_image_builder_config != null
-    ? { container_image = var.docker_image_builder_config.container_image
-      allowed_repos     = var.docker_image_builder_config.allowed_repos
+    ? {
+      container_image = var.docker_image_builder_config.container_image
+      allowed_repos   = var.docker_image_builder_config.allowed_repos
       secrets_manager_env_vars = merge(
         (
           var.docker_image_builder_config.git_config != null && var.docker_image_builder_config.git_config.username_secrets_manager_arn != null
@@ -63,6 +64,7 @@ module "standard_config" {
         ),
         var.docker_image_builder_config.secrets_manager_env_vars,
       )
+      environment_vars = var.docker_image_builder_config.environment_vars
     }
     : null
   )
@@ -74,6 +76,7 @@ module "standard_config" {
       allowed_repos                           = var.ami_builder_config.allowed_repos
       repo_access_ssh_key_secrets_manager_arn = var.ami_builder_config.repo_access_ssh_key_secrets_manager_arn
       secrets_manager_env_vars                = var.ami_builder_config.secrets_manager_env_vars
+      environment_vars                        = var.ami_builder_config.environment_vars
     }
     : null
   )
@@ -89,6 +92,7 @@ module "standard_config" {
         },
         var.terraform_planner_config.secrets_manager_env_vars,
       )
+      environment_vars = var.terraform_planner_config.environment_vars
     }
     : null
   )
@@ -108,6 +112,7 @@ module "standard_config" {
         },
         var.terraform_applier_config.secrets_manager_env_vars,
       )
+      environment_vars = var.terraform_applier_config.environment_vars
     }
     : null
   )

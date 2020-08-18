@@ -80,6 +80,10 @@ variable "docker_image_builder_config" {
     # in the container that can then be passed through to the docker build if you pass in
     # `--build-arg GITHUB_OAUTH_TOKEN`.
     secrets_manager_env_vars = map(string)
+
+    # Map of environment variable names to values share with the container during runtime.
+    # Do NOT use this for sensitive variables! Use secrets_manager_env_vars for secrets.
+    environment_vars = map(string)
   })
 }
 
@@ -132,6 +136,10 @@ variable "ami_builder_config" {
     # Will inject the secret value stored in the secrets manager entry ARN_OF_PAT as the env var `GITHUB_OAUTH_TOKEN`
     # in the container that can then be passed through to the AMI via the `env` directive in the packer template.
     secrets_manager_env_vars = map(string)
+
+    # Map of environment variable names to values share with the container during runtime.
+    # Do NOT use this for sensitive variables! Use secrets_manager_env_vars for secrets.
+    environment_vars = map(string)
   })
 }
 
@@ -186,6 +194,10 @@ variable "terraform_planner_config" {
     # Will inject the secret value stored in the secrets manager entry ARN_OF_PAT as the env var `GITHUB_OAUTH_TOKEN`
     # in the container that can then be accessed through terraform/terragrunt.
     secrets_manager_env_vars = map(string)
+
+    # Map of environment variable names to values share with the container during runtime.
+    # Do NOT use this for sensitive variables! Use secrets_manager_env_vars for secrets.
+    environment_vars = map(string)
   })
 }
 
@@ -257,6 +269,10 @@ variable "terraform_applier_config" {
     # Will inject the secret value stored in the secrets manager entry ARN_OF_PAT as the env var `GITHUB_OAUTH_TOKEN`
     # in the container that can then be accessed through terraform/terragrunt.
     secrets_manager_env_vars = map(string)
+
+    # Map of environment variable names to values share with the container during runtime.
+    # Do NOT use this for sensitive variables! Use secrets_manager_env_vars for secrets.
+    environment_vars = map(string)
   })
 }
 
