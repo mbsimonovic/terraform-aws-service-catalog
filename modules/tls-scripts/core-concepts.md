@@ -254,7 +254,7 @@ variables are set, and Docker is running.
     --kms-key-id alias/test-key \ # change this to be correct
     --aws-region us-east-1 # change this to be correct
     ```
-1. Check `tmp/ssl/` in the current directory for all your created files:
+1. Check `tmp/trust-stores/` in the current directory for all your created files:
 - `kafka.server.ca.default.pem`
 - `kafka.server.cert.default.pem`
 - `keystore/kafka.server.keystore.default.jks`
