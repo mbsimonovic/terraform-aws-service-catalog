@@ -165,14 +165,14 @@ module "auto_deploy_iam_policies" {
   iam_policy_should_require_mfa   = false
   trust_policy_should_require_mfa = false
 
-  allow_access_to_other_account_arns = var.external_account_auto_deploy_iam_role_arns
+  allow_access_to_other_account_arns = { "jenkins" = var.external_account_auto_deploy_iam_role_arns }
 }
 
 resource "aws_iam_role_policy" "deploy_other_account_permissions" {
   count  = length(var.external_account_auto_deploy_iam_role_arns) > 0 ? 1 : 0
   name   = "deploy-other-accounts-permissions"
   role   = module.jenkins.jenkins_iam_role_id
-  policy = module.auto_deploy_iam_policies.allow_access_to_all_other_accounts
+  policy = module.auto_deploy_iam_policies.allow_access_to_all_other_accounts["jenkins"]
 }
 
 

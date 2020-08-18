@@ -23,7 +23,7 @@ resource "aws_iam_role_policy" "ssh_grunt_permissions" {
   count  = var.enable_ssh_grunt ? 1 : 0
   name   = "ssh-grunt-permissions"
   role   = var.iam_role_name
-  policy = var.external_account_ssh_grunt_role_arn == "" ? module.ssh_grunt_policies.ssh_grunt_permissions : module.ssh_grunt_policies.allow_access_to_other_accounts[0]
+  policy = var.external_account_ssh_grunt_role_arn == "" ? module.ssh_grunt_policies.ssh_grunt_permissions : module.ssh_grunt_policies.allow_access_to_other_accounts["ssh-grunt"]
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
