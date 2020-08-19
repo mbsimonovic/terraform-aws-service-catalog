@@ -15,7 +15,7 @@ output "cluster_endpoint" {
 
 output "cluster_security_group_id" {
   description = "If the domain was created inside a VPC, the ID of the security group created by this module for securing the Elasticsearch cluster."
-  value       = length(aws_security_group.elasticsearch_cluster) > 0 ? aws_security_group.elasticsearch_cluster[0].id : 0
+  value       = length(aws_security_group.elasticsearch_cluster) > 0 ? aws_security_group.elasticsearch_cluster[0].id : null
 }
 
 output "kibana_endpoint" {
