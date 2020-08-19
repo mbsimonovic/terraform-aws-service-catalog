@@ -110,7 +110,14 @@ function start_ssh_grunt {
   sudo /usr/local/bin/ssh-grunt iam install "${args[@]}"
 
   # Restart sshd so that the changes to sshd_config to take effect
-  sudo /sbin/service sshd restart
+  # First try with systemctl (systemd), then with the service command
+  if [[ $(command -v "systemctl") ]]; then
+    systemctl restart sshd
+  elif [[ $(command -v "service") ]]; then
+    service sshd restart
+  else
+    echo "ERROR: Could not use systemctl or service to restart sshd."
+  fi
 }
 
 function start_fail2ban {
