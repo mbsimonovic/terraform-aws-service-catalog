@@ -325,7 +325,7 @@ variable "listener_arns" {
 }
 
 variable "default_forward_target_group_arns" {
-  description = "The ARN of the Target Group to which to route traffic. Required if using forward rules."
+  description = "The ARN of the Target Group to which to route traffic."
   type        = list(any)
   default     = []
 
