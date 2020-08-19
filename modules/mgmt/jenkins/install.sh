@@ -6,7 +6,7 @@ set -e
 readonly JENKINS_USER="jenkins"
 
 # Jenkins version
-readonly DEFAULT_JENKINS_VERSION="2.204.2"
+readonly DEFAULT_JENKINS_VERSION="2.235.5"
 
 # Gruntwork module versions
 readonly DEFAULT_MODULE_CI_VERSION="v0.25.0"
