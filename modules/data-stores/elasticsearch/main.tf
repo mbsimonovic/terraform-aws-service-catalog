@@ -69,12 +69,14 @@ resource "aws_elasticsearch_domain" "cluster" {
   advanced_options = var.advanced_options
 
   node_to_node_encryption {
-    enabled = true
+    enabled = var.enable_node_to_node_encryption
   }
 
   domain_endpoint_options {
-    enforce_https       = true
-    tls_security_policy = "Policy-Min-TLS-1-2-2019-07"
+    enforce_https = true
+
+    # Valid values are "Policy-Min-TLS-1-0-2019-07" and "Policy-Min-TLS-1-2-2019-07"
+    tls_security_policy = var.tls_security_policy
   }
 }
 

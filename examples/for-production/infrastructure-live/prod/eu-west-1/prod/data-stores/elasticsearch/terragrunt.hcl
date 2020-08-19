@@ -20,6 +20,22 @@ include {
   path = find_in_parent_folders()
 }
 
+# Pull in outputs from these modules to compute inputs. These modules will also be added to the dependency list for
+# xxx-all commands.
+# For each dependency, we also set mock outputs that can be used for running `validate-all` without having to apply the
+# underlying modules. Note that we only use this path for validation of the module, as using mock values for `plan-all`
+# can lead to unintended consequences.
+dependency "vpc" {
+  config_path = "../../networking/vpc"
+
+  mock_outputs = {
+    vpc_id                         = "mock-vpc-id"
+    private_app_subnet_cidr_blocks = ["1.2.3.4/24"]
+    private_persistence_subnet_ids = ["mock-subnet-1cb", "mock-subnet-0cd", "mock-subnet-d37"]
+  }
+  mock_outputs_allowed_terraform_commands = ["validate"]
+}
+
 # We set prevent destroy here to prevent accidentally deleting your company's data in case of overly ambitious use
 # of destroy or destroy-all. If you really want to run destroy on this module, remove this flag.
 prevent_destroy = true
@@ -30,13 +46,14 @@ prevent_destroy = true
 # ---------------------------------------------------------------------------------------------------------------------
 
 inputs = {
-
-  domain_name            = "aes-cluster"
+  domain_name            = "aws-es-cluster"
   instance_type          = "t2.small.elasticsearch"
   instance_count         = 2
   volume_type            = "standard"
   volume_size            = 10
   zone_awareness_enabled = true
-  vpc_id                 = "vpc-0e0d9a6b"
-  subnet_ids             = ["subnet-1cb53110", "subnet-0cd80b55", "subnet-d377c6a4"]
+
+  # We deploy Elasticsearch into the App VPC, inside the private persistence tier.
+  vpc_id     = dependency.vpc.outputs.vpc_id
+  subnet_ids = dependency.vpc.outputs.private_persistence_subnet_ids
 }

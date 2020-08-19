@@ -121,6 +121,18 @@ variable "advanced_options" {
   default     = {}
 }
 
+variable "enable_node_to_node_encryption" {
+  description = "Whether to enable node-to-node encryption. "
+  type        = bool
+  default     = true
+}
+
+variable "tls_security_policy" {
+  description = "The name of the TLS security policy that needs to be applied to the HTTPS endpoint. Valid values are Policy-Min-TLS-1-0-2019-07 and Policy-Min-TLS-1-2-2019-07. Terraform performs drift detection if this is configured."
+  type        = string
+  default     = "Policy-Min-TLS-1-2-2019-07"
+}
+
 variable "automated_snapshot_start_hour" {
   description = "Hour during which the service takes an automated daily snapshot of the indices in the domain. This setting has no effect on Elasticsearch 5.3 and later."
   type        = number

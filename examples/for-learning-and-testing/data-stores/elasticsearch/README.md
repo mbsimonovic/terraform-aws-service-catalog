@@ -1,4 +1,4 @@
-# Elasticsearch Cluster Example
+# Elasticsearch Cluster (VPC-based) Example
 
 This is an example of how to use the [elasticsearch module](/modules/data-stores/elasticsearch) to create an [Amazon Elasticsearch cluster](https://aws.amazon.com/elasticsearch-service/). This example is optimized for learning, experimenting, and testing (but not direct production usage).
 If you want to deploy this module directly in production, check out the [examples/for-production
@@ -20,13 +20,3 @@ folder](/examples/for-production).
 1. Run `terraform apply`.
 1. The module will output the endpoint URL, ARN, and domain ID of the Elasticsearch cluster. It will also create a security group and output its ID.
 1. When you're done testing, to undeploy everything, run `terraform destroy`.
-
-
-## How do you use this module?
-
-* See the [root README](/README.md) for instructions on using Terraform modules.
-
-
-## Core concepts
-To understand core concepts like what is Elasticsearch, connecting to the cluster, and scaling the cluster, see the
-[Elasticsearch documentation](https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/what-is-amazon-elasticsearch-service.html).
