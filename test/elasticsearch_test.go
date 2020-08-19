@@ -144,7 +144,7 @@ func validatePublicCluster(t *testing.T, testFolder string) {
 	terraform.OutputRequired(t, terraformOptions, "cluster_arn")
 	terraform.OutputRequired(t, terraformOptions, "cluster_domain_id")
 	endpoint := terraform.OutputRequired(t, terraformOptions, "cluster_endpoint")
-	terraform.OutputRequired(t, terraformOptions, "cluster_security_group_id")
+	require.Empty(t, terraform.Output(t, terraformOptions, "cluster_security_group_id"))
 
 	// A public cluster with IAM arns should reject unsigned requests
 	// and permit requests signed with the right credentials
