@@ -11,5 +11,5 @@ data "aws_subnet_ids" "default" {
 
 locals {
   # The ids param is a set, so to consistently extract the same item, we convert to a list and sort first.
-  openvpn_subnet = sort(tolist(data.aws_subnet_ids.default.ids))[0]
+  openvpn_subnets = sort(tolist(data.aws_subnet_ids.default.ids))
 }

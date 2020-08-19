@@ -36,8 +36,8 @@ module "openvpn" {
   enable_ssh_grunt = false
 
   # To keep this example simple, we run it in the default VPC and put everything in the same subnets.
-  vpc_id    = data.aws_vpc.default.id
-  subnet_id = local.openvpn_subnet
+  vpc_id     = data.aws_vpc.default.id
+  subnet_ids = local.openvpn_subnets
 
   # Configure a host name for the openvpn server
   create_route53_entry  = true
