@@ -98,10 +98,19 @@ locals {
   # Merge in all the cloud init scripts the user has passed in
   cloud_init_parts = merge({ default : local.cloud_init }, var.cloud_init_parts)
 
-  kms_key_arn                = var.kms_key_arn != null ? var.kms_key_arn : module.kms_cmk.key_arn[var.name]
+  # We use a "double conditional" check here to prevent issues during destroy
+  # operations in which the key from module.kms_cmk has been deleted but 
+  # a subsequent step failed, causing an invalid index error on a subsequent
+  # destroy.
+  kms_key_arn = (
+    var.kms_key_arn != null ?
+    var.kms_key_arn :
+    length(module.kms_cmk.key_arn) > 0 ?
+    module.kms_cmk.key_arn[var.name] :
+    ""
+  )
   cmk_administrator_iam_arns = length(var.cmk_administrator_iam_arns) == 0 ? [data.aws_caller_identity.current.arn] : var.cmk_administrator_iam_arns
   cmk_user_iam_arns          = length(var.cmk_user_iam_arns) == 0 ? [{ name = [data.aws_caller_identity.current.arn], conditions = [] }] : var.cmk_user_iam_arns
-
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
