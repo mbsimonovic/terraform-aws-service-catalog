@@ -78,10 +78,10 @@ locals {
   has_canary                   = var.canary_container_definitions != null ? true : false
   canary_container_definitions = local.has_canary ? jsonencode(var.canary_container_definitions) : null
 
-  secret_manager_arns = flatten([
-    for name, container in var.secret_manager_arns :
-    [for env_var, secret_arn in lookup(container, "secrets_manager_arns", []) : secret_arn]
-  ])
+  #secret_manager_arns = flatten([
+  #for name, container in var.secret_manager_arns :
+  #[for env_var, secret_arn in lookup(container, "secrets_manager_arns", []) : secret_arn]
+  #])
 
   cloudwatch_log_group_name = var.cloudwatch_log_group_name != null ? var.cloudwatch_log_group_name : var.service_name
   cloudwatch_log_prefix     = "ecs-service"
@@ -171,12 +171,13 @@ data "aws_iam_policy_document" "ecs_task_execution_policy_document" {
   dynamic "statement" {
     # The contents of the for each list does not matter here, as the only purpose is to determine whether or not to
     # include this statement block.
-    for_each = length(local.secret_manager_arns) > 0 ? ["include_secrets_manager_permissions"] : []
+    #for_each = length(local.secret_manager_arns) > 0 ? ["include_secrets_manager_permissions"] : []
+    for_each = length(var.secret_manager_arns) > 0 ? ["include_secrets_manager_permissions"] : []
 
     content {
       effect    = "Allow"
       actions   = ["secretsmanager:GetSecretValue"]
-      resources = local.secret_manager_arns
+      resources = var.secret_manager_arns
     }
   }
 
