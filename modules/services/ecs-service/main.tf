@@ -146,7 +146,7 @@ resource "aws_iam_role" "ecs_task_execution_role" {
 }
 
 resource "aws_iam_role_policy" "ecs_task_execution_policy" {
-  name   = "${var.service_name}-task-excution-policy"
+  name   = "${var.service_name}-task-execution-policy"
   policy = data.aws_iam_policy_document.ecs_task_execution_policy_document.json
   role   = aws_iam_role.ecs_task_execution_role.name
 }
@@ -172,12 +172,12 @@ data "aws_iam_policy_document" "ecs_task_execution_policy_document" {
     # The contents of the for each list does not matter here, as the only purpose is to determine whether or not to
     # include this statement block.
     #for_each = length(local.secret_manager_arns) > 0 ? ["include_secrets_manager_permissions"] : []
-    for_each = length(var.secret_manager_arns) > 0 ? ["include_secrets_manager_permissions"] : []
+    for_each = length(var.secrets_manager_arns) > 0 ? ["include_secrets_manager_permissions"] : []
 
     content {
       effect    = "Allow"
       actions   = ["secretsmanager:GetSecretValue"]
-      resources = var.secret_manager_arns
+      resources = var.secrets_manager_arns
     }
   }
 
