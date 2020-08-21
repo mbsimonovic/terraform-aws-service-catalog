@@ -225,6 +225,8 @@ module "listener_rules" {
   forward_rules        = var.forward_rules
   redirect_rules       = var.redirect_rules
   fixed_response_rules = var.fixed_response_rules
+
+  depends_on = [module.ecs_service]
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
