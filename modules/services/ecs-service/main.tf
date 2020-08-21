@@ -49,7 +49,7 @@ module "ecs_service" {
 
   service_tags         = var.service_tags
   task_definition_tags = var.task_definition_tags
-  propagate_tabs       = var.propagate_tags
+  propagate_tags       = var.propagate_tags
 
   dependencies = var.dependencies
 }
