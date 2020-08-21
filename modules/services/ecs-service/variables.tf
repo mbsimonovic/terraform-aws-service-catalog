@@ -57,6 +57,34 @@ variable "max_number_of_tasks" {
   default     = 3
 }
 
+variable "service_tags" {
+  description = "A map of tags to apply to the ECS service. Each item in this list should be a map with the parameters key and value."
+  type        = map(string)
+  default     = {}
+  # Example:
+  #   {
+  #     key1 = "value1"
+  #     key2 = "value2"
+  #   }
+}
+
+variable "task_definition_tags" {
+  description = "A map of tags to apply to the task definition. Each item in this list should be a map with the parameters key and value."
+  type        = map(string)
+  default     = {}
+  # Example:
+  #   {
+  #     key1 = "value1"
+  #     key2 = "value2"
+  #   }
+}
+
+variable "propagate_tags" {
+  description = "Whether tags should be propogated to the tasks from the service or from the task definition. Valid values are SERVICE and TASK_DEFINITION. Defaults to SERVICE. If set to null, no tags are created for tasks."
+  type        = string
+  default     = "SERVICE"
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # SECURITY PARAMETERS
 # These values may optionally be overwritten by the calling Terraform code.

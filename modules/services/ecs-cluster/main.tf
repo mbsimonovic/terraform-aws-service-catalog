@@ -187,7 +187,7 @@ resource "aws_autoscaling_policy" "scale_out" {
 resource "aws_cloudwatch_metric_alarm" "high_cpu_utilization" {
   count = var.enable_autoscaling ? 1 : 0
 
-  alarm_name        = "${var.cluster_name}-high-cpu-utilization"
+  alarm_name        = "${var.cluster_name}-autoscaling-high-cpu-utilization"
   alarm_description = "An alarm that goes off if the CPU usage in the ${var.cluster_name} ECS cluster is high"
   namespace         = "AWS/EC2"
   metric_name       = "CPUUtilization"
@@ -221,7 +221,7 @@ resource "aws_autoscaling_policy" "scale_in" {
 resource "aws_cloudwatch_metric_alarm" "low_cpu_utilization" {
   count = var.enable_autoscaling ? 1 : 0
 
-  alarm_name        = "${var.cluster_name}-low-cpu-utilization"
+  alarm_name        = "${var.cluster_name}-autoscaling-low-cpu-utilization"
   alarm_description = "An alarm that goes off if the CPU usage in the ${var.cluster_name} ECS cluster is low"
   namespace         = "AWS/EC2"
   metric_name       = "CPUUtilization"
