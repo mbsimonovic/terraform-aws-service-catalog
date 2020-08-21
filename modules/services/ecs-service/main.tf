@@ -78,11 +78,6 @@ locals {
   has_canary                   = var.canary_container_definitions != null ? true : false
   canary_container_definitions = local.has_canary ? jsonencode(var.canary_container_definitions) : null
 
-  #secret_manager_arns = flatten([
-  #for name, container in var.secret_manager_arns :
-  #[for env_var, secret_arn in lookup(container, "secrets_manager_arns", []) : secret_arn]
-  #])
-
   cloudwatch_log_group_name = var.cloudwatch_log_group_name != null ? var.cloudwatch_log_group_name : var.service_name
   cloudwatch_log_prefix     = "ecs-service"
 
