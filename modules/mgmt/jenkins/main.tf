@@ -172,7 +172,7 @@ resource "aws_iam_role_policy" "deploy_other_account_permissions" {
   count  = length(var.external_account_auto_deploy_iam_role_arns) > 0 ? 1 : 0
   name   = "deploy-other-accounts-permissions"
   role   = module.jenkins.jenkins_iam_role_id
-  policy = module.auto_deploy_iam_policies.allow_access_to_all_other_accounts["jenkins"]
+  policy = module.auto_deploy_iam_policies.allow_access_to_all_other_accounts
 }
 
 
