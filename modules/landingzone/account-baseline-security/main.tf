@@ -124,6 +124,9 @@ module "iam_cross_account_roles" {
   allow_auto_deploy_from_other_account_arns = var.allow_auto_deploy_from_other_account_arns
 
   cloudtrail_kms_key_arn = local.cloudtrail_kms_key_arn
+
+  max_session_duration_human_users   = var.max_session_duration_human_users
+  max_session_duration_machine_users = var.max_session_duration_machine_users
 }
 
 module "iam_user_password_policy" {

@@ -217,6 +217,19 @@ variable "auto_deploy_permissions" {
   default     = []
 }
 
+variable "max_session_duration_human_users" {
+  description = "The maximum allowable session duration, in seconds, for the credentials you get when assuming the IAM roles created by this module. This variable applies to all IAM roles created by this module that are intended for people to use, such as allow-read-only-access-from-other-accounts. For IAM roles that are intended for machine users, such as allow-auto-deploy-from-other-accounts, see var.max_session_duration_machine_users."
+  type        = number
+  default     = 43200 # 12 hours
+}
+
+variable "max_session_duration_machine_users" {
+  description = "The maximum allowable session duration, in seconds, for the credentials you get when assuming the IAM roles created by this module. This variable  applies to all IAM roles created by this module that are intended for machine users, such as allow-auto-deploy-from-other-accounts. For IAM roles that are intended for human users, such as allow-read-only-access-from-other-accounts, see var.max_session_duration_human_users."
+  type        = number
+  default     = 3600 # 1 hour
+}
+
+
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL GUARDDUTY PARAMETERS
 # These variables must be passed in by the operator. In a real-world usage, some of these variables might not be needed
