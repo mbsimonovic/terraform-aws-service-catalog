@@ -310,25 +310,15 @@ data "aws_iam_policy_document" "terraform_applier" {
 
 # ---------------------------------------------------------------------------------------------------------------------
 # CREATE KMS GRANTS TO ALLOW RESPECTIVE CONTAINERS FOR SNAPSHOTS
-# Creates the following grants for each snapshot encryption key:
-# - ami-builder
-#     - Encrypt
-#     - Decrypt
-#     - ReEncryptFrom
-#     - ReEncryptTo
-#     - GenerateDataKey
-#     - GenerateDataKeyWithoutPlaintext
-#     - DescribeKey
-#     - CreateGrant
-# - terraform-applier
-#     - Encrypt
-#     - Decrypt
-#     - ReEncryptFrom
-#     - ReEncryptTo
-#     - GenerateDataKey
-#     - GenerateDataKeyWithoutPlaintext
-#     - DescribeKey
-#     - CreateGrant
+# Creates the following grants to ami-builder and terraform-applier for each snapshot encryption key:
+# - Encrypt
+# - Decrypt
+# - ReEncryptFrom
+# - ReEncryptTo
+# - GenerateDataKey
+# - GenerateDataKeyWithoutPlaintext
+# - DescribeKey
+# - CreateGrant
 #
 # See https://docs.aws.amazon.com/autoscaling/ec2/userguide/key-policy-requirements-EBS-encryption.html for more
 # details.
@@ -355,11 +345,15 @@ locals {
     "CreateGrant",
   ]
 
+  # This regex can be used to extract the region from an ARN string. It works by parsing the first 4 parts of the arn,
+  # matching words that don't have : in them, and assigning a group to the 4th part (the region).
+  extract_region_regex = "arn:[^:]*:[^:]*:([^:]+):.+"
+
   ami_builder_kms_grant_regions = (
     var.ami_builder_config != null
     ? {
       for name, cmk_arn in var.snapshot_encryption_kms_cmk_arns :
-      "ami-builder-${name}" => regex("arn:[^:]*:[^:]*:([^:]+):.+", cmk_arn)[0]
+      "ami-builder-${name}" => regex(local.extract_region_regex, cmk_arn)[0]
     }
     : {}
   )
@@ -380,7 +374,7 @@ locals {
     var.terraform_applier_config != null
     ? {
       for name, cmk_arn in var.snapshot_encryption_kms_cmk_arns :
-      "terraform-applier-${name}" => regex("arn:[^:]*:[^:]*:([^:]+):.+", cmk_arn)[0]
+      "terraform-applier-${name}" => regex(local.extract_region_regex, cmk_arn)[0]
     }
     : {}
   )
