@@ -11,7 +11,7 @@ services:
       - AWS_SECRET_ACCESS_KEY
       - AWS_SESSION_TOKEN
     volumes:
-      - ./tmp:/tmp
+      - ./tls:/tls
   rds:
     build:
       context: .
@@ -19,7 +19,7 @@ services:
         - GITHUB_OAUTH_TOKEN
     entrypoint: download-rds-ca-certs.sh
     volumes:
-      - ./tmp:/tmp
+      - ./tls:/tls
   trust-stores:
     build:
       context: .
@@ -31,4 +31,4 @@ services:
       - AWS_SECRET_ACCESS_KEY
       - AWS_SESSION_TOKEN
     volumes:
-      - ./tmp:/tmp
+      - ./tls:/tls

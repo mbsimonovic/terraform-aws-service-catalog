@@ -27,10 +27,10 @@ RUN gruntwork-install --binary-name "gruntkms" --repo "https://github.com/gruntw
 RUN gruntkms --version
 
 # install package-kafka script
-RUN git clone "https://${GITHUB_OAUTH_TOKEN}@github.com/gruntwork-io/package-kafka.git" "/tmp/package-kafka" && \
-      mv /tmp/package-kafka/modules/generate-key-stores/generate-key-stores.sh /usr/local/bin/ && \
+RUN git clone "https://${GITHUB_OAUTH_TOKEN}@github.com/gruntwork-io/package-kafka.git" "/tls/package-kafka" && \
+      mv /tls/package-kafka/modules/generate-key-stores/generate-key-stores.sh /usr/local/bin/ && \
       chmod +x /usr/local/bin/generate-key-stores.sh && \
-      rm -rf /tmp/package-kafka/
+      rm -rf /tls/package-kafka/
 
 # Build Phase 2: Without Secrets
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
