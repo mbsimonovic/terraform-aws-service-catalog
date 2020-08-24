@@ -27,7 +27,7 @@ endif::[]
 image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
 image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
 
-This folder contains code to deploy an Amazon Elasticsearch Service cluster. See the http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/what-is-amazon-elasticsearch-service.html[Amazon Elasticsearch Service developer guide] and the https://aws.amazon.com/elasticsearch-service/getting-started/[Getting Started] page for more information.
+This folder contains code to deploy an Amazon Elasticsearch Service cluster. See the http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/what-is-amazon-elasticsearch-service.html[Amazon Elasticsearch Service documentation] and the https://aws.amazon.com/elasticsearch-service/getting-started/[Getting Started] page for more information.
 
 toc::[]
 
@@ -45,9 +45,9 @@ toc::[]
 
 == Learn
 
-NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog//[Gruntwork Service Catalog], a collection of
+NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog/[Gruntwork Service Catalog], a collection of
 reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
-sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catallog/[How to use the Gruntwork
+sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/[How to use the Gruntwork
 Service Catalog]!
 
 * https://aws.amazon.com/elasticsearch-service/[About Amazon Elasticsearch Service]
