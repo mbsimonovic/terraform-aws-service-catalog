@@ -47,6 +47,10 @@ module "ecs_service" {
   deployment_check_timeout_seconds = var.deployment_check_timeout_seconds
   deployment_check_loglevel        = var.deployment_check_loglevel
 
+  service_tags         = var.service_tags
+  task_definition_tags = var.task_definition_tags
+  propagate_tags       = var.propagate_tags
+
   dependencies = var.dependencies
 }
 
