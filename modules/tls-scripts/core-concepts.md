@@ -199,11 +199,11 @@ If you used the above example, you should see:
 - `ca.crt.pem`: This is the CA public key, or CA certificate, in PEM format.
 - `my-app.crt.pem`: This is the app's public key, or TLS certificate, signed by the CA cert, in PEM format.
 - `my-app.key.pem.kms.encrypted`: This is the app's private key in PEM format, encrypted with the KMS key you provided.
-- If you see `my-app.key.pem`, the script was not able to encrypt your private key using the KMS key you provided.
+- If you see `my-app.key.pem`, the script was not able to encrypt your private key using the KMS key you provided (or you didn't provide a key), so this is the private key in PEM format, in plain text.
 
-Optionally, you can upload the certificate to IAM. Simply add two more flags to the previous command.
+Optionally, you can upload the certificate to IAM so that the cert can be used with an ELB. Simply add two more flags to the previous command.
 - `--upload-to-iam`
-- `--cert-name-in-iam` followed by a name you want to use
+- `--cert-name-in-iam <NAME>`
 
 E.g.:
 ```sh
