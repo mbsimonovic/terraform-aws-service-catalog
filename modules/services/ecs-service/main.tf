@@ -110,20 +110,6 @@ data "aws_iam_policy_document" "service_policy" {
   }
 }
 
-# Create the ECS Task IAM Role
-# resource "aws_iam_role" "ecs_task" {
-#   name               = "${var.service_name}-task"
-#   assume_role_policy = data.aws_iam_policy_document.ecs_task.json
-# 
-#   # IAM objects take time to propagate. This leads to subtle eventual consistency bugs where the ECS task cannot be
-#   # created because the IAM role does not exist. We add a 15 second wait here to give the IAM role a chance to propagate
-#   # within AWS.
-#   provisioner "local-exec" {
-#     command = "echo 'Sleeping for 15 seconds to wait for IAM role to be created'; sleep 15"
-#   }
-# }
-
-
 # ---------------------------------------------------------------------------------------------------------------------
 # CREATE AN IAM POLICY AND EXECUTION ROLE TO ALLOW ECS TASK TO MAKE CLOUDWATCH REQUESTS AND PULL IMAGES FROM ECR
 # ---------------------------------------------------------------------------------------------------------------------

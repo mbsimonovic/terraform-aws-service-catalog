@@ -35,15 +35,15 @@ output "canary_service_arn" {
   value       = module.ecs_service.canary_service_arn
 }
 
-# output "ecs_task_iam_role_name" {
-#   description = "The name of the IAM role granting permissions to the running ECS task itself. Note this role is separate from the execution role which is assumed by the ECS container agent"
-#   value       = aws_iam_role.ecs_task.name
-# }
-# 
-# output "ecs_task_iam_role_arn" {
-#   description = "The ARN of the IAM role associated with the ECS task"
-#   value       = aws_iam_role.ecs_task.arn
-# }
+output "ecs_task_iam_role_name" {
+  description = "The name of the IAM role granting permissions to the running ECS task itself. Note this role is separate from the execution role which is assumed by the ECS container agent"
+  value       = module.ecs_service.ecs_task_iam_role_name
+}
+
+output "ecs_task_iam_role_arn" {
+  description = "The ARN of the IAM role associated with the ECS task"
+  value       = module.ecs_service.ecs_task_iam_role_arn
+}
 
 output "ecs_task_execution_iam_role_name" {
   description = "The name of the ECS task execution IAM role. The execution role is used by the ECS container agent to make calls to the ECS API, pull container images from ECR, use the logs driver, etc"
