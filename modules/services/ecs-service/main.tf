@@ -89,9 +89,8 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_iam_role_policy" "service_policy" {
-  count = var.iam_role_name != "" ? 1 : 0
-  name  = "${var.iam_role_name}Policy"
-  #role   = aws_iam_role.ecs_task.id
+  count  = var.iam_role_name != "" ? 1 : 0
+  name   = "${var.iam_role_name}Policy"
   role   = module.ecs_service.ecs_task_iam_role_name
   policy = data.aws_iam_policy_document.service_policy[0].json
 }
