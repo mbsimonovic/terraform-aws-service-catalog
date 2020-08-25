@@ -152,7 +152,6 @@ data "aws_iam_policy_document" "ecs_task_execution_policy_document" {
   dynamic "statement" {
     # The contents of the for each list does not matter here, as the only purpose is to determine whether or not to
     # include this statement block.
-    #for_each = length(local.secret_manager_arns) > 0 ? ["include_secrets_manager_permissions"] : []
     for_each = length(var.secrets_manager_arns) > 0 ? ["include_secrets_manager_permissions"] : []
 
     content {
