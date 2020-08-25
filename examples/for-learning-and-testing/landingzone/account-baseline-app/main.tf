@@ -26,6 +26,7 @@ module "app_baseline" {
 
   allow_read_only_access_from_other_account_arns = var.allow_read_only_access_from_other_account_arns
   allow_billing_access_from_other_account_arns   = var.allow_billing_access_from_other_account_arns
+  allow_support_access_from_other_account_arns   = var.allow_support_access_from_other_account_arns
   allow_logs_access_from_other_account_arns      = var.allow_logs_access_from_other_account_arns
   allow_ssh_grunt_access_from_other_account_arns = var.allow_ssh_grunt_access_from_other_account_arns
   allow_dev_access_from_other_account_arns       = var.allow_dev_access_from_other_account_arns
@@ -35,25 +36,24 @@ module "app_baseline" {
   auto_deploy_permissions = var.auto_deploy_permissions
   dev_permitted_services  = var.dev_permitted_services
 
-  config_s3_bucket_name          = var.config_s3_bucket_name
-  config_should_create_s3_bucket = var.config_should_create_s3_bucket
-  config_linked_accounts         = var.config_linked_accounts
+  # We assume the S3 bucket for AWS Config has already been created by account-baseline-root
+  config_should_create_s3_bucket                   = false
+  config_s3_bucket_name                            = var.config_s3_bucket_name
+  config_central_account_id                        = var.config_central_account_id
+  config_aggregate_config_data_in_external_account = var.config_aggregate_config_data_in_external_account
 
-  cloudtrail_kms_key_arn                = var.cloudtrail_kms_key_arn
-  cloudtrail_s3_bucket_already_exists   = var.cloudtrail_s3_bucket_already_exists
-  cloudtrail_s3_bucket_name             = var.cloudtrail_s3_bucket_name
-  cloudtrail_cloudwatch_logs_group_name = var.cloudtrail_cloudwatch_logs_group_name
-
-  # If this is the account that creates the KMS CMK for encrypting CloudTrail logs (e.g., if this is the logs account), you must grant at least one administrator and user access to the CMK in order to deploy successfully
-  cloudtrail_kms_key_administrator_iam_arns = var.cloudtrail_kms_key_administrator_iam_arns
-  cloudtrail_kms_key_user_iam_arns          = var.cloudtrail_kms_key_user_iam_arns
-
-  # If this is the account that is used to aggregate CloudTrail logs (e.g., this is the logs account), specify the external accounts (e.g., dev, stage, prod) that should have permissions to write their logs to this account
-  cloudtrail_external_aws_account_ids_with_write_access = var.cloudtrail_external_aws_account_ids_with_write_access
+  # We assume the S3 bucket and KMS key for CloudTrail have already been created by account-baseline-root
+  cloudtrail_s3_bucket_already_exists = true
+  cloudtrail_s3_bucket_name           = var.cloudtrail_s3_bucket_name
+  cloudtrail_kms_key_arn              = var.cloudtrail_kms_key_arn
 
   # Create a single global CMK for general use in the account
   kms_customer_master_keys = var.kms_customer_master_keys
-}
 
+  # These are variables you only need to set at test time so that everything can be deleted cleanly. You will likely
+  # NOT need to set this in any real environments.
+  cloudtrail_force_destroy = var.force_destroy
+  config_force_destroy     = var.force_destroy
+}
 
 data "aws_caller_identity" "current" {}
