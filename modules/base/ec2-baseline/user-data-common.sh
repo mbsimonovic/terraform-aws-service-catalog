@@ -110,7 +110,7 @@ function start_ssh_grunt {
   sudo /usr/local/bin/ssh-grunt iam install "${args[@]}"
 
   # Restart sshd so that the changes to sshd_config to take effect
-  sudo service sshd restart
+  sudo /sbin/service sshd restart
 }
 
 function start_fail2ban {
