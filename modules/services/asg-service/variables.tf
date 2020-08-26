@@ -365,8 +365,8 @@ variable "hosted_zone_id" {
 
 variable "original_lb_dns_name" {
   description = "The DNS name that was assigned by AWS to the load balancer upon creation"
-  type    = string
-  default = null
+  type        = string
+  default     = null
 }
 
 variable "lb_hosted_zone_id" {

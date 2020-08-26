@@ -100,7 +100,7 @@ locals {
 
   # The server will listen on port 8080. The ALB will listen on port 80 (default port for HTTP) and route traffic to
   # the server at port 8080.
-  server_port  = "8080"
+  server_port    = "8080"
   listener_ports = [80]
 }
 
