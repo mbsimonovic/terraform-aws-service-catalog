@@ -78,11 +78,6 @@ locals {
   has_canary                   = var.canary_container_definitions != null ? true : false
   canary_container_definitions = local.has_canary ? jsonencode(var.canary_container_definitions) : null
 
-  secret_manager_arns = flatten([
-    for name, container in var.secret_manager_arns :
-    [for env_var, secret_arn in lookup(container, "secrets_manager_arns", []) : secret_arn]
-  ])
-
   cloudwatch_log_group_name = var.cloudwatch_log_group_name != null ? var.cloudwatch_log_group_name : var.service_name
   cloudwatch_log_prefix     = "ecs-service"
 
@@ -96,7 +91,7 @@ locals {
 resource "aws_iam_role_policy" "service_policy" {
   count  = var.iam_role_name != "" ? 1 : 0
   name   = "${var.iam_role_name}Policy"
-  role   = aws_iam_role.ecs_task
+  role   = module.ecs_service.ecs_task_iam_role_name
   policy = data.aws_iam_policy_document.service_policy[0].json
 }
 
@@ -115,20 +110,6 @@ data "aws_iam_policy_document" "service_policy" {
   }
 }
 
-# Create the ECS Task IAM Role
-resource "aws_iam_role" "ecs_task" {
-  name               = "${var.service_name}-task"
-  assume_role_policy = data.aws_iam_policy_document.ecs_task.json
-
-  # IAM objects take time to propagate. This leads to subtle eventual consistency bugs where the ECS task cannot be
-  # created because the IAM role does not exist. We add a 15 second wait here to give the IAM role a chance to propagate
-  # within AWS.
-  provisioner "local-exec" {
-    command = "echo 'Sleeping for 15 seconds to wait for IAM role to be created'; sleep 15"
-  }
-}
-
-
 # ---------------------------------------------------------------------------------------------------------------------
 # CREATE AN IAM POLICY AND EXECUTION ROLE TO ALLOW ECS TASK TO MAKE CLOUDWATCH REQUESTS AND PULL IMAGES FROM ECR
 # ---------------------------------------------------------------------------------------------------------------------
@@ -146,7 +127,7 @@ resource "aws_iam_role" "ecs_task_execution_role" {
 }
 
 resource "aws_iam_role_policy" "ecs_task_execution_policy" {
-  name   = "${var.service_name}-task-excution-policy"
+  name   = "${var.service_name}-task-execution-policy"
   policy = data.aws_iam_policy_document.ecs_task_execution_policy_document.json
   role   = aws_iam_role.ecs_task_execution_role.name
 }
@@ -171,12 +152,12 @@ data "aws_iam_policy_document" "ecs_task_execution_policy_document" {
   dynamic "statement" {
     # The contents of the for each list does not matter here, as the only purpose is to determine whether or not to
     # include this statement block.
-    for_each = length(local.secret_manager_arns) > 0 ? ["include_secrets_manager_permissions"] : []
+    for_each = length(var.secrets_manager_arns) > 0 ? ["include_secrets_manager_permissions"] : []
 
     content {
       effect    = "Allow"
       actions   = ["secretsmanager:GetSecretValue"]
-      resources = local.secret_manager_arns
+      resources = var.secrets_manager_arns
     }
   }
 
