@@ -17,13 +17,13 @@ function include_ec2_baseline {
   # Include common defaults and functions from the ec2-baseline install script
   # See: https://github.com/gruntwork-io/aws-service-catalog/blob/master/modules/base/ec2-baseline
   readonly EC2_BASELINE_RELATIVE_PATH="../../base/ec2-baseline"
-  readonly EC2_BASELINE_PATH="$(dirname $(realpath $0))/${EC2_BASELINE_RELATIVE_PATH}"
+  readonly EC2_BASELINE_PATH="$(dirname "$(realpath "$0")")/${EC2_BASELINE_RELATIVE_PATH}"
   if [[ ! -f "${EC2_BASELINE_PATH}/install.sh" ]]; then
     echo "ERROR: $EC2_BASELINE_PATH/install.sh not found."
     exit 1
   fi
 
-  source $EC2_BASELINE_PATH/install.sh
+  source "$EC2_BASELINE_PATH/install.sh"
 }
 
 function install_openvpn_packages {
@@ -55,7 +55,7 @@ function install_openvpn_server {
   local enable_cloudwatch_metrics="${enable_cloudwatch_metrics:-$DEFAULT_ENABLE_CLOUDWATCH_METRICS}"
   local enable_cloudwatch_log_aggregation="${enable_cloudwatch_log_aggregation:-$DEFAULT_ENABLE_CLOUDWATCH_LOG_AGGREGATION}"
 
-  while [[ $# > 0 ]]; do
+  while [[ $# -gt 0 ]]; do
     local key="$1"
 
     case "$key" in

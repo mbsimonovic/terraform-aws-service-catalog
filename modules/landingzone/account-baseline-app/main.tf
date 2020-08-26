@@ -13,7 +13,10 @@ terraform {
   required_version = "~> 0.12.6"
 
   required_providers {
-    aws = "~> 2.6"
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 2.58"
+    }
   }
 }
 
@@ -22,9 +25,10 @@ terraform {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "config" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-config-multi-region?ref=v0.32.3"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-config-multi-region?ref=v0.35.0"
 
   aws_account_id         = var.aws_account_id
+  seed_region            = var.aws_region
   global_recorder_region = var.aws_region
 
   s3_bucket_name                        = var.config_s3_bucket_name != null ? var.config_s3_bucket_name : "${var.name_prefix}-config"
@@ -34,6 +38,7 @@ module "config" {
   num_days_after_which_delete_log_data  = var.config_num_days_after_which_delete_log_data
   opt_in_regions                        = var.config_opt_in_regions
 
+  linked_accounts    = var.config_linked_accounts
   central_account_id = var.config_central_account_id
 
   tags = var.config_tags
@@ -44,7 +49,7 @@ module "config" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "iam_cross_account_roles" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cross-account-iam-roles?ref=v0.32.3"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cross-account-iam-roles?ref=v0.35.0"
 
   aws_account_id = var.aws_account_id
 
@@ -53,16 +58,21 @@ module "iam_cross_account_roles" {
 
   allow_read_only_access_from_other_account_arns = var.allow_read_only_access_from_other_account_arns
   allow_billing_access_from_other_account_arns   = var.allow_billing_access_from_other_account_arns
+  allow_logs_access_from_other_account_arns      = var.allow_logs_access_from_other_account_arns
   allow_ssh_grunt_access_from_other_account_arns = var.allow_ssh_grunt_access_from_other_account_arns
   allow_dev_access_from_other_account_arns       = var.allow_dev_access_from_other_account_arns
   allow_full_access_from_other_account_arns      = var.allow_full_access_from_other_account_arns
 
   auto_deploy_permissions                   = var.auto_deploy_permissions
   allow_auto_deploy_from_other_account_arns = var.allow_auto_deploy_from_other_account_arns
+  cloudtrail_kms_key_arn                    = local.cloudtrail_kms_key_arn
+
+  max_session_duration_human_users   = var.max_session_duration_human_users
+  max_session_duration_machine_users = var.max_session_duration_machine_users
 }
 
 module "iam_user_password_policy" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-user-password-policy?ref=v0.32.3"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-user-password-policy?ref=v0.35.0"
 
   # Adjust these settings as appropriate for your company
   minimum_password_length        = var.iam_password_policy_minimum_password_length
@@ -82,7 +92,7 @@ module "iam_user_password_policy" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "guardduty" {
-  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/guardduty-multi-region?ref=v0.32.3"
+  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/guardduty-multi-region?ref=v0.35.0"
   aws_account_id = var.aws_account_id
   seed_region    = var.aws_region
 
@@ -98,21 +108,22 @@ module "guardduty" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "cloudtrail" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cloudtrail?ref=v0.32.3"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cloudtrail?ref=v0.35.0"
 
   is_multi_region_trail = true
   cloudtrail_trail_name = var.name_prefix
   s3_bucket_name        = var.cloudtrail_s3_bucket_name != null ? var.cloudtrail_s3_bucket_name : "${var.name_prefix}-cloudtrail"
 
-  kms_key_already_exists         = true
-  kms_key_arn                    = var.cloudtrail_kms_key_arn
-  kms_key_administrator_iam_arns = [] # These are required by the module, but we use a key that already exists
-  kms_key_user_iam_arns          = [] # These are required by the module, but we use a key that already exists
-
   num_days_after_which_archive_log_data = var.cloudtrail_num_days_after_which_archive_log_data
   num_days_after_which_delete_log_data  = var.cloudtrail_num_days_after_which_delete_log_data
 
-  allow_cloudtrail_access_with_iam = var.allow_cloudtrail_access_with_iam
+  # Set our kms key arn to the one created outside the module. Since we are bringing our own KMS key, we set the kms
+  # user vars to empty list.
+  kms_key_already_exists           = true
+  kms_key_arn                      = local.cloudtrail_kms_key_arn
+  kms_key_administrator_iam_arns   = []
+  kms_key_user_iam_arns            = []
+  allow_cloudtrail_access_with_iam = false
 
   # If you're writing CloudTrail logs to an existing S3 bucket in another AWS account, set this to true
   s3_bucket_already_exists = var.cloudtrail_s3_bucket_already_exists
@@ -121,7 +132,55 @@ module "cloudtrail" {
   # external AWS account IDs here
   external_aws_account_ids_with_write_access = var.cloudtrail_external_aws_account_ids_with_write_access
 
+  # Also configure the trail to publish logs to a CloudWatch Logs group within the current account.
+  cloudwatch_logs_group_name = var.cloudtrail_cloudwatch_logs_group_name
+
   force_destroy = var.cloudtrail_force_destroy
+}
+
+# If the user did not pass in a custom KMS key ARN create a dedicated one for use with CloudTrail,
+# with explicit permissions to allow encrypting the logs for external accounts.
+module "cloudtrail_cmk" {
+  source               = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-master-key?ref=v0.35.0"
+  customer_master_keys = local.maybe_cloudtrail_key
+}
+
+locals {
+  cloudtrail_cmk_name = "cmk-${var.name_prefix}-cloudtrail"
+  dedicated_cloudtrail_key = {
+    (local.cloudtrail_cmk_name) = {
+      cmk_administrator_iam_arns = var.cloudtrail_kms_key_administrator_iam_arns
+      cmk_user_iam_arns = [
+        {
+          name = var.cloudtrail_kms_key_user_iam_arns
+        }
+      ]
+      cmk_service_principals = [
+        {
+          name    = "cloudtrail.amazonaws.com"
+          actions = ["kms:GenerateDataKey*"]
+          conditions = [{
+            test     = "StringLike"
+            variable = "kms:EncryptionContext:aws:cloudtrail:arn"
+            values = concat([
+              "arn:aws:cloudtrail:*:${var.aws_account_id}:trail/${var.name_prefix}"
+              ],
+              [
+                for account_id in var.cloudtrail_external_aws_account_ids_with_write_access :
+                "arn:aws:cloudtrail:*:${account_id}:trail/*"
+              ],
+            )
+          }]
+        },
+        {
+          name    = "cloudtrail.amazonaws.com"
+          actions = ["kms:DescribeKey"]
+        },
+      ]
+    }
+  }
+  maybe_cloudtrail_key   = var.cloudtrail_kms_key_arn == null ? local.dedicated_cloudtrail_key : {}
+  cloudtrail_kms_key_arn = var.cloudtrail_kms_key_arn == null ? module.cloudtrail_cmk.key_arn[local.cloudtrail_cmk_name] : var.cloudtrail_kms_key_arn
 }
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -129,28 +188,13 @@ module "cloudtrail" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "customer_master_keys" {
-  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-master-key-multi-region?ref=v0.32.3"
+  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-master-key-multi-region?ref=v0.35.0"
   aws_account_id = var.aws_account_id
   seed_region    = var.aws_region
 
   customer_master_keys = var.kms_customer_master_keys
   global_tags          = var.kms_cmk_global_tags
   opt_in_regions       = var.kms_cmk_opt_in_regions
-}
-
-# ----------------------------------------------------------------------------------------------------------------------
-# SNS TOPIC
-# Optionally create an SNS topic for CloudWatch alarms or any other reason. If sns_topic_name is empty,
-# no topic will be created
-# ----------------------------------------------------------------------------------------------------------------------
-
-module "sns_topic" {
-  source = "../../networking/sns-topics"
-
-  create_resources = var.sns_topic_name != null
-
-  name              = var.sns_topic_name
-  slack_webhook_url = var.slack_webhook_url
 }
 
 # ----------------------------------------------------------------------------------------------------------------------

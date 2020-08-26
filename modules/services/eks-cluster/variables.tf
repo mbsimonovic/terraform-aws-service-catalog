@@ -116,6 +116,12 @@ variable "schedule_control_plane_services_on_fargate" {
   default     = false
 }
 
+variable "secret_envelope_encryption_kms_key_arn" {
+  description = "ARN for KMS Key to use for envelope encryption of Kubernetes Secrets. By default Secrets in EKS are encrypted at rest using shared AWS managed keys. Setting this variable will configure Kubernetes to encrypt Secrets using this KMS key."
+  type        = string
+  default     = null
+}
+
 variable "worker_vpc_subnet_ids" {
   description = "A list of the subnets into which the EKS Cluster's administrative pods will be launched. These should usually be all private subnets and include one in each AWS Availability Zone. Required when var.schedule_control_plane_services_on_fargate is true."
   type        = list(string)
@@ -193,7 +199,7 @@ variable "tenancy" {
 variable "kubernetes_version" {
   description = "Version of Kubernetes to use. Refer to EKS docs for list of available versions (https://docs.aws.amazon.com/eks/latest/userguide/platform-versions.html)."
   type        = string
-  default     = "1.15"
+  default     = "1.17"
 }
 
 variable "endpoint_public_access" {

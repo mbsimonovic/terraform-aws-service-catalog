@@ -31,8 +31,8 @@ variable "enable_cloudwatch_log_aggregation" {
   default     = true
 }
 
-variable "iam_role_arn" {
-  description = "The ARN of an IAM role to use for the various IAM policies created in this module, including ssh-grunt permissions, CloudWatch Metrics, and CloudWatch Logs. This variable is required if any of the following variables are true: enable_ssh_grunt, enable_cloudwatch_metrics, enable_cloudwatch_log_aggregation."
+variable "iam_role_name" {
+  description = "The name of an IAM role to use for the various IAM policies created in this module, including ssh-grunt permissions, CloudWatch Metrics, and CloudWatch Logs. This variable is required if any of the following variables are true: enable_ssh_grunt, enable_cloudwatch_metrics, enable_cloudwatch_log_aggregation."
   type        = string
   default     = ""
 }
@@ -77,6 +77,12 @@ variable "alarms_sns_topic_arn" {
   description = "The ARNs of SNS topics where CloudWatch alarms (e.g., for CPU, memory, and disk space usage) should send notifications. Required if enable_cloudwatch_alarms is true."
   type        = list(string)
   default     = []
+}
+
+variable "should_render_cloud_init" {
+  description = "If true, combine the parts in var.cloud_init_parts using a template_cloudinit_config data source and provide the rendered result as an output. If false, no output will be rendered. If true, cloud_init_parts is required. Defaults to true."
+  type        = bool
+  default     = true
 }
 
 variable "cloud_init_parts" {

@@ -27,6 +27,12 @@ variable "vpc_name" {
   default     = "service-catalog-test"
 }
 
+variable "sg_ingress_port" {
+  description = "A port number to allow in the security group used by the example EC2 instance."
+  type        = number
+  default     = 8080
+}
+
 variable "kms_key_id" {
   description = "The ID of a KMS key to use for encrypting VPC the flow log."
   type        = string
@@ -37,4 +43,10 @@ variable "create_flow_logs" {
   description = "If you set this variable to false, this module will not create VPC Flow Logs resources. This is used as a workaround because Terraform does not allow you to use the 'count' parameter on modules. By using this parameter, you can optionally create or not create the resources within this module."
   type        = bool
   default     = false
+}
+
+variable "instance_types" {
+  description = "A list of instance types to look up in the current AWS region."
+  type        = list(string)
+  default     = ["t3.micro", "t2.micro"]
 }

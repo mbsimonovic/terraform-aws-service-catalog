@@ -17,16 +17,16 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_cluster" {
-  source = "git::git@github.com:gruntwork-io/module-ecs.git//modules/ecs-cluster?ref=v0.20.1"
+  source = "git::git@github.com:gruntwork-io/module-ecs.git//modules/ecs-cluster?ref=v0.20.10"
 
   cluster_name     = var.cluster_name
   cluster_min_size = var.cluster_min_size
   cluster_max_size = var.cluster_max_size
 
-  cluster_instance_ami          = module.ec2_baseline.existing_ami
-  cluster_instance_type         = var.cluster_instance_type
-  cluster_instance_keypair_name = var.cluster_instance_keypair_name
-  cluster_instance_user_data    = data.template_file.user_data.rendered
+  cluster_instance_ami              = module.ec2_baseline.existing_ami
+  cluster_instance_type             = var.cluster_instance_type
+  cluster_instance_keypair_name     = var.cluster_instance_keypair_name
+  cluster_instance_user_data_base64 = module.ec2_baseline.cloud_init_rendered
 
   vpc_id                            = var.vpc_id
   vpc_subnet_ids                    = var.vpc_subnet_ids
@@ -44,14 +44,14 @@ module "ecs_cluster" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 locals {
-  # Default cloud init script for this module 
+  # Default cloud init script for this module
   cloud_init = {
     filename     = "ecs-cluster-default-cloud-init"
     content_type = "text/x-shellscript"
     content      = data.template_file.user_data.rendered
   }
 
-  # Merge in all the cloud init scripts the user has passed in 
+  # Merge in all the cloud init scripts the user has passed in
   cloud_init_parts = merge({ default : local.cloud_init }, var.cloud_init_parts)
 }
 
@@ -59,14 +59,16 @@ data "template_file" "user_data" {
   template = file("${path.module}/user-data.sh")
 
   vars = {
-    log_group_name                      = var.cluster_name
+    cluster_name                        = var.cluster_name
+    aws_region                          = data.aws_region.current.name
     enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
     enable_ssh_grunt                    = var.enable_ssh_grunt
-    enable_fail2ban                     = var.enable_fail2ban
-    enable_ip_lockdown                  = var.enable_ip_lockdown
     ssh_grunt_iam_group                 = var.ssh_grunt_iam_group
     ssh_grunt_iam_group_sudo            = var.ssh_grunt_iam_group_sudo
+    log_group_name                      = "${var.cluster_name}-logs"
     external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
+    enable_fail2ban                     = var.enable_fail2ban
+    enable_ip_lockdown                  = var.enable_ip_lockdown
   }
 }
 
@@ -78,7 +80,8 @@ module "cloudwatch_log_aggregation" {
   source      = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/logs/cloudwatch-log-aggregation-iam-policy?ref=v0.21.2"
   name_prefix = var.cluster_name
 
-  # We set this to false so that the cloudwatch-custom-metrics-iam policy generates JSON for the policy, but does not create a standalone IAM policy with that JSON. We'll instead add that JSON to the ECS cluster IAM role. 
+  # We set this to false so that the cloudwatch-custom-metrics-iam policy generates JSON for the policy, but does not
+  # create a standalone IAM policy with that JSON. We'll instead add that JSON to the ECS cluster IAM role.
   create_resources = false
 }
 
@@ -132,8 +135,9 @@ module "metric_widget_ecs_cluster_memory_usage" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# BASE RESOURCES 
-# Includes resources common to all EC2 instances in the Service Catalog, including permissions for ssh-grunt, CloudWatch Logs aggregation, CloudWatch metrics, and CloudWatch alarms 
+# BASE RESOURCES
+# Includes resources common to all EC2 instances in the Service Catalog, including permissions for ssh-grunt, CloudWatch
+# Logs aggregation, CloudWatch metrics, and CloudWatch alarms
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ec2_baseline" {
@@ -143,16 +147,16 @@ module "ec2_baseline" {
   enable_ssh_grunt                    = var.enable_ssh_grunt
   external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
   enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
-  # We use custom metrics for ECS, as specified above 
+  # We use custom metrics for ECS, as specified above
   enable_cloudwatch_metrics = false
-  iam_role_arn              = module.ecs_cluster.ecs_instance_iam_role_name
+  iam_role_name             = module.ecs_cluster.ecs_instance_iam_role_name
   cloud_init_parts          = local.cloud_init_parts
   ami                       = var.cluster_instance_ami
   ami_filters               = var.cluster_instance_ami_filters
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# ADD AN AUTO SCALING POLICY TO ADD MORE INSTANCES WHEN CPU USAGE IS HIGH 
+# ADD AN AUTO SCALING POLICY TO ADD MORE INSTANCES WHEN CPU USAGE IS HIGH
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_autoscaling_policy" "scale_out" {
@@ -164,9 +168,9 @@ resource "aws_autoscaling_policy" "scale_out" {
   policy_type               = "StepScaling"
   estimated_instance_warmup = 200
 
-  # Each of the step_adjustment values below defines what to do if the metric is a given amount above the alarm 
-  # threshold. Since our threshold is set at 75, the values below define what to do for CPU usage between 75 and 85% 
-  # and then anything above 85% 
+  # Each of the step_adjustment values below defines what to do if the metric is a given amount above the alarm
+  # threshold. Since our threshold is set at 75, the values below define what to do for CPU usage between 75 and 85%
+  # and then anything above 85%
 
   step_adjustment {
     metric_interval_lower_bound = 0.0
@@ -183,7 +187,7 @@ resource "aws_autoscaling_policy" "scale_out" {
 resource "aws_cloudwatch_metric_alarm" "high_cpu_utilization" {
   count = var.enable_autoscaling ? 1 : 0
 
-  alarm_name        = "${var.cluster_name}-high-cpu-utilization"
+  alarm_name        = "${var.cluster_name}-autoscaling-high-cpu-utilization"
   alarm_description = "An alarm that goes off if the CPU usage in the ${var.cluster_name} ECS cluster is high"
   namespace         = "AWS/EC2"
   metric_name       = "CPUUtilization"
@@ -200,7 +204,7 @@ resource "aws_cloudwatch_metric_alarm" "high_cpu_utilization" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# ADD AN AUTO SCALING POLICY TO REMOVE INSTANCES WHEN CPU USAGE IS LOW 
+# ADD AN AUTO SCALING POLICY TO REMOVE INSTANCES WHEN CPU USAGE IS LOW
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_autoscaling_policy" "scale_in" {
@@ -217,7 +221,7 @@ resource "aws_autoscaling_policy" "scale_in" {
 resource "aws_cloudwatch_metric_alarm" "low_cpu_utilization" {
   count = var.enable_autoscaling ? 1 : 0
 
-  alarm_name        = "${var.cluster_name}-low-cpu-utilization"
+  alarm_name        = "${var.cluster_name}-autoscaling-low-cpu-utilization"
   alarm_description = "An alarm that goes off if the CPU usage in the ${var.cluster_name} ECS cluster is low"
   namespace         = "AWS/EC2"
   metric_name       = "CPUUtilization"
@@ -234,7 +238,7 @@ resource "aws_cloudwatch_metric_alarm" "low_cpu_utilization" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# ENABLE ACCESS TO CERTAIN PORTS WITHIN THE ECS CLUSTER 
+# ENABLE ACCESS TO CERTAIN PORTS WITHIN THE ECS CLUSTER
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_security_group_rule" "cluster_access" {

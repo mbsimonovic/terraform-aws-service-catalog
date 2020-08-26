@@ -19,27 +19,12 @@ variable "aws_account_id" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# REQUIRED CLOUDTRAIL PARAMETERS
-# These variables must be passed in by the operator.
-# ---------------------------------------------------------------------------------------------------------------------
-
-variable "cloudtrail_s3_bucket_name" {
-  description = "The name of the S3 Bucket where CloudTrail logs will be stored. If value is `null`, defaults to `var.name_prefix`-cloudtrail"
-  type        = string
-}
-
-variable "cloudtrail_kms_key_arn" {
-  description = "The ARN of a KMS key to use to encrypt CloudTrail logs."
-  type        = string
-}
-
-# ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL CONFIG PARAMETERS
 # These variables have reasonable defaults that can be overridden for further customizations.
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "config_should_create_s3_bucket" {
-  description = "If true, create an S3 bucket in this account. Should be false when this module is used in a multi-account architecture along with the account-baseline-security module. Defaults to false."
+  description = "Set to true to create an S3 bucket of name var.config_s3_bucket_name in this account for storing AWS Config data (e.g., if this is the logs account). Set to false to assume the bucket specified in var.config_s3_bucket_name already exists in another AWS account (e.g., if this is the stage or prod account and var.config_s3_bucket_name is the name of a bucket in the logs account)."
   type        = bool
   default     = false
 }
@@ -80,8 +65,14 @@ variable "config_tags" {
   default     = {}
 }
 
+variable "config_linked_accounts" {
+  description = "Provide a list of AWS account IDs that will be allowed to send AWS Config data to this account. This is only required if you are aggregating config data in this account (e.g., this is the logs account) from other accounts."
+  type        = list(string)
+  default     = []
+}
+
 variable "config_central_account_id" {
-  description = "Set this to the account ID of the security account in which the S3 bucket and SNS topic exist. If the bucket and topic are in this account, set this to null."
+  description = "If the S3 bucket and SNS topics used for AWS Config live in a different AWS account, set this variable to the ID of that account (e.g., if this is the stage or prod account, set this to the ID of the logs account). If the S3 bucket and SNS topics live in this account (e.g., this is the logs account), set this variable to null."
   type        = string
   default     = null
 }
@@ -170,6 +161,16 @@ variable "allow_billing_access_from_other_account_arns" {
   # ]
 }
 
+variable "allow_logs_access_from_other_account_arns" {
+  description = "A list of IAM ARNs from other AWS accounts that will be allowed read access to the logs in CloudTrail, AWS Config, and CloudWatch for this account. If var.cloudtrail_kms_key_arn is specified, will also be given permissions to decrypt with the KMS CMK that is used to encrypt CloudTrail logs."
+  type        = list(string)
+  default     = []
+  # Example:
+  # default = [
+  #   "arn:aws:iam::123445678910:root"
+  # ]
+}
+
 variable "allow_ssh_grunt_access_from_other_account_arns" {
   description = "A list of IAM ARNs from other AWS accounts that will be allowed read access to IAM groups and publish SSH keys. This is used for ssh-grunt."
   type        = list(string)
@@ -215,6 +216,19 @@ variable "auto_deploy_permissions" {
   type        = list(string)
   default     = []
 }
+
+variable "max_session_duration_human_users" {
+  description = "The maximum allowable session duration, in seconds, for the credentials you get when assuming the IAM roles created by this module. This variable applies to all IAM roles created by this module that are intended for people to use, such as allow-read-only-access-from-other-accounts. For IAM roles that are intended for machine users, such as allow-auto-deploy-from-other-accounts, see var.max_session_duration_machine_users."
+  type        = number
+  default     = 43200 # 12 hours
+}
+
+variable "max_session_duration_machine_users" {
+  description = "The maximum allowable session duration, in seconds, for the credentials you get when assuming the IAM roles created by this module. This variable  applies to all IAM roles created by this module that are intended for machine users, such as allow-auto-deploy-from-other-accounts. For IAM roles that are intended for human users, such as allow-read-only-access-from-other-accounts, see var.max_session_duration_human_users."
+  type        = number
+  default     = 3600 # 1 hour
+}
+
 
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL GUARDDUTY PARAMETERS
@@ -270,20 +284,46 @@ variable "cloudtrail_num_days_after_which_delete_log_data" {
   default     = 365
 }
 
+variable "cloudtrail_kms_key_arn" {
+  description = "All CloudTrail Logs will be encrypted with a KMS CMK (Customer Master Key) that governs access to write API calls older than 7 days and all read API calls. If that CMK already exists (e.g., if this is the stage or prod account and you want to use a CMK that already exists in the logs account), set this to the ARN of that CMK. Otherwise (e.g., if this is the logs account), set this to null, and a new CMK will be created."
+  type        = string
+  default     = null
+}
+
+variable "cloudtrail_s3_bucket_name" {
+  description = "The name of the S3 Bucket where CloudTrail logs will be stored. This could be a bucket in this AWS account (e.g., if this is the logs account) or the name of a bucket in another AWS account where logs should be sent (e.g., if this is the stage or prod account and you're specifying the name of a bucket in the logs account)."
+  type        = string
+  default     = null
+}
+
+variable "cloudtrail_kms_key_administrator_iam_arns" {
+  description = "All CloudTrail Logs will be encrypted with a KMS CMK (Customer Master Key) that governs access to write API calls older than 7 days and all read API calls. If you are aggregating CloudTrail logs and creating the CMK in this account (e.g., if this is the logs account), you MUST specify at least one IAM user (or other IAM ARN) that will be given administrator permissions for CMK, including the ability to change who can access this CMK and the extended log data it protects. If you are aggregating CloudTrail logs in another AWS account and the CMK already exists (e.g., if this is the stage or prod account), set this parameter to an empty list."
+  type        = list(string)
+  # example = ["arn:aws:iam::<aws-account-id>:user/<iam-user-name>"]
+  default = []
+}
+
+variable "cloudtrail_kms_key_user_iam_arns" {
+  description = "All CloudTrail Logs will be encrypted with a KMS CMK (Customer Master Key) that governs access to write API calls older than 7 days and all read API calls. If you are aggregating CloudTrail logs and creating the CMK in this account (e.g., this is the logs account), you MUST specify at least one IAM user (or other IAM ARN) that will be given user access to this CMK, which will allow this user to read CloudTrail Logs. If you are aggregating CloudTrail logs in another AWS account and the CMK already exists, set this parameter to an empty list (e.g., if this is the stage or prod account)."
+  type        = list(string)
+  # example = ["arn:aws:iam::<aws-account-id>:user/<iam-user-name>"]
+  default = []
+}
+
 variable "allow_cloudtrail_access_with_iam" {
-  description = "If true, an IAM Policy that grants access to CloudTrail will be honored."
+  description = "If true, an IAM Policy that grants access to CloudTrail will be honored. If false, only the ARNs listed in var.kms_key_user_iam_arns will have access to CloudTrail and any IAM Policy grants will be ignored. (true or false)"
   type        = bool
   default     = true
 }
 
 variable "cloudtrail_s3_bucket_already_exists" {
-  description = "If set to true, that means the S3 bucket you're using already exists, and does not need to be created. This is especially useful when using CloudTrail with multiple AWS accounts, with a common S3 bucket shared by all of them."
+  description = "Set to false to create an S3 bucket of name var.cloudtrail_s3_bucket_name in this account for storing CloudTrail logs (e.g., if this is the logs account). Set to true to assume the bucket specified in var.cloudtrail_s3_bucket_name already exists in another AWS account (e.g., if this is the stage or prod account and var.cloudtrail_s3_bucket_name is the name of a bucket in the logs account)."
   type        = bool
   default     = true
 }
 
 variable "cloudtrail_external_aws_account_ids_with_write_access" {
-  description = "A list of external AWS accounts that should be given write access for CloudTrail logs to this S3 bucket. This is useful when aggregating CloudTrail logs for multiple AWS accounts in one common S3 bucket."
+  description = "Provide a list of AWS account IDs that will be allowed to send CloudTrail logs to this account. This is only required if you are aggregating CloudTrail logs in this account (e.g., this is the logs account) from other accounts."
   type        = list(string)
   default     = []
 }
@@ -292,6 +332,12 @@ variable "cloudtrail_force_destroy" {
   description = "If set to true, when you run 'terraform destroy', delete all objects from the bucket so that the bucket can be destroyed without error. Warning: these objects are not recoverable so only use this if you're absolutely sure you want to permanently delete everything!"
   type        = bool
   default     = false
+}
+
+variable "cloudtrail_cloudwatch_logs_group_name" {
+  description = "Specify the name of the CloudWatch Logs group to publish the CloudTrail logs to. This log group exists in the current account. Set this value to `null` to avoid publishing the trail logs to the logs group. The recommended configuration for CloudTrail is (a) for each child account to aggregate its logs in an S3 bucket in a single central account, such as a logs account and (b) to also store 14 days work of logs in CloudWatch in the child account itself for local debugging."
+  type        = string
+  default     = "cloudtrail-logs"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -314,7 +360,7 @@ variable "kms_customer_master_keys" {
   # - cmk_administrator_iam_arns            [list(string)] : A list of IAM ARNs for users who should be given
   #                                                          administrator access to this CMK (e.g.
   #                                                          arn:aws:iam::<aws-account-id>:user/<iam-user-arn>).
-  # - cmk_user_iam_arns                     [list(string)] : A list of IAM ARNs for users who should be given
+  # - cmk_user_iam_arns                     [list(object[CMKUser])] : A list of IAM ARNs for users who should be given
   #                                                          permissions to use this CMK (e.g.
   #                                                          arn:aws:iam::<aws-account-id>:user/<iam-user-arn>).
   # - cmk_external_user_iam_arns            [list(string)] : A list of IAM ARNs for users from external AWS accounts
@@ -356,14 +402,26 @@ variable "kms_customer_master_keys" {
   #                                              contexts). The condition object accepts the same fields as the condition
   #                                              block on the IAM policy document (See
   #                                              https://www.terraform.io/docs/providers/aws/d/iam_policy_document.html#condition).
-
+  # Structure of CMKUser object:
+  # - name          [list(string)]             : The list of names of the AWS principal (e.g.: arn:aws:iam::0000000000:user/dev).
+  # - conditions    [list(object[Condition])]  : (Optional) List of conditions to apply to the permissions for the CMK User
+  #                                              Use this to apply conditions on the permissions for accessing the KMS key
+  #                                              (e.g., only allow access for certain encryption contexts).
+  #                                              The condition object accepts the same fields as the condition
+  #                                              block on the IAM policy document (See
+  #                                              https://www.terraform.io/docs/providers/aws/d/iam_policy_document.html#condition).
   #
   # Example:
   # customer_master_keys = {
   #   cmk-stage = {
   #     region                                = "us-west-1"
   #     cmk_administrator_iam_arns            = ["arn:aws:iam::0000000000:user/admin"]
-  #     cmk_user_iam_arns                     = ["arn:aws:iam::0000000000:user/dev"]
+  #     cmk_user_iam_arns                     = [
+  #       {
+  #         name = ["arn:aws:iam::0000000000:user/dev"]
+  #         conditions = []
+  #       }
+  #     ]
   #     cmk_external_user_iam_arns            = ["arn:aws:iam::1111111111:user/root"]
   #     cmk_service_principals                = [
   #       {
@@ -376,7 +434,12 @@ variable "kms_customer_master_keys" {
   #   cmk-prod = {
   #     region                                = "us-west-1"
   #     cmk_administrator_iam_arns            = ["arn:aws:iam::0000000000:user/admin"]
-  #     cmk_user_iam_arns                     = ["arn:aws:iam::0000000000:user/dev"]
+  #     cmk_user_iam_arns                     = [
+  #       {
+  #         name = ["arn:aws:iam::0000000000:user/prod"]
+  #         conditions = []
+  #       }
+  #     ]
   #     allow_manage_key_permissions_with_iam = true
   #     # Override the default value for all keys configured with var.default_deletion_window_in_days
   #     deletion_window_in_days = 7
@@ -405,18 +468,6 @@ variable "kms_cmk_opt_in_regions" {
 # OPTIONAL SNS TOPIC PARAMETERS
 # These variables must be passed in by the operator.
 # ---------------------------------------------------------------------------------------------------------------------
-
-variable "sns_topic_name" {
-  description = "The display name of the SNS topic. If null, no topic will be created."
-  type        = string
-  default     = null
-}
-
-variable "slack_webhook_url" {
-  description = "Send topic notifications to this Slack Webhook URL (e.g., https://hooks.slack.com/services/FOO/BAR/BAZ). Ignored if null."
-  type        = string
-  default     = null
-}
 
 variable "service_linked_roles" {
   description = "Create service-linked roles for this set of services. You should pass in the URLs of the services, but without the protocol (e.g., http://) in front: e.g., use elasticbeanstalk.amazonaws.com for Elastic Beanstalk or es.amazonaws.com for Amazon Elasticsearch. Service-linked roles are predefined by the service, can typically only be assumed by that service, and include all the permissions that the service requires to call other AWS services on your behalf. You can typically only create one such role per AWS account, which is why this parameter exists in the account baseline. See https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_aws-services-that-work-with-iam.html for the list of services that support service-linked roles."

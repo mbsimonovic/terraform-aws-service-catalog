@@ -1,12 +1,13 @@
 {
   "variables": {
-    "service_catalog_ref": "IAC-1419-migrate-ecs-cluster",
+    "service_catalog_ref": "master",
     "version_tag": null,
     "aws_region": "us-east-1",
     "ami_name": "ecs-cluster-instance",
     "copy_to_regions": "",
     "github_auth_token": "{{env `GITHUB_OAUTH_TOKEN`}}",
     "encrypt_boot": "false",
+    "encrypt_kms_key_id": "",
     "vpc_filter_key": "isDefault",
     "vpc_filter_value": "true",
     "vpc_subnet_filter_key": "default-for-az",
@@ -25,7 +26,7 @@
   },
   "sensitive-variables": ["github_auth_token"],
   "builders": [{
-    "ami_name": "{{user `ami_name`}}-{{isotime | clean_resource_name}}",
+    "ami_name": "{{user `ami_name`}}-{{user `version_tag`}}-{{isotime | clean_resource_name}}",
     "ami_description": "An Amazon ECS-optimized AMI that is meant to be run as part of an ECS cluster.",
     "region": "{{user `aws_region`}}",
     "instance_type": "t3.micro",
@@ -55,6 +56,7 @@
     },
     "ssh_username": "ec2-user",
     "encrypt_boot": "{{user `encrypt_boot`}}",
+    "kms_key_id": "{{user `encrypt_kms_key_id`}}",
     "ami_users": "{{user `ami_users`}}",
     "ami_regions": "{{user `copy_to_regions`}}",
     "tags": {

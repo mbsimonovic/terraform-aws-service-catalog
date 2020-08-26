@@ -19,12 +19,16 @@ module "vpc" {
   kms_key_arn = data.aws_kms_key.kms_key.arn
 }
 
+# ----------------------------------------------------------------------------------------------------------------------
+# Deploy an instance with a security group to this VPC for testing purposes
+# ----------------------------------------------------------------------------------------------------------------------
+
 resource "aws_security_group" "example" {
   vpc_id = module.vpc.vpc_id
 
   ingress {
-    from_port   = 8080
-    to_port     = 8080
+    from_port   = var.sg_ingress_port
+    to_port     = var.sg_ingress_port
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -32,7 +36,7 @@ resource "aws_security_group" "example" {
 
 resource "aws_instance" "example" {
   ami                         = data.aws_ami.ubuntu.id
-  instance_type               = "t3.micro"
+  instance_type               = module.instance_types.recommended_instance_type
   subnet_id                   = element(module.vpc.public_subnet_ids, 0)
   vpc_security_group_ids      = [aws_security_group.example.id]
   associate_public_ip_address = true
@@ -40,6 +44,6 @@ resource "aws_instance" "example" {
   user_data = <<-EOF
               #!/bin/bash
               echo "Hello, World" > index.html
-              nohup busybox httpd -f -p 8080 &
+              nohup busybox httpd -f -p ${var.sg_ingress_port} &
               EOF
 }

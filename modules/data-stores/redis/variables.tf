@@ -118,12 +118,6 @@ variable "allow_connections_from_security_groups" {
 
 # Monitoring settings
 
-variable "enable_cloudwatch_metrics" {
-  description = "When true, enable CloudWatch metrics for the manual snapshots created for the purpose of sharing with another account."
-  type        = bool
-  default     = true
-}
-
 variable "enable_cloudwatch_alarms" {
   description = "Set to true to enable several basic CloudWatch alarms around CPU usage, memory usage, and disk space usage. If set to true, make sure to specify SNS topics to send notifications to using var.alarms_sns_topic_arn."
   type        = bool

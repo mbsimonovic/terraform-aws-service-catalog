@@ -1,0 +1,34 @@
+version: '2.0'
+services:
+  tls:
+    build:
+      context: .
+      args:
+        - GITHUB_OAUTH_TOKEN
+    entrypoint: create-tls-cert.sh
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_SESSION_TOKEN
+    volumes:
+      - ./tmp:/tmp
+  rds:
+    build:
+      context: .
+      args:
+        - GITHUB_OAUTH_TOKEN
+    entrypoint: download-rds-ca-certs.sh
+    volumes:
+      - ./tmp:/tmp
+  trust-stores:
+    build:
+      context: .
+      args:
+        - GITHUB_OAUTH_TOKEN
+    entrypoint: generate-trust-stores.sh
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_SESSION_TOKEN
+    volumes:
+      - ./tmp:/tmp

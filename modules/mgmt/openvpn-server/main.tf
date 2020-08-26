@@ -14,7 +14,10 @@ terraform {
   required_version = "~> 0.12.6"
 
   required_providers {
-    aws = "~> 2.6"
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 2.58"
+    }
   }
 }
 
@@ -23,7 +26,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "openvpn" {
-  source = "git::git@github.com:gruntwork-io/module-openvpn.git//modules/openvpn-server?ref=v0.9.11"
+  source = "git::git@github.com:gruntwork-io/module-openvpn.git//modules/openvpn-server?ref=v0.11.0"
 
   aws_region     = data.aws_region.current.name
   aws_account_id = data.aws_caller_identity.current.account_id
@@ -41,8 +44,8 @@ module "openvpn" {
   kms_key_arn        = local.kms_key_arn
   backup_bucket_name = var.backup_bucket_name
 
-  vpc_id    = var.vpc_id
-  subnet_id = var.subnet_id
+  vpc_id     = var.vpc_id
+  subnet_ids = var.subnet_ids
 
   external_account_arns = var.external_account_arns
 
@@ -95,9 +98,19 @@ locals {
   # Merge in all the cloud init scripts the user has passed in
   cloud_init_parts = merge({ default : local.cloud_init }, var.cloud_init_parts)
 
-  kms_key_arn                = var.kms_key_arn != null ? var.kms_key_arn : module.kms_cmk.key_arn[var.name]
+  # We use a "double conditional" check here to prevent issues during destroy
+  # operations in which the key from module.kms_cmk has been deleted but 
+  # a subsequent step failed, causing an invalid index error on a subsequent
+  # destroy.
+  kms_key_arn = (
+    var.kms_key_arn != null ?
+    var.kms_key_arn :
+    length(module.kms_cmk.key_arn) > 0 ?
+    module.kms_cmk.key_arn[var.name] :
+    ""
+  )
   cmk_administrator_iam_arns = length(var.cmk_administrator_iam_arns) == 0 ? [data.aws_caller_identity.current.arn] : var.cmk_administrator_iam_arns
-  cmk_user_iam_arns          = length(var.cmk_user_iam_arns) == 0 ? [data.aws_caller_identity.current.arn] : var.cmk_user_iam_arns
+  cmk_user_iam_arns          = length(var.cmk_user_iam_arns) == 0 ? [{ name = [data.aws_caller_identity.current.arn], conditions = [] }] : var.cmk_user_iam_arns
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -106,7 +119,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "kms_cmk" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-master-key?ref=v0.32.0"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-master-key?ref=v0.35.0"
   customer_master_keys = (
     var.kms_key_arn == null
     ? {
@@ -136,7 +149,7 @@ module "ec2_baseline" {
   external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
   enable_ssh_grunt                    = var.enable_ssh_grunt
   enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
-  iam_role_arn                        = module.openvpn.iam_role_id
+  iam_role_name                       = module.openvpn.iam_role_id
   enable_cloudwatch_metrics           = var.enable_cloudwatch_metrics
   enable_asg_cloudwatch_alarms        = var.enable_cloudwatch_alarms
   asg_names                           = [module.openvpn.autoscaling_group_id]

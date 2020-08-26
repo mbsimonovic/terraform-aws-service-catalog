@@ -83,6 +83,10 @@ output "allow_billing_access_from_other_accounts_iam_role_arn" {
   value = module.iam_cross_account_roles.allow_billing_access_from_other_accounts_iam_role_arn
 }
 
+output "allow_logs_access_from_other_accounts_iam_role_arn" {
+  value = module.iam_cross_account_roles.allow_logs_access_from_other_accounts_iam_role_arn
+}
+
 output "allow_ssh_grunt_access_from_other_accounts_iam_role_arn" {
   value = module.iam_cross_account_roles.allow_ssh_grunt_access_from_other_accounts_iam_role_arn
 }
@@ -119,6 +123,10 @@ output "allow_billing_access_from_other_accounts_iam_role_id" {
   value = module.iam_cross_account_roles.allow_billing_access_from_other_accounts_iam_role_id
 }
 
+output "allow_logs_access_from_other_accounts_iam_role_id" {
+  value = module.iam_cross_account_roles.allow_logs_access_from_other_accounts_iam_role_id
+}
+
 output "allow_ssh_grunt_access_from_other_accounts_iam_role_id" {
   value = module.iam_cross_account_roles.allow_ssh_grunt_access_from_other_accounts_iam_role_id
 }
@@ -153,6 +161,10 @@ output "allow_read_only_access_sign_in_url" {
 
 output "allow_billing_access_sign_in_url" {
   value = module.iam_cross_account_roles.allow_billing_access_sign_in_url
+}
+
+output "allow_logs_access_sign_in_url" {
+  value = module.iam_cross_account_roles.allow_logs_access_sign_in_url
 }
 
 output "allow_ssh_grunt_access_sign_in_url" {
@@ -203,7 +215,6 @@ output "guardduty_findings_sns_topic_names" {
   description = "The names of the SNS topic where findings are published if var.publish_findings_to_sns is set to true."
   value       = module.guardduty.findings_sns_topic_names
 }
-
 # ---------------------------------------------------------------------------------------------------------------------
 # KMS CMK OUTPUTS
 # ---------------------------------------------------------------------------------------------------------------------
@@ -228,10 +239,3 @@ output "invalid_cmk_inputs" {
   value       = module.customer_master_keys.invalid_cmk_inputs
 }
 
-# ---------------------------------------------------------------------------------------------------------------------
-# SNS TOPIC OUTPUTS
-# ---------------------------------------------------------------------------------------------------------------------
-output "sns_topic_arn" {
-  description = "The ARN of the SNS topic."
-  value       = module.sns_topic.topic_arn
-}

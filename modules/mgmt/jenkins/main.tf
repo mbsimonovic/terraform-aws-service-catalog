@@ -16,7 +16,10 @@ terraform {
   required_version = "~> 0.12.6"
 
   required_providers {
-    aws = "~> 2.6"
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 2.58"
+    }
   }
 }
 
@@ -25,11 +28,10 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "jenkins" {
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/jenkins-server?ref=v0.18.1"
+  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/jenkins-server?ref=v0.25.0"
 
-  name           = var.name
-  aws_region     = data.aws_region.current.name
-  aws_account_id = data.aws_caller_identity.current.account_id
+  name       = var.name
+  aws_region = data.aws_region.current.name
 
   ami_id        = module.ec2_baseline.existing_ami
   instance_type = var.instance_type
@@ -76,7 +78,7 @@ module "ec2_baseline" {
   external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
   enable_ssh_grunt                    = var.enable_ssh_grunt
   enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
-  iam_role_arn                        = module.jenkins.jenkins_iam_role_id
+  iam_role_name                       = module.jenkins.jenkins_iam_role_id
   enable_cloudwatch_metrics           = var.enable_cloudwatch_metrics
   enable_asg_cloudwatch_alarms        = var.enable_cloudwatch_alarms
   asg_names                           = [module.jenkins.jenkins_asg_name]
@@ -155,7 +157,7 @@ resource "aws_iam_role_policy" "deploy_this_account_permissions" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "auto_deploy_iam_policies" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-policies?ref=v0.25.1"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-policies?ref=v0.35.0"
 
   aws_account_id = data.aws_caller_identity.current.account_id
 
@@ -163,7 +165,7 @@ module "auto_deploy_iam_policies" {
   iam_policy_should_require_mfa   = false
   trust_policy_should_require_mfa = false
 
-  allow_access_to_other_account_arns = var.external_account_auto_deploy_iam_role_arns
+  allow_access_to_other_account_arns = { "jenkins" = var.external_account_auto_deploy_iam_role_arns }
 }
 
 resource "aws_iam_role_policy" "deploy_other_account_permissions" {
@@ -195,7 +197,7 @@ module "high_disk_usage_jenkins_volume_alarms" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "jenkins_backup" {
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ec2-backup?ref=v0.18.1"
+  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ec2-backup?ref=v0.25.0"
 
   instance_name = module.jenkins.jenkins_asg_name
 

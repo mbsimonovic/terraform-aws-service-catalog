@@ -25,14 +25,14 @@ module "database" {
   source = "git::git@github.com:gruntwork-io/module-data-storage.git//modules/rds?ref=v0.12.11"
 
   name           = var.name
-  db_name        = var.db_name
-  engine         = var.engine
+  db_name        = local.db_name
+  engine         = local.engine
   engine_version = var.engine_version
-  port           = var.port
+  port           = local.port
   license_model  = var.license_model
 
-  master_username = var.master_username
-  master_password = var.master_password
+  master_username = local.master_username
+  master_password = local.master_password
 
   # Run in the private persistence subnets and only allow incoming connections from the private app subnets
   vpc_id                                 = var.vpc_id
@@ -61,8 +61,26 @@ module "database" {
 locals {
   # The primary_endpoint is of the format <host>:<port>. This output returns just the host part.
   primary_host = split(":", module.database.primary_endpoint)[0]
+
+  # The config data below can be provided in either a variable or from AWS Secrets Manager
+  # The variable value is read first. If null, we will read  the values from the secrets manager
+  # in JSON, as described here:
+  #
+  #   https://docs.aws.amazon.com/secretsmanager/latest/userguide/best-practices.html
+  #
+  #
+  db_config       = var.db_config_secrets_manager_id != null ? jsondecode(data.aws_secretsmanager_secret_version.db_config[0].secret_string) : null
+  engine          = var.engine != null ? var.engine : local.db_config.engine
+  port            = var.port != null ? var.port : local.db_config.port
+  db_name         = var.db_name != null ? var.db_name : local.db_config.dbname
+  master_username = var.master_username != null ? var.master_username : local.db_config.username
+  master_password = var.master_password != null ? var.master_password : local.db_config.password
 }
 
+data "aws_secretsmanager_secret_version" "db_config" {
+  count     = var.db_config_secrets_manager_id != null ? 1 : 0
+  secret_id = var.db_config_secrets_manager_id
+}
 
 # ---------------------------------------------------------------------------------------------------------------------
 # ADD CLOUDWATCH ALARMS FOR THE RDS INSTANCES
@@ -89,7 +107,7 @@ module "rds_alarms" {
 module "metric_widget_rds_cpu_usage" {
   source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.19.4"
 
-  title = "${var.name} ${title(var.engine)} CPUUtilization"
+  title = "${var.name} ${title(local.engine)} CPUUtilization"
   stat  = "Average"
 
   period = var.dashboard_cpu_usage_widget_parameters.period
@@ -104,7 +122,7 @@ module "metric_widget_rds_cpu_usage" {
 module "metric_widget_rds_memory" {
   source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.19.4"
 
-  title = "${var.name} ${title(var.engine)} FreeableMemory"
+  title = "${var.name} ${title(local.engine)} FreeableMemory"
   stat  = "Minimum"
 
   period = var.dashboard_memory_widget_parameters.period
@@ -119,7 +137,7 @@ module "metric_widget_rds_memory" {
 module "metric_widget_rds_disk_space" {
   source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.19.4"
 
-  title = "${var.name} ${title(var.engine)} FreeStorageSpace"
+  title = "${var.name} ${title(local.engine)} FreeStorageSpace"
   stat  = "Minimum"
 
   period = var.dashboard_disk_space_widget_parameters.period
@@ -134,7 +152,7 @@ module "metric_widget_rds_disk_space" {
 module "metric_widget_rds_db_connections" {
   source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.19.4"
 
-  title = "${var.name} ${title(var.engine)} DatabaseConnections"
+  title = "${var.name} ${title(local.engine)} DatabaseConnections"
   stat  = "Maximum"
 
   period = var.dashboard_db_connections_widget_parameters.period
@@ -149,7 +167,7 @@ module "metric_widget_rds_db_connections" {
 module "metric_widget_rds_read_latency" {
   source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.19.4"
 
-  title = "${var.name} ${title(var.engine)} ReadLatency"
+  title = "${var.name} ${title(local.engine)} ReadLatency"
   stat  = "Average"
 
   period = var.dashboard_read_latency_widget_parameters.period
@@ -164,7 +182,7 @@ module "metric_widget_rds_read_latency" {
 module "metric_widget_rds_write_latency" {
   source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.19.4"
 
-  title = "${var.name} ${title(var.engine)} WriteLatency"
+  title = "${var.name} ${title(local.engine)} WriteLatency"
   stat  = "Average"
 
   period = var.dashboard_write_latency_widget_parameters.period

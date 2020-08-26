@@ -43,5 +43,5 @@ inputs = {
   vpc_name         = "${local.account_vars.locals.account_name}-vpc"
   cidr_block       = local.common_vars.locals.vpc_cidr_blocks[local.account_vars.locals.account_name]
   num_nat_gateways = 1
-  create_flow_logs = false
+  create_flow_logs = true
 }
