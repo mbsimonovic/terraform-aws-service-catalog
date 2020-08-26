@@ -4,7 +4,7 @@
 set -e
 
 # TODO: Update ref to a tag when released
-readonly DEFAULT_EC2_BASELINE_REF="master"
+readonly DEFAULT_EC2_BASELINE_REF="ssh-grunt-install-issue"
 
 function include_ec2_baseline {
   gruntwork-install \

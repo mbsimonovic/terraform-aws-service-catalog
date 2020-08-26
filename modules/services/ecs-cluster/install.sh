@@ -10,7 +10,7 @@ readonly DEFAULT_ECS_SCRIPTS_VERSION="v0.20.2"
 readonly DEFAULT_GRUNT_KMS_VERSION="v0.0.8"
 
 # TODO: Update ref to a tag when released
-readonly DEFAULT_EC2_BASELINE_REF="master"
+readonly DEFAULT_EC2_BASELINE_REF="ssh-grunt-install-issue"
 
 # You can set the version of the build tooling to this value to skip installing it
 readonly SKIP_INSTALL_VERSION="NONE"
