@@ -103,11 +103,14 @@ function start_ssh_grunt {
     args+=("--role-arn" "$external_account_ssh_grunt_role_arn")
   fi
 
-  # Call 'sync-users' to sync IAM users the first time during boot. Call 'install' to add a CRON job that will re-run
-  # 'sync-users' on a schedule. Note that we need double dollar signs as Terraform will try to interpolate a single
-  # dollar sign followed by curly braces
+  # Call 'sync-users' to sync IAM users the first time during boot. 
   sudo /usr/local/bin/ssh-grunt iam sync-users "${args[@]}"
+
+  # Call 'install' to add a cron job that will set up ssh-grunt and re-run 'sync-users' on a schedule. 
   sudo /usr/local/bin/ssh-grunt iam install "${args[@]}"
+
+  # Restart sshd so that the changes to sshd_config to take effect
+  sudo /sbin/service sshd restart
 }
 
 function start_fail2ban {
