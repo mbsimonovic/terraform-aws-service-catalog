@@ -4,7 +4,7 @@ This is an example of how to use the [elasticsearch module](/modules/data-stores
 If you want to deploy this module directly in production, check out the [examples/for-production
 folder](/examples/for-production).
 
-
+This example deploys the Elasticsearch cluster to only be accessible from within a VPC. For a public cluster, see the [elasticsearch-public example](../elasticsearch-public).
 
 
 ## Deploy instructions

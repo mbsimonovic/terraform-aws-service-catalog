@@ -134,7 +134,7 @@ func validateCluster(t *testing.T, testFolder string) {
 			fmt.Sprintf("https://%s", endpoint),
 		),
 	)
-	logger.Log(t, "%s", curlResponse)
+	logger.Logf(t, "%s", curlResponse)
 }
 
 func validatePublicCluster(t *testing.T, testFolder string) {
