@@ -23,7 +23,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_deploy_runner" {
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner?ref=v0.25.1"
+  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner?ref=v0.27.1"
 
   name                          = var.name
   container_images              = module.standard_config.container_images
@@ -40,12 +40,13 @@ module "ecs_deploy_runner" {
 }
 
 module "standard_config" {
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner-standard-configuration?ref=v0.24.1"
+  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner-standard-configuration?ref=v0.27.1"
 
   docker_image_builder = (
     var.docker_image_builder_config != null
-    ? { container_image = var.docker_image_builder_config.container_image
-      allowed_repos     = var.docker_image_builder_config.allowed_repos
+    ? {
+      container_image = var.docker_image_builder_config.container_image
+      allowed_repos   = var.docker_image_builder_config.allowed_repos
       secrets_manager_env_vars = merge(
         (
           var.docker_image_builder_config.git_config != null && var.docker_image_builder_config.git_config.username_secrets_manager_arn != null
@@ -63,6 +64,7 @@ module "standard_config" {
         ),
         var.docker_image_builder_config.secrets_manager_env_vars,
       )
+      environment_vars = var.docker_image_builder_config.environment_vars
     }
     : null
   )
@@ -74,6 +76,7 @@ module "standard_config" {
       allowed_repos                           = var.ami_builder_config.allowed_repos
       repo_access_ssh_key_secrets_manager_arn = var.ami_builder_config.repo_access_ssh_key_secrets_manager_arn
       secrets_manager_env_vars                = var.ami_builder_config.secrets_manager_env_vars
+      environment_vars                        = var.ami_builder_config.environment_vars
     }
     : null
   )
@@ -89,6 +92,7 @@ module "standard_config" {
         },
         var.terraform_planner_config.secrets_manager_env_vars,
       )
+      environment_vars = var.terraform_planner_config.environment_vars
     }
     : null
   )
@@ -108,6 +112,7 @@ module "standard_config" {
         },
         var.terraform_applier_config.secrets_manager_env_vars,
       )
+      environment_vars = var.terraform_applier_config.environment_vars
     }
     : null
   )
@@ -304,11 +309,98 @@ data "aws_iam_policy_document" "terraform_applier" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
+# CREATE KMS GRANTS TO ALLOW RESPECTIVE CONTAINERS FOR SNAPSHOTS
+# Creates the following grants to ami-builder and terraform-applier for each snapshot encryption key:
+# - Encrypt
+# - Decrypt
+# - ReEncryptFrom
+# - ReEncryptTo
+# - GenerateDataKey
+# - GenerateDataKeyWithoutPlaintext
+# - DescribeKey
+# - CreateGrant
+#
+# See https://docs.aws.amazon.com/autoscaling/ec2/userguide/key-policy-requirements-EBS-encryption.html for more
+# details.
+# ---------------------------------------------------------------------------------------------------------------------
+
+module "kms_grants" {
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-grant-multi-region?ref=v0.36.1"
+
+  aws_account_id    = data.aws_caller_identity.current.account_id
+  seed_region       = data.aws_region.current.name
+  kms_grant_regions = local.kms_grant_regions
+  kms_grants        = local.kms_grants
+}
+
+locals {
+  key_use_actions = [
+    "Encrypt",
+    "Decrypt",
+    "ReEncryptFrom",
+    "ReEncryptTo",
+    "GenerateDataKey",
+    "GenerateDataKeyWithoutPlaintext",
+    "DescribeKey",
+    "CreateGrant",
+  ]
+
+  # This regex can be used to extract the region from an ARN string. It works by parsing the first 4 parts of the arn,
+  # matching words that don't have : in them, and assigning a group to the 4th part (the region).
+  extract_region_regex = "arn:[^:]*:[^:]*:([^:]+):.+"
+
+  ami_builder_kms_grant_regions = (
+    var.ami_builder_config != null
+    ? {
+      for name, cmk_arn in var.snapshot_encryption_kms_cmk_arns :
+      "ami-builder-${name}" => regex(local.extract_region_regex, cmk_arn)[0]
+    }
+    : {}
+  )
+  ami_builder_kms_grants = (
+    var.ami_builder_config != null
+    ? {
+      for name, cmk_arn in var.snapshot_encryption_kms_cmk_arns :
+      "ami-builder-${name}" => {
+        kms_cmk_arn        = cmk_arn
+        grantee_principal  = module.ecs_deploy_runner.ecs_task_iam_roles["ami-builder"].arn
+        granted_operations = local.key_use_actions
+      }
+    }
+    : {}
+  )
+
+  terraform_applier_kms_grant_regions = (
+    var.terraform_applier_config != null
+    ? {
+      for name, cmk_arn in var.snapshot_encryption_kms_cmk_arns :
+      "terraform-applier-${name}" => regex(local.extract_region_regex, cmk_arn)[0]
+    }
+    : {}
+  )
+  terraform_applier_kms_grants = (
+    var.terraform_applier_config != null
+    ? {
+      for name, cmk_arn in var.snapshot_encryption_kms_cmk_arns :
+      "terraform-applier-${name}" => {
+        kms_cmk_arn        = cmk_arn
+        grantee_principal  = module.ecs_deploy_runner.ecs_task_iam_roles["terraform-applier"].arn
+        granted_operations = local.key_use_actions
+      }
+    }
+    : {}
+  )
+
+  kms_grant_regions = merge(local.ami_builder_kms_grant_regions, local.terraform_applier_kms_grant_regions)
+  kms_grants        = merge(local.ami_builder_kms_grants, local.terraform_applier_kms_grants)
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
 # CREATE IAM POLICY WITH PERMISSIONS TO INVOKE THE ECS DEPLOY RUNNER ATTACH TO IAM ENTITIES
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "invoke_policy" {
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner-invoke-iam-policy?ref=master"
+  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner-invoke-iam-policy?ref=v0.27.1"
 
   name                                      = "invoke-${var.name}"
   deploy_runner_invoker_lambda_function_arn = module.ecs_deploy_runner.invoker_function_arn
@@ -340,3 +432,5 @@ resource "aws_iam_group_policy_attachment" "attach_invoke_to_groups" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 data "aws_region" "current" {}
+
+data "aws_caller_identity" "current" {}
