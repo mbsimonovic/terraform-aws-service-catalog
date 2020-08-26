@@ -111,9 +111,9 @@ function start_ssh_grunt {
 
   # Restart sshd so that the changes to sshd_config to take effect
   # First try with systemctl (systemd), then with the service command
-  if [[ $(command -v "systemctl") ]]; then
+  if command -v "systemctl"; then
     systemctl restart sshd
-  elif [[ $(command -v "service") ]]; then
+  elif command -v "service"; then
     service sshd restart
   else
     echo "ERROR: Could not use systemctl or service to restart sshd."
