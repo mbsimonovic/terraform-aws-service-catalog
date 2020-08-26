@@ -6,6 +6,8 @@ folder](/examples/for-production).
 
 This example deploys the Elasticsearch cluster with public access. For a private cluster, see the [elasticsearch example](../elasticsearch).
 
+You'll need to add a [Service-Linked Role for Elasticsearch](https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/slr-es.html) within your AWS account. The role is named `es.amazonaws.com`. You can create and manage it via the AWS Console UI.
+
 
 ## Deploy instructions
 

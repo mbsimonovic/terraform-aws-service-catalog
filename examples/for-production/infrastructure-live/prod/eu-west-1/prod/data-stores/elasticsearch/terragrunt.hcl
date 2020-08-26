@@ -45,6 +45,10 @@ prevent_destroy = true
 # These are the variables we have to pass in to use the module specified in the terragrunt configuration above
 # ---------------------------------------------------------------------------------------------------------------------
 
+# NOTE: You'll need to add a Service-Linked Role for Elasticsearch
+# (https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/slr-es.html) within your AWS account.
+# The role is named `es.amazonaws.com`. You can create and manage it via the AWS Console UI.
+
 inputs = {
   domain_name            = "aws-es-cluster"
   instance_type          = "t2.small.elasticsearch"
