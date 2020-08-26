@@ -46,7 +46,7 @@ module "config" {
 }
 
 module "organizations_config_rules" {
-  source = "../aws-config-rules"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-config-rules?ref=v0.36.2"
 
   // Make sure AWS Config has been applied first
   // Because `aws-config-multi-region` doesn't have a string or list of strings output, we'll construct one dynamically
