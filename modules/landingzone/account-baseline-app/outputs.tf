@@ -239,3 +239,7 @@ output "invalid_cmk_inputs" {
   value       = module.customer_master_keys.invalid_cmk_inputs
 }
 
+output "service_linked_role_arns" {
+  description = "A map of ARNs of the service linked roles created from var.service_linked_roles."
+  value       = { for name, config in var.service_linked_roles : name => aws_iam_service_linked_role.role[name].arn }
+}
