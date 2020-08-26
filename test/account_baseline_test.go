@@ -1,6 +1,7 @@
 package test
 
 import (
+	"fmt"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -10,9 +11,13 @@ import (
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestAccountBaseline(t *testing.T) {
+// This is the Org Test Account
+const AWSAccountId = "966198709205"
+
+func TestAccountBaselines(t *testing.T) {
 	t.Parallel()
 
 	var testCases = []struct {
@@ -22,11 +27,13 @@ func TestAccountBaseline(t *testing.T) {
 		createOrg  bool
 		isApp      bool
 		isLogs     bool
+		isSecurity bool
 	}{
 		{
 			"TestRootExistingOrgPlan",
 			"account-baseline-root",
 			true,
+			false,
 			false,
 			false,
 			false,
@@ -38,6 +45,7 @@ func TestAccountBaseline(t *testing.T) {
 			true,
 			false,
 			false,
+			false,
 		},
 		{
 			"TestSecurityPlan",
@@ -46,6 +54,7 @@ func TestAccountBaseline(t *testing.T) {
 			false,
 			false,
 			false,
+			true,
 		},
 		{
 			"TestLogsPlan",
@@ -54,6 +63,7 @@ func TestAccountBaseline(t *testing.T) {
 			false,
 			false,
 			true,
+			false,
 		},
 		{
 			"TestAppPlan",
@@ -61,6 +71,7 @@ func TestAccountBaseline(t *testing.T) {
 			false,
 			false,
 			true,
+			false,
 			false,
 		},
 	}
@@ -76,37 +87,62 @@ func TestAccountBaseline(t *testing.T) {
 			//os.Setenv("SKIP_bootstrap", "true")
 			//os.Setenv("SKIP_plan_and_verify", "true")
 
-			_examplesDir := test_structure.CopyTerraformFolderToTemp(t, "../", filepath.Join("examples", "for-learning-and-testing", "landingzone", testCase.exampleDir))
+			_examplesDir := "../examples/for-learning-and-testing/landingzone"
+			exampleDir := filepath.Join(_examplesDir, testCase.exampleDir)
+
+			childAccounts := map[string]interface{}{
+				"logs": map[string]interface{}{
+					"email":           "root-accounts+logs@acme.com",
+					"is_logs_account": true,
+				},
+				"security": map[string]interface{}{
+					"email":                      "root-accounts+security@acme.com",
+					"role_name":                  "OrganizationAccountAccessRole",
+					"iam_user_access_to_billing": "DENY",
+				},
+				"dev": map[string]interface{}{
+					"email": "root-accounts+dev@acme.com",
+				},
+			}
 
 			test_structure.RunTestStage(t, "bootstrap", func() {
 				logger.Logf(t, "Bootstrapping variables")
 
 				awsRegion := pickAwsRegion(t)
 
-				terraformOptions := createBaseTerraformOptions(t, _examplesDir, awsRegion)
+				terraformOptions := createBaseTerraformOptions(t, exampleDir, awsRegion)
 
 				if testCase.isOrg {
 					terraformOptions.Vars["create_organization"] = testCase.createOrg
+					terraformOptions.Vars["child_accounts"] = childAccounts
 				}
+				terraformOptions.Vars["aws_account_id"] = AWSAccountId
 				terraformOptions.Vars["name_prefix"] = strings.ToLower(testCase.testName)
 
 				// Test using the account-baseline-app example for the purposes of deploying the logs account
 				if testCase.isLogs {
 					terraformOptions.Vars["config_s3_bucket_name"] = "gruntwork-lz-config-bucket"
-					terraformOptions.Vars["config_linked_accounts"] = []string{"123445678910", "123445678911"}
+					terraformOptions.Vars["config_aggregate_config_data_in_external_account"] = false
+					terraformOptions.Vars["config_central_account_id"] = "123445678910"
 					terraformOptions.Vars["cloudtrail_s3_bucket_name"] = "gruntwork-lz-cloudtrail-bucket"
-					terraformOptions.Vars["cloudtrail_kms_key_administrator_iam_arns"] = []string{"arn:aws:iam::123445678910:root"}
-					terraformOptions.Vars["cloudtrail_kms_key_user_iam_arns"] = []string{"arn:aws:iam::123445678910:root"}
-					terraformOptions.Vars["cloudtrail_external_aws_account_ids_with_write_access"] = []string{"123445678910", "123445678911"}
+					terraformOptions.Vars["cloudtrail_kms_key_arn"] = "arn:aws:kms:us-east-1:123445678910:key/12345678-1234-123a-b456-78889123456e3"
 					terraformOptions.Vars["allow_full_access_from_other_account_arns"] = []string{"arn:aws:iam::123445678910:root"}
+				}
+
+				// Simulate deploying the security account after the logs account exists
+				if testCase.isSecurity {
+					terraformOptions.Vars["config_s3_bucket_name"] = "gruntwork-lz-config-bucket"
+					terraformOptions.Vars["config_central_account_id"] = "123445678910"
+					terraformOptions.Vars["cloudtrail_s3_bucket_name"] = "gruntwork-lz-cloudtrail-bucket"
+					terraformOptions.Vars["cloudtrail_kms_key_arn"] = "arn:aws:kms:us-east-1:123445678910:key/12345678-1234-123a-b456-78889123456e3"
 				}
 
 				// Simulate deploying the app account after the logs account exists
 				if testCase.isApp {
 					terraformOptions.Vars["config_s3_bucket_name"] = "gruntwork-lz-config-bucket"
 					terraformOptions.Vars["config_central_account_id"] = "123445678910"
+					terraformOptions.Vars["config_aggregate_config_data_in_external_account"] = true
 					terraformOptions.Vars["cloudtrail_s3_bucket_name"] = "gruntwork-lz-cloudtrail-bucket"
-					terraformOptions.Vars["cloudtrail_kms_key_administrator_iam_arns"] = []string{}
 					terraformOptions.Vars["cloudtrail_kms_key_arn"] = "arn:aws:kms:us-east-1:123445678910:key/12345678-1234-123a-b456-78889123456e3"
 					terraformOptions.Vars["allow_auto_deploy_from_other_account_arns"] = []string{"arn:aws:iam::123445678910:role/jenkins"}
 					terraformOptions.Vars["allow_read_only_access_from_other_account_arns"] = []string{"arn:aws:iam::123445678910:root"}
@@ -114,24 +150,24 @@ func TestAccountBaseline(t *testing.T) {
 					terraformOptions.Vars["dev_permitted_services"] = []string{"ec2", "s3", "rds", "dynamodb", "elasticache"}
 				}
 
-				test_structure.SaveTerraformOptions(t, _examplesDir, terraformOptions)
+				test_structure.SaveTerraformOptions(t, exampleDir, terraformOptions)
 			})
 
 			test_structure.RunTestStage(t, "plan_and_verify", func() {
 				logger.Log(t, "Running terraform plan")
 
-				terraformOptions := test_structure.LoadTerraformOptions(t, _examplesDir)
+				terraformOptions := test_structure.LoadTerraformOptions(t, exampleDir)
 
 				// We're testing against a separate account and need to connect to root account
 				// Just storing the env vars in the in-memory map
 				configureTerraformForOrgTestAccount(t, terraformOptions)
 
 				// NOTE: Do *NOT* run apply for this test because destroy will not delete the child account,
-				// so eventually we'd be left with hundreds of unusable accounts. We also pass `-parallelism=4`
+				// so eventually we'd be left with hundreds of unusable accounts. We also pass `-parallelism=2`
 				// to the terraform plan command as we've found the default value of 20 causes instability and
 				// eventual consistency issues when using the landing zone modules.
 				_, err := terraform.InitE(t, terraformOptions)
-				assert.NoError(t, err, "Should not get init error")
+				require.NoError(t, err, "Should not get init error")
 
 				result, err := planWithParallelismE(t, terraformOptions)
 
@@ -144,7 +180,11 @@ func TestAccountBaseline(t *testing.T) {
 				// assertions much more manageable. At that point it might make sense to do a more thorough examination
 				// of the outputs.
 				if testCase.isOrg {
-					assert.Regexp(t, regexp.MustCompile(`child_accounts\["acme-example-security"\].*will be created`), result, "Should create acme-example-security account")
+					for accountName, _ := range childAccounts {
+						accountWillBeCreatedRegexp, err := regexp.Compile(fmt.Sprintf(`child_accounts\["%s"\].*will be created`, accountName))
+						require.NoError(t, err)
+						assert.Regexp(t, accountWillBeCreatedRegexp, result)
+					}
 				}
 
 				assert.Regexp(t, regexp.MustCompile(`aws_guardduty_detector.guardduty\[0\].*will be created`), result, "Should create guardduty")

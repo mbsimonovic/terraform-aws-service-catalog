@@ -175,5 +175,5 @@ func requireEnvVar(t *testing.T, envVarName string) {
 // PlanWithParallelismE runs terraform plan with the given options including the parallelism flag and returns stdout/stderr.
 // This will fail the test if there is an error in the command.
 func planWithParallelismE(t *testing.T, options *terraform.Options) (string, error) {
-	return terraform.RunTerraformCommandE(t, options, terraform.FormatArgs(options, "plan", "-parallelism=4", "-input=false", "-lock=false")...)
+	return terraform.RunTerraformCommandE(t, options, terraform.FormatArgs(options, "plan", "-parallelism=2", "-input=false", "-lock=false")...)
 }
