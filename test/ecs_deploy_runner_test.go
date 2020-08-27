@@ -202,6 +202,7 @@ func TestEcsDeployRunner(t *testing.T) {
 					"password_secrets_manager_arn": nil,
 				},
 				"secrets_manager_env_vars": map[string]interface{}{},
+				"environment_vars":         map[string]interface{}{},
 			},
 			"ami_builder_config": map[string]interface{}{
 				"container_image": map[string]string{
@@ -218,6 +219,7 @@ func TestEcsDeployRunner(t *testing.T) {
 				"allowed_repos": []string{serviceCatalogRepo},
 				"repo_access_ssh_key_secrets_manager_arn": sshSecretsManagerArn,
 				"secrets_manager_env_vars":                map[string]interface{}{},
+				"environment_vars":                        map[string]interface{}{},
 			},
 			"terraform_planner_config": map[string]interface{}{
 				"container_image": map[string]string{
@@ -228,6 +230,7 @@ func TestEcsDeployRunner(t *testing.T) {
 				"infrastructure_live_repositories":        []string{serviceCatalogRepo, moduleCIRepo},
 				"repo_access_ssh_key_secrets_manager_arn": sshSecretsManagerArn,
 				"secrets_manager_env_vars":                map[string]interface{}{},
+				"environment_vars":                        map[string]interface{}{},
 			},
 			"terraform_applier_config": map[string]interface{}{
 				"container_image": map[string]string{
@@ -244,6 +247,7 @@ func TestEcsDeployRunner(t *testing.T) {
 				},
 				"repo_access_ssh_key_secrets_manager_arn": sshSecretsManagerArn,
 				"secrets_manager_env_vars":                map[string]interface{}{},
+				"environment_vars":                        map[string]interface{}{},
 			},
 			"enable_ec2_worker_pool":          true,
 			"ec2_worker_pool_ami_version_tag": branchName,

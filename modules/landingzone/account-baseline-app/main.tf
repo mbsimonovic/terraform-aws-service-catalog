@@ -197,6 +197,15 @@ module "customer_master_keys" {
   opt_in_regions       = var.kms_cmk_opt_in_regions
 }
 
+module "kms_grants" {
+  source            = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-grant-multi-region?ref=v0.36.1"
+  aws_account_id    = var.aws_account_id
+  seed_region       = var.aws_region
+  opt_in_regions    = var.kms_cmk_opt_in_regions
+  kms_grant_regions = var.kms_grant_regions
+  kms_grants        = var.kms_grants
+}
+
 # ----------------------------------------------------------------------------------------------------------------------
 # ACCOUNT LEVEL SERVICE-LINKED ROLES
 # ----------------------------------------------------------------------------------------------------------------------
