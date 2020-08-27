@@ -900,6 +900,9 @@ it works:
 
 1. To get the list of available versions, we are using an **experimental** Gruntwork Registry endpoint:
 
+    1. The code for this endpoint lives in [the `gruntwork-registry` module in the Gruntwork prototypes 
+       repo](https://github.com/gruntwork-io/prototypes/tree/master/gruntwork-registry).
+
     1. This endpoint is NOT ready for production use with all customers and could break at any time. If RenovateBot 
        works well for us with this repo, we'll work to productionize this endpoint and roll out RenovateBot to all 
        customers. 
