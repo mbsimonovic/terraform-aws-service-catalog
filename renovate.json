@@ -2,7 +2,7 @@
   "extends": [
     "config:base"
   ],
-  "registryUrls": ["https://eh3qxbpvoc.execute-api.us-east-1.amazonaws.com/default"],
+  "registryUrls": ["https://eh3qxbpvoc.execute-api.us-east-1.amazonaws.com/default2"],
   "enabledManagers": ["regex"],
   "regexManagers": [
     {
