@@ -30,7 +30,7 @@
       "fileMatch": ["\\.json"],
       "matchStrings": ["\"gruntwork_installer_version\": \"(?<currentValue>.+?)\""],
       "depNameTemplate": "gruntwork-io/gruntwork-installer",
-      "lookupNameTemplate": "gruntwork-io/{{name}}/aws",
+      "lookupNameTemplate": "gruntwork-io/gruntwork-installer/aws",
       "datasourceTemplate": "terraform-module"
     }
   ],
