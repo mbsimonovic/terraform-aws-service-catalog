@@ -898,10 +898,20 @@ it works:
 1. Any time a dependency of this repo releases an update, RenovateBot will automatically update the code in this repo 
    to use the new version and open up a PR with the changes.
 
-1. To get the list of available versions, we are using an **experimental** Gruntwork Registry endpoint. This endpoint
-   is NOT ready for production use with all customers and could break at any time. If RenovateBot works well for us
-   with this repo, we'll work to productionize this endpoint and roll out RenovateBot to all customers. In the meantime,
-   if you have questions or issues, contact [Jim](mailto:jim@gruntwork.io). 
+1. To get the list of available versions, we are using an **experimental** Gruntwork Registry endpoint:
+
+    1. This endpoint is NOT ready for production use with all customers and could break at any time. If RenovateBot 
+       works well for us with this repo, we'll work to productionize this endpoint and roll out RenovateBot to all 
+       customers. 
+    
+    1. We are using a few weird hacks / workaronds. For example, all the `regex` managers in `renovate.json` set the
+       `datasourceTemplate` to `terraform-module`, even for non Terraform code. This is largely because we haven't 
+       figured out the right data source to use for all dependency types with our experimental endpoint, and pretending
+       everything is a Terraform module works OK for now. Also, there are some TODOs in the code for dependencies we
+       don't know how to update automatically, such as the Jenkins or Terraform version that gets installed (what 
+       endpoint do we get that info from?).
+       
+    1. In the meantime, if you have questions or issues related to RenovateBot, contact [Jim](mailto:jim@gruntwork.io). 
 
 1. RenovateBot is *extremely* configurable and customizable. The configuration is in [`renovate.json`](renovate.json).
    See the [RenovateBot documentation](https://docs.renovatebot.com/) for instructions.
