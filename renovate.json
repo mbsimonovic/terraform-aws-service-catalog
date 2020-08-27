@@ -20,6 +20,13 @@
       "datasourceTemplate": "terraform-module"
     },
     {
+      "fileMatch": ["^config.yml$"],
+      "matchStrings": ["renovate.json auto-update: (?<name>.+?)\n.+: (?<currentValue>.+)"],
+      "depNameTemplate": "gruntwork-io/{{name}}",
+      "lookupNameTemplate": "gruntwork-io/{{name}}/aws",
+      "datasourceTemplate": "terraform-module"
+    },
+    {
       "fileMatch": ["\\.json"],
       "matchStrings": ["\"gruntwork_installer_version\": \"(?<currentValue>.+?)\""],
       "depNameTemplate": "gruntwork-io/gruntwork-installer",
