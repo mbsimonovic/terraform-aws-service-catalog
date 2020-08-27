@@ -11,6 +11,13 @@
       "depNameTemplate": "gruntwork-io/{{#if cloud}}terraform-{{cloud}}-{{/if}}{{name}}",
       "lookupNameTemplate": "gruntwork-io/{{name}}/{{#if cloud}}{{cloud}}{{else}}aws{{/if}}",
       "datasourceTemplate": "terraform-module"
+    },
+    {
+      "fileMatch": ["\\.sh$"],
+      "matchStrings": ["renovate.json auto-update: (?<name>.+?)\n.+=\"(?<currentValue>.+?)\""],
+      "depNameTemplate": "gruntwork-io/{{name}}",
+      "lookupNameTemplate": "gruntwork-io/{{name}}/aws",
+      "datasourceTemplate": "terraform-module"
     }
   ],
   "prBodyColumns": [

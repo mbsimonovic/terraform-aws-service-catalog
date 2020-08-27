@@ -3,8 +3,9 @@
 
 set -e
 
-# TODO: Update ref to a tag when released
+# renovate.json auto-update: aws-service-catalog
 readonly DEFAULT_EC2_BASELINE_REF="master"
+# renovate.json auto-update: module-ecs
 readonly DEFAULT_MODULE_ECS_VERSION="v0.20.10"
 
 function include_ec2_baseline {
