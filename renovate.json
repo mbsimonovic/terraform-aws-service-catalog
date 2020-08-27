@@ -6,7 +6,14 @@
   "enabledManagers": ["regex"],
   "regexManagers": [
     {
-      "fileMatch": ["\\.tf$", "\\.hcl$"],
+      "fileMatch": ["\\.tf$"],
+      "matchStrings": ["source\\s*=\\s*\".*?github\\.com.gruntwork-io/(?:(?<prefix>terraform)-(?<cloud>.+?)-)?(?<name>.+?)(?:\\.git)?(?:/.*?)?\\?ref=(?<currentValue>.*?)\""],
+      "depNameTemplate": "gruntwork-io/{{#if cloud}}terraform-{{cloud}}-{{/if}}{{name}}",
+      "lookupNameTemplate": "gruntwork-io/{{name}}/{{#if cloud}}{{cloud}}{{else}}aws{{/if}}",
+      "datasourceTemplate": "terraform-module"
+    },
+    {
+      "fileMatch": ["\\.hcl$"],
       "matchStrings": ["source\\s*=\\s*\".*?github\\.com.gruntwork-io/(?:(?<prefix>terraform)-(?<cloud>.+?)-)?(?<name>.+?)(?:\\.git)?(?:/.*?)?\\?ref=(?<currentValue>.*?)\""],
       "depNameTemplate": "gruntwork-io/{{#if cloud}}terraform-{{cloud}}-{{/if}}{{name}}",
       "lookupNameTemplate": "gruntwork-io/{{name}}/{{#if cloud}}{{cloud}}{{else}}aws{{/if}}",
