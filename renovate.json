@@ -18,6 +18,13 @@
       "depNameTemplate": "gruntwork-io/{{name}}",
       "lookupNameTemplate": "gruntwork-io/{{name}}/aws",
       "datasourceTemplate": "terraform-module"
+    },
+    {
+      "fileMatch": ["\\.json"],
+      "matchStrings": ["\"gruntwork_installer_version\": \"(?<currentValue>.+?)\""],
+      "depNameTemplate": "gruntwork-io/gruntwork-installer",
+      "lookupNameTemplate": "gruntwork-io/{{name}}/aws",
+      "datasourceTemplate": "terraform-module"
     }
   ],
   "prBodyColumns": [
