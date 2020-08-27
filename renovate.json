@@ -2,7 +2,7 @@
   "extends": [
     "config:base"
   ],
-  "registryUrls": ["https://eh3qxbpvoc.execute-api.us-east-1.amazonaws.com/default2"],
+  "registryUrls": ["https://pmzuw7zcw4.execute-api.eu-west-1.amazonaws.com/default"],
   "enabledManagers": ["regex"],
   "regexManagers": [
     {
@@ -46,12 +46,5 @@
     "Update": "{{#if isPatch}}Minor{{else}}Major **[BACKWARDS INCOMPATIBLE, SEE RELEASE NOTES]**{{/if}}"
   },
   "prBodyNotes": ["{{#unless isPatch}}:warning: This is a **backwards incompatible upgrade**. You MUST follow the instructions in the [Release Notes](https://github.com/{{depName}}/releases/tag/{{newVersion}}) to upgrade! If you are upgrading across multiple backwards incompatible versions (e.g., `v0.3.0` to `v0.6.0`), you MUST check the release notes for every release in between too! :warning:{{/unless}}"],
-  "prHourlyLimit": 10,
-  "hostRules": [
-    {
-      "domainName": "eh3qxbpvoc.execute-api.us-east-1.amazonaws.com",
-      "username": "renovate-user",
-      "password": "renovate-pass"
-    }
-  ]
+  "prHourlyLimit": 10
 }
