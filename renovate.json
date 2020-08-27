@@ -1,5 +1,36 @@
 {
   "extends": [
     "config:base"
+  ],
+  "registryUrls": ["https://eh3qxbpvoc.execute-api.us-east-1.amazonaws.com/default"],
+  "enabledManagers": ["regex"],
+  "regexManagers": [
+    {
+      "fileMatch": ["\\.tf$", "^terragrunt.hcl$"],
+      "matchStrings": ["source\\s*=\\s*\".*?github\\.com.gruntwork-io/(?:(?<prefix>terraform)-(?<cloud>.+?)-)?(?<name>.+?)(?:\\.git)?(?:/.*?)?\\?ref=(?<currentValue>.*?)\""],
+      "depNameTemplate": "gruntwork-io/{{#if cloud}}terraform-{{cloud}}-{{/if}}{{name}}",
+      "lookupNameTemplate": "gruntwork-io/{{name}}/{{#if cloud}}{{cloud}}{{else}}aws{{/if}}",
+      "datasourceTemplate": "terraform-module"
+    }
+  ],
+  "prBodyColumns": [
+    "Package",
+    "Update",
+    "Type",
+    "New value",
+    "Release Notes"
+  ],
+  "prBodyDefinitions": {
+    "Release Notes": "[Release Notes](https://github.com/{{depName}}/releases/tag/{{newVersion}})",
+    "Update": "{{#if isPatch}}Minor{{else}}Major **[BACKWARDS INCOMPATIBLE, SEE RELEASE NOTES]**{{/if}}"
+  },
+  "prBodyNotes": ["{{#unless isPatch}}:warning: This is a **backwards incompatible upgrade**. You MUST read the [Release Notes](https://github.com/{{depName}}/releases/tag/{{newVersion}}) for upgrade instructions! If you are upgrading across multiple backwards incompatible versions (e.g., `v0.3.0` to `v0.6.0`), you MUST check the release notes for every release in between too! :warning:{{/unless}}"],
+  "prHourlyLimit": 20,
+  "hostRules": [
+    {
+      "domainName": "eh3qxbpvoc.execute-api.us-east-1.amazonaws.com",
+      "username": "renovate-user",
+      "password": "renovate-pass"
+    }
   ]
 }
