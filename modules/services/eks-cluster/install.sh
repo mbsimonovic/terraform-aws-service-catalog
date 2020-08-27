@@ -7,7 +7,7 @@ set -e
 readonly DEFAULT_TERRAFORM_AWS_EKS_VERSION="v0.22.0"
 
 # renovate.json auto-update: aws-service-catalog
-readonly DEFAULT_EC2_BASELINE_REF="master"
+readonly DEFAULT_EC2_BASELINE_REF="v0.0.5"
 
 # NOTE: A few variables will be imported from ec2-baseline
 # - DEFAULT_MODULE_SECURITY_VERSION

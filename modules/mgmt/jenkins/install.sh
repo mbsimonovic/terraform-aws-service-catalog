@@ -27,7 +27,7 @@ readonly DEFAULT_DOCKER_VERSION="18.06.1~ce~3-0~ubuntu"
 readonly SKIP_INSTALL_VERSION="NONE"
 
 # renovate.json auto-update: aws-service-catalog
-readonly DEFAULT_EC2_BASELINE_REF="master"
+readonly DEFAULT_EC2_BASELINE_REF="v0.0.5"
 
 function include_ec2_baseline {
   gruntwork-install \
