@@ -25,7 +25,7 @@
     "Update": "{{#if isPatch}}Minor{{else}}Major **[BACKWARDS INCOMPATIBLE, SEE RELEASE NOTES]**{{/if}}"
   },
   "prBodyNotes": ["{{#unless isPatch}}:warning: This is a **backwards incompatible upgrade**. You MUST follow the instructions in the [Release Notes](https://github.com/{{depName}}/releases/tag/{{newVersion}}) to upgrade! If you are upgrading across multiple backwards incompatible versions (e.g., `v0.3.0` to `v0.6.0`), you MUST check the release notes for every release in between too! :warning:{{/unless}}"],
-  "prHourlyLimit": 10,
+  "prHourlyLimit": 20,
   "hostRules": [
     {
       "domainName": "eh3qxbpvoc.execute-api.us-east-1.amazonaws.com",
