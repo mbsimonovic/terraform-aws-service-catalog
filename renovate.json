@@ -2,7 +2,7 @@
   "extends": [
     "config:base"
   ],
-  "registryUrls": ["https://registry.gruntwork-sandbox.com/"],
+  "registryUrls": ["https://registry.gruntwork-sandbox.com"],
   "enabledManagers": ["regex"],
   "regexManagers": [
     {
