@@ -38,7 +38,7 @@
       "matchStrings": ["renovate.json auto-update-docker-ubuntu\n.+=\"(?<currentValue>.+?)~ce~3-0~ubuntu\""],
       "depNameTemplate": "docker/docker-ce",
       "lookupNameTemplate": "docker/docker-ce",
-      "datasourceTemplate": "github-releases"
+      "datasourceTemplate": "github-tags"
     },
     {
       "fileMatch": ["^config.yml$"],
