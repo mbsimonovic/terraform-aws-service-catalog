@@ -594,6 +594,17 @@ variable "kms_cmk_opt_in_regions" {
   default     = null
 }
 
+# ---------------------------------------------------------------------------------------------------------------------
+# OPTIONAL PARAMETERS
+# These variables must be passed in by the operator.
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "service_linked_roles" {
+  description = "Create service-linked roles for this set of services. You should pass in the URLs of the services, but without the protocol (e.g., http://) in front: e.g., use elasticbeanstalk.amazonaws.com for Elastic Beanstalk or es.amazonaws.com for Amazon Elasticsearch. Service-linked roles are predefined by the service, can typically only be assumed by that service, and include all the permissions that the service requires to call other AWS services on your behalf. You can typically only create one such role per AWS account, which is why this parameter exists in the account baseline. See https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_aws-services-that-work-with-iam.html for the list of services that support service-linked roles."
+  type        = set(string)
+  default     = []
+}
+
 variable "kms_grant_regions" {
   description = "The map of names of KMS grants to the region where the key resides in. There should be a one to one mapping between entries in this map and the entries of the kms_grants map. This is used to workaround a terraform limitation where the for_each value can not depend on resources."
   type        = map(string)

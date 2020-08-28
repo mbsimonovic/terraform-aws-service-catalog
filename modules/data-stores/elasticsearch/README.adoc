@@ -1,10 +1,10 @@
 :type: service
-:name: Amazon ElastiCache for Memcached
-:description: Deploy and manage Amazon ElastiCache for Memcached
-:icon: /_docs/elasticache-icon.png
+:name: Amazon Elasticsearch
+:description: Deploy and manage Amazon Elasticsearch Service
+:icon: /_docs/aes-icon.png
 :category: nosql
 :cloud: aws
-:tags: data, database, nosql, memcached, elasticache
+:tags: analytics, data
 :license: gruntwork
 :built-with: terraform
 
@@ -22,25 +22,26 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
-= Amazon ElastiCache for Memcached
+= Amazon Elasticsearch Service
 
 image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
 image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
 
-This folder contains code to deploy a [Memcached](https://memcached.org/) Cluster using [Amazon ElastiCache](https://aws.amazon.com/elasticache/). The cluster is managed by AWS and automatically handles automatic node
-discovery, recovery from failures, patching and the ability to scale to large clusters of nodes.
-
-image::/_docs/elasticache-memcached-architecture.png?raw=true[ElastiCache for Memcached architecture]
+This folder contains code to deploy an Amazon Elasticsearch Service cluster. See the http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/what-is-amazon-elasticsearch-service.html[Amazon Elasticsearch Service documentation] and the https://aws.amazon.com/elasticsearch-service/getting-started/[Getting Started] page for more information.
 
 toc::[]
 
+
+
 == Features
 
-* Deploy a fully-managed Memcached cluster
-* Automatic detection and recovery from cache node failures
-* Automatic discovery of nodes within a cluster
+* A fully-managed native Elasticsearch cluster in a VPC
+* A fully functional Kibana UI
+* VPC-based security
+* Zone awareness, i.e., deployment of Elasticsearch nodes across Availability Zones
+* Automatic nightly snapshots
 * CloudWatch Alarms for alerting when CPU, memory, and disk metrics exceed certain thresholds
-* Integrate with Kubernetes Service Discovery
+
 
 == Learn
 
@@ -49,10 +50,12 @@ reusable, battle-tested, production ready infrastructure code. If you've never u
 sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/[How to use the Gruntwork
 Service Catalog]!
 
-* https://docs.aws.amazon.com/AmazonElastiCache/latest/mem-ug/WhatIs.html[Amazon ElastiCache for Memcached documentation]: Amazon's ElastiCache for Memcached docs that
-  cover core concepts such as the options and versions supported, security, backup & restore, and monitoring.
-* _https://dataintensive.net[Designing Data Intensive Applications]_: the best book we've found for understanding data
-  systems, including relational databases, NoSQL, replication, sharding, consistency, and so on.
+* https://aws.amazon.com/elasticsearch-service/[About Amazon Elasticsearch Service]
+* https://aws.amazon.com/elasticsearch-service/features/[Features of Amazon ES]
+* https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/what-is-amazon-elasticsearch-service.html[Developer Guide]: Contains the main documentation on how to use Amazon ES and answers questions such as "What is Amazon Elasticsearch Service?"
+* https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CWL_ES_Stream.html[Streaming CloudWatch monitoring logs to Amazon Elasticsearch Service]
+
+
 
 == Deploy
 
@@ -61,8 +64,10 @@ Service Catalog]!
 If you just want to try this repo out for experimenting and learning, check out the following resources:
 
 * link:/examples/for-learning-and-testing[examples/for-learning-and-testing folder]: The
-  `examples/for-learning-and-testing` folder contains standalone sample code optimized for learning, experimenting, and
-  testing (but not direct production usage).
+  `examples/for-learning-and-testing` folder contains standalone sample code optimized for learning,
+  experimenting, and testing (but not direct production usage).
+* https://aws.amazon.com/free/[AWS Free tier]: Using Amazon ES on Amazon's free tier is a great way to get started, but it has limited features and does not include encryption at rest, ultra warm data notes, or advanced security options such as fine-grained access control. The free tier does allow multiple availability zones, VPC-based access control, TLS-only requests, and node-to-node encryption.
+
 
 === Production deployment
 
@@ -72,15 +77,25 @@ If you want to deploy this repo in production, check out the following resources
   code optimized for direct usage in production. This is code from the
   https://gruntwork.io/reference-architecture/:[Gruntwork Reference Architecture], and it shows you how we build an
   end-to-end, integrated tech stack on top of the Gruntwork Service Catalog.
+* https://aws.amazon.com/elasticsearch-service/pricing/[Amazon Elasticsearch Service pricing]
+
+
+
 
 == Operate
 
 === Day-to-day operations
+* https://opendistro.github.io/for-elasticsearch-docs/docs/elasticsearch/index-data/[Open Distro docs: How to index data into Elasticsearch]: Documentation by Open Distro for Elasticsearch, a reliable resource on how to use Elasticsearch APIs.
+* https://www.elastic.co/guide/en/elasticsearch/reference/current/docs-index_.html[Elastic docs: How to index data into Elasticsearch]: Documentation by Elastic, the originators of Elasticsearch.
+* https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/sizing-domains.html[How to size Amazon ES domains]
 
-* https://github.com/gruntwork-io/module-cache/tree/master/modules/memcached#how-do-you-connect-to-the-memcached-cluster[How do you connect to the Memcached cluster?]
-* https://github.com/gruntwork-io/module-cache/tree/master/modules/memcached#how-do-you-scale-this-memcached-cluster[How do you scale the Memcached cluster?]
-* link:core-concepts.md#how-do-i-use-kubernetes-service-discovery-with-the-elasticache-memcached-cluster[How do I use Kubernetes Service
-  Discovery with the ElastiCache Memcached Cluster?]
+=== Major changes
+
+* https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-version-migration.html[Upgrading Elasticsearch]
+* https://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/es-managedomains-snapshots.html[Using Snapshot / Restore]
+
+
+
 
 == Support
 
@@ -88,6 +103,9 @@ If you need help with this repo or anything else related to infrastructure or De
 https://gruntwork.io/support/[Commercial Support] via Slack, email, and phone/video. If you're already a Gruntwork
 customer, hop on Slack and ask away! If not, https://www.gruntwork.io/pricing/[subscribe now]. If you're not sure,
 feel free to email us at link:mailto:support@gruntwork.io[support@gruntwork.io].
+
+
+
 
 == Contributions
 
@@ -98,6 +116,9 @@ through our automated test suite.
 Please see
 https://gruntwork.io/guides/foundations/how-to-use-gruntwork-infrastructure-as-code-library#_contributing_to_the_gruntwork_infrastructure_as_code_library[Contributing to the Gruntwork Service Catalog]
 for instructions.
+
+
+
 
 == License
 

@@ -227,6 +227,7 @@ output "guardduty_findings_sns_topic_names" {
   description = "The names of the SNS topic where findings are published if var.publish_findings_to_sns is set to true."
   value       = module.guardduty.findings_sns_topic_names
 }
+
 # ---------------------------------------------------------------------------------------------------------------------
 # KMS CMK OUTPUTS
 # ---------------------------------------------------------------------------------------------------------------------
@@ -249,4 +250,13 @@ output "kms_key_aliases" {
 output "invalid_cmk_inputs" {
   description = "Map of CMKs from the input var.customer_master_keys that had an invalid region, and thus were not created. The structure of the map is the same as the input. This will only include KMS key inputs that were not created because the region attribute was invalid (either not a valid region identifier, the region is not enabled on the account, or the region is not included in the var.opt_in_regions input)."
   value       = module.customer_master_keys.invalid_cmk_inputs
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# SERVICE LINKED ROLE OUTPUTS
+# ---------------------------------------------------------------------------------------------------------------------
+
+output "service_linked_role_arns" {
+  description = "A map of ARNs of the service linked roles created from var.service_linked_roles."
+  value       = { for name, config in var.service_linked_roles : name => aws_iam_service_linked_role.role[name].arn }
 }

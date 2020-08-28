@@ -1,10 +1,10 @@
 :type: service
-:name: Elastic Load Balancer (ELB)
-:description: Deploy the Application Load Balancer (ALB) for load balancing HTTP and HTTPS, with support for routing rules and WebSockets.
-:icon: /_docs/alb-icon.png
-:category: networking
+:name: Auto Scaling Group (ASG)
+:description: Deploy an AMI across an Auto Scaling Group (ASG), with support for zero-downtime, rolling deployment, load balancing, health checks, service discovery, and auto scaling.
+:icon: /_docs/asg-icon.png
+:category: services
 :cloud: aws
-:tags: alb, elb, load-balancer
+:tags: asg, ec2
 :license: gruntwork
 :built-with: terraform
 
@@ -22,41 +22,42 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
-= Application Load Balancer
+= Auto Scaling Group
 
 image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
-image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
+image:https://img.shields.io/badge/tf-~%3E%200.12.6-blue[Terraform version]
 
-This folder contains code to deploy https://aws.amazon.com/elasticloadbalancing/[Application Load Balancer] on AWS.
 
-image::../../../_docs/alb-architecture.png?raw=true[ALB architecture]
+This folder contains code to deploy https://aws.amazon.com/ec2/autoscaling/[Auto Scaling Groups] on AWS.
+
+image::../../../_docs/asg-architecture.png?raw=true[ASG architecture]
 
 toc::[]
 
 
-
-
 == Features
 
-* Deploy public or internal Application Load Balancers
-* Configure DNS in Route 53
-* Configure TLS in AWS Certificate Manager (ACM)
-* Send access logs into S3
-* Manage access with security groups or CIDR blocks
-
-
-
+* Load balancer (ELB) integration
+* Listener Rules
+* Health checks
+* Zero-downtime rolling deployment
+* Route53 record
 
 == Learn
 
 NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog/[Gruntwork Service Catalog], a collection of
 reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
-sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/[How to use the Gruntwork
+sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catallog/[How to use the Gruntwork
 Service Catalog]!
 
-* https://github.com/gruntwork-io/module-load-balancer/tree/master/modules/alb#background[Gruntwork Documentation on ALBs]: Background information from Gruntwork about ALBs including what it is, differences from other ELB flavors, and when you should use ALBs.
-* https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html[ALB Documentation]: Amazon's docs for ALB that cover core concepts such as listeners, target groups, autoscaling, TLS and migrations.
+Under the hood, this is all implemented using Terraform modules from the Gruntwork
+https://github.com/gruntwork-io/module-asg[module-asg] repo. If you don't have access to this repo, email
+support@gruntwork.io.
 
+
+- https://docs.aws.amazon.com/autoscaling/ec2/userguide/what-is-amazon-ec2-auto-scaling.html[ASG Documentation]: Amazon's docs for ASG that cover core concepts such as launch templates, launch configuration and auto scaling groups.
+
+- link:core-concepts.md[User Data]
 
 
 == Deploy
@@ -75,19 +76,14 @@ If you want to deploy this repo in production, check out the following resources
 
 * link:/examples/for-production[examples/for-production folder]: The `examples/for-production` folder contains sample
   code optimized for direct usage in production. This is code from the
-  https://gruntwork.io/reference-architecture/:[Gruntwork Reference Architecture], and it shows you how we build an
+  https://gruntwork.io/reference-architecture/[Gruntwork Reference Architecture]:, and it shows you how we build an
   end-to-end, integrated tech stack on top of the Gruntwork Service Catalog.
-
 
 
 == Operate
 
-* https://github.com/gruntwork-io/module-load-balancer/tree/master/modules/alb#using-the-alb-with-ecs[How do I route to ECS?]
-* https://github.com/gruntwork-io/module-load-balancer/tree/master/modules/alb#make-sure-your-listeners-handle-all-possible-request-paths[What routes should I configure for each listener?]
-* https://github.com/gruntwork-io/module-load-balancer/tree/master/modules/alb#make-sure-your-listener-rules-each-have-a-unique-priority[How do I handle overlapping routes?]
-* https://github.com/gruntwork-io/module-aws-monitoring/tree/master/modules/logs/load-balancer-access-logs#viewing-and-accessing-log-files[How do I view the access logs?]
-
-
+* https://github.com/gruntwork-io/module-load-balancer/tree/master/modules/lb-listener-rules#make-sure-your-listeners-handle-all-possible-request-paths[What routes should I configure for each listener?]
+* https://github.com/gruntwork-io/module-load-balancer/tree/master/modules/lb-listener-rules#make-sure-your-listener-rules-each-have-a-unique-priority[How do I handle overlapping routes?]
 
 
 == Support
@@ -96,7 +92,6 @@ If you need help with this repo or anything else related to infrastructure or De
 https://gruntwork.io/support/[Commercial Support] via Slack, email, and phone/video. If you're already a Gruntwork
 customer, hop on Slack and ask away! If not, https://www.gruntwork.io/pricing/[subscribe now]. If you're not sure,
 feel free to email us at link:mailto:support@gruntwork.io[support@gruntwork.io].
-
 
 
 

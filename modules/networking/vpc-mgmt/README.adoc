@@ -27,10 +27,10 @@ endif::[]
 image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
 image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
 
-This folder contains code to deploy a [Virtual Private Cloud (VPC)](https://aws.amazon.com/vpc/) on AWS that can be 
-used for administrative and management purposes, such as CI/CD services. The primary difference between this and the 
-[application VPC](../vpc) is this one has two subnet tiers (public and private) while the application VPC has three 
-(public, private, and persistence). In this management VPC, we assume that there are no data stores that need to be 
+This folder contains code to deploy a [Virtual Private Cloud (VPC)](https://aws.amazon.com/vpc/) on AWS that can be
+used for administrative and management purposes, such as CI/CD services. The primary difference between this and the
+[application VPC](../vpc) is this one has two subnet tiers (public and private) while the application VPC has three
+(public, private, and persistence). In this management VPC, we assume that there are no data stores that need to be
 separated in to a dedicated persistence tier.
 
 image::../../../_docs/vpc-architecture.png?raw=true[VPC architecture]
@@ -52,9 +52,9 @@ toc::[]
 
 == Learn
 
-NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog//[Gruntwork Service Catalog], a collection of
+NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog/[Gruntwork Service Catalog], a collection of
 reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
-sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catallog/[How to use the Gruntwork
+sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/[How to use the Gruntwork
 Service Catalog]!
 
 
