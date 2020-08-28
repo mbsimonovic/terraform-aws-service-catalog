@@ -22,7 +22,8 @@ defaults: &defaults
     TERRAGRUNT_VERSION: v0.23.14
     # renovate.json auto-update-github-releases: hashicorp/terraform
     TERRAFORM_VERSION: 0.12.28
-    # renovate.json auto-update-github-releases: kubernetes/kubernetes
+    # We intentionally do NOT auto update K8S, as it should be tied to EKS versions, and our support for them in
+    # terraform-aws-eks, both of which lag behind open source K8S
     K8S_VERSION: v1.15.0
     # renovate.json auto-update-github-releases: hashicorp/packer
     PACKER_VERSION: 1.5.4
