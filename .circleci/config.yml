@@ -29,12 +29,10 @@ defaults: &defaults
     # TODO: how to get renovate.json to auto-update the Go version? They publish tags, but they are of a strange format
     # like "go1.15": https://github.com/golang/go/releases
     GOLANG_VERSION: 1.13.8
-    # renovate.json auto-update-github-releases: github/hub
+    # renovate.json auto-update-github-tags: github/hub
     HUB_VERSION: 2.14.2
     # renovate.json auto-update-github-releases: kubernetes/minikube
     MINIKUBE_VERSION: v1.7.3
-    # renovate.json auto-update-github-releases: kubernetes/kubernetes
-    KUBERNETES_VERSION: v1.15.0
     KUBECONFIG: /home/circleci/.kube/config
 
 install_gruntwork_utils: &install_gruntwork_utils
@@ -65,7 +63,7 @@ install_kube_utils: &install_kube_utils
     touch "${KUBECONFIG}"
 
     # Install and boot up minikube
-    setup-minikube --minikube-version "${MINIKUBE_VERSION}" --k8s-version "${KUBERNETES_VERSION}"
+    setup-minikube --minikube-version "${MINIKUBE_VERSION}" --k8s-version "${K8S_VERSION}"
 
 install_hub_cli: &install_hub_cli
   name: install hub CLI
