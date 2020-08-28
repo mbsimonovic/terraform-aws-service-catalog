@@ -20,11 +20,46 @@
       "datasourceTemplate": "terraform-module"
     },
     {
+      "fileMatch": ["\\.sh$"],
+      "matchStrings": ["renovate.json auto-update-github-releases: (?<org>.+?)/(?<repo>.+?)\n.+=\"(?<currentValue>.+?)\""],
+      "depNameTemplate": "{{org}}/{{repo}}",
+      "lookupNameTemplate": "{{org}}/{{repo}}",
+      "datasourceTemplate": "github-releases"
+    },
+    {
+      "fileMatch": ["\\.sh$"],
+      "matchStrings": ["renovate.json auto-update-github-tags: (?<org>.+?)/(?<repo>.+?)\n.+=\"(?<currentValue>.+?)\""],
+      "depNameTemplate": "{{org}}/{{repo}}",
+      "lookupNameTemplate": "{{org}}/{{repo}}",
+      "datasourceTemplate": "github-tags"
+    },
+    {
+      "fileMatch": ["\\.sh$"],
+      "matchStrings": ["renovate.json auto-update-docker-ubuntu\n.+=\"(?<currentValue>.+?)~ce~3-0~ubuntu\""],
+      "depNameTemplate": "docker/docker-ce",
+      "lookupNameTemplate": "docker/docker-ce",
+      "datasourceTemplate": "github-releases"
+    },
+    {
       "fileMatch": ["^config.yml$"],
       "matchStrings": ["renovate.json auto-update: (?<name>.+?)\n.+: (?<currentValue>.+)"],
       "depNameTemplate": "gruntwork-io/{{name}}",
       "lookupNameTemplate": "gruntwork-io/{{name}}/aws",
       "datasourceTemplate": "terraform-module"
+    },
+    {
+      "fileMatch": ["^config.yml$"],
+      "matchStrings": ["renovate.json auto-update-github-releases: (?<org>.+?)/(?<repo>.+?)\n.+: (?<currentValue>.+)"],
+      "depNameTemplate": "{{org}}/{{repo}}",
+      "lookupNameTemplate": "{{org}}/{{repo}}",
+      "datasourceTemplate": "github-releases"
+    },
+    {
+      "fileMatch": ["^config.yml$"],
+      "matchStrings": ["renovate.json auto-update-github-tags: (?<org>.+?)/(?<repo>.+?)\n.+: (?<currentValue>.+)"],
+      "depNameTemplate": "{{org}}/{{repo}}",
+      "lookupNameTemplate": "{{org}}/{{repo}}",
+      "datasourceTemplate": "github-tags"
     },
     {
       "fileMatch": ["\\.json"],

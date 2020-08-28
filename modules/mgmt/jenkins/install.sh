@@ -15,12 +15,17 @@ readonly DEFAULT_KUBERGRUNT_VERSION="v0.5.13"
 # renovate.json auto-update: terragrunt
 readonly DEFAULT_TERRAGRUNT_VERSION="v0.23.13"
 
-# TODO: how do we get renovate.json to auto-update all the ones below?
+# renovate.json auto-update-github-releases: jenkinsci/jenkins
 readonly DEFAULT_JENKINS_VERSION="2.204.2"
+# renovate.json auto-update-github-releases: hashicorp/terraform
 readonly DEFAULT_TERRAFORM_VERSION="0.12.21"
+# renovate.json auto-update-github-tags: kubernetes/kubectl
 readonly DEFAULT_KUBECTL_VERSION="v1.17.3"
+# renovate.json auto-update-github-releases: helm/helm
 readonly DEFAULT_HELM_VERSION="v3.2.0"
+# renovate.json auto-update-github-releases: hashicorp/packer
 readonly DEFAULT_PACKER_VERSION="1.5.4"
+# renovate.json auto-update-docker-ubuntu
 readonly DEFAULT_DOCKER_VERSION="18.06.1~ce~3-0~ubuntu"
 
 # You can set the version of the build tooling to this value to skip installing it

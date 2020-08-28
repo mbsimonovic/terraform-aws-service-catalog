@@ -20,13 +20,20 @@ defaults: &defaults
     MODULE_CI_VERSION: v0.18.4
     # renovate.json auto-update: terragrunt
     TERRAGRUNT_VERSION: v0.23.14
-    # TODO: how do we get renovate.json to auto-update all the ones below?
+    # renovate.json auto-update-github-releases: hashicorp/terraform
     TERRAFORM_VERSION: 0.12.28
+    # renovate.json auto-update-github-releases: kubernetes/kubernetes
     K8S_VERSION: v1.15.0
+    # renovate.json auto-update-github-releases: hashicorp/packer
     PACKER_VERSION: 1.5.4
+    # TODO: how to get renovate.json to auto-update the Go version? They publish Tags, but they are of a strange format
+    # like "go1.15": https://github.com/golang/go/releases
     GOLANG_VERSION: 1.13.8
+    # renovate.json auto-update-github-releases: github/hub
     HUB_VERSION: 2.14.2
+    # renovate.json auto-update-github-releases: kubernetes/minikube
     MINIKUBE_VERSION: v1.7.3
+    # renovate.json auto-update-github-releases: kubernetes/kubernetes
     KUBERNETES_VERSION: v1.15.0
     KUBECONFIG: /home/circleci/.kube/config
 
