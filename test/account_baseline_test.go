@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAccountBaselines(t *testing.T) {
+func TestAccountBaseline(t *testing.T) {
 	t.Parallel()
 
 	requireEnvVar(t, "TEST_EXTERNAL_ACCOUNT_ID")
