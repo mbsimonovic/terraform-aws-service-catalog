@@ -205,3 +205,12 @@ module "kms_grants" {
   kms_grant_regions = var.kms_grant_regions
   kms_grants        = var.kms_grants
 }
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ACCOUNT LEVEL SERVICE-LINKED ROLES
+# ----------------------------------------------------------------------------------------------------------------------
+
+resource "aws_iam_service_linked_role" "role" {
+  for_each         = var.service_linked_roles
+  aws_service_name = each.value
+}
