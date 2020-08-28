@@ -26,7 +26,7 @@ defaults: &defaults
     K8S_VERSION: v1.15.0
     # renovate.json auto-update-github-releases: hashicorp/packer
     PACKER_VERSION: 1.5.4
-    # TODO: how to get renovate.json to auto-update the Go version? They publish Tags, but they are of a strange format
+    # TODO: how to get renovate.json to auto-update the Go version? They publish tags, but they are of a strange format
     # like "go1.15": https://github.com/golang/go/releases
     GOLANG_VERSION: 1.13.8
     # renovate.json auto-update-github-releases: github/hub
