@@ -2,7 +2,7 @@
   "extends": [
     "config:base"
   ],
-  "registryUrls": ["https://pmzuw7zcw4.execute-api.eu-west-1.amazonaws.com/default"],
+  "registryUrls": ["https://registry.gruntwork-sandbox.com/"],
   "enabledManagers": ["regex"],
   "regexManagers": [
     {
