@@ -19,7 +19,8 @@ readonly DEFAULT_TERRAGRUNT_VERSION="v0.23.13"
 readonly DEFAULT_JENKINS_VERSION="2.204.2"
 # renovate.json auto-update-github-releases: hashicorp/terraform
 readonly DEFAULT_TERRAFORM_VERSION="0.12.21"
-# renovate.json auto-update-github-tags: kubernetes/kubectl
+# TODO: how to get renovate.json to auto-update the Kubectl version? They publish tags, but they are of a strange format
+# like "kubernetes-1.19.0" and "v0.19.0": https://github.com/kubernetes/kubectl/releases
 readonly DEFAULT_KUBECTL_VERSION="v1.17.3"
 # renovate.json auto-update-github-releases: helm/helm
 readonly DEFAULT_HELM_VERSION="v3.2.0"
