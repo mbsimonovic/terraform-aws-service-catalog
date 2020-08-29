@@ -320,7 +320,7 @@ variable "configmaps_as_volumes" {
 
 variable "configmaps_as_env_vars" {
   description = "Kubernetes ConfigMaps to be injected into the container. Each entry in the map represents a ConfigMap to be injected, with the key representing the name of the ConfigMap. The value is also a map, with each entry corresponding to an entry in the ConfigMap, with the key corresponding to the ConfigMap entry key and the value corresponding to the environment variable name."
-  type        = map(string)
+  type        = map(map(string))
   default     = {}
 
   # Example: This will inject the foo key of the ConfigMap myconfig as the environment variable MY_CONFIG.
@@ -344,7 +344,7 @@ variable "secrets_as_volumes" {
 
 variable "secrets_as_env_vars" {
   description = "Kubernetes Secrets to be injected into the container. Each entry in the map represents a Secret to be injected, with the key representing the name of the Secret. The value is also a map, with each entry corresponding to an entry in the Secret, with the key corresponding to the Secret entry key and the value corresponding to the environment variable name."
-  type        = map(string)
+  type        = map(map(string))
   default     = {}
 
   # Example: This will inject the foo key of the Secret mysecret as the environment variable MY_SECRET.
