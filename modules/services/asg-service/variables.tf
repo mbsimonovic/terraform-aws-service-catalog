@@ -442,12 +442,6 @@ variable "wait_for_capacity_timeout" {
   default     = "10m"
 }
 
-variable "availability_zones" {
-  description = "A list of availability zones the ASG should use. The subnets in var.vpc_subnet_ids must reside in these Availability Zones."
-  type        = list(string)
-  default     = []
-}
-
 variable "enabled_metrics" {
   description = "A list of metrics the ASG should enable for monitoring all instances in a group. The allowed values are GroupMinSize, GroupMaxSize, GroupDesiredCapacity, GroupInServiceInstances, GroupPendingInstances, GroupStandbyInstances, GroupTerminatingInstances, GroupTotalInstances."
   type        = list(string)
