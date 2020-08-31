@@ -71,10 +71,122 @@ variable "config_linked_accounts" {
   default     = []
 }
 
+variable "config_aggregate_config_data_in_external_account" {
+  description = "Set to true to send the AWS Config data to another account (e.g., a logs account) for aggregation purposes. You must set the ID of that other account via the config_central_account_id variable. This redundant variable has to exist because Terraform does not allow computed data in count and for_each parameters and var.config_central_account_id may be computed if its the ID of a newly-created AWS account."
+  type        = bool
+  default     = false
+}
+
 variable "config_central_account_id" {
-  description = "If the S3 bucket and SNS topics used for AWS Config live in a different AWS account, set this variable to the ID of that account (e.g., if this is the stage or prod account, set this to the ID of the logs account). If the S3 bucket and SNS topics live in this account (e.g., this is the logs account), set this variable to null."
+  description = "If the S3 bucket and SNS topics used for AWS Config live in a different AWS account, set this variable to the ID of that account (e.g., if this is the stage or prod account, set this to the ID of the logs account). If the S3 bucket and SNS topics live in this account (e.g., this is the logs account), set this variable to null. Only used if var.config_aggregate_config_data_in_external_account is true."
   type        = string
   default     = null
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# OPTIONAL CONFIG RULE PARAMETERS
+# These variables have defaults, but may be overridden by the operator.
+# ---------------------------------------------------------------------------------------------------------------------
+
+# Common settings
+variable "config_create_account_rules" {
+  description = "Set to true to create AWS Config rules directly in this account. Set false to not create any Config rules in this account (i.e., if you created the rules at the organization level already). We recommend setting this to true to use account-level rules because org-level rules create a chicken-and-egg problem with creating new accounts."
+  type        = bool
+  default     = true
+}
+
+variable "configrules_maximum_execution_frequency" {
+  description = "The maximum frequency with which AWS Config runs evaluations for the ´PERIODIC´ rules. See https://www.terraform.io/docs/providers/aws/r/config_organization_managed_rule.html#maximum_execution_frequency"
+  type        = string
+  default     = "TwentyFour_Hours"
+}
+
+# Password policy
+variable "enable_iam_password_policy" {
+  description = "Checks whether the account password policy for IAM users meets the specified requirements."
+  type        = bool
+  default     = true
+}
+
+variable "enable_insecure_sg_rules" {
+  description = "Checks whether the security group with 0.0.0.0/0 of any Amazon Virtual Private Cloud (Amazon VPC) allows only specific inbound TCP or UDP traffic."
+  type        = bool
+  default     = true
+}
+
+variable "insecure_sg_rules_authorized_tcp_ports" {
+  description = "Comma-separated list of TCP ports authorized to be open to 0.0.0.0/0. Ranges are defined by a dash; for example, '443,1020-1025'."
+  type        = string
+  default     = "443"
+}
+
+variable "insecure_sg_rules_authorized_udp_ports" {
+  description = "Comma-separated list of UDP ports authorized to be open to 0.0.0.0/0. Ranges are defined by a dash; for example, '500,1020-1025'."
+  type        = string
+  default     = null
+}
+
+# S3 Public read prohibited
+variable "enable_s3_bucket_public_read_prohibited" {
+  description = "Checks that your Amazon S3 buckets do not allow public read access."
+  type        = bool
+  default     = true
+}
+
+# S3 Public write prohibited
+variable "enable_s3_bucket_public_write_prohibited" {
+  description = "Checks that your Amazon S3 buckets do not allow public write access."
+  type        = bool
+  default     = true
+}
+
+# Root account MFA
+variable "enable_root_account_mfa" {
+  description = "Checks whether users of your AWS account require a multi-factor authentication (MFA) device to sign in with root credentials."
+  type        = bool
+  default     = true
+}
+
+# EBS encryption
+variable "enable_encrypted_volumes" {
+  description = "Checks whether the EBS volumes that are in an attached state are encrypted."
+  type        = bool
+  default     = true
+}
+
+# RDS encryption
+variable "enable_rds_storage_encrypted" {
+  description = "Checks whether storage encryption is enabled for your RDS DB instances."
+  type        = bool
+  default     = true
+}
+
+variable "additional_config_rules" {
+  description = "Map of additional managed rules to add. The key is the name of the rule (e.g. ´acm-certificate-expiration-check´) and the value is an object specifying the rule details"
+  type = map(object({
+    # Description of the rule
+    description : string
+    # Identifier of an available AWS Config Managed Rule to call.
+    identifier : string
+    # Trigger type of the rule, must be one of ´CONFIG_CHANGE´ or ´PERIODIC´.
+    trigger_type : string
+    # A map of input parameters for the rule. If you don't have parameters, pass in an empty map ´{}´.
+    input_parameters : map(string)
+  }))
+
+  default = {}
+
+  # Example:
+  #
+  # additional_rules = {
+  #   acm-certificate-expiration-check = {
+  #     description      = "Checks whether ACM Certificates in your account are marked for expiration within the specified number of days.",
+  #     identifier       = "ACM_CERTIFICATE_EXPIRATION_CHECK",
+  #     trigger_type     = "PERIODIC",
+  #     input_parameters = { "daysToExpiration": "14"},
+  #   }
+  # }
+
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -161,6 +273,16 @@ variable "allow_billing_access_from_other_account_arns" {
   # ]
 }
 
+variable "allow_support_access_from_other_account_arns" {
+  description = "A list of IAM ARNs from other AWS accounts that will be allowed access to AWS support for this account."
+  type        = list(string)
+  default     = []
+  # Example:
+  # default = [
+  #   "arn:aws:iam::123445678910:root"
+  # ]
+}
+
 variable "allow_logs_access_from_other_account_arns" {
   description = "A list of IAM ARNs from other AWS accounts that will be allowed read access to the logs in CloudTrail, AWS Config, and CloudWatch for this account. If var.cloudtrail_kms_key_arn is specified, will also be given permissions to decrypt with the KMS CMK that is used to encrypt CloudTrail logs."
   type        = list(string)
@@ -228,7 +350,6 @@ variable "max_session_duration_machine_users" {
   type        = number
   default     = 3600 # 1 hour
 }
-
 
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL GUARDDUTY PARAMETERS
@@ -363,6 +484,9 @@ variable "kms_customer_master_keys" {
   # - cmk_user_iam_arns                     [list(object[CMKUser])] : A list of IAM ARNs for users who should be given
   #                                                          permissions to use this CMK (e.g.
   #                                                          arn:aws:iam::<aws-account-id>:user/<iam-user-arn>).
+  # - cmk_read_only_user_iam_arns           [list(object[CMKUser])] : A list of IAM ARNs for users who should be given
+  #                                                          read-only (decrypt-only) permissions to use this CMK (e.g.
+  #                                                          arn:aws:iam::<aws-account-id>:user/<iam-user-arn>).
   # - cmk_external_user_iam_arns            [list(string)] : A list of IAM ARNs for users from external AWS accounts
   #                                                          who should be given permissions to use this CMK (e.g.
   #                                                          arn:aws:iam::<aws-account-id>:root).
@@ -419,6 +543,12 @@ variable "kms_customer_master_keys" {
   #     cmk_user_iam_arns                     = [
   #       {
   #         name = ["arn:aws:iam::0000000000:user/dev"]
+  #         conditions = []
+  #       }
+  #     ]
+  #     cmk_read_only_user_iam_arns           = [
+  #       {
+  #         name = ["arn:aws:iam::0000000000:user/qa"]
   #         conditions = []
   #       }
   #     ]

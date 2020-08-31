@@ -24,22 +24,20 @@ module "root_baseline" {
   aws_region     = var.aws_region
   name_prefix    = var.name_prefix
 
-  enable_config                  = var.enable_config
-  config_s3_bucket_name          = var.config_s3_bucket_name
-  config_should_create_s3_bucket = var.config_should_create_s3_bucket
-  config_central_account_id      = var.config_central_account_id
-
-  enable_cloudtrail                     = var.enable_cloudtrail
-  cloudtrail_kms_key_arn                = var.cloudtrail_kms_key_arn
-  cloudtrail_s3_bucket_already_exists   = var.cloudtrail_s3_bucket_already_exists
-  cloudtrail_s3_bucket_name             = var.cloudtrail_s3_bucket_name
-  cloudtrail_cloudwatch_logs_group_name = var.cloudtrail_cloudwatch_logs_group_name
-
-  // If you're running the example against an account that doesn't have AWS Organization created, change the following value to true
+  # If you're running the example against an account that doesn't have AWS Organization created, change the following value to true
   create_organization = var.create_organization
 
+  # The child accounts to create
   child_accounts = var.child_accounts
-}
 
+  # IAM users to create in this account
+  users = var.users
+
+  # These are variables you only need to set at test time so that everything can be deleted cleanly. You will likely
+  # NOT need to set this in any real environments.
+  force_destroy_users      = var.force_destroy
+  cloudtrail_force_destroy = var.force_destroy
+  config_force_destroy     = var.force_destroy
+}
 
 data "aws_caller_identity" "current" {}

@@ -43,12 +43,12 @@ output "cloudtrail_s3_access_logging_bucket_name" {
 
 output "cloudtrail_kms_key_arn" {
   description = "The ARN of the KMS key used by the S3 bucket to encrypt cloudtrail logs."
-  value       = local.cloudtrail_kms_key_arn
+  value       = module.cloudtrail.kms_key_arn
 }
 
 output "cloudtrail_kms_key_alias_name" {
   description = "The alias of the KMS key used by the S3 bucket to encrypt cloudtrail logs."
-  value       = var.cloudtrail_kms_key_arn == null ? module.cloudtrail_cmk.key_alias[local.cloudtrail_cmk_name] : null
+  value       = module.cloudtrail.kms_key_alias_name
 }
 
 output "cloudtrail_cloudwatch_group_name" {
@@ -81,6 +81,10 @@ output "allow_read_only_access_from_other_accounts_iam_role_arn" {
 
 output "allow_billing_access_from_other_accounts_iam_role_arn" {
   value = module.iam_cross_account_roles.allow_billing_access_from_other_accounts_iam_role_arn
+}
+
+output "allow_support_access_from_other_accounts_iam_role_arn" {
+  value = module.iam_cross_account_roles.allow_support_access_from_other_accounts_iam_role_arn
 }
 
 output "allow_logs_access_from_other_accounts_iam_role_arn" {
@@ -123,6 +127,10 @@ output "allow_billing_access_from_other_accounts_iam_role_id" {
   value = module.iam_cross_account_roles.allow_billing_access_from_other_accounts_iam_role_id
 }
 
+output "allow_support_access_from_other_accounts_iam_role_id" {
+  value = module.iam_cross_account_roles.allow_support_access_from_other_accounts_iam_role_id
+}
+
 output "allow_logs_access_from_other_accounts_iam_role_id" {
   value = module.iam_cross_account_roles.allow_logs_access_from_other_accounts_iam_role_id
 }
@@ -161,6 +169,10 @@ output "allow_read_only_access_sign_in_url" {
 
 output "allow_billing_access_sign_in_url" {
   value = module.iam_cross_account_roles.allow_billing_access_sign_in_url
+}
+
+output "allow_support_access_sign_in_url" {
+  value = module.iam_cross_account_roles.allow_support_access_sign_in_url
 }
 
 output "allow_logs_access_sign_in_url" {
@@ -229,6 +241,14 @@ output "billing_iam_group_arn" {
   value = module.iam_groups.billing_iam_group_arn
 }
 
+output "support_iam_group_name" {
+  value = module.iam_groups.support_iam_group_name
+}
+
+output "support_iam_group_arn" {
+  value = module.iam_groups.support_iam_group_arn
+}
+
 output "logs_iam_group_name" {
   value = module.iam_groups.logs_iam_group_name
 }
@@ -275,14 +295,6 @@ output "read_only_iam_group_name" {
 
 output "read_only_iam_group_arn" {
   value = module.iam_groups.read_only_iam_group_arn
-}
-
-output "support_iam_group_name" {
-  value = module.iam_groups.support_iam_group_name
-}
-
-output "support_iam_group_arn" {
-  value = module.iam_groups.support_iam_group_arn
 }
 
 output "houston_cli_users_iam_group_name" {
@@ -387,4 +399,3 @@ output "invalid_cmk_inputs" {
   description = "Map of CMKs from the input var.customer_master_keys that had an invalid region, and thus were not created. The structure of the map is the same as the input. This will only include KMS key inputs that were not created because the region attribute was invalid (either not a valid region identifier, the region is not enabled on the account, or the region is not included in the var.opt_in_regions input)."
   value       = module.customer_master_keys.invalid_cmk_inputs
 }
-
