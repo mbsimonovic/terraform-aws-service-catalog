@@ -276,16 +276,19 @@ resource "aws_route53_record" "service" {
 module "route53_health_check" {
   source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/route53-health-check-alarms?ref=v0.22.1"
 
-  create_resources = var.enable_route53_health_check
-
-  domain                         = var.domain_name
+  create_resources               = var.enable_route53_health_check
   alarm_sns_topic_arns_us_east_1 = var.alarm_sns_topic_arns_us_east_1
 
-  path = var.health_check_path
-  type = var.health_check_protocol
-  port = var.server_port
+  alarm_configs = {
+    default = {
+      domain = var.domain_name
+      path   = var.health_check_path
+      type   = var.health_check_protocol
+      port   = var.server_port
 
-  failure_threshold = 2
-  request_interval  = 30
+      failure_threshold = 2
+      request_interval  = 30
+    }
+  }
 }
 
