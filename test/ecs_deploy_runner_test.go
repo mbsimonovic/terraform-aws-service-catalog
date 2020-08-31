@@ -11,11 +11,13 @@ import (
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/docker"
 	"github.com/gruntwork-io/terratest/modules/git"
+	"github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/packer"
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/shell"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -24,7 +26,7 @@ const (
 	kanikoImgTag       = "kaniko-v1"
 
 	moduleCIRepo = "git@github.com:gruntwork-io/module-ci.git"
-	moduleCITag  = "v0.25.0"
+	moduleCITag  = "v0.28.0"
 )
 
 // TestEcsDeployRunner tests the ECS Deploy Runner module.
@@ -254,7 +256,16 @@ func TestEcsDeployRunner(t *testing.T) {
 		},
 	}
 	defer test_structure.RunTestStage(t, "destroy_deploy_runner", func() {
-		terraform.Destroy(t, deployOpts)
+		out, err := terraform.DestroyE(t, deployOpts)
+		// Ignore destroy errors if output contains expected terraform error from bug. This happens because of a
+		// terraform bug around handling providers in modules, which is necessary for our multiregion modules to work.
+		// See https://github.com/gruntwork-io/module-security/issues/320 for more info (note that this issue is talking
+		// about import, but we are encountering the same issue on destroy).
+		if !strings.Contains(out, "Invalid AWS Region") {
+			require.NoError(t, err)
+		} else if err != nil {
+			logger.Logf(t, "WARNING: Ignoring expected error on destroy.")
+		}
 	})
 	test_structure.RunTestStage(t, "apply_deploy_runner", func() {
 		terraform.InitAndApply(t, deployOpts)

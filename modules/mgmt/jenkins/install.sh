@@ -7,7 +7,7 @@ readonly JENKINS_USER="jenkins"
 
 # Gruntwork module versions
 # renovate.json auto-update: module-ci
-readonly DEFAULT_MODULE_CI_VERSION="v0.25.0"
+readonly DEFAULT_MODULE_CI_VERSION="v0.28.0"
 
 # Build tooling
 # renovate.json auto-update: kubergrunt
