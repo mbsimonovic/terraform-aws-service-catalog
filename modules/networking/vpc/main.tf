@@ -9,7 +9,7 @@
 terraform {
   required_providers {
     # Require at least version 2.69.0
-    aws = "~> 2.69"
+    aws = ">= 2.69"
   }
 
   # Require at least 0.12.6, which added for_each support; make sure we don't accidentally pull in 0.13.x, as that may
