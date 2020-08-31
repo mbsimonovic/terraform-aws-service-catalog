@@ -193,7 +193,7 @@ module "eks_k8s_role_mapping" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "metric_widget_worker_cpu_usage" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.19.4"
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.22.1"
 
   title = "${var.cluster_name} EKSWorker CPUUtilization"
   stat  = "Average"
@@ -208,7 +208,7 @@ module "metric_widget_worker_cpu_usage" {
 }
 
 module "metric_widget_worker_memory_usage" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.19.4"
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.22.1"
 
   title = "${var.cluster_name} EKSWorker MemoryUtilization"
   stat  = "Average"
@@ -223,7 +223,7 @@ module "metric_widget_worker_memory_usage" {
 }
 
 module "metric_widget_worker_disk_usage" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.19.4"
+  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.22.1"
 
   title = "${var.cluster_name} EKSWorker DiskUtilization"
   stat  = "Average"
