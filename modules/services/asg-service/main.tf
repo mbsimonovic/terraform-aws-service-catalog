@@ -19,7 +19,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "asg" {
-  source = "git::git@github.com:gruntwork-io/module-asg.git//modules/asg-rolling-deploy?ref=v0.9.1"
+  source = "git::git@github.com:gruntwork-io/module-asg.git//modules/asg-rolling-deploy?ref=v0.10.0"
 
   launch_configuration_name = aws_launch_configuration.launch_configuration.name
   vpc_subnet_ids            = var.subnet_ids
@@ -32,7 +32,6 @@ module "asg" {
 
   termination_policies = var.termination_policies
   load_balancers       = var.load_balancers
-  availability_zones   = var.availability_zones
 
   use_elb_health_checks = var.use_elb_health_checks
   enabled_metrics       = var.enabled_metrics
