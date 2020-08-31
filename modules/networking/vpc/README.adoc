@@ -60,14 +60,14 @@ Service Catalog]!
 
 
 Under the hood, this is all implemented using Terraform modules from the Gruntwork
-https://github.com/gruntwork-io/module-vpc[module-vpc] repo. If you don't have access to this repo, email
+https://github.com/gruntwork-io/terraform-aws-vpc[terraform-aws-vpc] repo. If you don't have access to this repo, email
 support@gruntwork.io.
 
 
 === Core concepts
 
 To understand core concepts like what's a VPC, how subnets are configured, how network ACLs work, and more, see the
-documentation in the https://github.com/gruntwork-io/module-vpc[module-vpc] repo.
+documentation in the https://github.com/gruntwork-io/terraform-aws-vpc[terraform-aws-vpc] repo.
 
 === Repo organization
 

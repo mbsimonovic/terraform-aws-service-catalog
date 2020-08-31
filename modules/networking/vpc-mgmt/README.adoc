@@ -59,7 +59,7 @@ Service Catalog]!
 
 
 Under the hood, this is all implemented using Terraform modules from the Gruntwork
-https://github.com/gruntwork-io/module-vpc[module-vpc] repo. If you don't have access to this repo, email
+https://github.com/gruntwork-io/terraform-aws-vpc[terraform-aws-vpc] repo. If you don't have access to this repo, email
 support@gruntwork.io.
 
 
