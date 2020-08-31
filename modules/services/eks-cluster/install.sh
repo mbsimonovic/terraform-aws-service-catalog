@@ -3,10 +3,11 @@
 
 set -e
 
+# renovate.json auto-update: terraform-aws-eks
 readonly DEFAULT_TERRAFORM_AWS_EKS_VERSION="v0.22.0"
 
-# TODO: Update ref to a tag when released
-readonly DEFAULT_EC2_BASELINE_REF="master"
+# renovate.json auto-update: aws-service-catalog
+readonly DEFAULT_EC2_BASELINE_REF="v0.0.5"
 
 # NOTE: A few variables will be imported from ec2-baseline
 # - DEFAULT_MODULE_SECURITY_VERSION

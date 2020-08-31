@@ -3,10 +3,11 @@
 
 set -e
 
+# renovate.json auto-update: package-openvpn
 readonly DEFAULT_PACKAGE_OPENVPN_VERSION="v0.9.11"
 
-# TODO: Update ref to a tag when released
-readonly DEFAULT_EC2_BASELINE_REF="master"
+# renovate.json auto-update: aws-service-catalog
+readonly DEFAULT_EC2_BASELINE_REF="v0.0.5"
 
 function include_ec2_baseline {
   gruntwork-install \

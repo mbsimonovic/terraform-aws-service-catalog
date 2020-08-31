@@ -10,18 +10,30 @@ defaults: &defaults
     enabled: true
     image: "ubuntu-1604:201903-01"
   environment:
+    # renovate.json auto-update: gruntwork-installer
     GRUNTWORK_INSTALLER_VERSION: v0.0.28
+    # renovate.json auto-update: terratest
     TERRATEST_LOG_PARSER_VERSION: v0.28.11
+    # renovate.json auto-update: kubergrunt
     KUBERGRUNT_VERSION: v0.5.12
-    K8S_VERSION: v1.15.0
+    # renovate.json auto-update: module-ci
     MODULE_CI_VERSION: v0.18.4
-    TERRAFORM_VERSION: 0.12.28
+    # renovate.json auto-update: terragrunt
     TERRAGRUNT_VERSION: v0.23.14
+    # renovate.json auto-update-github-releases: hashicorp/terraform
+    TERRAFORM_VERSION: 0.12.28
+    # We intentionally do NOT auto update K8S, as it should be tied to EKS versions, and our support for them in
+    # terraform-aws-eks, both of which lag behind open source K8S
+    K8S_VERSION: v1.15.0
+    # renovate.json auto-update-github-releases: hashicorp/packer
     PACKER_VERSION: 1.5.4
+    # TODO: how to get renovate.json to auto-update the Go version? They publish tags, but they are of a strange format
+    # like "go1.15": https://github.com/golang/go/releases
     GOLANG_VERSION: 1.13.8
+    # renovate.json auto-update-github-tags: github/hub
     HUB_VERSION: 2.14.2
+    # renovate.json auto-update-github-releases: kubernetes/minikube
     MINIKUBE_VERSION: v1.7.3
-    KUBERNETES_VERSION: v1.15.0
     KUBECONFIG: /home/circleci/.kube/config
 
 install_gruntwork_utils: &install_gruntwork_utils
@@ -52,7 +64,7 @@ install_kube_utils: &install_kube_utils
     touch "${KUBECONFIG}"
 
     # Install and boot up minikube
-    setup-minikube --minikube-version "${MINIKUBE_VERSION}" --k8s-version "${KUBERNETES_VERSION}"
+    setup-minikube --minikube-version "${MINIKUBE_VERSION}" --k8s-version "${K8S_VERSION}"
 
 install_hub_cli: &install_hub_cli
   name: install hub CLI

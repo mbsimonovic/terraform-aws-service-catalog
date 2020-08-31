@@ -3,14 +3,17 @@
 
 set -e
 
+# renovate.json auto-update: module-ecs
 readonly DEFAULT_ECS_CLUSTER_VERSION="v0.20.2"
 
 # ECS tooling
+# renovate.json auto-update: module-ecs
 readonly DEFAULT_ECS_SCRIPTS_VERSION="v0.20.2"
+# renovate.json auto-update: gruntkms
 readonly DEFAULT_GRUNT_KMS_VERSION="v0.0.8"
 
-# TODO: Update ref to a tag when released
-readonly DEFAULT_EC2_BASELINE_REF="master"
+# renovate.json auto-update: aws-service-catalog
+readonly DEFAULT_EC2_BASELINE_REF="v0.0.5"
 
 # You can set the version of the build tooling to this value to skip installing it
 readonly SKIP_INSTALL_VERSION="NONE"

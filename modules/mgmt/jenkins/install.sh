@@ -5,26 +5,35 @@ set -e
 
 readonly JENKINS_USER="jenkins"
 
-# Jenkins version
-readonly DEFAULT_JENKINS_VERSION="2.204.2"
-
 # Gruntwork module versions
+# renovate.json auto-update: module-ci
 readonly DEFAULT_MODULE_CI_VERSION="v0.25.0"
 
 # Build tooling
+# renovate.json auto-update: kubergrunt
 readonly DEFAULT_KUBERGRUNT_VERSION="v0.5.13"
-readonly DEFAULT_TERRAFORM_VERSION="0.12.21"
+# renovate.json auto-update: terragrunt
 readonly DEFAULT_TERRAGRUNT_VERSION="v0.23.13"
+
+# renovate.json auto-update-github-releases: jenkinsci/jenkins
+readonly DEFAULT_JENKINS_VERSION="2.204.2"
+# renovate.json auto-update-github-releases: hashicorp/terraform
+readonly DEFAULT_TERRAFORM_VERSION="0.12.21"
+# We intentionally do NOT auto update K8S, as it should be tied to EKS versions, and our support for them in
+# terraform-aws-eks, both of which lag behind open source K8S
 readonly DEFAULT_KUBECTL_VERSION="v1.17.3"
+# renovate.json auto-update-github-releases: helm/helm
 readonly DEFAULT_HELM_VERSION="v3.2.0"
+# renovate.json auto-update-github-releases: hashicorp/packer
 readonly DEFAULT_PACKER_VERSION="1.5.4"
+# renovate.json auto-update-docker-ubuntu
 readonly DEFAULT_DOCKER_VERSION="18.06.1~ce~3-0~ubuntu"
 
 # You can set the version of the build tooling to this value to skip installing it
 readonly SKIP_INSTALL_VERSION="NONE"
 
-# TODO: Update ref to a tag when released
-readonly DEFAULT_EC2_BASELINE_REF="master"
+# renovate.json auto-update: aws-service-catalog
+readonly DEFAULT_EC2_BASELINE_REF="v0.0.5"
 
 function include_ec2_baseline {
   gruntwork-install \

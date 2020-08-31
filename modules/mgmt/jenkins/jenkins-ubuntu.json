@@ -12,6 +12,7 @@
     "vpc_filter_value": "true",
     "vpc_subnet_filter_key": "default-for-az",
     "vpc_subnet_filter_value": "true",
+    "gruntwork_installer_version": "v0.0.22",
     "ami_users": "",
     "jenkins_version": "",
     "module_security_version": "",
@@ -73,7 +74,7 @@
     "type": "shell",
     "inline": [
       "sudo DEBIAN_FRONTEND=noninteractive apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get -y upgrade && sudo DEBIAN_FRONTEND=noninteractive apt-get -y install jq curl",
-      "curl -Ls https://raw.githubusercontent.com/gruntwork-io/gruntwork-installer/master/bootstrap-gruntwork-installer.sh | bash /dev/stdin --version v0.0.22",
+      "curl -Ls https://raw.githubusercontent.com/gruntwork-io/gruntwork-installer/master/bootstrap-gruntwork-installer.sh | bash /dev/stdin --version {{user `gruntwork_installer_version`}}",
       "gruntwork-install --module-name mgmt/jenkins --repo https://github.com/gruntwork-io/aws-service-catalog --tag {{user `service_catalog_ref`}}"
     ],
     "environment_vars": [
