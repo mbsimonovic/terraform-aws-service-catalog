@@ -6,7 +6,7 @@ set -e
 # renovate.json auto-update: aws-service-catalog
 readonly DEFAULT_EC2_BASELINE_REF="v0.0.5"
 # renovate.json auto-update: module-ecs
-readonly DEFAULT_MODULE_ECS_VERSION="v0.20.10"
+readonly DEFAULT_MODULE_ECS_VERSION="v0.21.2"
 
 function include_ec2_baseline {
   gruntwork-install \
