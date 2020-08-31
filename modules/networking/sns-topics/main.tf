@@ -23,7 +23,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "sns_topic" {
-  source = "git::git@github.com:gruntwork-io/package-messaging.git//modules/sns?ref=v0.3.1"
+  source = "git::git@github.com:gruntwork-io/package-messaging.git//modules/sns?ref=v0.3.4"
 
   create_resources = var.create_resources
 
