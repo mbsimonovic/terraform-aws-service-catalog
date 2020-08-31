@@ -4,7 +4,7 @@
 set -e
 
 # renovate.json auto-update: package-openvpn
-readonly DEFAULT_PACKAGE_OPENVPN_VERSION="v0.9.11"
+readonly DEFAULT_PACKAGE_OPENVPN_VERSION="v0.11.0"
 
 # renovate.json auto-update: aws-service-catalog
 readonly DEFAULT_EC2_BASELINE_REF="v0.0.5"
