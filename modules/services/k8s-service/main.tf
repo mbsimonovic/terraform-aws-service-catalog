@@ -8,7 +8,7 @@ terraform {
   required_version = "~> 0.12.20"
 
   required_providers {
-    aws        = "~> 2.6"
+    aws        = ">= 2.6"
     kubernetes = "~> 1.10"
 
     # This module uses Helm 3, which depends on helm provider version 1.x series.
