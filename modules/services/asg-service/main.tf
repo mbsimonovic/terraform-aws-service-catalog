@@ -32,7 +32,6 @@ module "asg" {
 
   termination_policies = var.termination_policies
   load_balancers       = var.load_balancers
-  availability_zones   = var.availability_zones
 
   use_elb_health_checks = var.use_elb_health_checks
   enabled_metrics       = var.enabled_metrics
