@@ -23,8 +23,7 @@ readonly DEFAULT_DOCKER_VERSION="18.06.1~ce~3-0~ubuntu"
 # You can set the version of the build tooling to this value to skip installing it
 readonly SKIP_INSTALL_VERSION="NONE"
 
-# TODO: Update ref to a tag when released
-readonly DEFAULT_EC2_BASELINE_REF="ssh-grunt-install-issue"
+readonly DEFAULT_EC2_BASELINE_REF="master"
 
 function include_ec2_baseline {
   gruntwork-install \

@@ -5,8 +5,7 @@ set -e
 
 readonly DEFAULT_TERRAFORM_AWS_EKS_VERSION="v0.22.0"
 
-# TODO: Update ref to a tag when released
-readonly DEFAULT_EC2_BASELINE_REF="ssh-grunt-install-issue"
+readonly DEFAULT_EC2_BASELINE_REF="master"
 
 # NOTE: A few variables will be imported from ec2-baseline
 # - DEFAULT_MODULE_SECURITY_VERSION
