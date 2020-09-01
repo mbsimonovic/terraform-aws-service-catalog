@@ -4,7 +4,7 @@
 set -e
 
 # renovate.json auto-update: terraform-aws-eks
-readonly DEFAULT_TERRAFORM_AWS_EKS_VERSION="v0.22.0"
+readonly DEFAULT_TERRAFORM_AWS_EKS_VERSION="v0.22.1"
 
 # renovate.json auto-update: aws-service-catalog
 readonly DEFAULT_EC2_BASELINE_REF="v0.0.5"
