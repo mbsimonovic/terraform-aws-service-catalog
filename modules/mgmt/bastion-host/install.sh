@@ -3,6 +3,7 @@
 
 set -e
 
+
 readonly DEFAULT_EC2_BASELINE_REF="master"
 
 function include_ec2_baseline {

@@ -25,7 +25,7 @@ terraform {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "config" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-config-multi-region?ref=v0.35.0"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-config-multi-region?ref=v0.36.2"
 
   aws_account_id         = var.aws_account_id
   seed_region            = var.aws_region
@@ -38,10 +38,54 @@ module "config" {
   num_days_after_which_delete_log_data  = var.config_num_days_after_which_delete_log_data
   opt_in_regions                        = var.config_opt_in_regions
 
-  linked_accounts    = var.config_linked_accounts
-  central_account_id = var.config_central_account_id
+  linked_accounts                           = var.config_linked_accounts
+  aggregate_config_data_in_external_account = var.config_aggregate_config_data_in_external_account
+  central_account_id                        = var.config_central_account_id
 
   tags = var.config_tags
+}
+
+module "organizations_config_rules" {
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-config-rules?ref=v0.36.2"
+
+  // Make sure AWS Config has been applied first
+  // Because `aws-config-multi-region` doesn't have a string or list of strings output, we'll construct one dynamically
+  dependencies = concat([
+    for k, v in module.config.config_sns_topic_arns :
+    v
+  ], values(module.config.config_recorder_names))
+
+  additional_rules                         = var.additional_config_rules
+  enable_encrypted_volumes                 = var.enable_encrypted_volumes
+  enable_iam_password_policy               = var.enable_iam_password_policy
+  enable_insecure_sg_rules                 = var.enable_insecure_sg_rules
+  enable_rds_storage_encrypted             = var.enable_rds_storage_encrypted
+  enable_root_account_mfa                  = var.enable_root_account_mfa
+  enable_s3_bucket_public_read_prohibited  = var.enable_s3_bucket_public_read_prohibited
+  enable_s3_bucket_public_write_prohibited = var.enable_s3_bucket_public_write_prohibited
+
+  iam_password_policy_max_password_age             = var.iam_password_policy_max_password_age
+  iam_password_policy_minimum_password_length      = var.iam_password_policy_minimum_password_length
+  iam_password_policy_password_reuse_prevention    = var.iam_password_policy_password_reuse_prevention
+  iam_password_policy_require_lowercase_characters = var.iam_password_policy_require_lowercase_characters
+  iam_password_policy_require_numbers              = var.iam_password_policy_require_numbers
+  iam_password_policy_require_symbols              = var.iam_password_policy_require_symbols
+  iam_password_policy_require_uppercase_characters = var.iam_password_policy_require_uppercase_characters
+  insecure_sg_rules_authorized_udp_ports           = var.insecure_sg_rules_authorized_udp_ports
+  insecure_sg_rules_authorized_tcp_ports           = var.insecure_sg_rules_authorized_tcp_ports
+  maximum_execution_frequency                      = var.configrules_maximum_execution_frequency
+
+  # We used to do org-level rules, but those have a dependency / ordering problem: if you enable org-level rules, they
+  # immediately apply to ALL child accounts... But if a child account doesn't have a Config Recorder, it fails. So when
+  # adding new child accounts, the deployment always fails, because of course brand new accounts don't have Config
+  # Recorders. So by switching to account-level rules, we now have to apply the same rules in each and every account,
+  # but we can ensure that the rules are only enforced after the Config Recorder is in place.
+  create_account_rules = true
+
+  # If config_create_account_rules is true, we create account-level Config rules directly in this account.
+  # If config_create_account_rules is false, we can only create org-level rules in the root account, so in this account,
+  # we create nothing.
+  create_resources = var.config_create_account_rules
 }
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -49,7 +93,7 @@ module "config" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "iam_cross_account_roles" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cross-account-iam-roles?ref=v0.35.0"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cross-account-iam-roles?ref=v0.36.2"
 
   aws_account_id = var.aws_account_id
 
@@ -72,7 +116,7 @@ module "iam_cross_account_roles" {
 }
 
 module "iam_user_password_policy" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-user-password-policy?ref=v0.35.0"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-user-password-policy?ref=v0.36.2"
 
   # Adjust these settings as appropriate for your company
   minimum_password_length        = var.iam_password_policy_minimum_password_length
@@ -92,7 +136,7 @@ module "iam_user_password_policy" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "guardduty" {
-  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/guardduty-multi-region?ref=v0.35.0"
+  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/guardduty-multi-region?ref=v0.36.2"
   aws_account_id = var.aws_account_id
   seed_region    = var.aws_region
 
@@ -108,7 +152,7 @@ module "guardduty" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "cloudtrail" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cloudtrail?ref=v0.35.0"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cloudtrail?ref=v0.36.2"
 
   is_multi_region_trail = true
   cloudtrail_trail_name = var.name_prefix
@@ -141,7 +185,7 @@ module "cloudtrail" {
 # If the user did not pass in a custom KMS key ARN create a dedicated one for use with CloudTrail,
 # with explicit permissions to allow encrypting the logs for external accounts.
 module "cloudtrail_cmk" {
-  source               = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-master-key?ref=v0.35.0"
+  source               = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-master-key?ref=v0.36.2"
   customer_master_keys = local.maybe_cloudtrail_key
 }
 
@@ -188,11 +232,29 @@ locals {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "customer_master_keys" {
-  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-master-key-multi-region?ref=v0.35.0"
+  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-master-key-multi-region?ref=v0.36.2"
   aws_account_id = var.aws_account_id
   seed_region    = var.aws_region
 
   customer_master_keys = var.kms_customer_master_keys
   global_tags          = var.kms_cmk_global_tags
   opt_in_regions       = var.kms_cmk_opt_in_regions
+}
+
+module "kms_grants" {
+  source            = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-grant-multi-region?ref=v0.36.1"
+  aws_account_id    = var.aws_account_id
+  seed_region       = var.aws_region
+  opt_in_regions    = var.kms_cmk_opt_in_regions
+  kms_grant_regions = var.kms_grant_regions
+  kms_grants        = var.kms_grants
+}
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ACCOUNT LEVEL SERVICE-LINKED ROLES
+# ----------------------------------------------------------------------------------------------------------------------
+
+resource "aws_iam_service_linked_role" "role" {
+  for_each         = var.service_linked_roles
+  aws_service_name = each.value
 }

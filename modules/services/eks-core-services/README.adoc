@@ -57,7 +57,7 @@ sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-servic
 Service Catalog]!
 
 Under the hood, this is all implemented using Terraform modules from the Gruntwork
-https://github.com/gruntwork-io/module-vpc[module-vpc] repo. If you don't have access to this repo, email
+https://github.com/gruntwork-io/terraform-aws-eks[terraform-aws-eks] repo. If you don't have access to this repo, email
 support@gruntwork.io.
 
 

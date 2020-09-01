@@ -3,10 +3,13 @@
 
 set -e
 
-readonly DEFAULT_ECS_CLUSTER_VERSION="v0.20.2"
+# renovate.json auto-update: module-ecs
+readonly DEFAULT_ECS_CLUSTER_VERSION="v0.21.2"
 
 # ECS tooling
-readonly DEFAULT_ECS_SCRIPTS_VERSION="v0.20.2"
+# renovate.json auto-update: module-ecs
+readonly DEFAULT_ECS_SCRIPTS_VERSION="v0.21.2"
+# renovate.json auto-update: gruntkms
 readonly DEFAULT_GRUNT_KMS_VERSION="v0.0.8"
 
 readonly DEFAULT_EC2_BASELINE_REF="master"

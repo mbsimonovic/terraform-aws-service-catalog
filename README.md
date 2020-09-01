@@ -51,6 +51,9 @@ If you want to deploy this repo in production, check out the following resources
   Architecture](https://gruntwork.io/reference-architecture/), and it shows you how we build an end-to-end, integrated
   tech stack on top of the Gruntwork Service Catalog.
 
+
+
+
 ## Support
 
 If you need help with this repo or anything else related to infrastructure or DevOps, Gruntwork offers
@@ -58,27 +61,14 @@ If you need help with this repo or anything else related to infrastructure or De
 customer, hop on Slack and ask away! If not, [subscribe now](https://www.gruntwork.io/pricing/). If you're not sure,
 feel free to email us at [support@gruntwork.io](mailto:support@gruntwork.io).
 
+
+
+
 ## Contributions
 
-Contributions to this repo are very welcome and appreciated! If you find a bug or want to add a new feature or even
-contribute an entirely new module, we are very happy to accept pull requests, provide feedback, and run your changes
-through our automated test suite.
+Contributions to this repo are very welcome and appreciated! Please see [Contributing to this 
+repo](core-concepts.md#contributing-to-this-repo) for instructions.
 
-Please see [Contributing to the Gruntwork Service Catalog](core-concepts.md#contributing-to-the-gruntwork-service-catalog)
-for instructions.
-
-### pre-commit requirements 
-
-This repo makes use of [pre-commit](https://pre-commit.com/) to help catch formatting and syntax issues client-side prior to code reviews. Gruntwork maintains [a collection of pre-commit hooks](https://github.com/gruntwork-io/pre-commit) that are specifically tailored to languages and tooling we commonly use.  
-
-Before contributing to this repo: 
-
-1. [Install pre-commit](https://pre-commit.com/#installation)
-1. After cloning the repository, run `pre-commit install` in your local working directory 
-1. You can examine the `.pre-commit-config.yml` file to see the hooks that will be installed and run when the git pre-commit hook is invoked. 
-1. Python version >= 3.6 is required to run the hook scripts without issues. We recommend using [pyenv](https://github.com/pyenv/pyenvv) to manage multiple versions of Python on your system.
-1. Once everything is working properly, you will notice that several checks are being run locally each time you run `git commit`. Note that your commit will not succeed until all `pre-commit` checks pass. 
-1. However, you may bypass these safeguards and commit anyway by passing the `--no-verify` flag to your `git commit` command. This is usually not recommended. 
 
 
 

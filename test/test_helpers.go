@@ -168,6 +168,24 @@ func testSSH(t *testing.T, ip string, sshUsername string, keyPair *aws.Ec2Keypai
 	)
 }
 
+func testSSHCommand(t *testing.T, ip string, sshUsername string, keyPair *aws.Ec2Keypair, command string) string {
+	publicHost := ssh.Host{
+		Hostname:    ip,
+		SshUserName: sshUsername,
+		SshKeyPair:  keyPair.KeyPair,
+	}
+
+	return retry.DoWithRetry(
+		t,
+		fmt.Sprintf("SSH to public host %s", ip),
+		10,
+		30*time.Second,
+		func() (string, error) {
+			return ssh.CheckSshCommandE(t, publicHost, command)
+		},
+	)
+}
+
 func requireEnvVar(t *testing.T, envVarName string) {
 	require.NotEmptyf(t, os.Getenv(envVarName), "Environment variable %s must be set for this test.", envVarName)
 }
@@ -175,5 +193,5 @@ func requireEnvVar(t *testing.T, envVarName string) {
 // PlanWithParallelismE runs terraform plan with the given options including the parallelism flag and returns stdout/stderr.
 // This will fail the test if there is an error in the command.
 func planWithParallelismE(t *testing.T, options *terraform.Options) (string, error) {
-	return terraform.RunTerraformCommandE(t, options, terraform.FormatArgs(options, "plan", "-parallelism=4", "-input=false", "-lock=false")...)
+	return terraform.RunTerraformCommandE(t, options, terraform.FormatArgs(options, "plan", "-parallelism=2", "-input=false", "-lock=false")...)
 }
