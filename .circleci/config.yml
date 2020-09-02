@@ -13,13 +13,13 @@ defaults: &defaults
     # renovate.json auto-update: gruntwork-installer
     GRUNTWORK_INSTALLER_VERSION: v0.0.28
     # renovate.json auto-update: terratest
-    TERRATEST_LOG_PARSER_VERSION: v0.28.15
+    TERRATEST_LOG_PARSER_VERSION: v0.29.0
     # renovate.json auto-update: kubergrunt
     KUBERGRUNT_VERSION: v0.5.13
     # renovate.json auto-update: module-ci
     MODULE_CI_VERSION: v0.18.4
     # renovate.json auto-update: terragrunt
-    TERRAGRUNT_VERSION: v0.23.38
+    TERRAGRUNT_VERSION: v0.23.40
     # renovate.json auto-update-github-releases: hashicorp/terraform
     TERRAFORM_VERSION: 0.12.28
     # We intentionally do NOT auto update K8S, as it should be tied to EKS versions, and our support for them in
