@@ -334,10 +334,6 @@ module "kms_grants" {
   aws_account_id    = data.aws_caller_identity.current.account_id
   kms_grant_regions = local.kms_grant_regions
   kms_grants        = local.kms_grants
-
-  # Normally we don't need to set this but due to a terraform bug and the way we invoke kms-grant-multi-region in this
-  # module, this is necessary to be provided as a hardcoded variable.
-  fallback_region = var.fallback_region
 }
 
 locals {

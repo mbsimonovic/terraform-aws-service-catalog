@@ -406,9 +406,3 @@ variable "container_default_launch_type" {
   type        = string
   default     = "FARGATE"
 }
-
-variable "fallback_region" {
-  description = "The region to use as a fallback when one of the regions is disabled. Terraform will error out if the region is not set to an enabled region on the provider. Must be set to an enabled region on the account to avoid a terraform bug on destroy (https://github.com/hashicorp/terraform/issues/13018)."
-  type        = string
-  default     = "us-east-1"
-}
