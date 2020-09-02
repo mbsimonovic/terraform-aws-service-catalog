@@ -199,6 +199,7 @@ func TestEcsDeployRunner(t *testing.T) {
 					},
 				},
 				"allowed_repos": []string{serviceCatalogRepo},
+				"allowed_repos_regex": []string{},
 				"git_config": map[string]interface{}{
 					"username_secrets_manager_arn": gitPatSecretsManagerArn,
 					"password_secrets_manager_arn": nil,
@@ -219,6 +220,7 @@ func TestEcsDeployRunner(t *testing.T) {
 					},
 				},
 				"allowed_repos": []string{serviceCatalogRepo},
+				"allowed_repos_regex": []string{},
 				"repo_access_ssh_key_secrets_manager_arn": sshSecretsManagerArn,
 				"secrets_manager_env_vars":                map[string]interface{}{},
 				"environment_vars":                        map[string]interface{}{},
@@ -230,6 +232,7 @@ func TestEcsDeployRunner(t *testing.T) {
 				},
 				"iam_policy":                              map[string]interface{}{},
 				"infrastructure_live_repositories":        []string{serviceCatalogRepo, moduleCIRepo},
+				"infrastructure_live_repositories_regex":        []string{},
 				"repo_access_ssh_key_secrets_manager_arn": sshSecretsManagerArn,
 				"secrets_manager_env_vars":                map[string]interface{}{},
 				"environment_vars":                        map[string]interface{}{},
@@ -241,6 +244,7 @@ func TestEcsDeployRunner(t *testing.T) {
 				},
 				"iam_policy":                       map[string]interface{}{},
 				"infrastructure_live_repositories": []string{serviceCatalogRepo, moduleCIRepo},
+				"infrastructure_live_repositories_regex":        []string{},
 				"allowed_update_variable_names":    []string{"tag", "docker_tag", "ami_version_tag", "ami"},
 				"allowed_apply_git_refs":           []string{"master"},
 				"machine_user_git_info": map[string]interface{}{
