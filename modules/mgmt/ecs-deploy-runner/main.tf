@@ -14,7 +14,7 @@ terraform {
   required_version = "~> 0.12.6"
 
   required_providers {
-    aws = "~> 2.6"
+    aws = ">= 2.6"
   }
 }
 
@@ -325,7 +325,7 @@ data "aws_iam_policy_document" "terraform_applier" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "kms_grants" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-grant-multi-region?ref=v0.36.1"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-grant-multi-region?ref=v0.36.4"
 
   aws_account_id    = data.aws_caller_identity.current.account_id
   seed_region       = data.aws_region.current.name

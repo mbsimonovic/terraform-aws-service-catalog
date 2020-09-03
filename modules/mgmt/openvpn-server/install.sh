@@ -4,7 +4,7 @@
 set -e
 
 # renovate.json auto-update: package-openvpn
-readonly DEFAULT_PACKAGE_OPENVPN_VERSION="v0.11.0"
+readonly DEFAULT_PACKAGE_OPENVPN_VERSION="v0.11.1"
 
 readonly DEFAULT_EC2_BASELINE_REF="master"
 
