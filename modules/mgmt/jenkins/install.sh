@@ -6,9 +6,6 @@ set -e
 readonly JENKINS_USER="jenkins"
 
 
-# Jenkins version
-readonly DEFAULT_JENKINS_VERSION="2.235.5"
-
 # Gruntwork module versions
 # renovate.json auto-update: module-ci
 readonly DEFAULT_MODULE_CI_VERSION="v0.25.0"
