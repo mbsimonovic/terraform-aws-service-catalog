@@ -3,16 +3,19 @@
 
 set -e
 
-# renovate.json auto-update: aws-service-catalog
-readonly DEFAULT_EC2_BASELINE_REF="v0.0.5"
 # renovate.json auto-update: module-ecs
 readonly DEFAULT_MODULE_ECS_VERSION="v0.21.2"
 
 function include_ec2_baseline {
+  ec2_baseline_version="$1"
+  if [[ "$ec2_baseline_version" == "" ]]; then
+    echo "ERROR: no version was provided for ec2-baseline module."
+    exit 1
+  fi
   gruntwork-install \
     --module-name base/ec2-baseline \
     --repo https://github.com/gruntwork-io/aws-service-catalog \
-    --tag ${DEFAULT_EC2_BASELINE_REF}
+    --tag ${ec2_baseline_version}
 
   # Include common defaults and functions from the ec2-baseline install script
   # See: https://github.com/gruntwork-io/aws-service-catalog/blob/master/modules/base/ec2-baseline
@@ -107,5 +110,9 @@ function install_ecs_container_instance {
   install_ecs_scripts "$module_ecs_version"
 }
 
-include_ec2_baseline
+# Determine which version of the EC2 baseline module to install.
+# Prioritize an environment variable set by Packer, and fall back to the value
+# set by the gruntwork-install script in GRUNTWORK_INSTALL_TAG
+module_ec2_baseline_version="${module_ec2_baseline_version:-$GRUNTWORK_INSTALL_TAG}"
+include_ec2_baseline "$module_ec2_baseline_version"
 install_ecs_container_instance "$@"

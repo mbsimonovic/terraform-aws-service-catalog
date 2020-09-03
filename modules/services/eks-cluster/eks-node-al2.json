@@ -12,12 +12,13 @@
     "vpc_filter_value": "true",
     "vpc_subnet_filter_key": "default-for-az",
     "vpc_subnet_filter_value": "true",
-    "gruntwork_installer_version": "v0.0.28",
+    "gruntwork_installer_version": "tag-env-var",
     "ami_users": "",
     "kubernetes_version": "1.17",
     "terraform_aws_eks_version": "",
     "module_security_version": "",
     "module_aws_monitoring_version": "",
+    "module_ec2_baseline_version": "",
     "enable_ssh_grunt": "true",
     "enable_cloudwatch_metrics": "true",
     "enable_cloudwatch_log_aggregation": "true"
@@ -72,6 +73,7 @@
       "terraform_aws_eks_version={{user `terraform_aws_eks_version`}}",
       "module_security_version={{user `module_security_version`}}",
       "module_aws_monitoring_version={{user `module_aws_monitoring_version`}}",
+      "module_ec2_baseline_version={{user `module_ec2_baseline_version`}}",
       "enable_ssh_grunt={{user `enable_ssh_grunt`}}",
       "enable_cloudwatch_metrics={{user `enable_cloudwatch_metrics`}}",
       "enable_cloudwatch_log_aggregation={{user `enable_cloudwatch_log_aggregation`}}"
