@@ -46,9 +46,6 @@ function install_openvpn_packages {
 }
 
 function install_openvpn_server {
-  # The baseline defines the default versions used below
-  include_ec2_baseline
-
   # Read from env vars to make it easy to set these in a Packer template (without super-wide --module-param foo=bar code).
   # Fallback to default version if the env var is not set.
   local package_openvpn_version="${package_openvpn_version:-$DEFAULT_PACKAGE_OPENVPN_VERSION}"
