@@ -12,7 +12,7 @@
     "vpc_filter_value": "true",
     "vpc_subnet_filter_key": "default-for-az",
     "vpc_subnet_filter_value": "true",
-    "gruntwork_installer_version": "tag-env-var",
+    "gruntwork_installer_version": "v0.0.29",
     "ami_users": "",
     "bash_commons_version": "",
     "module_ecs_version": "",
