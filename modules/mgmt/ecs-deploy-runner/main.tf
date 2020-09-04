@@ -23,7 +23,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_deploy_runner" {
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner?ref=v0.27.1"
+  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner?ref=v0.28.1"
 
   name                          = var.name
   container_images              = module.standard_config.container_images
@@ -40,13 +40,14 @@ module "ecs_deploy_runner" {
 }
 
 module "standard_config" {
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner-standard-configuration?ref=v0.27.1"
+  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner-standard-configuration?ref=v0.28.1"
 
   docker_image_builder = (
     var.docker_image_builder_config != null
     ? {
-      container_image = var.docker_image_builder_config.container_image
-      allowed_repos   = var.docker_image_builder_config.allowed_repos
+      container_image     = var.docker_image_builder_config.container_image
+      allowed_repos       = var.docker_image_builder_config.allowed_repos
+      allowed_repos_regex = var.docker_image_builder_config.allowed_repos_regex
       secrets_manager_env_vars = merge(
         (
           var.docker_image_builder_config.git_config != null && var.docker_image_builder_config.git_config.username_secrets_manager_arn != null
@@ -74,6 +75,7 @@ module "standard_config" {
     ? {
       container_image                         = var.ami_builder_config.container_image
       allowed_repos                           = var.ami_builder_config.allowed_repos
+      allowed_repos_regex                     = var.ami_builder_config.allowed_repos_regex
       repo_access_ssh_key_secrets_manager_arn = var.ami_builder_config.repo_access_ssh_key_secrets_manager_arn
       secrets_manager_env_vars                = var.ami_builder_config.secrets_manager_env_vars
       environment_vars                        = var.ami_builder_config.environment_vars
@@ -84,8 +86,9 @@ module "standard_config" {
   terraform_planner = (
     var.terraform_planner_config != null
     ? {
-      container_image                  = var.terraform_planner_config.container_image
-      infrastructure_live_repositories = var.terraform_planner_config.infrastructure_live_repositories
+      container_image                        = var.terraform_planner_config.container_image
+      infrastructure_live_repositories       = var.terraform_planner_config.infrastructure_live_repositories
+      infrastructure_live_repositories_regex = var.terraform_planner_config.infrastructure_live_repositories_regex
       secrets_manager_env_vars = merge(
         {
           DEPLOY_SCRIPT_SSH_PRIVATE_KEY = var.terraform_planner_config.repo_access_ssh_key_secrets_manager_arn
@@ -102,6 +105,7 @@ module "standard_config" {
     ? {
       container_image                         = var.terraform_applier_config.container_image
       infrastructure_live_repositories        = var.terraform_applier_config.infrastructure_live_repositories
+      infrastructure_live_repositories_regex  = var.terraform_applier_config.infrastructure_live_repositories_regex
       allowed_apply_git_refs                  = var.terraform_applier_config.allowed_apply_git_refs
       machine_user_git_info                   = var.terraform_applier_config.machine_user_git_info
       allowed_update_variable_names           = var.terraform_applier_config.allowed_update_variable_names
@@ -328,7 +332,6 @@ module "kms_grants" {
   source = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-grant-multi-region?ref=v0.36.6"
 
   aws_account_id    = data.aws_caller_identity.current.account_id
-  seed_region       = data.aws_region.current.name
   kms_grant_regions = local.kms_grant_regions
   kms_grants        = local.kms_grants
 }
@@ -400,7 +403,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "invoke_policy" {
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner-invoke-iam-policy?ref=v0.27.1"
+  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner-invoke-iam-policy?ref=v0.28.1"
 
   name                                      = "invoke-${var.name}"
   deploy_runner_invoker_lambda_function_arn = module.ecs_deploy_runner.invoker_function_arn
