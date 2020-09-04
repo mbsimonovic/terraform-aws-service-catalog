@@ -105,8 +105,8 @@ function install_host {
 
 # Determine which version of the EC2 baseline module to install.
 # Prioritize an environment variable set by Packer, and fall back to the value
-# set by the gruntwork-install script in GRUNTWORK_INSTALL_TAG
-module_ec2_baseline_version="${module_ec2_baseline_version:-$GRUNTWORK_INSTALL_TAG}"
+# set by the gruntwork-install script in GRUNTWORK_INSTALL_BRANCH
+module_ec2_baseline_version="${module_ec2_baseline_version:-$GRUNTWORK_INSTALL_BRANCH}"
 include_ec2_baseline "$module_ec2_baseline_version"
 
 
