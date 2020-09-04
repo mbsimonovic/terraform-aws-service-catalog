@@ -13,6 +13,14 @@ terraform {
   # to a specific version of the modules, such as the following example:
   # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/landingzone/account-baseline-security?ref=v1.0.8"
   source = "../../../../../../modules//landingzone/account-baseline-security"
+
+  # This module deploys some resources (e.g., AWS Config) across all AWS regions, each of which needs its own provider,
+  # which in Terraform means a separate process. To avoid all these processes thrashing the CPU, which leads to network
+  # connectivity issues, we limit the parallelism here.
+  extra_arguments "parallelism" {
+    commands  = get_terraform_commands_that_need_parallelism()
+    arguments = ["-parallelism=2"]
+  }
 }
 
 # Include all settings from the root terragrunt.hcl file
