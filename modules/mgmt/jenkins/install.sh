@@ -5,6 +5,7 @@ set -e
 
 readonly JENKINS_USER="jenkins"
 
+
 # Gruntwork module versions
 # renovate.json auto-update: module-ci
 readonly DEFAULT_MODULE_CI_VERSION="v0.25.0"
@@ -16,7 +17,7 @@ readonly DEFAULT_KUBERGRUNT_VERSION="v0.5.13"
 readonly DEFAULT_TERRAGRUNT_VERSION="v0.23.40"
 
 # renovate.json auto-update-github-releases: jenkinsci/jenkins
-readonly DEFAULT_JENKINS_VERSION="2.204.2"
+readonly DEFAULT_JENKINS_VERSION="2.235.5"
 # renovate.json auto-update-github-releases: hashicorp/terraform
 readonly DEFAULT_TERRAFORM_VERSION="0.12.21"
 # We intentionally do NOT auto update K8S, as it should be tied to EKS versions, and our support for them in
@@ -32,14 +33,17 @@ readonly DEFAULT_DOCKER_VERSION="18.06.1~ce~3-0~ubuntu"
 # You can set the version of the build tooling to this value to skip installing it
 readonly SKIP_INSTALL_VERSION="NONE"
 
-# renovate.json auto-update: aws-service-catalog
-readonly DEFAULT_EC2_BASELINE_REF="v0.0.5"
-
 function include_ec2_baseline {
+  ec2_baseline_version="$1"
+  if [[ "$ec2_baseline_version" == "" ]]; then
+    echo "ERROR: no version was provided for ec2-baseline module."
+    exit 1
+  fi
+
   gruntwork-install \
     --module-name base/ec2-baseline \
     --repo https://github.com/gruntwork-io/aws-service-catalog \
-    --tag ${DEFAULT_EC2_BASELINE_REF}
+    --tag ${module_ec2_baseline_version}
 
   # Include common defaults and functions from the ec2-baseline install script
   # See: https://github.com/gruntwork-io/aws-service-catalog/blob/master/modules/base/ec2-baseline
@@ -353,6 +357,10 @@ function install_jenkins {
     "${EC2_BASELINE_PATH}/user-data-common.sh"
 }
 
-include_ec2_baseline
+# Determine which version of the EC2 baseline module to install.
+# Prioritize an environment variable set by Packer, and fall back to the value
+# set by the gruntwork-install script in GRUNTWORK_INSTALL_TAG
+module_ec2_baseline_version="${module_ec2_baseline_version:-$GRUNTWORK_INSTALL_TAG}"
+include_ec2_baseline "$module_ec2_baseline_version"
 
 install_jenkins "$@"
