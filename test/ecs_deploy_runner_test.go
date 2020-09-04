@@ -26,7 +26,7 @@ const (
 	kanikoImgTag       = "kaniko-v1"
 
 	moduleCIRepo = "git@github.com:gruntwork-io/module-ci.git"
-	moduleCITag  = "v0.28.0"
+	moduleCITag  = "v0.28.1"
 )
 
 // TestEcsDeployRunner tests the ECS Deploy Runner module.
