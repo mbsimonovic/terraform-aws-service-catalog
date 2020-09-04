@@ -5,7 +5,7 @@
 # renovate.json auto-update: bash-commons
 readonly DEFAULT_BASH_COMMONS_VERSION="v0.1.2"
 # renovate.json auto-update: module-security
-readonly DEFAULT_MODULE_SECURITY_VERSION="v0.36.4"
+readonly DEFAULT_MODULE_SECURITY_VERSION="v0.36.6"
 # renovate.json auto-update: module-aws-monitoring
 readonly DEFAULT_MODULE_AWS_MONITORING_VERSION="v0.22.1"
 # renovate.json auto-update: module-server
