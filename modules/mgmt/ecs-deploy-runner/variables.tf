@@ -50,6 +50,11 @@ variable "docker_image_builder_config" {
     # (e.g., https://github.com/gruntwork-io/module-ci.git).
     allowed_repos = list(string)
 
+    # List of repositories (matching the regex) that are allowed to build AMIs. These should be the https git URL of the repository
+    # (e.g., "https://github.com/gruntwork-io/.+" ).
+    # Note that this is a list of individual regex because HCL doesn't allow bitwise operator: https://github.com/hashicorp/terraform/issues/25326
+    allowed_repos_regex = list(string)
+
     # ARNs of AWS Secrets Manager entries that can be used for authenticating to HTTPS based git repos that contain the
     # Dockerfile for building the images. The associated user is recommended to be limited to read access only.
     #
@@ -124,6 +129,11 @@ variable "ami_builder_config" {
     # (e.g., git@github.com:gruntwork-io/module-ci.git).
     allowed_repos = list(string)
 
+    # List of repositories (matching the regex) that are allowed to build AMIs. These should be the SSH git URL of the repository
+    # (e.g., "(git@github.com:gruntwork-io/)+" ).
+    # Note that this is a list of individual regex because HCL doesn't allow bitwise operator: https://github.com/hashicorp/terraform/issues/25326
+    allowed_repos_regex = list(string)
+
     # The ARN of a secrets manager entry containing the raw contents of a SSH private key to use when accessing remote
     # git repositories containing packer templates.
     repo_access_ssh_key_secrets_manager_arn = string
@@ -182,6 +192,12 @@ variable "terraform_planner_config" {
     # NOTE: when only a single repository is provided, this will automatically be included as a hardcoded option.
     infrastructure_live_repositories = list(string)
 
+    # List of Git repositories (matching the regex) containing infrastructure live configuration (top level terraform or terragrunt
+    # configuration to deploy infrastructure) that the deploy runner is allowed to deploy. These should be the SSH git
+    # URL of the repository (e.g., git@github.com:gruntwork-io/module-ci.git).
+    # Note that this is a list of individual regex because HCL doesn't allow bitwise operator: https://github.com/hashicorp/terraform/issues/25326
+    infrastructure_live_repositories_regex = list(string)
+
     # The ARN of a secrets manager entry containing the raw contents of a SSH private key to use when accessing the
     # infrastructure live repository.
     repo_access_ssh_key_secrets_manager_arn = string
@@ -239,6 +255,12 @@ variable "terraform_applier_config" {
     # URL of the repository (e.g., git@github.com:gruntwork-io/module-ci.git).
     # NOTE: when only a single repository is provided, this will automatically be included as a hardcoded option.
     infrastructure_live_repositories = list(string)
+
+    # List of Git repositories (matching the regex) containing infrastructure live configuration (top level terraform or terragrunt
+    # configuration to deploy infrastructure) that the deploy runner is allowed to deploy. These should be the SSH git
+    # URL of the repository (e.g., git@github.com:gruntwork-io/module-ci.git).
+    # Note that this is a list of individual regex because HCL doesn't allow bitwise operator: https://github.com/hashicorp/terraform/issues/25326
+    infrastructure_live_repositories_regex = list(string)
 
     # List of variable names that are allowed to be automatically updated by the CI/CD pipeline. Recommended to set to:
     # ["tag", "docker_tag", "ami_version_tag", "ami"]

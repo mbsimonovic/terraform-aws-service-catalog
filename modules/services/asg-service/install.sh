@@ -4,7 +4,7 @@
 set -e
 
 # renovate.json auto-update: aws-service-catalog
-readonly DEFAULT_EC2_BASELINE_REF="v0.0.5"
+readonly module_ec2_baseline_version="v0.0.5"
 
 # You can set the version of the build tooling to this value to skip installing it
 readonly SKIP_INSTALL_VERSION="NONE"
@@ -21,7 +21,7 @@ function include_ec2_baseline {
   gruntwork-install \
     --module-name base/ec2-baseline \
     --repo https://github.com/gruntwork-io/aws-service-catalog \
-    --tag ${DEFAULT_EC2_BASELINE_REF}
+    --tag ${module_ec2_baseline_version}
 
   # Include common defaults and functions from the ec2-baseline install script
   # See: https://github.com/gruntwork-io/aws-service-catalog/blob/master/modules/base/ec2-baseline

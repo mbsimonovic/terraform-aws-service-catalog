@@ -6,14 +6,17 @@ set -e
 # renovate.json auto-update: package-openvpn
 readonly DEFAULT_PACKAGE_OPENVPN_VERSION="v0.11.1"
 
-# renovate.json auto-update: aws-service-catalog
-readonly DEFAULT_EC2_BASELINE_REF="v0.0.5"
-
 function include_ec2_baseline {
+  ec2_baseline_version="$1"
+  if [[ "$ec2_baseline_version" == "" ]]; then
+    echo "ERROR: no version was provided for ec2-baseline module."
+    exit 1
+  fi
+
   gruntwork-install \
     --module-name base/ec2-baseline \
     --repo https://github.com/gruntwork-io/aws-service-catalog \
-    --tag ${DEFAULT_EC2_BASELINE_REF}
+    --tag ${ec2_baseline_version}
 
   # Include common defaults and functions from the ec2-baseline install script
   # See: https://github.com/gruntwork-io/aws-service-catalog/blob/master/modules/base/ec2-baseline
@@ -43,9 +46,6 @@ function install_openvpn_packages {
 }
 
 function install_openvpn_server {
-  # The baseline defines the default versions used below
-  include_ec2_baseline
-
   # Read from env vars to make it easy to set these in a Packer template (without super-wide --module-param foo=bar code).
   # Fallback to default version if the env var is not set.
   local package_openvpn_version="${package_openvpn_version:-$DEFAULT_PACKAGE_OPENVPN_VERSION}"
@@ -119,5 +119,11 @@ function install_openvpn_server {
 
   sudo /usr/local/bin/install-openvpn
 }
+
+# Determine which version of the EC2 baseline module to install.
+# Prioritize an environment variable set by Packer, and fall back to the value
+# set by the gruntwork-install script in GRUNTWORK_INSTALL_TAG
+module_ec2_baseline_version="${module_ec2_baseline_version:-$GRUNTWORK_INSTALL_TAG}"
+include_ec2_baseline "$module_ec2_baseline_version"
 
 install_openvpn_server "$@"
