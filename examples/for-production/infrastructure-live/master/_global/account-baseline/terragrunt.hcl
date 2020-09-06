@@ -65,7 +65,7 @@ locals {
 generate "gruntwork_access" {
   path      = "gruntwork-access.tf"
   if_exists = "overwrite"
-  contents  = templatefile("gruntwork-access.tmpl", {
+  contents = templatefile("gruntwork-access.tmpl", {
     aws_region                      = local.aws_region
     child_accounts                  = local.child_accounts
     organizations_default_role_name = local.organizations_default_role_name
