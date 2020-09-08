@@ -35,7 +35,7 @@ function include_ec2_baseline {
     --module-name base/ec2-baseline \
     --repo https://github.com/gruntwork-io/aws-service-catalog \
     --branch ${ec2_baseline_version_branch} \
-    --tag ${ec2_baseline_version_tag} 
+    --tag ${ec2_baseline_version_tag}
 
   # Include common defaults and functions from the ec2-baseline install script
   # See: https://github.com/gruntwork-io/aws-service-catalog/blob/master/modules/base/ec2-baseline
@@ -63,7 +63,7 @@ function install_ecs_cluster {
   local enable_cloudwatch_metrics="${enable_cloudwatch_metrics:-$DEFAULT_ENABLE_CLOUDWATCH_METRICS}"
   local enable_cloudwatch_log_aggregation="${enable_cloudwatch_log_aggregation:-$DEFAULT_ENABLE_CLOUDWATCH_LOG_AGGREGATION}"
 
- 
+
   while [[ $# -gt 0 ]]; do
     local key="$1"
 
@@ -111,7 +111,7 @@ function install_ecs_cluster {
   done
 
   assert_env_var_not_empty "GITHUB_OAUTH_TOKEN"
-  
+
   install_gruntwork_modules \
     "$bash_commons_version" \
     "$module_security_version" \
@@ -123,7 +123,7 @@ function install_ecs_cluster {
   # install ecs-scripts module which allows for configuring an EC2 instance to join an existing ECS cluster
   # See: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/bootstrap_container_instance.html for more information
   gruntwork-install --module-name 'ecs-scripts' --repo https://github.com/gruntwork-io/module-ecs --tag "$ecs_cluster_version"
- 
+
   install_user_data \
     "${EC2_BASELINE_PATH}/user-data-common.sh"
 }
@@ -132,7 +132,7 @@ function install_ecs_cluster {
 # Prioritize an environment variable set by Packer, and fall back to the value
 # set by the gruntwork-install script in GRUNTWORK_INSTALL_BRANCH or GRUNTWORK_INSTALL_TAG
 # If branch and tag are both set, gruntwork-install prefers branch
-module_ec2_baseline_branch="${module_ec2_baseline_version:-$GRUNTWORK_INSTALL_BRANCH}"
+module_ec2_baseline_branch="${module_ec2_baseline_branch:-$GRUNTWORK_INSTALL_BRANCH}"
 module_ec2_baseline_tag="${module_ec2_baseline_version:-$GRUNTWORK_INSTALL_TAG}"
 include_ec2_baseline "$module_ec2_baseline_branch" "$module_ec2_baseline_tag"
 
