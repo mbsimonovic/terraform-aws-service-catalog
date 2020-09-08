@@ -7,8 +7,13 @@ set -e
 readonly DEFAULT_PACKAGE_OPENVPN_VERSION="v0.11.1"
 
 function include_ec2_baseline {
-  ec2_baseline_version="$1"
-  if [[ "$ec2_baseline_version" == "" ]]; then
+  if [[ "$1" ]]; then
+    ec2_baseline_version_branch="--branch $1"
+  fi
+  if [[ "$2" ]]; then
+    ec2_baseline_version_tag="--tag $2"
+  fi
+  if [[ "$ec2_baseline_version_branch" == "" && "$ec2_baseline_version_tag" == "" ]]; then
     echo "ERROR: no version was provided for ec2-baseline module."
     exit 1
   fi
@@ -16,7 +21,8 @@ function include_ec2_baseline {
   gruntwork-install \
     --module-name base/ec2-baseline \
     --repo https://github.com/gruntwork-io/aws-service-catalog \
-    --tag ${ec2_baseline_version}
+    ${ec2_baseline_version_branch} \
+    ${ec2_baseline_version_tag}
 
   # Include common defaults and functions from the ec2-baseline install script
   # See: https://github.com/gruntwork-io/aws-service-catalog/blob/master/modules/base/ec2-baseline
@@ -122,8 +128,10 @@ function install_openvpn_server {
 
 # Determine which version of the EC2 baseline module to install.
 # Prioritize an environment variable set by Packer, and fall back to the value
-# set by the gruntwork-install script in GRUNTWORK_INSTALL_TAG
-module_ec2_baseline_version="${module_ec2_baseline_version:-$GRUNTWORK_INSTALL_TAG}"
-include_ec2_baseline "$module_ec2_baseline_version"
+# set by the gruntwork-install script in GRUNTWORK_INSTALL_BRANCH or GRUNTWORK_INSTALL_TAG
+# If branch and tag are both set, gruntwork-install prefers branch
+module_ec2_baseline_branch="${module_ec2_baseline_branch:-$GRUNTWORK_INSTALL_BRANCH}"
+module_ec2_baseline_tag="${module_ec2_baseline_version:-$GRUNTWORK_INSTALL_TAG}"
+include_ec2_baseline "$module_ec2_baseline_branch" "$module_ec2_baseline_tag"
 
 install_openvpn_server "$@"
