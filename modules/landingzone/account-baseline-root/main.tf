@@ -25,7 +25,7 @@ terraform {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "organization" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-organizations?ref=v0.36.6"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-organizations?ref=v0.36.8"
 
   child_accounts                              = var.child_accounts
   create_organization                         = var.create_organization
@@ -44,7 +44,7 @@ module "organization" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "config" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-config-multi-region?ref=v0.36.6"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-config-multi-region?ref=v0.36.8"
 
   create_resources       = var.enable_config
   aws_account_id         = var.aws_account_id
@@ -65,7 +65,7 @@ module "config" {
 }
 
 module "organizations_config_rules" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-config-rules?ref=v0.36.6"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-config-rules?ref=v0.36.8"
 
   create_resources = var.enable_config
 
@@ -124,7 +124,7 @@ locals {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "cloudtrail" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cloudtrail?ref=v0.36.6"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cloudtrail?ref=v0.36.8"
 
   create_resources      = var.enable_cloudtrail
   cloudtrail_trail_name = var.name_prefix
@@ -149,7 +149,7 @@ module "cloudtrail" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "iam_groups" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-groups?ref=v0.36.6"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-groups?ref=v0.36.8"
 
   aws_account_id     = var.aws_account_id
   should_require_mfa = var.should_require_mfa
@@ -176,7 +176,7 @@ module "iam_groups" {
 }
 
 module "iam_users" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-users?ref=v0.36.6"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-users?ref=v0.36.8"
 
   users                   = var.users
   password_length         = var.iam_password_policy_minimum_password_length
@@ -186,7 +186,7 @@ module "iam_users" {
 }
 
 module "iam_cross_account_roles" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cross-account-iam-roles?ref=v0.36.6"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cross-account-iam-roles?ref=v0.36.8"
 
   aws_account_id = var.aws_account_id
 
@@ -208,7 +208,7 @@ module "iam_cross_account_roles" {
 }
 
 module "iam_user_password_policy" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-user-password-policy?ref=v0.36.6"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-user-password-policy?ref=v0.36.8"
 
   # Adjust these settings as appropriate for your company
   minimum_password_length        = var.iam_password_policy_minimum_password_length
@@ -227,7 +227,7 @@ module "iam_user_password_policy" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "guardduty" {
-  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/guardduty-multi-region?ref=v0.36.6"
+  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/guardduty-multi-region?ref=v0.36.8"
   aws_account_id = var.aws_account_id
   seed_region    = var.aws_region
 

@@ -5,7 +5,7 @@
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ssh_grunt_policies" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-policies?ref=v0.36.6"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-policies?ref=v0.36.8"
 
   aws_account_id = data.aws_caller_identity.current.account_id
 
