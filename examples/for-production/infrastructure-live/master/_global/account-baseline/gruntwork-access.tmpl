@@ -1,0 +1,59 @@
+%{ for name, account in child_accounts ~}
+
+provider "aws" {
+  region = "${aws_region}"
+  alias  = "${name}"
+
+  assume_role {
+    # We intentionally depend on the null_resource here to ensure we give the child accounts and the IAM roles in them
+    # enough time to be created and usable. Note that if the user has not specified a logs account, then we set
+    # role_arn to null, so instead, this provider block will use the same (root) account as all the other resources.
+    role_arn = data.template_file.${name}_account_iam_role_arn.rendered
+  }
+}
+
+# Use a null_resource as an awkward mechanism to ensure that we wait for the child accounts to be created before trying
+# to do anything in them (e.g., assume a role in them)
+resource "null_resource" "wait_for_${name}_account_creation" {
+  triggers = {
+    account_id = module.organization.child_accounts["${name}"].id
+  }
+
+  provisioner "local-exec" {
+    # We need a sleep 30 here to give the child accounts and the IAM roles within them time to be created
+    command = "python -c 'import time; time.sleep(30)'"
+  }
+}
+
+# Workaround for Terraform limitation where you cannot directly set a depends on directive or interpolate from resources
+# in the provider config.
+# Specifically, Terraform requires all information for the Terraform provider config to be available at plan time,
+# meaning there can be no computed resources. We work around this limitation by creating a template_file data source
+# that does the computation.
+# See https://github.com/hashicorp/terraform/issues/2430 for more details
+data "template_file" "${name}_account_iam_role_arn" {
+  template = "arn:aws:iam::$${null_resource.wait_for_${name}_account_creation.triggers.account_id}:role/$${lookup(var.child_accounts["${name}"], "role_name", "${organizations_default_role_name}")}"
+}
+
+# Create an IAM role in the ${name} account that the Gruntwork team can assume to deploy the Reference Architecture
+module "gruntwork_access_${name}" {
+  # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
+  # to a specific version of the modules, such as the following example:
+  # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/landingzone/gruntwork-access?ref=v1.0.8"
+  source = "../../../../../../../../../../../modules/landingzone/gruntwork-access"
+
+  # Create these resources in the ${name} account
+  providers =  {
+    aws = aws.${name}
+  }
+
+  # Give the IAM role admin permissions. This is required for the Gruntwork team to deploy the Reference Architecture.
+  managed_policy_name = "AdministratorAccess"
+  require_mfa         = true
+
+  # Grant the security account access to the IAM role. This is required to deploy the Reference Architecture.
+  grant_security_account_access = true
+  security_account_id           = module.organization.child_accounts["security"].id
+}
+
+%{~ endfor }
