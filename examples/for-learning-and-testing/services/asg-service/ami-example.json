@@ -13,7 +13,7 @@
     "enable_cloudwatch_metrics": "true",
     "enable_cloudwatch_log_aggregation": "true",
     "module_ec2_baseline_version": "",
-    "gruntwork_installer_version": "v0.0.29"
+    "gruntwork_installer_version": "v0.0.30"
   },
   "sensitive-variables": ["github_auth_token"],
   "builders": [{
