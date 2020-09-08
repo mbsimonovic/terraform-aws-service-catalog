@@ -15,8 +15,12 @@ readonly SKIP_INSTALL_VERSION="NONE"
 # - DEFAULT_ENABLE_CLOUDWATCH_METRICS
 
 function include_ec2_baseline {
-  ec2_baseline_version_branch="$1"
-  ec2_baseline_version_tag="$2"
+  if [[ "$1" ]]; then
+    ec2_baseline_version_branch="--branch $1"
+  fi
+  if [[ "$2" ]]; then
+    ec2_baseline_version_tag="--tag $2"
+  fi
   if [[ "$ec2_baseline_version_branch" == "" && "$ec2_baseline_version_tag" == "" ]]; then
     echo "ERROR: no version was provided for ec2-baseline module."
     exit 1
@@ -25,8 +29,8 @@ function include_ec2_baseline {
   gruntwork-install \
     --module-name base/ec2-baseline \
     --repo https://github.com/gruntwork-io/aws-service-catalog \
-    --branch ${ec2_baseline_version_branch} \
-    --tag ${ec2_baseline_version_tag} 
+    ${ec2_baseline_version_branch} \
+    ${ec2_baseline_version_tag}
 
   # Include common defaults and functions from the ec2-baseline install script
   # See: https://github.com/gruntwork-io/aws-service-catalog/blob/master/modules/base/ec2-baseline
