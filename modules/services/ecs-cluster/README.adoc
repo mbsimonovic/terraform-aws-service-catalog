@@ -58,11 +58,11 @@ instance:
    logs in syslog to [CloudWatch
    Logs](http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/WhatIsCloudWatchLogs.html). This is
    configured using the [cloudwatch-log-aggregation-scripts
-   module](https://github.com/gruntwork-io/module-aws-monitoring/tree/master/modules/logs/cloudwatch-log-aggregation-scripts).
+   module](https://github.com/gruntwork-io/terraform-aws-monitoring/tree/master/modules/logs/cloudwatch-log-aggregation-scripts).
 * Emits custom metrics that are not available by default in CloudWatch, including memory and disk usage. This is
   configured using the [cloudwatch-memory-disk-metrics-scripts
-   module](https://github.com/gruntwork-io/module-aws-monitoring/tree/master/modules/metrics/cloudwatch-memory-disk-metrics-scripts).
-* Runs the [syslog module](https://github.com/gruntwork-io/module-aws-monitoring/tree/master/modules/logs/syslog) to
+   module](https://github.com/gruntwork-io/terraform-aws-monitoring/tree/master/modules/metrics/cloudwatch-memory-disk-metrics-scripts).
+* Runs the [syslog module](https://github.com/gruntwork-io/terraform-aws-monitoring/tree/master/modules/logs/syslog) to
    automatically rotate and rate limit syslog so that your instances don't run out of disk space from large volumes of
    logs.
 * Runs the [ssh-grunt module](https://github.com/gruntwork-io/module-security/tree/master/modules/ssh-grunt) so that
@@ -100,9 +100,9 @@ documentation](https://github.com/gruntwork-io/module-ecs/tree/master/modules/ec
 [module-ecs repo](https://github.com/gruntwork-io/module-ecs).
 
 For info on finding your Docker container logs in CloudWatch, check out the [cloudwatch-log-aggregation-scripts
-documentation](https://github.com/gruntwork-io/module-aws-monitoring/tree/master/modules/logs/cloudwatch-log-aggregation-scripts).
+documentation](https://github.com/gruntwork-io/terraform-aws-monitoring/tree/master/modules/logs/cloudwatch-log-aggregation-scripts).
 For info on viewing the custom metrics in CloudWatch, check out the [cloudwatch-memory-disk-metrics-scripts
-documentation](https://github.com/gruntwork-io/module-aws-monitoring/tree/master/modules/metrics/cloudwatch-memory-disk-metrics-scripts).
+documentation](https://github.com/gruntwork-io/terraform-aws-monitoring/tree/master/modules/metrics/cloudwatch-memory-disk-metrics-scripts).
 
 === Repo organization
 

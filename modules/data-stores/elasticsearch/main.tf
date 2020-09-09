@@ -7,12 +7,15 @@
 # ---------------------------------------------------------------------------------------------------------------------
 
 terraform {
-  # Require at least 0.12.6, which added for_each support; make sure we don't accidentally pull in 0.13.x, as that may
-  # have backwards incompatible changes when it comes out.
-  required_version = "~> 0.12.6"
+  # Require at least 0.12.26, which knows what to do with the source syntax of required_providers.
+  # Make sure we don't accidentally pull in 0.13.x, as that may have backwards incompatible changes when it comes out.
+  required_version = "~> 0.12.26"
 
   required_providers {
-    aws = "~> 2.6"
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 2.6"
+    }
   }
 }
 
@@ -150,7 +153,7 @@ resource "aws_security_group_rule" "allow_inbound_https_from_security_group" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "elasticsearch_alarms" {
-  source           = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/elasticsearch-alarms?ref=v0.22.2"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/elasticsearch-alarms?ref=v0.22.2"
   create_resources = var.enable_cloudwatch_alarms
 
   cluster_name   = var.domain_name

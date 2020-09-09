@@ -3,12 +3,15 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # Require at least 0.12.6, which added for_each support; make sure we don't accidentally pull in 0.13.x, as that may
-  # have backwards incompatible changes when it comes out.
-  required_version = "~> 0.12.6"
+  # Require at least 0.12.26, which knows what to do with the source syntax of required_providers.
+  # Make sure we don't accidentally pull in 0.13.x, as that may have backwards incompatible changes when it comes out.
+  required_version = "~> 0.12.26"
 
   required_providers {
-    aws = "~> 2.6"
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 2.6"
+    }
   }
 }
 
@@ -77,7 +80,7 @@ data "template_file" "user_data" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "cloudwatch_log_aggregation" {
-  source      = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/logs/cloudwatch-log-aggregation-iam-policy?ref=v0.22.2"
+  source      = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/logs/cloudwatch-log-aggregation-iam-policy?ref=v0.22.2"
   name_prefix = var.cluster_name
 
   # We set this to false so that the cloudwatch-custom-metrics-iam policy generates JSON for the policy, but does not
@@ -99,7 +102,7 @@ resource "aws_iam_role_policy" "custom_cloudwatch_logging" {
 module "ecs_cluster_cpu_memory_alarms" {
   create_resources = var.enable_ecs_cloudwatch_alarms
 
-  source               = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/alarms/ecs-cluster-alarms?ref=v0.22.2"
+  source               = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/ecs-cluster-alarms?ref=v0.22.2"
   ecs_cluster_name     = var.cluster_name
   alarm_sns_topic_arns = var.alarms_sns_topic_arn
 
@@ -111,7 +114,7 @@ module "ecs_cluster_cpu_memory_alarms" {
 
 module "metric_widget_ecs_cluster_cpu_usage" {
 
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.22.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.22.2"
 
   period = 60
   stat   = "Average"
@@ -123,7 +126,7 @@ module "metric_widget_ecs_cluster_cpu_usage" {
 }
 
 module "metric_widget_ecs_cluster_memory_usage" {
-  source = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.22.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.22.2"
 
   period = 60
   stat   = "Average"
