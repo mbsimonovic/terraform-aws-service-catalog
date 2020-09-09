@@ -44,4 +44,9 @@ resource "aws_eks_fargate_profile" "namespace" {
   selector {
     namespace = var.name
   }
+
+  # Fargate Profiles can take a long time to delete if there are Pods, since the nodes need to deprovision.
+  timeouts {
+    delete = "1h"
+  }
 }
