@@ -85,7 +85,7 @@ If you want to deploy this repo in production, check out the following resources
 * https://github.com/gruntwork-io/module-load-balancer/tree/master/modules/alb#using-the-alb-with-ecs[How do I route to ECS?]
 * https://github.com/gruntwork-io/module-load-balancer/tree/master/modules/alb#make-sure-your-listeners-handle-all-possible-request-paths[What routes should I configure for each listener?]
 * https://github.com/gruntwork-io/module-load-balancer/tree/master/modules/alb#make-sure-your-listener-rules-each-have-a-unique-priority[How do I handle overlapping routes?]
-* https://github.com/gruntwork-io/module-aws-monitoring/tree/master/modules/logs/load-balancer-access-logs#viewing-and-accessing-log-files[How do I view the access logs?]
+* https://github.com/gruntwork-io/terraform-aws-monitoring/tree/master/modules/logs/load-balancer-access-logs#viewing-and-accessing-log-files[How do I view the access logs?]
 
 
 

@@ -798,7 +798,7 @@ production:
    service runs in an Auto Scaling Group (ASG), you may want to use the modules from 
    [module-asg](https://github.com/gruntwork-io/module-asg) to create an ASG that can do zero-downtime rolling 
    deployments; if your service needs custom CloudWatch metrics, log aggregation, or alerts, you may want to use
-   modules from [module-aws-monitoring](https://github.com/gruntwork-io/module-aws-monitoring); if your service is 
+   modules from [terraform-aws-monitoring](https://github.com/gruntwork-io/terraform-aws-monitoring); if your service is 
    doing something related to Kubernetes, you may want to use modules from 
    [terraform-aws-eks](https://github.com/gruntwork-io/terraform-aws-eks) or 
    [helm-kubernetes-services](https://github.com/gruntwork-io/helm-kubernetes-servicesv); and so on.

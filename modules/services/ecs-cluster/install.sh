@@ -82,7 +82,7 @@ function install_ecs_cluster {
         module_security_version="$2"
         shift
         ;;
-      --module-aws-monitoring-version)
+      --terraform-aws-monitoring-version)
         assert_not_empty "$key" "$2"
         module_aws_monitoring_version="$2"
         shift
