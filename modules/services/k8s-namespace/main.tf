@@ -3,13 +3,23 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # Require at least 0.12.6, which added for_each support; make sure we don't accidentally pull in 0.13.x, as that may
-  # have backwards incompatible changes when it comes out.
-  required_version = "~> 0.12.6"
+  # Require at least 0.12.26, which knows what to do with the source syntax of required_providers.
+  # Make sure we don't accidentally pull in 0.13.x, as that may have backwards incompatible changes when it comes out.
+  required_version = "~> 0.12.26"
 
   required_providers {
-    aws        = "~> 2.6"
-    kubernetes = "~> 1.10"
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 2.6"
+    }
+
+    # Pin to this specific version to work around a bug introduced in 1.11.0:
+    # https://github.com/terraform-providers/terraform-provider-kubernetes/issues/759
+    # (Only for EKS)
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "= 1.10.0"
+    }
   }
 }
 

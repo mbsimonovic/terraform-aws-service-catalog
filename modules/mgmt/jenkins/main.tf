@@ -11,9 +11,8 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # Require at least 0.12.6, which added for_each support; make sure we don't accidentally pull in 0.13.x, as that may
-  # have backwards incompatible changes when it comes out.
-  required_version = "~> 0.12.6"
+  # Require at least 0.12.26, which knows what to do with the source syntax of required_providers.
+  required_version = "~> 0.12.26"
 
   required_providers {
     aws = {
