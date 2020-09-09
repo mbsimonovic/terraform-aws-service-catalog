@@ -28,10 +28,11 @@ var (
 	retryableTerraformErrors = map[string]string{
 		// `terraform init` frequently fails in CI due to network issues accessing plugins. The reason is unknown, but
 		// eventually these succeed after a few retries.
-		".*unable to verify signature.*":             "Failed to retrieve plugin due to transient network error.",
-		".*unable to verify checksum.*":              "Failed to retrieve plugin due to transient network error.",
-		".*no provider exists with the given name.*": "Failed to retrieve plugin due to transient network error.",
-		".*registry service is unreachable.*":        "Failed to retrieve plugin due to transient network error.",
+		".*unable to verify signature.*":                "Failed to retrieve plugin due to transient network error.",
+		".*unable to verify checksum.*":                 "Failed to retrieve plugin due to transient network error.",
+		".*no provider exists with the given name.*":    "Failed to retrieve plugin due to transient network error.",
+		".*registry service is unreachable.*":           "Failed to retrieve plugin due to transient network error.",
+		".*timeout while waiting for plugin to start.*": "Failed to retrieve plugin due to transient network error.",
 	}
 )
 
