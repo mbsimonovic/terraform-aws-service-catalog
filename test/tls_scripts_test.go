@@ -111,15 +111,24 @@ func TestTlsScripts(t *testing.T) {
 				// Because CircleCI runs this test as root, the output folders cannot be cleaned up
 				// as the test/circleci user. Therefore we have to sudo chown that directory.
 				cmd := shell.Command{
-					Command: "sudo",
-					Args: []string{
-						"chown",
-						"-R",
-						fmt.Sprintf("%d:%d", os.Getuid(), os.Getuid()),
-						filepath.Join(scriptsDir, tmpBaseDir),
-					},
+					Command: "whoami",
+					Args:    []string{},
 				}
-				shell.RunCommand(t, cmd)
+				username := shell.RunCommandAndGetOutput(t, cmd)
+
+				if username == "circleci" {
+
+					cmd = shell.Command{
+						Command: "sudo",
+						Args: []string{
+							"chown",
+							"-R",
+							fmt.Sprintf("%d:%d", os.Getuid(), os.Getuid()),
+							filepath.Join(scriptsDir, tmpBaseDir),
+						},
+					}
+					shell.RunCommand(t, cmd)
+				}
 
 				os.RemoveAll(filepath.Join(scriptsDir, createTLSDir))
 
