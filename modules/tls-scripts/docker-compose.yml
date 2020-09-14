@@ -11,7 +11,7 @@ services:
       - AWS_SECRET_ACCESS_KEY
       - AWS_SESSION_TOKEN
     volumes:
-      - .:/scripts # only for development
+      - ./tls:/tls
   rds:
     build:
       context: .
