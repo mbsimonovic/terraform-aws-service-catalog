@@ -7,20 +7,29 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # Require at least 0.12.6, which added for_each support; make sure we don't accidentally pull in 0.13.x, as that may
-  # have backwards incompatible changes when it comes out.
-  required_version = "~> 0.12.6"
+  # Require at least 0.12.26, which knows what to do with the source syntax of required_providers.
+  # Make sure we don't accidentally pull in 0.13.x, as that may have backwards incompatible changes when it comes out.
+  required_version = "~> 0.12.26"
 
   required_providers {
-    aws = "~> 2.6"
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 2.6"
+    }
 
     # Pin to this specific version to work around a bug introduced in 1.11.0:
     # https://github.com/terraform-providers/terraform-provider-kubernetes/issues/759
     # (Only for EKS)
-    kubernetes = "= 1.10.0"
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "= 1.10.0"
+    }
 
     # This module uses Helm 3, which depends on helm provider version 1.x series.
-    helm = "~> 1.0"
+    helm = {
+      source  = "hashicorp/helm"
+      version = "~> 1.0"
+    }
   }
 }
 
@@ -51,7 +60,7 @@ provider "helm" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "fluentd_cloudwatch" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cloudwatch-container-logs?ref=v0.22.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cloudwatch-container-logs?ref=v0.22.2"
 
   aws_region                           = var.aws_region
   eks_cluster_name                     = var.eks_cluster_name
@@ -71,7 +80,7 @@ resource "aws_cloudwatch_log_group" "eks_cluster" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "alb_ingress_controller" {
-  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-alb-ingress-controller?ref=v0.22.0"
+  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-alb-ingress-controller?ref=v0.22.2"
   dependencies = aws_eks_fargate_profile.core_services.*.id
 
   aws_region                           = var.aws_region
@@ -89,7 +98,7 @@ module "alb_ingress_controller" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "k8s_external_dns" {
-  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-external-dns?ref=v0.22.0"
+  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-external-dns?ref=v0.22.2"
   dependencies = aws_eks_fargate_profile.core_services.*.id
 
   aws_region                           = var.aws_region
@@ -113,7 +122,7 @@ module "k8s_external_dns" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "k8s_cluster_autoscaler" {
-  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-cluster-autoscaler?ref=v0.22.0"
+  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-cluster-autoscaler?ref=v0.22.2"
   dependencies = aws_eks_fargate_profile.core_services.*.id
 
   aws_region                           = var.aws_region
@@ -149,6 +158,11 @@ resource "aws_eks_fargate_profile" "core_services" {
       namespace = local.namespace
       labels    = selector.value
     }
+  }
+
+  # Fargate Profiles can take a long time to delete if there are Pods, since the nodes need to deprovision.
+  timeouts {
+    delete = "1h"
   }
 }
 

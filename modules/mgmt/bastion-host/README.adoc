@@ -48,9 +48,9 @@ toc::[]
 
 == Learn
 
-NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog//[Gruntwork Service Catalog], a collection of
+NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog/[Gruntwork Service Catalog], a collection of
 reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
-sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catallog/[How to use the Gruntwork
+sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/[How to use the Gruntwork
 Service Catalog]!
 
 === Core concepts
@@ -70,7 +70,7 @@ This template configures the AMI to:
    to the bastion host.
 1. Run the https://github.com/gruntwork-io/module-security/tree/master/modules/auto-update[auto-update module] so
    that the bastion host installs security updates automatically.
-1. Optionally run the https://github.com/gruntwork-io/module-aws-monitoring/tree/master/modules/logs/syslog[syslog module] to automatically rotate and rate limit syslog so that the bastion host doesn't run out of disk space from large volumes of logs.
+1. Optionally run the https://github.com/gruntwork-io/terraform-aws-monitoring/tree/master/modules/logs/syslog[syslog module] to automatically rotate and rate limit syslog so that the bastion host doesn't run out of disk space from large volumes of logs.
 
 
 

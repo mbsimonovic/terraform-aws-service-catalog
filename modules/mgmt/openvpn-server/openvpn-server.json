@@ -11,11 +11,14 @@
     "vpc_filter_value": "true",
     "vpc_subnet_filter_key": "default-for-az",
     "vpc_subnet_filter_value": "true",
+    "gruntwork_installer_version": "v0.0.30",
     "ami_users": "",
     "bash_commons_version": "",
     "module_security_version": "",
     "package_openvpn_version": "",
     "module_aws_monitoring_version": "",
+    "module_ec2_baseline_version": "",
+    "module_ec2_baseline_branch": "",
     "enable_cloudwatch_metrics": "true",
     "enable_cloudwatch_log_aggregation": "true",
     "enable_ssh_grunt": "true"
@@ -63,7 +66,7 @@
     "type": "shell",
     "inline": [
       "sudo DEBIAN_FRONTEND=noninteractive apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get -y upgrade && sudo DEBIAN_FRONTEND=noninteractive apt-get -y install jq curl",
-      "curl -Ls https://raw.githubusercontent.com/gruntwork-io/gruntwork-installer/master/bootstrap-gruntwork-installer.sh | bash /dev/stdin --version v0.0.22",
+      "curl -Ls https://raw.githubusercontent.com/gruntwork-io/gruntwork-installer/master/bootstrap-gruntwork-installer.sh | bash /dev/stdin --version {{user `gruntwork_installer_version`}}",
       "gruntwork-install --module-name mgmt/openvpn-server --repo https://github.com/gruntwork-io/aws-service-catalog --tag {{user `service_catalog_ref`}}"
     ],
     "environment_vars": [
@@ -71,6 +74,8 @@
       "package_openvpn_version={{ user `package_openvpn_version` }}",
       "module_security_version={{user `module_security_version`}}",
       "module_aws_monitoring_version={{user `module_aws_monitoring_version`}}",
+      "module_ec2_baseline_version={{user `module_ec2_baseline_version`}}",
+      "module_ec2_baseline_branch={{user `module_ec2_baseline_branch`}}",
       "bash_commons_version={{user `bash_commons_version`}}",
       "enable_ssh_grunt={{user `enable_ssh_grunt`}}",
       "enable_cloudwatch_metrics={{user `enable_cloudwatch_metrics`}}",

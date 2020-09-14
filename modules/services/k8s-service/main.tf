@@ -3,18 +3,32 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # Require at least 0.12.20, which added the function try; make sure we don't accidentally pull in 0.13.x, as that may
-  # have backwards incompatible changes when it comes out.
-  required_version = "~> 0.12.20"
+  # Require at least 0.12.26, which knows what to do with the source syntax of required_providers.
+  # Make sure we don't accidentally pull in 0.13.x, as that may have backwards incompatible changes when it comes out.
+  required_version = "~> 0.12.26"
 
   required_providers {
-    aws        = "~> 2.6"
-    kubernetes = "~> 1.10"
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 2.6"
+    }
+
+    # Pin to this specific version to work around a bug introduced in 1.11.0:
+    # https://github.com/terraform-providers/terraform-provider-kubernetes/issues/759
+    # (Only for EKS)
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "= 1.10.0"
+    }
 
     # This module uses Helm 3, which depends on helm provider version 1.x series.
-    helm = "~> 1.0"
+    helm = {
+      source  = "hashicorp/helm"
+      version = "~> 1.0"
+    }
   }
 }
+
 
 # ---------------------------------------------------------------------------------------------------------------------
 # DEPLOY DOCKERIZED APP USING k8s-service HELM CHART
@@ -283,7 +297,7 @@ data "template_file" "ingress_listener_protocol_ports" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "alb_access_logs_bucket" {
-  source           = "git::git@github.com:gruntwork-io/module-aws-monitoring.git//modules/logs/load-balancer-access-logs?ref=v0.19.1"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/logs/load-balancer-access-logs?ref=v0.22.2"
   create_resources = var.expose_type != "cluster-internal"
 
   s3_bucket_name    = local.access_logs_s3_bucket_name
@@ -317,7 +331,7 @@ resource "aws_iam_role" "new_role" {
 }
 
 module "service_account_assume_role_policy" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-iam-role-assume-role-policy-for-service-account?ref=v0.22.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-iam-role-assume-role-policy-for-service-account?ref=v0.22.2"
 
   eks_openid_connect_provider_arn = var.eks_iam_role_for_service_accounts_config.openid_connect_provider_arn
   eks_openid_connect_provider_url = var.eks_iam_role_for_service_accounts_config.openid_connect_provider_url

@@ -3,16 +3,26 @@
 
 set -e
 
-readonly DEFAULT_PACKAGE_OPENVPN_VERSION="v0.9.11"
-
-# TODO: Update ref to a tag when released
-readonly DEFAULT_EC2_BASELINE_REF="master"
+# renovate.json auto-update: package-openvpn
+readonly DEFAULT_PACKAGE_OPENVPN_VERSION="v0.11.1"
 
 function include_ec2_baseline {
+  if [[ "$1" ]]; then
+    ec2_baseline_version_branch="--branch $1"
+  fi
+  if [[ "$2" ]]; then
+    ec2_baseline_version_tag="--tag $2"
+  fi
+  if [[ "$ec2_baseline_version_branch" == "" && "$ec2_baseline_version_tag" == "" ]]; then
+    echo "ERROR: no version was provided for ec2-baseline module."
+    exit 1
+  fi
+
   gruntwork-install \
     --module-name base/ec2-baseline \
     --repo https://github.com/gruntwork-io/aws-service-catalog \
-    --tag ${DEFAULT_EC2_BASELINE_REF}
+    ${ec2_baseline_version_branch} \
+    ${ec2_baseline_version_tag}
 
   # Include common defaults and functions from the ec2-baseline install script
   # See: https://github.com/gruntwork-io/aws-service-catalog/blob/master/modules/base/ec2-baseline
@@ -42,9 +52,6 @@ function install_openvpn_packages {
 }
 
 function install_openvpn_server {
-  # The baseline defines the default versions used below
-  include_ec2_baseline
-
   # Read from env vars to make it easy to set these in a Packer template (without super-wide --module-param foo=bar code).
   # Fallback to default version if the env var is not set.
   local package_openvpn_version="${package_openvpn_version:-$DEFAULT_PACKAGE_OPENVPN_VERSION}"
@@ -69,7 +76,7 @@ function install_openvpn_server {
         module_security_version="$2"
         shift
         ;;
-      --module-aws-monitoring-version)
+      --terraform-aws-monitoring-version)
         assert_not_empty "$key" "$2"
         module_aws_monitoring_version="$2"
         shift
@@ -118,5 +125,13 @@ function install_openvpn_server {
 
   sudo /usr/local/bin/install-openvpn
 }
+
+# Determine which version of the EC2 baseline module to install.
+# Prioritize an environment variable set by Packer, and fall back to the value
+# set by the gruntwork-install script in GRUNTWORK_INSTALL_BRANCH or GRUNTWORK_INSTALL_TAG
+# If branch and tag are both set, gruntwork-install prefers branch
+module_ec2_baseline_branch="${module_ec2_baseline_branch:-$GRUNTWORK_INSTALL_BRANCH}"
+module_ec2_baseline_tag="${module_ec2_baseline_version:-$GRUNTWORK_INSTALL_TAG}"
+include_ec2_baseline "$module_ec2_baseline_branch" "$module_ec2_baseline_tag"
 
 install_openvpn_server "$@"

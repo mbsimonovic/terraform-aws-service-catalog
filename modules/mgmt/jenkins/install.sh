@@ -5,33 +5,52 @@ set -e
 
 readonly JENKINS_USER="jenkins"
 
-# Jenkins version
-readonly DEFAULT_JENKINS_VERSION="2.204.2"
 
 # Gruntwork module versions
-readonly DEFAULT_MODULE_CI_VERSION="v0.25.0"
+# renovate.json auto-update: module-ci
+readonly DEFAULT_MODULE_CI_VERSION="v0.28.1"
 
 # Build tooling
+# renovate.json auto-update: kubergrunt
 readonly DEFAULT_KUBERGRUNT_VERSION="v0.5.13"
+# renovate.json auto-update: terragrunt
+readonly DEFAULT_TERRAGRUNT_VERSION="v0.23.40"
+
+# renovate.json auto-update-github-releases: jenkinsci/jenkins
+readonly DEFAULT_JENKINS_VERSION="2.235.5"
+# renovate.json auto-update-github-releases: hashicorp/terraform
 readonly DEFAULT_TERRAFORM_VERSION="0.12.21"
-readonly DEFAULT_TERRAGRUNT_VERSION="v0.23.13"
+# We intentionally do NOT auto update K8S, as it should be tied to EKS versions, and our support for them in
+# terraform-aws-eks, both of which lag behind open source K8S
 readonly DEFAULT_KUBECTL_VERSION="v1.17.3"
-readonly DEFAULT_HELM_VERSION="v3.2.0"
+# renovate.json auto-update-github-releases: helm/helm
+readonly DEFAULT_HELM_VERSION="v3.3.1"
+# renovate.json auto-update-github-releases: hashicorp/packer
 readonly DEFAULT_PACKER_VERSION="1.5.4"
+# renovate.json auto-update-docker-ubuntu
 readonly DEFAULT_DOCKER_VERSION="18.06.1~ce~3-0~ubuntu"
 
 # You can set the version of the build tooling to this value to skip installing it
 readonly SKIP_INSTALL_VERSION="NONE"
 
-# TODO: Update ref to a tag when released
-readonly DEFAULT_EC2_BASELINE_REF="master"
-
 function include_ec2_baseline {
+  if [[ "$1" ]]; then
+    ec2_baseline_version_branch="--branch $1"
+  fi
+  if [[ "$2" ]]; then
+    ec2_baseline_version_tag="--tag $2"
+  fi
+  if [[ "$ec2_baseline_version_branch" == "" && "$ec2_baseline_version_tag" == "" ]]; then
+    echo "ERROR: no version was provided for ec2-baseline module."
+    exit 1
+  fi
+
   gruntwork-install \
     --module-name base/ec2-baseline \
     --repo https://github.com/gruntwork-io/aws-service-catalog \
-    --tag ${DEFAULT_EC2_BASELINE_REF}
-
+    ${ec2_baseline_version_branch} \
+    ${ec2_baseline_version_tag}
+    
   # Include common defaults and functions from the ec2-baseline install script
   # See: https://github.com/gruntwork-io/aws-service-catalog/blob/master/modules/base/ec2-baseline
   readonly EC2_BASELINE_RELATIVE_PATH="../../base/ec2-baseline"
@@ -240,7 +259,7 @@ function install_jenkins {
         module_security_version="$2"
         shift
         ;;
-      --module-aws-monitoring-version)
+      --terraform-aws-monitoring-version)
         assert_not_empty "$key" "$2"
         module_aws_monitoring_version="$2"
         shift
@@ -344,6 +363,12 @@ function install_jenkins {
     "${EC2_BASELINE_PATH}/user-data-common.sh"
 }
 
-include_ec2_baseline
+# Determine which version of the EC2 baseline module to install.
+# Prioritize an environment variable set by Packer, and fall back to the value
+# set by the gruntwork-install script in GRUNTWORK_INSTALL_BRANCH or GRUNTWORK_INSTALL_TAG
+# If branch and tag are both set, gruntwork-install prefers branch
+module_ec2_baseline_branch="${module_ec2_baseline_branch:-$GRUNTWORK_INSTALL_BRANCH}"
+module_ec2_baseline_tag="${module_ec2_baseline_version:-$GRUNTWORK_INSTALL_TAG}"
+include_ec2_baseline "$module_ec2_baseline_branch" "$module_ec2_baseline_tag"
 
 install_jenkins "$@"

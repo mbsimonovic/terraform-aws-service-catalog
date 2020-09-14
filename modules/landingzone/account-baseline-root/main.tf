@@ -8,9 +8,9 @@
 # ----------------------------------------------------------------------------------------------------------------------
 
 terraform {
-  # Require at least 0.12.6, which added for_each support; make sure we don't accidentally pull in 0.13.x, as that may
-  # have backwards incompatible changes when it comes out.
-  required_version = "~> 0.12.6"
+  # Require at least 0.12.26, which knows what to do with the source syntax of required_providers.
+  # Make sure we don't accidentally pull in 0.13.x, as that may have backwards incompatible changes when it comes out.
+  required_version = "~> 0.12.26"
 
   required_providers {
     aws = {
@@ -25,7 +25,7 @@ terraform {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "organization" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-organizations?ref=v0.35.0"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-organizations?ref=v0.36.8"
 
   child_accounts                              = var.child_accounts
   create_organization                         = var.create_organization
@@ -44,27 +44,28 @@ module "organization" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "config" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-config-multi-region?ref=v0.35.0"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-config-multi-region?ref=v0.36.8"
 
   create_resources       = var.enable_config
   aws_account_id         = var.aws_account_id
   seed_region            = var.aws_region
   global_recorder_region = var.aws_region
 
-  s3_bucket_name                        = var.config_s3_bucket_name != null ? var.config_s3_bucket_name : "${var.name_prefix}-config"
-  should_create_s3_bucket               = var.config_should_create_s3_bucket
-  force_destroy                         = var.config_force_destroy
-  num_days_after_which_archive_log_data = var.config_num_days_after_which_archive_log_data
-  num_days_after_which_delete_log_data  = var.config_num_days_after_which_delete_log_data
-  opt_in_regions                        = var.config_opt_in_regions
+  # Set to false here because we create the bucket using the aws-config-bucket module in the logs account
+  should_create_s3_bucket = false
+  s3_bucket_name          = local.config_s3_bucket_name_with_dependency
 
-  central_account_id = var.config_central_account_id
+  force_destroy  = var.config_force_destroy
+  opt_in_regions = var.config_opt_in_regions
+
+  aggregate_config_data_in_external_account = local.has_logs_account ? true : var.config_aggregate_config_data_in_external_account
+  central_account_id                        = null_resource.wait_for_account_creation.triggers.logs_account_id
 
   tags = var.config_tags
 }
 
 module "organizations_config_rules" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-organizations-config-rules?ref=v0.35.0"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-config-rules?ref=v0.36.8"
 
   create_resources = var.enable_config
 
@@ -84,7 +85,6 @@ module "organizations_config_rules" {
   enable_s3_bucket_public_read_prohibited  = var.enable_s3_bucket_public_read_prohibited
   enable_s3_bucket_public_write_prohibited = var.enable_s3_bucket_public_write_prohibited
 
-  excluded_accounts                                = var.configrules_excluded_accounts
   iam_password_policy_max_password_age             = var.iam_password_policy_max_password_age
   iam_password_policy_minimum_password_length      = var.iam_password_policy_minimum_password_length
   iam_password_policy_password_reuse_prevention    = var.iam_password_policy_password_reuse_prevention
@@ -95,6 +95,53 @@ module "organizations_config_rules" {
   insecure_sg_rules_authorized_udp_ports           = var.insecure_sg_rules_authorized_udp_ports
   insecure_sg_rules_authorized_tcp_ports           = var.insecure_sg_rules_authorized_tcp_ports
   maximum_execution_frequency                      = var.configrules_maximum_execution_frequency
+
+  # We used to do org-level rules, but those have a dependency / ordering problem: if you enable org-level rules, they
+  # immediately apply to ALL child accounts... But if a child account doesn't have a Config Recorder, it fails. So when
+  # adding new child accounts, the deployment always fails, because of course brand new accounts don't have Config
+  # Recorders. So we now default to account-level rules, whch means we have to apply the same rules in each and every
+  # account, but we can ensure that the rules are only enforced after the Config Recorder is in place, so there's no
+  # chicken-and-egg problem.
+  create_account_rules = var.config_create_account_rules
+
+  # If the user chooses to go with org-level Config rules after all, we make a best-effort attempt here to exclude new
+  # child accounts by default (as they don't have a Config Recorder yet) and only include them if the user explicitly
+  # tells us too (e.g., after having deployed a Config Recorder and come back to root to re-run apply). This is a
+  # brittle, error-prone, multi-step deploy process, which is why we recommend account-level rules instead.
+  excluded_accounts = local.all_excluded_child_accounts_ids
+}
+
+locals {
+  # If the user chooses to use org-level config rules, we have to do some magic to exclude all the child accounts from
+  # config rules initially, as they don't have any Config Recorders yet, and then allow the user to opt-in to enabling
+  # config rules on an account-by-account basis afterwords.
+  excluded_child_account_ids      = var.config_create_account_rules ? [] : [for account_name, account in module.organization.child_accounts : account.id if lookup(lookup(var.child_accounts, account_name, {}), "enable_config_rules", false) == false]
+  all_excluded_child_accounts_ids = var.config_create_account_rules ? [] : toset(concat(var.configrules_excluded_accounts, local.excluded_child_account_ids))
+}
+
+# ----------------------------------------------------------------------------------------------------------------------
+# CLOUDTRAIL
+# ----------------------------------------------------------------------------------------------------------------------
+
+module "cloudtrail" {
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cloudtrail?ref=v0.36.8"
+
+  create_resources      = var.enable_cloudtrail
+  cloudtrail_trail_name = var.name_prefix
+
+  # Set to true here because we create the bucket using the cloudtrail-bucket module in the logs account
+  s3_bucket_already_exists = true
+  s3_bucket_name           = local.cloudtrail_s3_bucket_name_with_dependency
+
+  # Set to true here because we create the KMS key using the cloudtrail-bucket module in the logs account
+  kms_key_already_exists           = true
+  kms_key_arn                      = local.cloudtrail_kms_key_arn_with_dependency
+  allow_cloudtrail_access_with_iam = false
+
+  # Configure the trail to publish logs to a CloudWatch Logs group within the current account.
+  cloudwatch_logs_group_name = var.cloudtrail_cloudwatch_logs_group_name
+
+  force_destroy = var.cloudtrail_force_destroy
 }
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -102,7 +149,7 @@ module "organizations_config_rules" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "iam_groups" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-groups?ref=v0.35.0"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-groups?ref=v0.36.8"
 
   aws_account_id     = var.aws_account_id
   should_require_mfa = var.should_require_mfa
@@ -114,6 +161,7 @@ module "iam_groups" {
 
   should_create_iam_group_full_access            = var.should_create_iam_group_full_access
   should_create_iam_group_billing                = var.should_create_iam_group_billing
+  should_create_iam_group_support                = var.should_create_iam_group_support
   should_create_iam_group_logs                   = var.should_create_iam_group_logs
   should_create_iam_group_developers             = var.should_create_iam_group_developers
   should_create_iam_group_read_only              = var.should_create_iam_group_read_only
@@ -124,11 +172,11 @@ module "iam_groups" {
 
   auto_deploy_permissions = var.auto_deploy_permissions
 
-  cloudtrail_kms_key_arn = var.cloudtrail_kms_key_arn
+  cloudtrail_kms_key_arn = local.cloudtrail_kms_key_arn_with_dependency
 }
 
 module "iam_users" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-users?ref=v0.35.0"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-users?ref=v0.36.8"
 
   users                   = var.users
   password_length         = var.iam_password_policy_minimum_password_length
@@ -138,7 +186,7 @@ module "iam_users" {
 }
 
 module "iam_cross_account_roles" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cross-account-iam-roles?ref=v0.35.0"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cross-account-iam-roles?ref=v0.36.8"
 
   aws_account_id = var.aws_account_id
 
@@ -147,6 +195,7 @@ module "iam_cross_account_roles" {
 
   allow_read_only_access_from_other_account_arns = var.allow_read_only_access_from_other_account_arns
   allow_billing_access_from_other_account_arns   = var.allow_billing_access_from_other_account_arns
+  allow_support_access_from_other_account_arns   = var.allow_support_access_from_other_account_arns
   allow_logs_access_from_other_account_arns      = var.allow_logs_access_from_other_account_arns
   allow_ssh_grunt_access_from_other_account_arns = var.allow_ssh_grunt_access_from_other_account_arns
   allow_dev_access_from_other_account_arns       = var.allow_dev_access_from_other_account_arns
@@ -155,11 +204,11 @@ module "iam_cross_account_roles" {
   auto_deploy_permissions                   = var.auto_deploy_permissions
   allow_auto_deploy_from_other_account_arns = var.allow_auto_deploy_from_other_account_arns
 
-  cloudtrail_kms_key_arn = var.cloudtrail_kms_key_arn
+  cloudtrail_kms_key_arn = local.cloudtrail_kms_key_arn_with_dependency
 }
 
 module "iam_user_password_policy" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-user-password-policy?ref=v0.35.0"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-user-password-policy?ref=v0.36.8"
 
   # Adjust these settings as appropriate for your company
   minimum_password_length        = var.iam_password_policy_minimum_password_length
@@ -178,7 +227,7 @@ module "iam_user_password_policy" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "guardduty" {
-  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/guardduty-multi-region?ref=v0.35.0"
+  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/guardduty-multi-region?ref=v0.36.8"
   aws_account_id = var.aws_account_id
   seed_region    = var.aws_region
 
@@ -187,39 +236,4 @@ module "guardduty" {
   findings_sns_topic_name      = var.guardduty_findings_sns_topic_name
   opt_in_regions               = var.guardduty_opt_in_regions
   publish_findings_to_sns      = var.guardduty_publish_findings_to_sns
-}
-
-# ----------------------------------------------------------------------------------------------------------------------
-# CLOUDTRAIL
-# ----------------------------------------------------------------------------------------------------------------------
-
-module "cloudtrail" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cloudtrail?ref=v0.35.0"
-
-  create_resources      = var.enable_cloudtrail
-  cloudtrail_trail_name = var.name_prefix
-  s3_bucket_name        = var.cloudtrail_s3_bucket_name != null ? var.cloudtrail_s3_bucket_name : "${var.name_prefix}-cloudtrail"
-
-  num_days_after_which_archive_log_data = var.cloudtrail_num_days_after_which_archive_log_data
-  num_days_after_which_delete_log_data  = var.cloudtrail_num_days_after_which_delete_log_data
-
-  # Note that users with IAM permissions to CloudTrail can still view the last 7 days of data in the AWS Web Console
-  kms_key_user_iam_arns            = var.cloudtrail_kms_key_user_iam_arns
-  kms_key_administrator_iam_arns   = var.cloudtrail_kms_key_administrator_iam_arns
-  allow_cloudtrail_access_with_iam = var.allow_cloudtrail_access_with_iam
-
-  kms_key_already_exists = var.cloudtrail_kms_key_arn != null
-  kms_key_arn            = var.cloudtrail_kms_key_arn
-
-  # If you're writing CloudTrail logs to an existing S3 bucket in another AWS account, set this to true
-  s3_bucket_already_exists = var.cloudtrail_s3_bucket_already_exists
-
-  # If external AWS accounts need to write CloudTrail logs to the S3 bucket in this AWS account, provide those
-  # external AWS account IDs here
-  external_aws_account_ids_with_write_access = var.cloudtrail_external_aws_account_ids_with_write_access
-
-  # Also configure the trail to publish logs to a CloudWatch Logs group within the current account.
-  cloudwatch_logs_group_name = var.cloudtrail_cloudwatch_logs_group_name
-
-  force_destroy = var.cloudtrail_force_destroy
 }

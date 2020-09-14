@@ -2,9 +2,14 @@
 # CONFIG OUTPUTS
 # ---------------------------------------------------------------------------------------------------------------------
 
-output "config_s3_bucket_names" {
-  description = "The names of the S3 bucket used by AWS Config to store configuration items."
-  value       = module.config.config_s3_bucket_names
+output "config_s3_bucket_name" {
+  description = "The name of the S3 bucket used by AWS Config to store configuration items."
+  value       = module.config_bucket.s3_bucket_name
+}
+
+output "config_s3_bucket_arn" {
+  description = "The ARN of the S3 bucket used by AWS Config to store configuration items."
+  value       = module.config_bucket.s3_bucket_arn
 }
 
 output "config_iam_role_arns" {
@@ -51,22 +56,9 @@ output "master_account_email" {
   value       = module.organization.master_account_email
 }
 
-# See https://www.terraform.io/docs/providers/aws/r/organizations_organization.html#accounts for available attributes
-output "accounts" {
-  description = "List of organization accounts including the master account."
-  value       = module.organization.accounts
-}
-
-# See https://www.terraform.io/docs/providers/aws/r/organizations_organization.html#non_master_accounts for available attributes
-output "non_master_accounts" {
-  description = "List of organization accounts excluding the master account."
-  value       = module.organization.non_master_accounts
-}
-
-# See https://www.terraform.io/docs/providers/aws/r/organizations_organization.html#roots for available attributes
-output "root_accounts" {
-  description = "List of organization roots."
-  value       = module.organization.root_accounts
+output "child_accounts" {
+  description = "A map of all accounts created by this module (NOT including the root account). The keys are the names of the accounts and the values are the attributes for the account as defined in the aws_organizations_account resource."
+  value       = module.organization.child_accounts
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -89,22 +81,32 @@ output "cloudtrail_trail_arn" {
 
 output "cloudtrail_s3_bucket_name" {
   description = "The name of the S3 bucket where cloudtrail logs are delivered."
-  value       = module.cloudtrail.s3_bucket_name
+  value       = module.cloudtrail_bucket.s3_bucket_name
+}
+
+output "cloudtrail_s3_bucket_arn" {
+  description = "The ARN of the S3 bucket where cloudtrail logs are delivered."
+  value       = module.cloudtrail_bucket.s3_bucket_arn
 }
 
 output "cloudtrail_s3_access_logging_bucket_name" {
-  description = "The name of the S3 bucket where server access logs are delivered."
-  value       = module.cloudtrail.s3_access_logging_bucket_name
+  description = "The name of the S3 bucket where access logs for the CloudTrail S3 bucket are delivered."
+  value       = module.cloudtrail_bucket.s3_access_logging_bucket_name
+}
+
+output "cloudtrail_s3_access_logging_bucket_arn" {
+  description = "The ARN of the S3 bucket where access logs for the CloudTrail S3 bucket are delivered."
+  value       = module.cloudtrail_bucket.s3_access_logging_bucket_arn
 }
 
 output "cloudtrail_kms_key_arn" {
   description = "The ARN of the KMS key used by the S3 bucket to encrypt cloudtrail logs."
-  value       = module.cloudtrail.kms_key_arn
+  value       = module.cloudtrail_bucket.kms_key_arn
 }
 
 output "cloudtrail_kms_key_alias_name" {
   description = "The alias of the KMS key used by the S3 bucket to encrypt cloudtrail logs."
-  value       = module.cloudtrail.kms_key_alias_name
+  value       = module.cloudtrail_bucket.kms_key_alias_name
 }
 
 output "cloudtrail_cloudwatch_group_name" {
@@ -137,6 +139,14 @@ output "allow_read_only_access_from_other_accounts_iam_role_arn" {
 
 output "allow_billing_access_from_other_accounts_iam_role_arn" {
   value = module.iam_cross_account_roles.allow_billing_access_from_other_accounts_iam_role_arn
+}
+
+output "allow_support_access_from_other_accounts_iam_role_arn" {
+  value = module.iam_cross_account_roles.allow_support_access_from_other_accounts_iam_role_arn
+}
+
+output "allow_logs_access_from_other_accounts_iam_role_arn" {
+  value = module.iam_cross_account_roles.allow_logs_access_from_other_accounts_iam_role_arn
 }
 
 output "allow_ssh_grunt_access_from_other_accounts_iam_role_arn" {
@@ -173,6 +183,10 @@ output "allow_read_only_access_from_other_accounts_iam_role_id" {
 
 output "allow_billing_access_from_other_accounts_iam_role_id" {
   value = module.iam_cross_account_roles.allow_billing_access_from_other_accounts_iam_role_id
+}
+
+output "allow_support_access_from_other_accounts_iam_role_id" {
+  value = module.iam_cross_account_roles.allow_support_access_from_other_accounts_iam_role_id
 }
 
 output "allow_logs_access_from_other_accounts_iam_role_id" {
@@ -213,6 +227,10 @@ output "allow_read_only_access_sign_in_url" {
 
 output "allow_billing_access_sign_in_url" {
   value = module.iam_cross_account_roles.allow_billing_access_sign_in_url
+}
+
+output "allow_support_access_sign_in_url" {
+  value = module.iam_cross_account_roles.allow_support_access_sign_in_url
 }
 
 output "allow_logs_access_sign_in_url" {
@@ -281,6 +299,14 @@ output "billing_iam_group_arn" {
   value = module.iam_groups.billing_iam_group_arn
 }
 
+output "support_iam_group_name" {
+  value = module.iam_groups.support_iam_group_name
+}
+
+output "support_iam_group_arn" {
+  value = module.iam_groups.support_iam_group_arn
+}
+
 output "logs_iam_group_name" {
   value = module.iam_groups.logs_iam_group_name
 }
@@ -327,14 +353,6 @@ output "read_only_iam_group_name" {
 
 output "read_only_iam_group_arn" {
   value = module.iam_groups.read_only_iam_group_arn
-}
-
-output "support_iam_group_name" {
-  value = module.iam_groups.support_iam_group_name
-}
-
-output "support_iam_group_arn" {
-  value = module.iam_groups.support_iam_group_arn
 }
 
 output "houston_cli_users_iam_group_name" {

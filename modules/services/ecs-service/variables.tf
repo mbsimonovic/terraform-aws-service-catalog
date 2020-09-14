@@ -27,7 +27,7 @@ variable "container_definitions" {
 # OPTIONAL PARAMETERS
 # These values may optionally be overwritten by the calling Terraform code.
 # ---------------------------------------------------------------------------------------------------------------------
-variable "secret_manager_arns" {
+variable "secrets_manager_arns" {
   description = "A list of ARNs for Secrets Manager secrets that the ECS execution IAM policy should be granted access to read. Note that this is different from the ECS task IAM policy. The execution policy is concerned with permissions required to run the ECS task."
   type        = list(string)
   default     = []
@@ -178,37 +178,37 @@ variable "elb_target_groups" {
 }
 
 variable "elb_target_group_vpc_id" {
-  description = "The ID of the VPC in which to create the target group. Only used if var.elb_target_group_name is set."
+  description = "The ID of the VPC in which to create the target group. Only used if var.elb_target_groups is set."
   type        = string
   default     = null
 }
 
 variable "elb_target_group_deregistration_delay" {
-  description = "The amount of time for Elastic Load Balancing to wait before changing the state of a deregistering target from draining to unused. The range is 0-3600 seconds. Only used if var.elb_target_group_name is set."
+  description = "The amount of time for Elastic Load Balancing to wait before changing the state of a deregistering target from draining to unused. The range is 0-3600 seconds. Only used if var.elb_target_groups is set."
   type        = number
   default     = 300
 }
 
 variable "elb_slow_start" {
-  description = "The amount time for targets to warm up before the load balancer sends them a full share of requests. The range is 30-900 seconds or 0 to disable. The default value is 0 seconds. Only used if var.elb_target_group_name is set."
+  description = "The amount time for targets to warm up before the load balancer sends them a full share of requests. The range is 30-900 seconds or 0 to disable. The default value is 0 seconds. Only used if var.elb_target_groups is set."
   type        = number
   default     = 0
 }
 
 variable "use_alb_sticky_sessions" {
-  description = "If true, the ALB will use use Sticky Sessions as described at https://goo.gl/VLcNbk. Only used if var.elb_target_group_name is set. Note that this can only be true when associating with an ALB. This cannot be used with CLBs or NLBs."
+  description = "If true, the ALB will use use Sticky Sessions as described at https://goo.gl/VLcNbk. Only used if var.elb_target_groups is set. Note that this can only be true when associating with an ALB. This cannot be used with CLBs or NLBs."
   type        = bool
   default     = false
 }
 
 variable "alb_sticky_session_type" {
-  description = "The type of Sticky Sessions to use. See https://goo.gl/MNwqNu for possible values. Only used if var.elb_target_group_name is set."
+  description = "The type of Sticky Sessions to use. See https://goo.gl/MNwqNu for possible values. Only used if var.elb_target_groups is set."
   type        = string
   default     = "lb_cookie"
 }
 
 variable "alb_sticky_session_cookie_duration" {
-  description = "The time period, in seconds, during which requests from a client should be routed to the same Target. After this time period expires, the load balancer-generated cookie is considered stale. The acceptable range is 1 second to 1 week (604800 seconds). The default value is 1 day (86400 seconds). Only used if var.elb_target_group_name is set."
+  description = "The time period, in seconds, during which requests from a client should be routed to the same Target. After this time period expires, the load balancer-generated cookie is considered stale. The acceptable range is 1 second to 1 week (604800 seconds). The default value is 1 day (86400 seconds). Only used if var.elb_target_groups is set."
   type        = number
   default     = 86400
 }

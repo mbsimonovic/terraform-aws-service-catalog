@@ -24,7 +24,7 @@ variable "aws_account_id" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "child_accounts" {
-  description = "Map of child accounts to create. The map key is the name of the account and the value is an object containing account configuration variables."
+  description = "Map of child accounts to create. The map key is the name of the account and the value is an object containing account configuration variables. See the comments below for what keys and values this object should contain."
 
   # Ideally, this would be a map of (string, object), but object does not support optional properties, and we want
   # users to be able to specify, say, tags for some accounts, but not for others. We can't use a map(any) either, as that
@@ -37,6 +37,17 @@ variable "child_accounts" {
   #
   # - email (required):
   #   Email address for the account.
+  #
+  # - is_logs_account:
+  #   Set to `true` to mark this account as the "logs" account, which is the one to use to aggregate AWS Config and
+  #   CloudTrail data. This module will create an S3 bucket for AWS Config and an S3 bucket and KMS CMK for CloudTrail
+  #   in this child account, configure the root account to send all its AWS Config and CloudTrail data there, and return
+  #   the names of the buckets and ARN of the KMS CMK as output variables. When you apply account baselines to the
+  #   other child accounts (e.g., using the account-baseline-app or account-baseline-security modules), you'll want to
+  #   configure those accounts to send AWS Config and CloudTrail data to the same S3 buckets and use the same KMS CMK.
+  #   If is_logs_account is not set on any child account (not recommended!), then either you must disable AWS Config
+  #   and CloudTrail (via the enable_config and enable_cloudtrail variables) or configure this module to use S3 buckets
+  #   and a KMS CMK that ALREADY exist!
   #
   # - parent_id:
   #   Parent Organizational Unit ID or Root ID for the account
@@ -54,15 +65,16 @@ variable "child_accounts" {
   #   permissions. If set to ´DENY´, then only the root user of the new account can access account billing information.
   #   Defaults to ´default_iam_user_access_to_billing´.
   #
+  #
   # - enable_config_rules:
-  #   Set to `true` to enable AWS Config Rules for this account. Note: you can only do this after deploying a config
-  #   recorder in the account. That means you have to:
-  #       (1) initially set enable_config_rules to false,
-  #       (2) run 'apply' in this root module to create the child account,
-  #       (3) go to the child account and create a config recorder in it, e.g., by running 'apply' on a security baseline
-  #           in that account,
-  #       (4) come back to this root module and set enable_config_rules to true,
-  #       (5) run 'apply' again.
+  #   Set to `true` to enable org-level AWS Config Rules for this child account. This is only used if
+  #   var.config_create_account_rules is false (which is NOT recommened) to force org-level rules. If you do go with
+  #   org-level rules, you can only set enable_config_rules to true after deploying a Config Recorder in the child
+  #   account. That means you have to: (1) initially set enable_config_rules to false, (2) run 'apply' in this root
+  #   module to create the child account, (3) go to the child account and create a config recorder in it, e.g., by
+  #   running 'apply' on a security baseline in that account, (4) come back to this root module and set
+  #   enable_config_rules to true, (5) run 'apply' again. This is a brittle, error-prone, multi-step process, which is
+  #   why we recommend using account-level rules (the default) and avoiding it entirely!
   #
   # - tags:
   #   Key-value mapping of resource tags.
@@ -71,18 +83,29 @@ variable "child_accounts" {
   # Example:
   #
   # child_accounts = {
+  #   logs = {
+  #     email                       = "root-accounts+logs@acme.com"
+  #     is_logs_account             = true
+  #   }
   #   security = {
-  #     email                       = "security-master@acme.com"
-  #     parent_id                   = "my-org-unit-id"
+  #     email                       = "root-accounts+security@acme.com"
   #     role_name                   = "OrganizationAccountAccessRole"
   #     iam_user_access_to_billing  = "DENY"
-  #     enable_config_rules         = true
   #     tags = {
   #       Tag-Key = "tag-value"
   #     }
-  #   },
-  #   sandbox = {
-  #     email                       = "sandbox@acme.com"
+  #   }
+  #   shared-services = {
+  #     email                       = "root-accounts+shared-services@acme.com"
+  #   }
+  #   dev = {
+  #     email                       = "root-accounts+dev@acme.com"
+  #   }
+  #   stage = {
+  #     email                       = "root-accounts+stage@acme.com"
+  #   }
+  #   prod = {
+  #     email                       = "root-accounts+prod@acme.com"
   #   }
   # }
 }
@@ -93,7 +116,7 @@ variable "child_accounts" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "create_organization" {
-  description = "Flag indicating whether the organization should be created."
+  description = "Set to true to create/configure AWS Organizations for the first time in this account. If you already configured AWS Organizations in your account, set this to false; alternatively, you could set it to true and run 'terraform import' to import you existing Organization."
   type        = bool
   default     = true
 }
@@ -150,13 +173,13 @@ variable "enable_config" {
 }
 
 variable "config_should_create_s3_bucket" {
-  description = "If true, create an S3 bucket of name var.config_s3_bucket_name for AWS Config data in this account. If false, assume var.config_s3_bucket_name is an S3 bucket in another AWS account. We recommend setting this to false and using an S3 bucket in a separate logs account. However, see the description of var.enable_config for the steps you have to take to make this work."
+  description = "If true, create an S3 bucket of name var.config_s3_bucket_name for AWS Config data, either in the logs account—the account in var.child_accounts that has is_logs_account set to true (this is the recommended approach!)—or in this account if none of the child accounts are marked as a logs account. If false, assume var.config_s3_bucket_name is an S3 bucket that already exists. We recommend setting this to true and setting is_logs_account to true on one of the accounts in var.child_accounts to use that account as a logs account where you aggregate all your AWS Config data."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "config_s3_bucket_name" {
-  description = "The name of the S3 Bucket where Config items will be stored. Can be in the same account or in another account."
+  description = "The name of the S3 Bucket where Config items will be stored. This could be a bucket in this AWS account or the name of a bucket in another AWS account where Config items should be sent. If you set is_logs_account to true on one of the accounts in var.child_accounts, the S3 bucket will be created in that account (this is the recommended approach!)."
   type        = string
   default     = null
 }
@@ -191,8 +214,14 @@ variable "config_tags" {
   default     = {}
 }
 
+variable "config_aggregate_config_data_in_external_account" {
+  description = "Set to true to send the AWS Config data to another account (e.g., a logs account) for aggregation purposes. You must set the ID of that other account via the config_central_account_id variable. Note that if one of the accounts in var.child_accounts has is_logs_account set to true (this is the approach we recommended!), this variable will be assumed to be true, so you don't have to pass any value for it.  This redundant variable has to exist because Terraform does not allow computed data in count and for_each parameters and var.config_central_account_id may be computed if its the ID of a newly-created AWS account."
+  type        = bool
+  default     = true
+}
+
 variable "config_central_account_id" {
-  description = "Set this to the account ID of the security account in which the S3 bucket and SNS topic exist. If the bucket and topic are in this account, set this to null."
+  description = "If the S3 bucket and SNS topics used for AWS Config live in a different AWS account, set this variable to the ID of that account. If the S3 bucket and SNS topics live in this account, set this variable to null. Note that if one of the accounts in var.child_accounts has is_logs_account set to true (this is the approach we recommended!), that account's ID will be used automatically, and you can leave this variable null."
   type        = string
   default     = null
 }
@@ -203,8 +232,14 @@ variable "config_central_account_id" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 # Common settings
+variable "config_create_account_rules" {
+  description = "Set to true to create account-level AWS Config rules directly in this account. Set false to create org-level rules that apply to this account and all child accounts. We recommend setting this to true to use account-level rules because org-level rules create a chicken-and-egg problem with creating new accounts (see this module's README for details)."
+  type        = bool
+  default     = true
+}
+
 variable "configrules_excluded_accounts" {
-  description = "List of AWS account identifiers to exclude from the rules."
+  description = "List of AWS account identifiers to exclude from org-level Config rules. Only used if var.config_create_account_rules is false (not recommended)."
   type        = list(string)
   default     = []
 }
@@ -399,6 +434,12 @@ variable "should_create_iam_group_billing" {
   default     = true
 }
 
+variable "should_create_iam_group_support" {
+  description = "Should we create the IAM Group for support? Allows access to AWS support. (true or false)"
+  type        = bool
+  default     = true
+}
+
 variable "should_create_iam_group_logs" {
   description = "Should we create the IAM Group for logs? Allows read access to logs in CloudTrail, AWS Config, and CloudWatch. If var.cloudtrail_kms_key_arn is specified, will also be given permissions to decrypt with the KMS CMK that is used to encrypt CloudTrail logs. (true or false)"
   type        = bool
@@ -534,6 +575,16 @@ variable "allow_billing_access_from_other_account_arns" {
   # ]
 }
 
+variable "allow_support_access_from_other_account_arns" {
+  description = "A list of IAM ARNs from other AWS accounts that will be allowed access to AWS support for this account."
+  type        = list(string)
+  default     = []
+  # Example:
+  # default = [
+  #   "arn:aws:iam::123445678910:root"
+  # ]
+}
+
 variable "allow_logs_access_from_other_account_arns" {
   description = "A list of IAM ARNs from other AWS accounts that will be allowed read access to the logs in CloudTrail, AWS Config, and CloudWatch for this account. If var.cloudtrail_kms_key_arn is specified, will also be given permissions to decrypt with the KMS CMK that is used to encrypt CloudTrail logs."
   type        = list(string)
@@ -633,7 +684,7 @@ variable "enable_cloudtrail" {
 }
 
 variable "cloudtrail_s3_bucket_name" {
-  description = "The name of the S3 Bucket where CloudTrail logs will be stored. If value is `null`, defaults to `var.name_prefix`-cloudtrail"
+  description = "The name of the S3 Bucket where CloudTrail logs will be stored. This could be a bucket in this AWS account or the name of a bucket in another AWS account where CloudTrail logs should be sent. If you set is_logs_account on one of the accounts in var.child_accounts, the S3 bucket will be created in that account (this is the recommended approach!)."
   type        = string
   default     = null
 }
@@ -651,7 +702,7 @@ variable "cloudtrail_num_days_after_which_delete_log_data" {
 }
 
 variable "cloudtrail_kms_key_administrator_iam_arns" {
-  description = "All CloudTrail Logs will be encrypted with a KMS Key (a Customer Master Key) that governs access to write API calls older than 7 days and all read API calls. The IAM Users specified in this list will have rights to change who can access this extended log data."
+  description = "All CloudTrail Logs will be encrypted with a KMS Key (a Customer Master Key) that governs access to write API calls older than 7 days and all read API calls. The IAM Users specified in this list will have rights to change who can access this extended log data. Note that if you specify a logs account (by setting is_logs_account = true on one of the accounts in var.child_accounts), the KMS CMK will be created in that account, and the root of that account will automatically be made an admin of the CMK."
   type        = list(string)
   # example = ["arn:aws:iam::<aws-account-id>:user/<iam-user-name>"]
   default = []
@@ -671,7 +722,7 @@ variable "allow_cloudtrail_access_with_iam" {
 }
 
 variable "cloudtrail_s3_bucket_already_exists" {
-  description = "If set to true, that means the S3 bucket you're using already exists, and does not need to be created. This is especially useful when using CloudTrail with multiple AWS accounts, with a common S3 bucket shared by all of them."
+  description = "If false, create an S3 bucket of name var.cloudtrail_s3_bucket_name for CloudTrail logs, either in the logs account—the account in var.child_accounts that has is_logs_account set to true (this is the recommended approach!)—or in this account if none of the child accounts are marked as a logs account. If true, assume var.cloudtrail_s3_bucket_name is an S3 bucket that already exists. We recommend setting this to false and setting is_logs_account to true on one of the accounts in var.child_accounts to use that account as a logs account where you aggregate all your CloudTrail data."
   type        = bool
   default     = false
 }
@@ -689,7 +740,7 @@ variable "cloudtrail_force_destroy" {
 }
 
 variable "cloudtrail_kms_key_arn" {
-  description = "All CloudTrail Logs will be encrypted with a KMS CMK (Customer Master Key) that governs access to write API calls older than 7 days and all read API calls. If that CMK already exists, set this to the ARN of that CMK. Otherwise, set this to null, and a new CMK will be created. We recommend setting this to the ARN of a CMK that already exists in a separate logs account. However, see the description of var.enable_cloudtrail for the steps you have to take to make this work."
+  description = "All CloudTrail Logs will be encrypted with a KMS CMK (Customer Master Key) that governs access to write API calls older than 7 days and all read API calls. If that CMK already exists, set this to the ARN of that CMK. Otherwise, set this to null, and a new CMK will be created. If you set is_logs_account to true on one of the accounts in var.child_accounts, the KMS CMK will be created in that account (this is the recommended approach!)."
   type        = string
   default     = null
 }
@@ -699,4 +750,3 @@ variable "cloudtrail_cloudwatch_logs_group_name" {
   type        = string
   default     = "cloudtrail-logs"
 }
-

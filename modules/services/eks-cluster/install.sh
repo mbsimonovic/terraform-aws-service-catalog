@@ -3,10 +3,8 @@
 
 set -e
 
-readonly DEFAULT_TERRAFORM_AWS_EKS_VERSION="v0.22.0"
-
-# TODO: Update ref to a tag when released
-readonly DEFAULT_EC2_BASELINE_REF="master"
+# renovate.json auto-update: terraform-aws-eks
+readonly DEFAULT_TERRAFORM_AWS_EKS_VERSION="v0.22.2"
 
 # NOTE: A few variables will be imported from ec2-baseline
 # - DEFAULT_MODULE_SECURITY_VERSION
@@ -17,10 +15,22 @@ readonly DEFAULT_EC2_BASELINE_REF="master"
 # - DEFAULT_ENABLE_CLOUDWATCH_METRICS
 
 function include_ec2_baseline {
+  if [[ "$1" ]]; then
+    ec2_baseline_version_branch="--branch $1"
+  fi
+  if [[ "$2" ]]; then
+    ec2_baseline_version_tag="--tag $2"
+  fi
+  if [[ "$ec2_baseline_version_branch" == "" && "$ec2_baseline_version_tag" == "" ]]; then
+    echo "ERROR: no version was provided for ec2-baseline module."
+    exit 1
+  fi
+
   gruntwork-install \
     --module-name base/ec2-baseline \
     --repo https://github.com/gruntwork-io/aws-service-catalog \
-    --tag ${DEFAULT_EC2_BASELINE_REF}
+    ${ec2_baseline_version_branch} \
+    ${ec2_baseline_version_tag}
 
   # Include common defaults and functions from the ec2-baseline install script
   # See: https://github.com/gruntwork-io/aws-service-catalog/blob/master/modules/base/ec2-baseline
@@ -60,7 +70,7 @@ function install_eks_scripts {
         module_security_version="$2"
         shift
         ;;
-      --module-aws-monitoring-version)
+      --terraform-aws-monitoring-version)
         assert_not_empty "$key" "$2"
         module_aws_monitoring_version="$2"
         shift
@@ -107,6 +117,12 @@ function install_eks_scripts {
     "${EC2_BASELINE_PATH}/user-data-common.sh"
 }
 
-include_ec2_baseline
+# Determine which version of the EC2 baseline module to install.
+# Prioritize an environment variable set by Packer, and fall back to the value
+# set by the gruntwork-install script in GRUNTWORK_INSTALL_BRANCH or GRUNTWORK_INSTALL_TAG
+# If branch and tag are both set, gruntwork-install prefers branch
+module_ec2_baseline_branch="${module_ec2_baseline_branch:-$GRUNTWORK_INSTALL_BRANCH}"
+module_ec2_baseline_tag="${module_ec2_baseline_version:-$GRUNTWORK_INSTALL_TAG}"
+include_ec2_baseline "$module_ec2_baseline_branch" "$module_ec2_baseline_tag"
 
 install_eks_scripts "$@"

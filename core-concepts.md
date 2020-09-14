@@ -7,7 +7,7 @@ This documentation shows the core concepts of how to use the Gruntwork Service C
 * [How to update infrastructure from the Service Catalog](#make-changes-to-your-infrastructure)
 * [How to create your own Service Catalog](#create-your-own-service-catalog)
 * [Support](#support)
-
+* [Contributing to this repo](#contributing-to-this-repo)
 
 
 
@@ -798,7 +798,7 @@ production:
    service runs in an Auto Scaling Group (ASG), you may want to use the modules from 
    [module-asg](https://github.com/gruntwork-io/module-asg) to create an ASG that can do zero-downtime rolling 
    deployments; if your service needs custom CloudWatch metrics, log aggregation, or alerts, you may want to use
-   modules from [module-aws-monitoring](https://github.com/gruntwork-io/module-aws-monitoring); if your service is 
+   modules from [terraform-aws-monitoring](https://github.com/gruntwork-io/terraform-aws-monitoring); if your service is 
    doing something related to Kubernetes, you may want to use modules from 
    [terraform-aws-eks](https://github.com/gruntwork-io/terraform-aws-eks) or 
    [helm-kubernetes-services](https://github.com/gruntwork-io/helm-kubernetes-servicesv); and so on.
@@ -871,3 +871,80 @@ the following channels:
 
 * [support@gruntwork.io](mailto:support@gruntwork.io): If you're having trouble contacting us via Slack, please feel 
   free to email Gruntwork Support at any time! 
+
+
+
+
+## Contributing to this repo
+
+Contributions to this repo are very welcome and appreciated! If you find a bug or want to add a new feature or even
+contribute an entirely new module, we are very happy to accept pull requests, provide feedback, and run your changes
+through our automated test suite.
+
+Please see: 
+
+* [Contributing to the Gruntwork Service Catalog](core-concepts.md#contributing-to-the-gruntwork-service-catalog)
+  for instructions.
+* [Auto-update](#auto-update) for how dependencies are managed and updated in this repo.  
+* [Pre-commit requirements](#pre-commit-requirements) for details on pre-commit hooks in this repo.
+
+
+### Auto-update
+
+This repo has been configured with support for automatic updates using 
+[RenovateBot](https://renovate.whitesourcesoftware.com/), plus an experimental Gruntwork Registry endpoint. Here's how 
+it works:
+
+1. Any time a dependency of this repo releases an update, RenovateBot will automatically update the code in this repo 
+   to use the new version and open up a PR with the changes.
+
+1. To get the list of available versions, we are using an **experimental** Gruntwork Registry endpoint:
+
+    1. The code for this endpoint lives in [the `gruntwork-registry` module in the Gruntwork prototypes 
+       repo](https://github.com/gruntwork-io/prototypes/tree/master/gruntwork-registry).
+
+    1. This endpoint is NOT ready for production use with all customers and could break at any time. If RenovateBot 
+       works well for us with this repo, we'll work to productionize this endpoint and roll out RenovateBot to all 
+       customers. 
+    
+    1. We are using a few weird hacks / workaronds. For example, all the `regex` managers in `renovate.json` set the
+       `datasourceTemplate` to `terraform-module`, even for non Terraform code. This is largely because we haven't 
+       figured out the right data source to use for all dependency types with our experimental endpoint, and pretending
+       everything is a Terraform module works OK for now. Also, there are some TODOs in the code for dependencies we
+       don't know how to update automatically, such as the Jenkins or Terraform version that gets installed (what 
+       endpoint do we get that info from?).
+       
+    1. In the meantime, if you have questions or issues related to RenovateBot, contact [Jim](mailto:jim@gruntwork.io). 
+
+1. RenovateBot is *extremely* configurable and customizable. The configuration is in [`renovate.json`](renovate.json).
+   See the [RenovateBot documentation](https://docs.renovatebot.com/) for instructions.
+
+1. Some auto-update conventions used in this repo:
+
+    1. All Terraform and Terragrunt `source = <URL>?ref=XXX` dependencies get updated automatically.
+    
+    1. For certain file types, if you put `renovate.json auto-update: <REPO NAME>` above a variable declaration that
+       specifies a version number, the version number will be automatically updated whenever `<REPO NAME>` has a new
+       release. For example, in Bash scripts (`.sh` files):
+       
+        ```bash
+        # renovate.json auto-update: terraform-aws-eks
+        readonly DEFAULT_TERRAFORM_AWS_EKS_VERSION="v0.1.2"
+        ```
+        
+        Any time there's a new release of the `terraform-aws-eks` repo, RenovateBot will submit a PR updating the
+        version number in this Bash script. See [`renovate.json`](renovate.json) for other supported file types.
+                
+
+### pre-commit requirements 
+
+This repo makes use of [pre-commit](https://pre-commit.com/) to help catch formatting and syntax issues client-side prior to code reviews. Gruntwork maintains [a collection of pre-commit hooks](https://github.com/gruntwork-io/pre-commit) that are specifically tailored to languages and tooling we commonly use.  
+
+Before contributing to this repo: 
+
+1. [Install pre-commit](https://pre-commit.com/#installation)
+1. After cloning the repository, run `pre-commit install` in your local working directory 
+1. You can examine the `.pre-commit-config.yml` file to see the hooks that will be installed and run when the git pre-commit hook is invoked. 
+1. Python version >= 3.6 is required to run the hook scripts without issues. We recommend using [pyenv](https://github.com/pyenv/pyenvv) to manage multiple versions of Python on your system.
+1. Once everything is working properly, you will notice that several checks are being run locally each time you run `git commit`. Note that your commit will not succeed until all `pre-commit` checks pass. 
+1. However, you may bypass these safeguards and commit anyway by passing the `--no-verify` flag to your `git commit` command. This is usually not recommended. 

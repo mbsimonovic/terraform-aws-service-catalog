@@ -24,13 +24,13 @@ variable "aws_account_id" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "config_should_create_s3_bucket" {
-  description = "If true, create an S3 bucket in this account. Should be false when this module is used in a multi-account architecture along with the account-baseline-security module. Defaults to false."
+  description = "Set to true to create an S3 bucket of name var.config_s3_bucket_name in this account for storing AWS Config data. Set to false to assume the bucket specified in var.config_s3_bucket_name already exists in another AWS account. We recommend setting this to false and setting var.config_s3_bucket_name to the name off an S3 bucket that already exists in a separate logs account."
   type        = bool
   default     = false
 }
 
 variable "config_s3_bucket_name" {
-  description = "The name of the S3 Bucket where Config items will be stored. Can be in the same account or in another account."
+  description = "The name of the S3 Bucket where CloudTrail logs will be stored. This could be a bucket in this AWS account or the name of a bucket in another AWS account where logs should be sent. We recommend setting this to the name of a bucket in a separate logs account."
   type        = string
   default     = null
 }
@@ -66,15 +66,127 @@ variable "config_tags" {
 }
 
 variable "config_linked_accounts" {
-  description = "Provide a list of AWS account IDs that will send Config data to this account."
+  description = "Provide a list of AWS account IDs that will send Config data to this account. This is useful if your aggregating config data in this account for other accounts."
   type        = list(string)
   default     = []
 }
 
+variable "config_aggregate_config_data_in_external_account" {
+  description = "Set to true to send the AWS Config data to another account (e.g., a logs account) for aggregation purposes. You must set the ID of that other account via the config_central_account_id variable. This redundant variable has to exist because Terraform does not allow computed data in count and for_each parameters and var.config_central_account_id may be computed if its the ID of a newly-created AWS account."
+  type        = bool
+  default     = false
+}
+
 variable "config_central_account_id" {
-  description = "If the S3 bucket and SNS topics used for AWS Config live in a different AWS account, set this variable to the ID of that account. If the S3 bucket and SNS topics live in this account, set this variable to null. We recommend setting this to the ID of a separate logs account."
+  description = "If the S3 bucket and SNS topics used for AWS Config live in a different AWS account, set this variable to the ID of that account. If the S3 bucket and SNS topics live in this account, set this variable to null. We recommend setting this to the ID of a separate logs account. Only used if var.config_aggregate_config_data_in_external_account is true."
   type        = string
   default     = null
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# OPTIONAL CONFIG RULE PARAMETERS
+# These variables have defaults, but may be overridden by the operator.
+# ---------------------------------------------------------------------------------------------------------------------
+
+# Common settings
+variable "config_create_account_rules" {
+  description = "Set to true to create AWS Config rules directly in this account. Set false to not create any Config rules in this account (i.e., if you created the rules at the organization level already). We recommend setting this to true to use account-level rules because org-level rules create a chicken-and-egg problem with creating new accounts."
+  type        = bool
+  default     = true
+}
+
+variable "configrules_maximum_execution_frequency" {
+  description = "The maximum frequency with which AWS Config runs evaluations for the ´PERIODIC´ rules. See https://www.terraform.io/docs/providers/aws/r/config_organization_managed_rule.html#maximum_execution_frequency"
+  type        = string
+  default     = "TwentyFour_Hours"
+}
+
+# Password policy
+variable "enable_iam_password_policy" {
+  description = "Checks whether the account password policy for IAM users meets the specified requirements."
+  type        = bool
+  default     = true
+}
+
+variable "enable_insecure_sg_rules" {
+  description = "Checks whether the security group with 0.0.0.0/0 of any Amazon Virtual Private Cloud (Amazon VPC) allows only specific inbound TCP or UDP traffic."
+  type        = bool
+  default     = true
+}
+
+variable "insecure_sg_rules_authorized_tcp_ports" {
+  description = "Comma-separated list of TCP ports authorized to be open to 0.0.0.0/0. Ranges are defined by a dash; for example, '443,1020-1025'."
+  type        = string
+  default     = "443"
+}
+
+variable "insecure_sg_rules_authorized_udp_ports" {
+  description = "Comma-separated list of UDP ports authorized to be open to 0.0.0.0/0. Ranges are defined by a dash; for example, '500,1020-1025'."
+  type        = string
+  default     = null
+}
+
+# S3 Public read prohibited
+variable "enable_s3_bucket_public_read_prohibited" {
+  description = "Checks that your Amazon S3 buckets do not allow public read access."
+  type        = bool
+  default     = true
+}
+
+# S3 Public write prohibited
+variable "enable_s3_bucket_public_write_prohibited" {
+  description = "Checks that your Amazon S3 buckets do not allow public write access."
+  type        = bool
+  default     = true
+}
+
+# Root account MFA
+variable "enable_root_account_mfa" {
+  description = "Checks whether users of your AWS account require a multi-factor authentication (MFA) device to sign in with root credentials."
+  type        = bool
+  default     = true
+}
+
+# EBS encryption
+variable "enable_encrypted_volumes" {
+  description = "Checks whether the EBS volumes that are in an attached state are encrypted."
+  type        = bool
+  default     = true
+}
+
+# RDS encryption
+variable "enable_rds_storage_encrypted" {
+  description = "Checks whether storage encryption is enabled for your RDS DB instances."
+  type        = bool
+  default     = true
+}
+
+variable "additional_config_rules" {
+  description = "Map of additional managed rules to add. The key is the name of the rule (e.g. ´acm-certificate-expiration-check´) and the value is an object specifying the rule details"
+  type = map(object({
+    # Description of the rule
+    description : string
+    # Identifier of an available AWS Config Managed Rule to call.
+    identifier : string
+    # Trigger type of the rule, must be one of ´CONFIG_CHANGE´ or ´PERIODIC´.
+    trigger_type : string
+    # A map of input parameters for the rule. If you don't have parameters, pass in an empty map ´{}´.
+    input_parameters : map(string)
+  }))
+
+  default = {}
+
+  # Example:
+  #
+  # additional_rules = {
+  #   acm-certificate-expiration-check = {
+  #     description      = "Checks whether ACM Certificates in your account are marked for expiration within the specified number of days.",
+  #     identifier       = "ACM_CERTIFICATE_EXPIRATION_CHECK",
+  #     trigger_type     = "PERIODIC",
+  #     input_parameters = { "daysToExpiration": "14"},
+  #   }
+  # }
+
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -118,8 +230,8 @@ variable "iam_groups_for_cross_account_access" {
   # ]
 }
 
-# The only IAM groups you need in the security account are full access (for admins) and a group that allows access to
-# other AWS accounts
+# The only IAM groups you typically need in the security account are full access (for admins) and groups that allows
+# access to other AWS accounts
 variable "should_create_iam_group_full_access" {
   description = "Should we create the IAM Group for full access? Allows full access to all AWS resources. (true or false)"
   type        = bool
@@ -128,6 +240,12 @@ variable "should_create_iam_group_full_access" {
 
 variable "should_create_iam_group_billing" {
   description = "Should we create the IAM Group for billing? Allows read-write access to billing features only. (true or false)"
+  type        = bool
+  default     = false
+}
+
+variable "should_create_iam_group_support" {
+  description = "Should we create the IAM Group for support? Allows support access (AWSupportAccess). (true or false)"
   type        = bool
   default     = false
 }
@@ -150,16 +268,10 @@ variable "should_create_iam_group_read_only" {
   default     = false
 }
 
-variable "should_create_iam_group_support" {
-  description = "Should we create the IAM Group for support users? Allows users to access AWS support."
-  type        = bool
-  default     = false
-}
-
 variable "should_create_iam_group_user_self_mgmt" {
   description = "Should we create the IAM Group for user self-management? Allows users to manage their own IAM user accounts, but not other IAM users. (true or false)"
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "should_create_iam_group_iam_admin" {
@@ -202,6 +314,12 @@ variable "iam_group_name_billing" {
   description = "The name to be used for the IAM Group that grants read/write access to all billing features in AWS."
   type        = string
   default     = "billing"
+}
+
+variable "iam_group_name_support" {
+  description = "The name of the IAM Group that allows access to AWS Support."
+  type        = string
+  default     = "support"
 }
 
 variable "iam_group_name_logs" {
@@ -252,12 +370,6 @@ variable "iam_group_name_houston_cli" {
   default     = "houston-cli-users"
 }
 
-variable "iam_group_name_support" {
-  description = "The name of the IAM Group that allows access to AWS Support."
-  type        = string
-  default     = "support"
-}
-
 variable "iam_group_name_iam_user_self_mgmt" {
   description = "The name to be used for the IAM Group that grants IAM Users the permissions to manage their own IAM User account."
   type        = string
@@ -299,7 +411,6 @@ variable "max_session_duration_machine_users" {
   type        = number
   default     = 3600 # 1 hour
 }
-
 
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL PASSWORD POLICY PARAMETERS
@@ -363,7 +474,7 @@ variable "users" {
   type = any
 
   # Example:
-  # default = {
+  # users = {
   #   alice = {
   #     groups = ["user-self-mgmt", "developers", "ssh-sudo-users"]
   #   }
@@ -422,6 +533,16 @@ variable "allow_read_only_access_from_other_account_arns" {
 
 variable "allow_billing_access_from_other_account_arns" {
   description = "A list of IAM ARNs from other AWS accounts that will be allowed full (read and write) access to the billing info for this account."
+  type        = list(string)
+  default     = []
+  # Example:
+  # default = [
+  #   "arn:aws:iam::123445678910:root"
+  # ]
+}
+
+variable "allow_support_access_from_other_account_arns" {
+  description = "A list of IAM ARNs from other AWS accounts that will be allowed support access (AWSSupportAccess) to this account."
   type        = list(string)
   default     = []
   # Example:
@@ -561,7 +682,7 @@ variable "allow_cloudtrail_access_with_iam" {
 }
 
 variable "cloudtrail_s3_bucket_already_exists" {
-  description = "If set to true, that means the S3 bucket you're using already exists, and does not need to be created. This is especially useful when using CloudTrail with multiple AWS accounts, with a common S3 bucket shared by all of them."
+  description = "Set to false to create an S3 bucket of name var.cloudtrail_s3_bucket_name in this account for storing CloudTrail logs. Set to true to assume the bucket specified in var.cloudtrail_s3_bucket_name already exists in another AWS account. We recommend setting this to true and setting var.cloudtrail_s3_bucket_name to the name of a bucket that already exists in a separate logs account."
   type        = bool
   default     = false
 }
@@ -606,6 +727,9 @@ variable "kms_customer_master_keys" {
   #                                                          arn:aws:iam::<aws-account-id>:user/<iam-user-arn>).
   # - cmk_user_iam_arns                     [list(object[CMKUser])] : A list of IAM ARNs for users who should be given
   #                                                          permissions to use this CMK (e.g.
+  #                                                          arn:aws:iam::<aws-account-id>:user/<iam-user-arn>).
+  # - cmk_read_only_user_iam_arns           [list(object[CMKUser])] : A list of IAM ARNs for users who should be given
+  #                                                          read-only (decrypt-only) permissions to use this CMK (e.g.
   #                                                          arn:aws:iam::<aws-account-id>:user/<iam-user-arn>).
   # - cmk_external_user_iam_arns            [list(string)] : A list of IAM ARNs for users from external AWS accounts
   #                                                          who should be given permissions to use this CMK (e.g.
@@ -654,6 +778,7 @@ variable "kms_customer_master_keys" {
   #                                              The condition object accepts the same fields as the condition
   #                                              block on the IAM policy document (See
   #                                              https://www.terraform.io/docs/providers/aws/d/iam_policy_document.html#condition).
+
   #
   # Example:
   # customer_master_keys = {
@@ -663,6 +788,12 @@ variable "kms_customer_master_keys" {
   #     cmk_user_iam_arns                     = [
   #       {
   #         name = ["arn:aws:iam::0000000000:user/dev"]
+  #         conditions = []
+  #       }
+  #     ]
+  #     cmk_read_only_user_iam_arns           = [
+  #       {
+  #         name = ["arn:aws:iam::0000000000:user/qa"]
   #         conditions = []
   #       }
   #     ]
@@ -714,3 +845,27 @@ variable "cloudtrail_kms_key_arn" {
   default     = null
 }
 
+variable "kms_grant_regions" {
+  description = "The map of names of KMS grants to the region where the key resides in. There should be a one to one mapping between entries in this map and the entries of the kms_grants map. This is used to workaround a terraform limitation where the for_each value can not depend on resources."
+  type        = map(string)
+  default     = {}
+}
+
+variable "kms_grants" {
+  description = "Create the specified KMS grants to allow entities to use the KMS key without modifying the KMS policy or IAM. This is necessary to allow AWS services (e.g. ASG) to use CMKs encrypt and decrypt resources. The input is a map of grant name to grant properties. The name must be unique per account."
+  type = map(object({
+    # ARN of the KMS CMK that the grant applies to. Note that the region is introspected based on the ARN.
+    kms_cmk_arn = string
+
+    # The principal that is given permission to perform the operations that the grant permits. This must be in ARN
+    # format. For example, the grantee principal for ASG is:
+    # arn:aws:iam::111122223333:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling
+    grantee_principal = string
+
+    # A list of operations that the grant permits. The permitted values are:
+    # Decrypt, Encrypt, GenerateDataKey, GenerateDataKeyWithoutPlaintext, ReEncryptFrom, ReEncryptTo, CreateGrant,
+    # RetireGrant, DescribeKey
+    granted_operations = list(string)
+  }))
+  default = {}
+}

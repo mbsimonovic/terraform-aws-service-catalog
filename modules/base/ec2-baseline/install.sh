@@ -2,10 +2,14 @@
 # When executed by the gruntwork-installer, it's a NOP
 
 # Gruntwork module versions
-readonly DEFAULT_BASH_COMMONS_VERSION="v0.1.2"
-readonly DEFAULT_MODULE_SECURITY_VERSION="v0.25.1"
-readonly DEFAULT_MODULE_AWS_MONITORING_VERSION="v0.19.0"
-readonly DEFAULT_MODULE_STATEFUL_SERVER_VERSION="v0.7.7"
+# renovate.json auto-update: bash-commons
+readonly DEFAULT_BASH_COMMONS_VERSION="v0.1.3"
+# renovate.json auto-update: module-security
+readonly DEFAULT_MODULE_SECURITY_VERSION="v0.36.8"
+# renovate.json auto-update: terraform-aws-monitoring
+readonly DEFAULT_MODULE_AWS_MONITORING_VERSION="v0.22.2"
+# renovate.json auto-update: module-server
+readonly DEFAULT_MODULE_STATEFUL_SERVER_VERSION="v0.8.5"
 
 # Enable / disable features
 readonly DEFAULT_ENABLE_SSH_GRUNT="true"
@@ -63,7 +67,7 @@ function install_monitoring_packages {
   echo "Installing Gruntwork Monitoring Modules"
 
   if [[ "$enable_cloudwatch_metrics" == "true" ]]; then
-    gruntwork-install --module-name 'metrics/cloudwatch-memory-disk-metrics-scripts' --repo https://github.com/gruntwork-io/module-aws-monitoring --tag "$module_aws_monitoring_version"
+    gruntwork-install --module-name 'metrics/cloudwatch-memory-disk-metrics-scripts' --repo https://github.com/gruntwork-io/terraform-aws-monitoring --tag "$module_aws_monitoring_version"
   fi
 
   if [[ "$enable_cloudwatch_log_aggregation" == "true" ]]; then
@@ -75,10 +79,10 @@ function install_monitoring_packages {
       aws_region=$(aws_get_instance_region)
     fi
 
-    gruntwork-install --module-name 'logs/cloudwatch-log-aggregation-scripts' --repo https://github.com/gruntwork-io/module-aws-monitoring --tag "$module_aws_monitoring_version" --module-param aws-region="$aws_region"
+    gruntwork-install --module-name 'logs/cloudwatch-log-aggregation-scripts' --repo https://github.com/gruntwork-io/terraform-aws-monitoring --tag "$module_aws_monitoring_version" --module-param aws-region="$aws_region"
   fi
 
-  gruntwork-install --module-name 'logs/syslog' --repo https://github.com/gruntwork-io/module-aws-monitoring --tag "$module_aws_monitoring_version"
+  gruntwork-install --module-name 'logs/syslog' --repo https://github.com/gruntwork-io/terraform-aws-monitoring --tag "$module_aws_monitoring_version"
 }
 
 function install_gruntwork_modules {
