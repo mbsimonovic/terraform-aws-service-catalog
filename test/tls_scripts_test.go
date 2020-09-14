@@ -31,8 +31,8 @@ func TestTlsScripts(t *testing.T) {
 
 	// Uncomment the items below to skip certain parts of the test
 	// os.Setenv("TERRATEST_REGION", "us-east-1")
-	os.Setenv("SKIP_deploy", "true")
-	os.Setenv("SKIP_validate", "true")
+	// os.Setenv("SKIP_deploy", "true")
+	// os.Setenv("SKIP_validate", "true")
 	// os.Setenv("SKIP_cleanup", "true")
 
 	requireEnvVar(t, "GITHUB_OAUTH_TOKEN")
