@@ -192,8 +192,7 @@ variables are set, and Docker is running.
     _We highly recommend including these two options, so that you don't have an unencrypted private key on your system._
     By providing both `--kms-key-id` and `--aws-region`, the script will automatically encrypt the private key, save it as
     `my-app.key.pem.kms.encrypted`, and delete the unencrypted key, `my-app.key.pem`.
-1. After running that command, the generated cert files will be located on your local machine here: `tls/`. That is, in the same
-directory as this module, within a new `tls` folder.
+1. After running that command, the generated cert files will be located on your local machine within a new subfolder in this directory: `tls/certs/`.
 
 If you used the above example, you should see:
 - `ca.crt.pem`: This is the CA public key, or CA certificate, in PEM format.

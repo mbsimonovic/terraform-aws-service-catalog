@@ -29,7 +29,7 @@ source "$script_dir/helpers.sh"
 readonly VAULT_BLUEPRINT_CLONE_URL="https://github.com/hashicorp/terraform-aws-vault.git"
 readonly VAULT_BLUEPRINT_CHECKOUT_PATH="/tls/vault-blueprint"
 readonly VAULT_TLS_MODULE_PATH="/tls/vault-blueprint/modules/private-tls-cert"
-readonly TLS_PATH="/tls"
+readonly TLS_PATH="/tls/certs"
 
 readonly DEFAULT_DNS_NAMES=("localhost")
 readonly DEFAULT_IP_ADDRESSES=("127.0.0.1")

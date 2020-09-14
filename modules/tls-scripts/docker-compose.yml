@@ -1,6 +1,6 @@
 version: '2.0'
 services:
-  tls:
+  certs:
     build:
       context: .
       args:
@@ -11,7 +11,7 @@ services:
       - AWS_SECRET_ACCESS_KEY
       - AWS_SESSION_TOKEN
     volumes:
-      - ./tls:/tls
+      - .:/scripts # only for development
   rds:
     build:
       context: .
