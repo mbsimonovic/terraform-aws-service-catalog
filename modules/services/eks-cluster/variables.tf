@@ -203,7 +203,7 @@ variable "kubernetes_version" {
 }
 
 variable "endpoint_public_access" {
-  description = "Whether or not to enable public API endpoints which allow access to the Kubernetes API from outside of the VPC."
+  description = "Whether or not to enable public API endpoints which allow access to the Kubernetes API from outside of the VPC. Note that private access within the VPC is always enabled."
   type        = bool
   default     = true
 }
