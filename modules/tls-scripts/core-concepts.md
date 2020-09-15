@@ -192,18 +192,17 @@ variables are set, and Docker is running.
     _We highly recommend including these two options, so that you don't have an unencrypted private key on your system._
     By providing both `--kms-key-id` and `--aws-region`, the script will automatically encrypt the private key, save it as
     `my-app.key.pem.kms.encrypted`, and delete the unencrypted key, `my-app.key.pem`.
-1. After running that command, the generated cert files will be located on your local machine here: `tmp/tls/`. That is, in the same
-directory as this module, within a new `tmp` folder.
+1. After running that command, the generated cert files will be located on your local machine within a new subfolder in this directory: `tls/certs/`.
 
 If you used the above example, you should see:
 - `ca.crt.pem`: This is the CA public key, or CA certificate, in PEM format.
 - `my-app.crt.pem`: This is the app's public key, or TLS certificate, signed by the CA cert, in PEM format.
 - `my-app.key.pem.kms.encrypted`: This is the app's private key in PEM format, encrypted with the KMS key you provided.
-- If you see `my-app.key.pem`, the script was not able to encrypt your private key using the KMS key you provided.
+- If you see `my-app.key.pem`, the script was not able to encrypt your private key using the KMS key you provided (or you didn't provide a key), so this is the private key in PEM format, in plain text.
 
-Optionally, you can upload the certificate to IAM. Simply add two more flags to the previous command.
+Optionally, you can upload the certificate to IAM so that the cert can be used with an ELB. Simply add two more flags to the previous command.
 - `--upload-to-iam`
-- `--cert-name-in-iam` followed by a name you want to use
+- `--cert-name-in-iam <NAME>`
 
 E.g.:
 ```sh
@@ -230,9 +229,9 @@ consult the [AWS API guide for Server Certificate management](https://docs.aws.a
 variables are set, and Docker is running.
 1. Run the following command (which calls [download-rds-ca-certs.sh](download-rds-ca-certs.sh)):
     ```sh
-    docker-compose run rds tmp/rds-cert
+    docker-compose run rds tls/rds-cert
     ```
-1. Check `tmp/` in the current directory for a file named `rds-cert`. This is the downloaded file.
+1. Check `tls/` in the current directory for a file named `rds-cert`. This is the downloaded file.
 
 [back to readme](README.adoc#running)
 
@@ -244,7 +243,7 @@ variables are set, and Docker is running.
     ```sh
     generate-trust-stores.sh \
     --keystore-name kafka \
-    --store-path /tmp/trust-stores \
+    --store-path /tls/trust-stores \
     --vpc-name default \
     --company-name Acme \ # change this to be correct
     --company-org-unit IT \ # change this to be correct
@@ -254,7 +253,7 @@ variables are set, and Docker is running.
     --kms-key-id alias/test-key \ # change this to be correct
     --aws-region us-east-1 # change this to be correct
     ```
-1. Check `tmp/trust-stores/` in the current directory for all your created files:
+1. Check `tls/trust-stores/` in the current directory for all your created files:
 - `kafka.server.ca.default.pem`
 - `kafka.server.cert.default.pem`
 - `keystore/kafka.server.keystore.default.jks`

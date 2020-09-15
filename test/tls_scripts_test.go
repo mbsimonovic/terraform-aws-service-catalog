@@ -17,11 +17,14 @@ import (
 )
 
 // To run this test suite, a number of requirements must be met:
-// - Docker needs to be running
-// - Your GitHub OAuth token must be exported in GITHUB_OAUTH_TOKEN
-// - AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY need to be set
-// - If you're using temporary credentials, AWS_SESSION_TOKEN needs to be set
-// - You need to provide a KMS CMK in TLS_SCRIPTS_KMS_KEY_ID and its region in TLS_SCRIPTS_AWS_REGION
+// - Ensure Docker is running
+// - Export your GitHub Personal Access Token in GITHUB_OAUTH_TOKEN
+//     - e.g.: export GITHUB_OAUTH_TOKEN=7d1c645272775xxxxd5cd68bb2dxxxxeb35858c9
+// - Export AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
+// - If you're using temporary credentials, export AWS_SESSION_TOKEN
+// - Export a KMS CMK in TLS_SCRIPTS_KMS_KEY_ID and its region in TLS_SCRIPTS_AWS_REGION
+//     - e.g.: export TLS_SCRIPTS_KMS_KEY_ID=alias/dedicated-test-key
+//     - e.g.: export TLS_SCRIPTS_AWS_REGION=us-east-1
 
 func TestTlsScripts(t *testing.T) {
 	t.Parallel()
@@ -39,25 +42,20 @@ func TestTlsScripts(t *testing.T) {
 	requireEnvVar(t, "TLS_SCRIPTS_AWS_REGION")
 
 	scriptsDir := "../modules/tls-scripts"
-	tmpBaseDir := "tmp"
+	tmpBaseDir := "tls"
+
+	// Create TLS Cert vars
+	createTLSDir := filepath.Join(tmpBaseDir, "certs")
+	createCertFiles := []string{"ca.crt.pem", "my-app.cert", "my-app.key.pem.kms.encrypted"}
 
 	// Download RDS CA Certs vars
 	downloadPath := filepath.Join(tmpBaseDir, "rds-cert")
-
-	// Create TLS Cert vars
-	createTLSDir := filepath.Join(tmpBaseDir, "tls")
-	createCertFiles := []string{"ca.crt.pem", "my-app.cert", "my-app.key.pem.kms.encrypted"}
 
 	// Generate Trust Stores vars
 	trustStoresDir := filepath.Join(tmpBaseDir, "trust-stores")
 	trustStoresFiles := []string{"kafka.server.ca.default.pem", "kafka.server.cert.default.pem", "keystore/kafka.server.keystore.default.jks", "truststore/kafka.server.truststore.default.jks"}
 
-	// This kmsKeyId is used for testing against Gruntwork's test account.
-	// You will have to change it to use a key available in your account.
-	// kmsKeyId := "alias/dedicated-test-key"
 	kmsKeyId := os.Getenv("TLS_SCRIPTS_KMS_KEY_ID")
-	// This region should match where the key is located.
-	// awsRegion := "us-east-1"
 	awsRegion := os.Getenv("TLS_SCRIPTS_AWS_REGION")
 
 	var testCases = []struct {
@@ -80,7 +78,7 @@ func TestTlsScripts(t *testing.T) {
 					"-f",
 					filepath.Join(scriptsDir, "docker-compose.yml"),
 					"run",
-					"tls",
+					"certs",
 					"--ca-path",
 					"ca.crt.pem",
 					"--cert-path",
@@ -113,15 +111,25 @@ func TestTlsScripts(t *testing.T) {
 				// Because CircleCI runs this test as root, the output folders cannot be cleaned up
 				// as the test/circleci user. Therefore we have to sudo chown that directory.
 				cmd := shell.Command{
-					Command: "sudo",
-					Args: []string{
-						"chown",
-						"-R",
-						fmt.Sprintf("%d:%d", os.Getuid(), os.Getuid()),
-						filepath.Join(scriptsDir, tmpBaseDir),
-					},
+					Command: "whoami",
+					Args:    []string{},
 				}
-				shell.RunCommand(t, cmd)
+				username := shell.RunCommandAndGetOutput(t, cmd)
+
+				if username == "circleci" {
+
+					cmd = shell.Command{
+						Command: "sudo",
+						Args: []string{
+							"chown",
+							"-R",
+							fmt.Sprintf("%d:%d", os.Getuid(), os.Getuid()),
+							filepath.Join(scriptsDir, tmpBaseDir),
+						},
+					}
+					shell.RunCommand(t, cmd)
+				}
+
 				os.RemoveAll(filepath.Join(scriptsDir, createTLSDir))
 
 				// Remove server certificate from IAM
