@@ -472,71 +472,69 @@ variable "kms_customer_master_keys" {
   # Ideally, we will use a more strict type here but since we want to support required and optional values, and since
   # Terraform's type system only supports maps that have the same type for all values, we have to use the less useful
   # `any` type.
-  type    = any
-  default = {}
+  type = any
 
   # Each entry in the map supports the following attributes:
   #
   # OPTIONAL (defaults to value of corresponding module input):
-  # - cmk_administrator_iam_arns            [list(string)] : A list of IAM ARNs for users who should be given
-  #                                                          administrator access to this CMK (e.g.
-  #                                                          arn:aws:iam::<aws-account-id>:user/<iam-user-arn>).
-  # - cmk_user_iam_arns                     [list(object[CMKUser])] : A list of IAM ARNs for users who should be given
-  #                                                          permissions to use this CMK (e.g.
-  #                                                          arn:aws:iam::<aws-account-id>:user/<iam-user-arn>).
-  # - cmk_read_only_user_iam_arns           [list(object[CMKUser])] : A list of IAM ARNs for users who should be given
-  #                                                          read-only (decrypt-only) permissions to use this CMK (e.g.
-  #                                                          arn:aws:iam::<aws-account-id>:user/<iam-user-arn>).
-  # - cmk_external_user_iam_arns            [list(string)] : A list of IAM ARNs for users from external AWS accounts
-  #                                                          who should be given permissions to use this CMK (e.g.
-  #                                                          arn:aws:iam::<aws-account-id>:root).
-  # - cmk_service_principals                [list(object[ServicePrincipal])] : A list of Service Principals that should be given
-  #                                                          permissions to use this CMK (e.g. s3.amazonaws.com). See
-  #                                                          below for the structure of the object that should be passed
-  #                                                          in.
-
-  # - allow_manage_key_permissions_with_iam [bool]         : If true, both the CMK's Key Policy and IAM Policies
-  #                                                          (permissions) can be used to grant permissions on the CMK.
-  #                                                          If false, only the CMK's Key Policy can be used to grant
-  #                                                          permissions on the CMK. False is more secure (and
-  #                                                          generally preferred), but true is more flexible and
-  #                                                          convenient.
-  # - region                  [string]      : The region (e.g., us-west-2) where the key should be created. If null or
-  #                                           omitted, the key will be created in all enabled regions. Any keys
-  #                                           targeting an opted out region or invalid region string will show up in the
-  #                                           invalid_cmk_inputs output.
-  # - deletion_window_in_days [number]      : The number of days to keep this KMS Master Key around after it has been
-  #                                           marked for deletion.
-  # - tags                    [map(string)] : A map of tags to apply to the KMS Key to be created. In this map
-  #                                           variable, the key is the tag name and the value  is the tag value. Note
-  #                                           that this map is merged with var.global_tags, and can be used to override
-  #                                           tags specified in that variable.
-  # - enable_key_rotation     [bool]        : Whether or not to enable automatic annual rotation of the KMS key.
-  # - spec                    [string]      : Specifies whether the key contains a symmetric key or an asymmetric key
-  #                                           pair and the encryption algorithms or signing algorithms that the key
-  #                                           supports. Valid values: SYMMETRIC_DEFAULT, RSA_2048, RSA_3072, RSA_4096,
-  #                                           ECC_NIST_P256, ECC_NIST_P384, ECC_NIST_P521, or ECC_SECG_P256K1.
-  # Structure of ServicePrincipal object:
-  # - name          [string]                   : The name of the service principal (e.g.: s3.amazonaws.com).
-  # - actions       [list(string)]             : The list of actions that the given service principal is allowed to
-  #                                              perform (e.g. ["kms:DescribeKey", "kms:GenerateDataKey"]).
-  # - conditions    [list(object[Condition])]  : (Optional) List of conditions to apply to the permissions for the service
-  #                                              principal. Use this to apply conditions on the permissions for
-  #                                              accessing the KMS key (e.g., only allow access for certain encryption
-  #                                              contexts). The condition object accepts the same fields as the condition
-  #                                              block on the IAM policy document (See
-  #                                              https://www.terraform.io/docs/providers/aws/d/iam_policy_document.html#condition).
-  # Structure of CMKUser object:
-  # - name          [list(string)]             : The list of names of the AWS principal (e.g.: arn:aws:iam::0000000000:user/dev).
-  # - conditions    [list(object[Condition])]  : (Optional) List of conditions to apply to the permissions for the CMK User
-  #                                              Use this to apply conditions on the permissions for accessing the KMS key
-  #                                              (e.g., only allow access for certain encryption contexts).
-  #                                              The condition object accepts the same fields as the condition
-  #                                              block on the IAM policy document (See
-  #                                              https://www.terraform.io/docs/providers/aws/d/iam_policy_document.html#condition).
+  # - region                                  string                : The region (e.g., us-west-2) where the key should be created. If null or
+  #                                                                   omitted, the key will be created in all enabled regions. Any keys
+  #                                                                   targeting an opted out region or invalid region string will show up in the
+  #                                                                   invalid_cmk_inputs output.
+  # - cmk_administrator_iam_arns              list(string)          : A list of IAM ARNs for users who should be given
+  #                                                                   administrator access to this CMK (e.g.
+  #                                                                   arn:aws:iam::<aws-account-id>:user/<iam-user-arn>).
+  # - cmk_user_iam_arns                       list(object[CMKUser]) : A list of IAM ARNs for users who should be given
+  #                                                                   permissions to use this CMK (e.g.
+  #                                                                   arn:aws:iam::<aws-account-id>:user/<iam-user-arn>).
+  # - cmk_read_only_user_iam_arns             list(object[CMKUser]) : A list of IAM ARNs for users who should be given
+  #                                                                   read-only (decrypt-only) permissions to use this CMK (e.g.
+  #                                                                   arn:aws:iam::<aws-account-id>:user/<iam-user-arn>).
+  # - cmk_external_user_iam_arns              list(string)          : A list of IAM ARNs for users from external AWS accounts
+  #                                                                   who should be given permissions to use this CMK (e.g.
+  #                                                                   arn:aws:iam::<aws-account-id>:root).
+  # - allow_manage_key_permissions_with_iam   bool                  : If true, both the CMK's Key Policy and IAM Policies
+  #                                                                   (permissions) can be used to grant permissions on the CMK.
+  #                                                                   If false, only the CMK's Key Policy can be used to grant
+  #                                                                   permissions on the CMK. False is more secure (and
+  #                                                                   generally preferred), but true is more flexible and
+  #                                                                   convenient.
+  # - deletion_window_in_days                 number                : The number of days to keep this KMS Master Key around after it has been
+  #                                                                   marked for deletion.
+  # - tags                                    map(string)           : A map of tags to apply to the KMS Key to be created. In this map
+  #                                                                   variable, the key is the tag name and the value  is the tag value. Note
+  #                                                                   that this map is merged with var.global_tags, and can be used to override
+  #                                                                   tags specified in that variable.
+  # - enable_key_rotation                     bool                  : Whether or not to enable automatic annual rotation of the KMS key.
+  # - spec                                    string                : Specifies whether the key contains a symmetric key or an asymmetric key
+  #                                                                   pair and the encryption algorithms or signing algorithms that the key
+  #                                                                   supports. Valid values: SYMMETRIC_DEFAULT, RSA_2048, RSA_3072, RSA_4096,
+  #                                                                   ECC_NIST_P256, ECC_NIST_P384, ECC_NIST_P521, or ECC_SECG_P256K1.
+  # - cmk_service_principals                  list(object[ServicePrincipal]) : A list of Service Principals that should be given
+  #                                                                            permissions to use this CMK (e.g. s3.amazonaws.com). See
+  #                                                                            below for the structure of the object that should be passed
+  #                                                                            in.
   #
+  # Structure of ServicePrincipal object:
+  # - name          string                   : The name of the service principal (e.g.: s3.amazonaws.com).
+  # - actions       list(string)             : The list of actions that the given service principal is allowed to
+  #                                            perform (e.g. ["kms:DescribeKey", "kms:GenerateDataKey"]).
+  # - conditions    list(object[Condition])  : (Optional) List of conditions to apply to the permissions for the service
+  #                                            principal. Use this to apply conditions on the permissions for
+  #                                            accessing the KMS key (e.g., only allow access for certain encryption
+  #                                            contexts). The condition object accepts the same fields as the condition
+  #                                            block on the IAM policy document (See
+  #                                            https://www.terraform.io/docs/providers/aws/d/iam_policy_document.html#condition).
+  # Structure of CMKUser object:
+  # - name          list(string)             : The list of names of the AWS principal (e.g.: arn:aws:iam::0000000000:user/dev).
+  # - conditions    list(object[Condition])  : (Optional) List of conditions to apply to the permissions for the CMK User
+  #                                            Use this to apply conditions on the permissions for accessing the KMS key
+  #                                            (e.g., only allow access for certain encryption contexts).
+  #                                            The condition object accepts the same fields as the condition
+  #                                            block on the IAM policy document (See
+  #                                            https://www.terraform.io/docs/providers/aws/d/iam_policy_document.html#condition).
   # Example:
-  # customer_master_keys = {
+  # kms_customer_master_keys = {
   #   cmk-stage = {
   #     region                                = "us-west-1"
   #     cmk_administrator_iam_arns            = ["arn:aws:iam::0000000000:user/admin"]
@@ -562,7 +560,7 @@ variable "kms_customer_master_keys" {
   #     ]
   #   }
   #   cmk-prod = {
-  #     region                                = "us-west-1"
+  #     region                                = "us-east-1"
   #     cmk_administrator_iam_arns            = ["arn:aws:iam::0000000000:user/admin"]
   #     cmk_user_iam_arns                     = [
   #       {
