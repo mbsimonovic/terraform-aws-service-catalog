@@ -4,7 +4,7 @@
 set -e
 
 # renovate.json auto-update: module-ecs
-readonly DEFAULT_MODULE_ECS_VERSION="v0.21.3"
+readonly DEFAULT_MODULE_ECS_VERSION="v0.21.4"
 
 function include_ec2_baseline {
   if [[ "$1" ]]; then
