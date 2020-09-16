@@ -124,7 +124,7 @@ module "dns_mgmt_to_app" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "vpc_tags" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-vpc-tags?ref=v0.22.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-vpc-tags?ref=v0.23.0"
 
   eks_cluster_names = var.eks_cluster_names
 }
