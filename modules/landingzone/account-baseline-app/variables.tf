@@ -472,7 +472,8 @@ variable "kms_customer_master_keys" {
   # Ideally, we will use a more strict type here but since we want to support required and optional values, and since
   # Terraform's type system only supports maps that have the same type for all values, we have to use the less useful
   # `any` type.
-  type = any
+  type    = any
+  default = {}
 
   # Each entry in the map supports the following attributes:
   #
