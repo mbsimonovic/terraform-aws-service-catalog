@@ -53,13 +53,13 @@ func TestK8SService(t *testing.T) {
 		// t.Parallel calls.
 		testCase := testCase
 
-		// Set a custom dir for stage data that won't overlap across the tests
-		workingDir := filepath.Join(".", "stages", t.Name())
-
 		// We don't need to wrap the subtests in a group here because we don't have any shared cleanup function, so there is
 		// no need to wait for all the tests to run before exiting this function. So we spawn all the tests directly.
 		t.Run(testCase.name, func(t *testing.T) {
 			t.Parallel()
+
+			// Set a custom dir for stage data that won't overlap across the tests
+			workingDir := filepath.Join(".", "stages", t.Name())
 
 			testFolder := test_structure.CopyTerraformFolderToTemp(
 				t,
