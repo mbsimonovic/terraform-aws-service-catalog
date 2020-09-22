@@ -20,9 +20,9 @@ const (
 	K8SServiceNumPodsExpected  = 1
 )
 
-// nginxValidationFunction checks that we get a 200 response with the nginx welcome page.
-func nginxValidationFunction(statusCode int, body string) bool {
-	return statusCode == 200 && strings.Contains(body, "Welcome to nginx")
+// sampleAppValidationFunction checks that we get a 200 response with the sample app healthy message.
+func sampleAppValidationFunction(statusCode int, body string) bool {
+	return statusCode == 200 && strings.Contains(body, "The app is operational and ready to serve traffic.")
 }
 
 // verifyPodsCreatedSuccessfully waits until the pods for the given helm release are created.
@@ -46,6 +46,7 @@ func verifyAllPodsAvailable(
 	t *testing.T,
 	kubectlOptions *k8s.KubectlOptions,
 	appName string,
+	path string,
 	validationFunction func(int, string) bool,
 ) {
 	filters := metav1.ListOptions{
@@ -53,7 +54,7 @@ func verifyAllPodsAvailable(
 	}
 	pods := k8s.ListPods(t, kubectlOptions, filters)
 	for _, pod := range pods {
-		verifySinglePodAvailable(t, kubectlOptions, pod, validationFunction)
+		verifySinglePodAvailable(t, kubectlOptions, pod, path, validationFunction)
 	}
 }
 
@@ -63,18 +64,19 @@ func verifySinglePodAvailable(
 	t *testing.T,
 	kubectlOptions *k8s.KubectlOptions,
 	pod corev1.Pod,
+	path string,
 	validationFunction func(int, string) bool,
 ) {
 	// Open a tunnel from any available port locally
 	localPort := k8s.GetAvailablePort(t)
-	tunnel := k8s.NewTunnel(kubectlOptions, k8s.ResourceTypePod, pod.Name, localPort, 80)
+	tunnel := k8s.NewTunnel(kubectlOptions, k8s.ResourceTypePod, pod.Name, localPort, 8080)
 	defer tunnel.Close()
 	tunnel.ForwardPort(t)
 
 	// Try to access the service on the local port, retrying until we get a good response for up to 5 minutes
 	http_helper.HttpGetWithRetryWithCustomValidation(
 		t,
-		fmt.Sprintf("http://%s", tunnel.Endpoint()),
+		fmt.Sprintf("http://%s%s", tunnel.Endpoint(), path),
 		nil,
 		K8SServiceWaitTimerRetries,
 		K8SServiceWaitTimerSleep,

@@ -2,29 +2,33 @@
 # REQUIRED PARAMETERS
 # ---------------------------------------------------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------------------------------------------------
+# OPTIONAL PARAMETERS
+# ---------------------------------------------------------------------------------------------------------------------
+
 variable "application_name" {
   description = "The name of the application (e.g. my-service-stage). Used for labeling Kubernetes resources."
   type        = string
-}
-
-variable "image" {
-  description = "The Docker image to run (e.g. gruntwork/frontend-service)."
-  type        = string
-}
-
-variable "image_version" {
-  description = "Which version (AKA tag) of the var.image Docker image to deploy (e.g. 0.57)."
-  type        = string
+  default     = "sample-app"
 }
 
 variable "container_port" {
   description = "The port number on which this service's Docker container accepts incoming traffic."
   type        = number
+  default     = 8080
 }
 
-# ---------------------------------------------------------------------------------------------------------------------
-# OPTIONAL PARAMETERS
-# ---------------------------------------------------------------------------------------------------------------------
+variable "image" {
+  description = "The Docker image to run (e.g. gruntwork/frontend-service)."
+  type        = string
+  default     = "gruntwork/aws-sample-app"
+}
+
+variable "image_version" {
+  description = "Which version (AKA tag) of the var.image Docker image to deploy (e.g. 0.57)."
+  type        = string
+  default     = "v0.0.2"
+}
 
 variable "namespace" {
   description = "The Kubernetes Namespace to deploy the application into."
@@ -72,4 +76,38 @@ variable "kubeconfig_context" {
   description = "The name of the context to use for authenticating to the Kubernetes cluster. Defaults to the configured default context in the kubeconfig file. Only used if var.kubeconfig_auth_type is `context`."
   type        = string
   default     = null
+}
+
+# Configurations for the sample app
+
+variable "app_environment_name" {
+  description = "The environment name for the app: e.g., development, test, dev, stage, prod. From this variable, we will derive NODE_ENV, which will always be set to development, test, or production."
+  type        = string
+  default     = "dev"
+}
+
+variable "configmaps_as_env_vars" {
+  description = "Kubernetes ConfigMaps to be injected into the container. Each entry in the map represents a ConfigMap to be injected, with the key representing the name of the ConfigMap. The value is also a map, with each entry corresponding to an entry in the ConfigMap, with the key corresponding to the ConfigMap entry key and the value corresponding to the environment variable name."
+  type        = map(map(string))
+  default     = {}
+
+  # Example: This will inject the foo key of the ConfigMap myconfig as the environment variable MY_CONFIG.
+  # {
+  #   myconfig = {
+  #     foo = "MY_CONFIG"
+  #   }
+  # }
+}
+
+variable "secrets_as_env_vars" {
+  description = "Kubernetes Secrets to be injected into the container. Each entry in the map represents a Secret to be injected, with the key representing the name of the Secret. The value is also a map, with each entry corresponding to an entry in the Secret, with the key corresponding to the Secret entry key and the value corresponding to the environment variable name."
+  type        = map(map(string))
+  default     = {}
+
+  # Example: This will inject the foo key of the Secret mysecret as the environment variable MY_SECRET.
+  # {
+  #   mysecret = {
+  #     foo = "MY_SECRET"
+  #   }
+  # }
 }
