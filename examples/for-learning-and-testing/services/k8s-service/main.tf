@@ -99,10 +99,10 @@ module "application" {
   # For the sample app, we use the same endpoint for both checks but in your real application, you may want to use
   # different endpoints for each probe.
   enable_liveness_probe  = true
-  liveness_probe_port    = 8080
+  liveness_probe_port    = var.container_port
   liveness_probe_path    = "/health"
   enable_readiness_probe = true
-  readiness_probe_port   = 8080
+  readiness_probe_port   = var.container_port
   readiness_probe_path   = "/health"
 
   # To make it easier to test, we allow force destroying the ALB access logs but in production, you will want to set
