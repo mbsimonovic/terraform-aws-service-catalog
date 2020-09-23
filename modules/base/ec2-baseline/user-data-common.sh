@@ -136,12 +136,10 @@ function start_ec2_baseline {
   local -r log_group_name="$7"
   local -r external_account_ssh_grunt_role_arn="$8"
   shift 8
-  local -a ip_lockdown_users=("$@")
+  local -ra ip_lockdown_users=("$@")
 
   if [[ "$enable_cloudwatch_log_aggregation" == "true" ]]; then
     start_cloudwatch_logs_agent "$log_group_name"
-    # Include cloudwatch monitoring linux user in ip lockdown list
-    ip_lockdown_users+=("cwmonitoring")
   fi
 
   if [[ "$enable_ssh_grunt" == "true" ]]; then
