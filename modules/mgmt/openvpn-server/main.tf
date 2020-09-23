@@ -84,7 +84,20 @@ locals {
     vpn_subnet = var.vpn_subnet
     routes     = join(" ", formatlist("\"%s\"", var.vpn_route_cidr_blocks))
 
-    log_group_name = "${var.name}_log_group"
+    log_group_name                      = "${var.name}_log_group"
+    enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
+    enable_ssh_grunt                    = var.enable_ssh_grunt
+    enable_fail2ban                     = var.enable_fail2ban
+    enable_ip_lockdown                  = var.enable_ip_lockdown
+    ssh_grunt_iam_group                 = var.ssh_grunt_iam_group
+    ssh_grunt_iam_group_sudo            = var.ssh_grunt_iam_group_sudo
+    external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
+    ip_lockdown_users = compact([
+      var.default_user,
+      # User used to push cloudwatch metrics from the server. This should only be included in the ip-lockdown list if
+      # reporting cloudwatch metrics is enabled.
+      var.enable_cloudwatch_metrics ? "cwmonitoring" : ""
+    ])
   }
 
   # Default cloud init script for this module

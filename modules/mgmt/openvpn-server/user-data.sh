@@ -67,6 +67,18 @@ function start_openvpn {
   touch /etc/openvpn/openvpn-init-complete
 }
 
+readonly users_for_ip_lockdown=(%{ for user in ip_lockdown_users }"${user}" %{ endfor })
+start_ec2_baseline \
+  "${enable_cloudwatch_log_aggregation}" \
+  "${enable_ssh_grunt}" \
+  "${enable_fail2ban}" \
+  "${enable_ip_lockdown}" \
+  "${ssh_grunt_iam_group}" \
+  "${ssh_grunt_iam_group_sudo}" \
+  "${log_group_name}" \
+  "${external_account_ssh_grunt_role_arn}" \
+  "$${users_for_ip_lockdown[@]}"
+
 # The variable below are interpolated from Terraform
 # See: https://www.terraform.io/docs/configuration/expressions.html#interpolation
 attach_eip "${eip_id}"
