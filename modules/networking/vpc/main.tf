@@ -175,7 +175,10 @@ module "vpc_network_acls" {
   public_subnet_cidr_blocks              = module.vpc.public_subnet_cidr_blocks
   private_app_subnet_cidr_blocks         = module.vpc.private_app_subnet_cidr_blocks
   private_persistence_subnet_cidr_blocks = module.vpc.private_persistence_subnet_cidr_blocks
-  allow_access_from_mgmt_vpc             = false
+
+  # Setup mgmt VPC access if peering is configured
+  allow_access_from_mgmt_vpc = var.create_peering_connection
+  mgmt_vpc_cidr_block        = var.origin_vpc_cidr_block
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
