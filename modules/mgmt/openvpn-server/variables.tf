@@ -179,6 +179,12 @@ variable "ssh_grunt_iam_group_sudo" {
   default     = ""
 }
 
+variable "enable_fail2ban" {
+  description = "Enable fail2ban to block brute force log in attempts. Defaults to true."
+  type        = bool
+  default     = true
+}
+
 variable "vpn_route_cidr_blocks" {
   description = "A list of CIDR ranges to be routed over the VPN."
   type        = list(string)
@@ -259,4 +265,10 @@ variable "cloud_init_parts" {
     content      = string
   }))
   default = {}
+}
+
+variable "default_user" {
+  description = "The default OS user for the OpenVPN AMI. For AWS Ubuntu AMIs, which is what the Packer template in openvpn-server.json uses, the default OS user is 'ubuntu'."
+  type        = string
+  default     = "ubuntu"
 }

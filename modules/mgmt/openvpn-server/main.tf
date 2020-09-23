@@ -84,7 +84,15 @@ locals {
     vpn_subnet = var.vpn_subnet
     routes     = join(" ", formatlist("\"%s\"", var.vpn_route_cidr_blocks))
 
-    log_group_name = "${var.name}_log_group"
+    log_group_name                      = "${var.name}_log_group"
+    enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
+    enable_ssh_grunt                    = var.enable_ssh_grunt
+    enable_fail2ban                     = var.enable_fail2ban
+    enable_ip_lockdown                  = var.enable_ip_lockdown
+    ssh_grunt_iam_group                 = var.ssh_grunt_iam_group
+    ssh_grunt_iam_group_sudo            = var.ssh_grunt_iam_group_sudo
+    external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
+    default_user                        = var.default_user
   }
 
   # Default cloud init script for this module
