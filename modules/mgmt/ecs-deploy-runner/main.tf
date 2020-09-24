@@ -209,7 +209,7 @@ locals {
             lookup(var.ec2_worker_pool_configuration, "default_user", "ec2-user"),
             # User used to push cloudwatch metrics from the server. This should only be included in the ip-lockdown list if
             # reporting cloudwatch metrics is enabled.
-            local.enable_cloudwatch_metrics ? "cwmonitoring" : ""
+            lookup(var.ec2_worker_pool_configuration, "enable_cloudwatch_metrics", true) ? "cwmonitoring" : ""
           ])
         },
       )
