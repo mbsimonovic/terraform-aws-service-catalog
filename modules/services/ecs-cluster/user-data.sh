@@ -18,6 +18,7 @@ exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
 # Include common functions
 source /etc/user-data/user-data-common.sh
 
+readonly users_for_ip_lockdown=(%{ for user in ip_lockdown_users }"${user}" %{ endfor })
 start_ec2_baseline \
   "${enable_cloudwatch_log_aggregation}" \
   "${enable_ssh_grunt}" \
@@ -26,9 +27,10 @@ start_ec2_baseline \
   "${ssh_grunt_iam_group}" \
   "${ssh_grunt_iam_group_sudo}" \
   "${log_group_name}" \
-  "${external_account_ssh_grunt_role_arn}"
+  "${external_account_ssh_grunt_role_arn}" \
+  "$${users_for_ip_lockdown[@]}"  # Need a double dollar-sign here to avoid Terraform interpolation
 
-# Call the configure-ecs-instance script https://github.com/gruntwork-io/module-ecs/blob/master/modules/ecs-scripts/bin/configure-ecs-instance 
+# Call the configure-ecs-instance script https://github.com/gruntwork-io/module-ecs/blob/master/modules/ecs-scripts/bin/configure-ecs-instance
 # This script sets the required ecs.config file so that the EC2 instance can properly join the ECS cluster
 # See also: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/bootstrap_container_instance.html#bootstrap_container_agent
 /usr/local/bin/configure-ecs-instance --ecs-cluster-name "${cluster_name}" --docker-auth-type ecr --ecr-aws-region "${aws_region}"

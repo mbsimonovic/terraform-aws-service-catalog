@@ -99,35 +99,41 @@ locals {
   cloud_init = {
     filename     = "jenkins-default-cloud-init"
     content_type = "text/x-shellscript"
-    content      = data.template_file.user_data.rendered
+    content      = local.base_user_data
   }
 
   # Merge in all the cloud init scripts the user has passed in
   cloud_init_parts = merge({ default : local.cloud_init }, var.cloud_init_parts)
-}
 
-data "template_file" "user_data" {
-  template = file("${path.module}/user-data.sh")
+  base_user_data = templatefile(
+    "${path.module}/user-data.sh",
+    {
+      # This is the default name tag for the server-group module Jenkins uses under the hood
+      volume_name_tag = "ebs-volume-0"
 
-  vars = {
-    # This is the default name tag for the server-group module Jenkins uses under the hood
-    volume_name_tag = "ebs-volume-0"
+      aws_region                          = data.aws_region.current.name
+      device_name                         = var.jenkins_device_name
+      mount_point                         = var.jenkins_mount_point
+      owner                               = var.jenkins_user
+      memory                              = var.memory
+      log_group_name                      = var.name
+      enable_ssh_grunt                    = var.enable_ssh_grunt
+      enable_fail2ban                     = false
+      enable_ip_lockdown                  = var.enable_ip_lockdown
+      enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
+      ssh_grunt_iam_group                 = var.ssh_grunt_iam_group
+      ssh_grunt_iam_group_sudo            = var.ssh_grunt_iam_group_sudo
+      external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
+      ip_lockdown_users = compact([
+        var.default_user,
+        var.jenkins_user,
+        # User used to push cloudwatch metrics from the server. This should only be included in the ip-lockdown list if
+        # reporting cloudwatch metrics is enabled.
+        var.enable_cloudwatch_metrics ? "cwmonitoring" : ""
+      ])
 
-    aws_region                          = data.aws_region.current.name
-    device_name                         = var.jenkins_device_name
-    mount_point                         = var.jenkins_mount_point
-    owner                               = var.jenkins_user
-    memory                              = var.memory
-    log_group_name                      = var.name
-    enable_ssh_grunt                    = var.enable_ssh_grunt
-    enable_fail2ban                     = false
-    enable_ip_lockdown                  = var.enable_ip_lockdown
-    enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
-    ssh_grunt_iam_group                 = var.ssh_grunt_iam_group
-    ssh_grunt_iam_group_sudo            = var.ssh_grunt_iam_group_sudo
-    external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
-    default_user                        = var.default_user
-  }
+    },
+  )
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

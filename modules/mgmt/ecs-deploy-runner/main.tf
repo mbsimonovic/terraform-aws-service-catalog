@@ -203,9 +203,14 @@ locals {
           enable_cloudwatch_log_aggregation = lookup(var.ec2_worker_pool_configuration, "enable_cloudwatch_log_aggregation", true)
           enable_fail2ban                   = lookup(var.ec2_worker_pool_configuration, "enable_fail2ban", true)
           enable_ip_lockdown                = lookup(var.ec2_worker_pool_configuration, "enable_ip_lockdown", true)
-          default_user                      = lookup(var.ec2_worker_pool_configuration, "default_user", "ec2-user")
           ecs_cluster_name                  = var.name
           aws_region                        = data.aws_region.current.name
+          ip_lockdown_users = compact([
+            lookup(var.ec2_worker_pool_configuration, "default_user", "ec2-user"),
+            # User used to push cloudwatch metrics from the server. This should only be included in the ip-lockdown list if
+            # reporting cloudwatch metrics is enabled.
+            var.enable_cloudwatch_metrics ? "cwmonitoring" : ""
+          ])
         },
       )
     }

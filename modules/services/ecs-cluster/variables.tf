@@ -351,3 +351,8 @@ variable "high_disk_utilization_period" {
   default     = 300
 }
 
+variable "default_user" {
+  description = "The default OS user for the ECS worker AMI. For AWS Amazon Linux AMIs, which is what the Packer template in ecs-node-al2.json uses, the default OS user is 'ec2-user'."
+  type        = string
+  default     = "ec2-user"
+}

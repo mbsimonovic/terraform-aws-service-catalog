@@ -282,36 +282,35 @@ locals {
   cloud_init = {
     filename     = "eks-worker-default-cloud-init"
     content_type = "text/x-shellscript"
-    content      = data.template_file.user_data.rendered
+    content      = local.base_user_data
   }
 
   # Merge in all the cloud init scripts the user has passed in
   cloud_init_parts = merge({ default : local.cloud_init }, var.cloud_init_parts)
   enable_ssh_grunt = var.ssh_grunt_iam_group == "" && var.ssh_grunt_iam_group_sudo == "" ? false : true
-}
 
-data "template_file" "user_data" {
-  template = file("${path.module}/user-data.sh")
+  base_user_data = templatefile(
+    "${path.module}/user-data.sh",
+    {
+      aws_region                = data.aws_region.current.name
+      eks_cluster_name          = var.cluster_name
+      eks_endpoint              = module.eks_cluster.eks_cluster_endpoint
+      eks_certificate_authority = module.eks_cluster.eks_cluster_certificate_authority
 
-  vars = {
-    aws_region                = data.aws_region.current.name
-    eks_cluster_name          = var.cluster_name
-    eks_endpoint              = module.eks_cluster.eks_cluster_endpoint
-    eks_certificate_authority = module.eks_cluster.eks_cluster_certificate_authority
+      enable_ssh_grunt                    = local.enable_ssh_grunt
+      enable_fail2ban                     = var.enable_fail2ban
+      ssh_grunt_iam_group                 = var.ssh_grunt_iam_group
+      ssh_grunt_iam_group_sudo            = var.ssh_grunt_iam_group_sudo
+      external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
 
-    enable_ssh_grunt                    = local.enable_ssh_grunt
-    enable_fail2ban                     = var.enable_fail2ban
-    ssh_grunt_iam_group                 = var.ssh_grunt_iam_group
-    ssh_grunt_iam_group_sudo            = var.ssh_grunt_iam_group_sudo
-    external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
+      # We disable CloudWatch logs at the VM level as this is handled internally in k8s.
+      enable_cloudwatch_log_aggregation = false
+      log_group_name                    = ""
 
-    # We disable CloudWatch logs at the VM level as this is handled internally in k8s.
-    enable_cloudwatch_log_aggregation = false
-    log_group_name                    = ""
-
-    # TODO: investigate if IP lockdown can now be enabled due to IRSA
-    enable_ip_lockdown = false
-  }
+      # TODO: investigate if IP lockdown can now be enabled due to IRSA
+      enable_ip_lockdown = false
+    },
+  )
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

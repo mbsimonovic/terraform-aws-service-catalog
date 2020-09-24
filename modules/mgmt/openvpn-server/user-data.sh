@@ -77,7 +77,7 @@ start_ec2_baseline \
   "${ssh_grunt_iam_group_sudo}" \
   "${log_group_name}" \
   "${external_account_ssh_grunt_role_arn}" \
-  "$${users_for_ip_lockdown[@]}"
+  "$${users_for_ip_lockdown[@]}"  # Need a double dollar-sign here to avoid Terraform interpolation
 
 # The variable below are interpolated from Terraform
 # See: https://www.terraform.io/docs/configuration/expressions.html#interpolation

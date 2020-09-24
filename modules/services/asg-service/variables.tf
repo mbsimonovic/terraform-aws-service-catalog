@@ -565,3 +565,9 @@ variable "external_account_ssh_grunt_role_arn" {
   type        = string
   default     = ""
 }
+
+variable "default_user" {
+  description = "The default OS user for the service AMI. For example, for AWS Ubuntu AMIs, the default OS user is 'ubuntu'."
+  type        = string
+  default     = "ubuntu"
+}
