@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	edrhelpers "github.com/gruntwork-io/aws-service-catalog/test/edrhelpers"
+	"github.com/gruntwork-io/aws-service-catalog/test/edrhelpers"
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/docker"
 	"github.com/gruntwork-io/terratest/modules/git"
