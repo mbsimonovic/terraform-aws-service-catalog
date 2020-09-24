@@ -81,12 +81,6 @@ variable "kubeconfig_context" {
 
 # Configurations for the sample app
 
-variable "app_environment_name" {
-  description = "The environment name for the app: e.g., development, test, dev, stage, prod. From this variable, we will derive NODE_ENV, which will always be set to development, test, or production."
-  type        = string
-  default     = "dev"
-}
-
 variable "configmaps_as_env_vars" {
   description = "Kubernetes ConfigMaps to be injected into the container. Each entry in the map represents a ConfigMap to be injected, with the key representing the name of the ConfigMap. The value is also a map, with each entry corresponding to an entry in the ConfigMap, with the key corresponding to the ConfigMap entry key and the value corresponding to the environment variable name."
   type        = map(map(string))

@@ -1,6 +1,7 @@
 package test
 
 import (
+	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -140,14 +141,27 @@ func noExtraVarsForK8SService(t *testing.T, kubectlOptions *k8s.KubectlOptions) 
 	return map[string]interface{}{}
 }
 
+func getCustomGreeting(namespace string) string {
+	return fmt.Sprintf("Hello from namespace %s", namespace)
+}
+
 // sampleAppValidationWithGreetingFunction checks that we get a 200 response with the configured sample app greeting
 // message.
 func sampleAppValidationWithGreetingFunctionGenerator(expectedGreeting string) func(statusCode int, body string) bool {
 	return func(statusCode int, body string) bool {
-		return statusCode == 200 && strings.Contains(body, expectedGreeting)
+		var bodyData GreetingData
+		err := json.Unmarshal([]byte(body), &bodyData)
+		return err == nil && statusCode == 200 && bodyData.ConfigKey == "app.greeting" && bodyData.ConfigValue == expectedGreeting
 	}
 }
 
-func getCustomGreeting(namespace string) string {
-	return fmt.Sprintf("Hello from namespace %s", namespace)
+// GreetingData represents the json structure returned by the greeting endpoint for the sample app. Note that we only
+// set concrete types for the fields that are relevant for verification.
+type GreetingData struct {
+	Title       string `json:"title"`
+	ConfigKey   string `json:"configKey"`
+	ConfigValue string `json:"configValue"`
+
+	// We use interface here because we don't care about this field
+	UrlsToTry interface{} `json:"urlsToTry"`
 }

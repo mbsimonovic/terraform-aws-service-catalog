@@ -76,8 +76,8 @@ module "application" {
   # the `secrets_as_env_vars` setting to inject from Kubernetes Secrets, or injecting directly into the app from your
   # preferred secrets management solution!
   env_vars = {
-    CONFIG_APP_NAME             = "frontend"
-    CONFIG_APP_ENVIRONMENT_NAME = var.app_environment_name
+    CONFIG_APP_NAME             = "backend"
+    CONFIG_APP_ENVIRONMENT_NAME = "dev"
     CONFIG_SERVER_HTTP_PORT     = var.container_port
     CONFIG_SECRETS_DIR          = "/mnt/secrets"
 

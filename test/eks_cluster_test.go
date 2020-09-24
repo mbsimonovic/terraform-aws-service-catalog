@@ -272,10 +272,13 @@ func validateSampleApp(t *testing.T, eksClusterTestFolder string, k8sServiceTest
 	tmpKubeConfigPath := configureKubectlForEKSCluster(t, eksClusterArn)
 	defer os.Remove(tmpKubeConfigPath)
 	options := k8s.NewKubectlOptions("", tmpKubeConfigPath, "default")
-	verifyPodsCreatedSuccessfully(t, options, applicationName)
-	verifyAllPodsAvailable(t, options, applicationName, "/health", sampleAppValidationFunction)
 
-	ingressEndpoint := fmt.Sprintf("https://sample-app-%s.%s/health", clusterName, baseDomainForTest)
+	sampleAppValidationFunction := sampleAppValidationWithGreetingFunctionGenerator("Hello from the dev config!")
+
+	verifyPodsCreatedSuccessfully(t, options, applicationName)
+	verifyAllPodsAvailable(t, options, applicationName, "/greeting", sampleAppValidationFunction)
+
+	ingressEndpoint := fmt.Sprintf("https://sample-app-%s.%s/greeting", clusterName, baseDomainForTest)
 	http_helper.HttpGetWithRetryWithCustomValidation(
 		t,
 		ingressEndpoint,

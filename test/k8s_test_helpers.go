@@ -2,7 +2,6 @@ package test
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 	"time"
 
@@ -19,11 +18,6 @@ const (
 	K8SIngressWaitTimerSleep   = 20 * time.Second
 	K8SServiceNumPodsExpected  = 1
 )
-
-// sampleAppValidationFunction checks that we get a 200 response with the sample app healthy message.
-func sampleAppValidationFunction(statusCode int, body string) bool {
-	return statusCode == 200 && strings.Contains(body, "The app is operational and ready to serve traffic.")
-}
 
 // verifyPodsCreatedSuccessfully waits until the pods for the given helm release are created.
 func verifyPodsCreatedSuccessfully(t *testing.T, kubectlOptions *k8s.KubectlOptions, appName string) {
