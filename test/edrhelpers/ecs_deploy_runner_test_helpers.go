@@ -23,7 +23,10 @@ import (
 	"golang.org/x/oauth2"
 )
 
-const gitPATEnvName = "GITHUB_OAUTH_TOKEN"
+const (
+	ModuleCIRepo = "git@github.com:gruntwork-io/module-ci.git"
+	ModuleCITag  = "v0.28.1"
+)
 
 var ECSFargateRegions = []string{
 	"us-east-1",
@@ -81,7 +84,7 @@ func DeleteDockerImage(t *testing.T, img string) {
 
 // CreateECRRepo creates a new ECR Repository
 func CreateECRRepo(t *testing.T, region string, name string) string {
-	client := helpers.NewECRClient(t, region)
+	client := NewECRClient(t, region)
 	resp, err := client.CreateRepository(&ecr.CreateRepositoryInput{RepositoryName: awsgo.String(name)})
 	require.NoError(t, err)
 	return awsgo.StringValue(resp.Repository.RepositoryUri)
@@ -89,7 +92,7 @@ func CreateECRRepo(t *testing.T, region string, name string) string {
 
 // DeleteECRRepo will force delete the ECR repo by deleting all images prior to deleting the ECR repository.
 func DeleteECRRepo(t *testing.T, region string, name string) {
-	client := helpers.NewECRClient(t, region)
+	client := NewECRClient(t, region)
 
 	resp, err := client.ListImages(&ecr.ListImagesInput{RepositoryName: awsgo.String(name)})
 	require.NoError(t, err)
@@ -185,7 +188,7 @@ func InvokeInfrastructureDeployer(
 			"terraform-applier",
 			"infrastructure-deploy-script",
 			"--ref", "master",
-			"--repo", moduleCIRepo,
+			"--repo", ModuleCIRepo,
 			"--deploy-path", "test/fixtures/tfpipeline/root/terragrunt",
 			"--binary", "terragrunt",
 			"--command", "apply",
@@ -194,7 +197,7 @@ func InvokeInfrastructureDeployer(
 	out := shell.RunCommandAndGetOutput(t, cmd)
 	assert.Contains(t, out, "data = Hello world")
 	assert.Contains(t, out, "\"terragrunt apply\" exited with code 0")
-	helpers.AssertECSLaunchType(t, region, ecsClusterArn, out, ecsLaunchType)
+	AssertECSLaunchType(t, region, ecsClusterArn, out, ecsLaunchType)
 }
 
 // AssertECSLaunchType asserts that the actual launch type matches the expected launch type

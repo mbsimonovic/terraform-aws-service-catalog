@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	edrhelpers "github.com/gruntwork-io/aws-service-catalog/test/helpers"
+	edrhelpers "github.com/gruntwork-io/aws-service-catalog/test/edrhelpers"
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/docker"
 	"github.com/gruntwork-io/terratest/modules/git"
@@ -26,8 +26,7 @@ const (
 	deployRunnerImgTag = "deploy-runner-v1"
 	kanikoImgTag       = "kaniko-v1"
 
-	moduleCIRepo = "git@github.com:gruntwork-io/module-ci.git"
-	moduleCITag  = "v0.28.1"
+	gitPATEnvName = "GITHUB_OAUTH_TOKEN"
 )
 
 // TestEcsDeployRunner tests the ECS Deploy Runner module.
@@ -68,13 +67,13 @@ func TestEcsDeployRunner(t *testing.T) {
 
 	// Setup test environment by choosing a region and generating a unique ID for namespacing resources.
 	test_structure.RunTestStage(t, "setup", func() {
-		region := aws.GetRandomStableRegion(t, ECSFargateRegions, nil)
+		region := aws.GetRandomStableRegion(t, edrhelpers.ECSFargateRegions, nil)
 		uniqueID := strings.ToLower(random.UniqueId())
 		test_structure.SaveString(t, workingDir, "UniqueID", uniqueID)
 		test_structure.SaveString(t, workingDir, "AwsRegion", region)
 
 		// Use gruntwork-installer to install infrastructure-deployer into module dir so we can use it for testing
-		edrhelpers.InstallInfrastructureDeployer(t, modulePath, moduleCITag)
+		edrhelpers.InstallInfrastructureDeployer(t, modulePath, edrhelpers.ModuleCITag)
 	})
 	uniqueID := test_structure.LoadString(t, workingDir, "UniqueID")
 	region := test_structure.LoadString(t, workingDir, "AwsRegion")
@@ -147,22 +146,22 @@ func TestEcsDeployRunner(t *testing.T) {
 			Tags: []string{deployRunnerImg},
 			BuildArgs: []string{
 				"GITHUB_OAUTH_TOKEN",
-				fmt.Sprintf("module_ci_tag=%s", moduleCITag),
+				fmt.Sprintf("module_ci_tag=%s", edrhelpers.ModuleCITag),
 			},
 			OtherOptions: []string{"--no-cache"},
 		}
-		edrhelpers.GitCloneAndDockerBuild(t, moduleCIRepo, moduleCITag, "modules/ecs-deploy-runner/docker/deploy-runner", deployRunnerBuildOpts)
+		edrhelpers.GitCloneAndDockerBuild(t, edrhelpers.ModuleCIRepo, edrhelpers.ModuleCITag, "modules/ecs-deploy-runner/docker/deploy-runner", deployRunnerBuildOpts)
 
 		// kaniko docker image
 		kanikoBuildOpts := &docker.BuildOptions{
 			Tags: []string{kanikoImg},
 			BuildArgs: []string{
 				"GITHUB_OAUTH_TOKEN",
-				fmt.Sprintf("module_ci_tag=%s", moduleCITag),
+				fmt.Sprintf("module_ci_tag=%s", edrhelpers.ModuleCITag),
 			},
 			OtherOptions: []string{"--no-cache"},
 		}
-		edrhelpers.GitCloneAndDockerBuild(t, moduleCIRepo, moduleCITag, "modules/ecs-deploy-runner/docker/kaniko", kanikoBuildOpts)
+		edrhelpers.GitCloneAndDockerBuild(t, edrhelpers.ModuleCIRepo, edrhelpers.ModuleCITag, "modules/ecs-deploy-runner/docker/kaniko", kanikoBuildOpts)
 	})
 	test_structure.RunTestStage(t, "push_docker_image", func() {
 		pushCmd := shell.Command{
@@ -232,7 +231,7 @@ func TestEcsDeployRunner(t *testing.T) {
 					"docker_tag":   deployRunnerImgTag,
 				},
 				"iam_policy":                              map[string]interface{}{},
-				"infrastructure_live_repositories":        []string{serviceCatalogRepo, moduleCIRepo},
+				"infrastructure_live_repositories":        []string{serviceCatalogRepo, edrhelpers.ModuleCIRepo},
 				"infrastructure_live_repositories_regex":  []string{},
 				"repo_access_ssh_key_secrets_manager_arn": sshSecretsManagerArn,
 				"secrets_manager_env_vars":                map[string]interface{}{},
@@ -244,7 +243,7 @@ func TestEcsDeployRunner(t *testing.T) {
 					"docker_tag":   deployRunnerImgTag,
 				},
 				"iam_policy":                             map[string]interface{}{},
-				"infrastructure_live_repositories":       []string{serviceCatalogRepo, moduleCIRepo},
+				"infrastructure_live_repositories":       []string{serviceCatalogRepo, edrhelpers.ModuleCIRepo},
 				"infrastructure_live_repositories_regex": []string{},
 				"allowed_update_variable_names":          []string{"tag", "docker_tag", "ami_version_tag", "ami"},
 				"allowed_apply_git_refs":                 []string{"master"},
