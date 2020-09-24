@@ -82,7 +82,15 @@ locals {
     queue_region         = data.aws_region.current.name
 
     vpn_subnet = var.vpn_subnet
-    routes     = join(" ", formatlist("\"%s\"", var.vpn_route_cidr_blocks))
+    routes = join(
+      " ",
+      formatlist(
+        "\"%s\"",
+        # init-openvpn expects the subnet routes in [subnet] [mask] format (e.g., "10.100.0.0 255.255.255.0"), so we
+        # need to translate the CIDR blocks to this format.
+        [for cidr_block in var.vpn_route_cidr_blocks : "${cidrhost(cidr_block, 0)} ${cidrnetmask(cidr_block)}"],
+      ),
+    )
 
     log_group_name                      = "${var.name}_log_group"
     enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
