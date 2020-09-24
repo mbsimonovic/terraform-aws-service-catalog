@@ -27,7 +27,8 @@ variable "image" {
 variable "image_version" {
   description = "Which version (AKA tag) of the var.image Docker image to deploy (e.g. 0.57)."
   type        = string
-  default     = "v0.0.2"
+  # renovate.json auto-update-github-releases: gruntwork-io/aws-sample-app
+  default = "v0.0.2"
 }
 
 variable "namespace" {

@@ -13,6 +13,13 @@
       "datasourceTemplate": "terraform-module"
     },
     {
+      "fileMatch": ["\\.tf$", "\\.hcl$"],
+      "matchStrings": ["renovate.json auto-update-github-releases: (?<org>.+?)/(?<repo>.+?)\n.+=\"(?<currentValue>.+?)\""],
+      "depNameTemplate": "{{org}}/{{repo}}",
+      "lookupNameTemplate": "{{org}}/{{repo}}",
+      "datasourceTemplate": "github-releases"
+    },
+    {
       "fileMatch": ["\\.sh$"],
       "matchStrings": ["renovate.json auto-update: (?<name>.+?)\n.+=\"(?<currentValue>.+?)\""],
       "depNameTemplate": "gruntwork-io/{{name}}",
