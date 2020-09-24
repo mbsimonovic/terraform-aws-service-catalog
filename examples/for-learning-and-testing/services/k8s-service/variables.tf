@@ -19,7 +19,7 @@ variable "container_port" {
 }
 
 variable "image" {
-  description = "The Docker image to run (e.g. gruntwork/frontend-service)."
+  description = "The Docker image to run (e.g. gruntwork/frontend-service). This example is configured to deploy the Gruntwork AWS Sample App (https://github.com/gruntwork-io/aws-sample-app/), a node.js based app that demonstrates best practices and patterns for production. Refer to the comments in main.tf for how to adapt this example to deploy other kinds of apps."
   type        = string
   default     = "gruntwork/aws-sample-app"
 }

@@ -69,6 +69,12 @@ module "application" {
   domain_name          = var.domain_name != null ? var.domain_name : ""
 
   # This is an example of how to configure hard coded environment variables that are necessary for running your app.
+  # Here we configure all the necessary settings for running the Gruntwork AWS Sample App
+  # (https://github.com/gruntwork-io/aws-sample-app/).
+  # Modify these environment variables if you wish to deploy and configure other kinds of apps.
+  # IMPORTANT NOTE: Do NOT use this setting for configuring secrets (e.g. database passwords)! Instead, rely on
+  # the `secrets_as_env_vars` setting to inject from Kubernetes Secrets, or injecting directly into the app from your
+  # preferred secrets management solution!
   env_vars = {
     CONFIG_APP_NAME             = "frontend"
     CONFIG_APP_ENVIRONMENT_NAME = var.app_environment_name
