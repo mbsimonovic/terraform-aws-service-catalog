@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	edrhelpers "github.com/gruntwork-io/aws-service-catalog/test/helpers"
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/docker"
 	"github.com/gruntwork-io/terratest/modules/git"
@@ -56,7 +57,7 @@ func TestEcsDeployRunner(t *testing.T) {
 	// - Make sure infrastructure-deployer CLI is available
 	requireEnvVar(t, "GITHUB_OAUTH_TOKEN")
 	requireEnvVar(t, "TERRATEST_SSH_PRIVATE_KEY_PATH")
-	helpers.RequireGruntworkInstaller(t)
+	edrhelpers.RequireGruntworkInstaller(t)
 
 	modulePath := test_structure.CopyTerraformFolderToTemp(t, "..", "examples/for-learning-and-testing/mgmt/ecs-deploy-runner")
 	infraDeployerBinPath := filepath.Join(modulePath, "infrastructure-deployer")
@@ -73,7 +74,7 @@ func TestEcsDeployRunner(t *testing.T) {
 		test_structure.SaveString(t, workingDir, "AwsRegion", region)
 
 		// Use gruntwork-installer to install infrastructure-deployer into module dir so we can use it for testing
-		helpers.InstallInfrastructureDeployer(t, modulePath, moduleCITag)
+		edrhelpers.InstallInfrastructureDeployer(t, modulePath, moduleCITag)
 	})
 	uniqueID := test_structure.LoadString(t, workingDir, "UniqueID")
 	region := test_structure.LoadString(t, workingDir, "AwsRegion")
@@ -104,10 +105,10 @@ func TestEcsDeployRunner(t *testing.T) {
 
 	// Setup ECR repository
 	defer test_structure.RunTestStage(t, "cleanup_ecr_repo", func() {
-		helpers.DeleteECRRepo(t, region, repository)
+		edrhelpers.DeleteECRRepo(t, region, repository)
 	})
 	test_structure.RunTestStage(t, "setup_ecr_repo", func() {
-		repositoryUri := helpers.CreateECRRepo(t, region, repository)
+		repositoryUri := edrhelpers.CreateECRRepo(t, region, repository)
 		test_structure.SaveString(t, workingDir, "EcrRepositoryUri", repositoryUri)
 	})
 	repositoryUri := test_structure.LoadString(t, workingDir, "EcrRepositoryUri")
@@ -124,7 +125,7 @@ func TestEcsDeployRunner(t *testing.T) {
 	})
 	test_structure.RunTestStage(t, "setup_ssh_private_key", func() {
 		sshKeyName := fmt.Sprintf("ECRDeployRunnerTestSSHKey-%s", uniqueID)
-		privateKey := helpers.LoadSSHKey(t)
+		privateKey := edrhelpers.LoadSSHKey(t)
 		sshSecretsManagerArn := aws.CreateSecretStringWithDefaultKey(t, region, sshKeyName, sshKeyName, privateKey)
 		test_structure.SaveString(t, workingDir, "SSHKeySecretsManagerArn", sshSecretsManagerArn)
 
@@ -137,8 +138,8 @@ func TestEcsDeployRunner(t *testing.T) {
 
 	// Build and push docker image
 	defer test_structure.RunTestStage(t, "delete_docker_image", func() {
-		helpers.DeleteDockerImage(t, deployRunnerImg)
-		helpers.DeleteDockerImage(t, kanikoImg)
+		edrhelpers.DeleteDockerImage(t, deployRunnerImg)
+		edrhelpers.DeleteDockerImage(t, kanikoImg)
 	})
 	test_structure.RunTestStage(t, "build_docker_image", func() {
 		// deploy-runner docker image
@@ -150,7 +151,7 @@ func TestEcsDeployRunner(t *testing.T) {
 			},
 			OtherOptions: []string{"--no-cache"},
 		}
-		helpers.GitCloneAndDockerBuild(t, moduleCIRepo, moduleCITag, "modules/ecs-deploy-runner/docker/deploy-runner", deployRunnerBuildOpts)
+		edrhelpers.GitCloneAndDockerBuild(t, moduleCIRepo, moduleCITag, "modules/ecs-deploy-runner/docker/deploy-runner", deployRunnerBuildOpts)
 
 		// kaniko docker image
 		kanikoBuildOpts := &docker.BuildOptions{
@@ -161,7 +162,7 @@ func TestEcsDeployRunner(t *testing.T) {
 			},
 			OtherOptions: []string{"--no-cache"},
 		}
-		helpers.GitCloneAndDockerBuild(t, moduleCIRepo, moduleCITag, "modules/ecs-deploy-runner/docker/kaniko", kanikoBuildOpts)
+		edrhelpers.GitCloneAndDockerBuild(t, moduleCIRepo, moduleCITag, "modules/ecs-deploy-runner/docker/kaniko", kanikoBuildOpts)
 	})
 	test_structure.RunTestStage(t, "push_docker_image", func() {
 		pushCmd := shell.Command{
@@ -180,7 +181,7 @@ func TestEcsDeployRunner(t *testing.T) {
 	})
 
 	// Deploy the ECS deploy runner
-	gitUserEmail, gitUserName := helpers.GetGitUserInfo(t, os.Getenv(gitPATEnvName))
+	gitUserEmail, gitUserName := edrhelpers.GetGitUserInfo(t, os.Getenv(gitPATEnvName))
 	deployOpts := &terraform.Options{
 		TerraformDir: modulePath,
 		Vars: map[string]interface{}{
@@ -281,13 +282,13 @@ func TestEcsDeployRunner(t *testing.T) {
 		t.Run("EC2", func(t *testing.T) {
 			t.Parallel()
 			test_structure.RunTestStage(t, "validate_deploy_runner_ec2", func() {
-				helpers.InvokeInfrastructureDeployer(t, deployOpts, infraDeployerBinPath, "EC2")
+				edrhelpers.InvokeInfrastructureDeployer(t, deployOpts, infraDeployerBinPath, "EC2")
 			})
 		})
 		t.Run("FARGATE", func(t *testing.T) {
 			t.Parallel()
 			test_structure.RunTestStage(t, "validate_deploy_runner_fargate", func() {
-				helpers.InvokeInfrastructureDeployer(t, deployOpts, infraDeployerBinPath, "FARGATE")
+				edrhelpers.InvokeInfrastructureDeployer(t, deployOpts, infraDeployerBinPath, "FARGATE")
 			})
 		})
 	})
