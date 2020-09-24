@@ -26,9 +26,10 @@ terraform {
 module "vpc" {
   source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-app?ref=v0.10.0"
 
-  vpc_name   = var.vpc_name
-  aws_region = var.aws_region
-  tenancy    = var.tenancy
+  vpc_name               = var.vpc_name
+  aws_region             = var.aws_region
+  tenancy                = var.tenancy
+  num_availability_zones = var.num_availability_zones
 
   # The number of NAT Gateways to launch for this VPC. For production VPCs, a NAT Gateway should be placed in each
   # Availability Zone, whereas for non-production VPCs, just one Availability Zone (and hence 1 NAT
