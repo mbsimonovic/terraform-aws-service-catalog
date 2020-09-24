@@ -101,7 +101,7 @@ variable "configmaps_as_env_vars" {
 }
 
 variable "secrets_as_env_vars" {
-  description = "Kubernetes Secrets to be injected into the container. Each entry in the map represents a Secret to be injected, with the key representing the name of the Secret. The value is also a map, with each entry corresponding to an entry in the Secret, with the key corresponding to the Secret entry key and the value corresponding to the environment variable name."
+  description = "Kubernetes Secrets to be injected into the container. Each entry in the map represents a Secret to be injected, with the key representing the name of the Secret. The value is also a map, with each entry corresponding to an entry in the Secret, with the key corresponding to the Secret entry key and the value corresponding to the environment variable name. This allows you to inject secrets from a Secret resource without the secret value leaking into the config in plain text or into the terraform state."
   type        = map(map(string))
   default     = {}
 
