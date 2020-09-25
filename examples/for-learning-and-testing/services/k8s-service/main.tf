@@ -68,11 +68,51 @@ module "application" {
   create_route53_entry = var.domain_name != null
   domain_name          = var.domain_name != null ? var.domain_name : ""
 
+  # This is an example of how to configure hard coded environment variables that are necessary for running your app.
+  # Here we configure all the necessary settings for running the Gruntwork AWS Sample App
+  # (https://github.com/gruntwork-io/aws-sample-app/).
+  # Modify these environment variables if you wish to deploy and configure other kinds of apps.
+  # IMPORTANT NOTE: Do NOT use this setting for configuring secrets (e.g. database passwords)! Instead, rely on
+  # the `secrets_as_env_vars` setting to inject from Kubernetes Secrets, or injecting directly into the app from your
+  # preferred secrets management solution!
+  env_vars = {
+    CONFIG_APP_NAME             = "backend"
+    CONFIG_APP_ENVIRONMENT_NAME = "dev"
+    CONFIG_SERVER_HTTP_PORT     = var.container_port
+    CONFIG_SECRETS_DIR          = "/mnt/secrets"
+
+    # Disable HTTPS endpoint for test purposes.
+    NODE_CONFIG = jsonencode({
+      server = {
+        httpsPort = null
+      }
+    })
+  }
+
+  # These variables can be used for configuring dynamic data that is managed separately from the app deployment.
+  # ConfigMaps are recommended for configuration data that are not sensitive, while Secrets are recommended for
+  # sensitive data.
+  configmaps_as_env_vars = var.configmaps_as_env_vars
+  secrets_as_env_vars    = var.secrets_as_env_vars
+
   # If you want to debug the Helm chart, you can set this parameter to output the chart values to a file
   values_file_path = "${path.module}/debug_values.yaml"
+
+  # Configure liveness and readiness probes to the sample app health endpoint.
+  # Liveness is used to indicate if the Pod is alive and used to determine if the Pod needs to be restarted.
+  # Readiness is used to indicate if the Pod is ready to receive traffic, and used to determine if the Pod should be
+  # included in Service endpoints.
+  # For the sample app, we use the same endpoint for both checks but in your real application, you may want to use
+  # different endpoints for each probe.
+  enable_liveness_probe  = true
+  liveness_probe_port    = var.container_port
+  liveness_probe_path    = "/health"
+  enable_readiness_probe = true
+  readiness_probe_port   = var.container_port
+  readiness_probe_path   = "/health"
 
   # To make it easier to test, we allow force destroying the ALB access logs but in production, you will want to set
   # this to false so that the access logs are not accidentally destroyed permanently.
   force_destroy_ingress_access_logs  = true
-  ingress_access_logs_s3_bucket_name = "gruntwork-service-catalog-test-${var.application_name}-alb-access-logs"
+  ingress_access_logs_s3_bucket_name = "gw-service-catalog-test-${var.application_name}-alb-access-logs"
 }
