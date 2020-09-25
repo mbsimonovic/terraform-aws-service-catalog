@@ -34,7 +34,6 @@
     "region": "{{user `aws_region`}}",
     "instance_type": "t3.micro",
     "type": "amazon-ebs",
-    "associate_public_ip_address": true,
     "source_ami_filter": {
       "filters": {
         "virtualization-type": "hvm",
