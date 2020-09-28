@@ -25,7 +25,7 @@ terraform {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "redis" {
-  source = "git::git@github.com:gruntwork-io/module-cache.git//modules/redis?ref=v0.9.4"
+  source = "git::git@github.com:gruntwork-io/module-cache.git//modules/redis?ref=v0.10.0"
 
   name = var.name
 
