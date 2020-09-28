@@ -21,7 +21,7 @@ terraform {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "memcached" {
-  source = "git::git@github.com:gruntwork-io/module-cache.git//modules/memcached?ref=v0.9.4"
+  source = "git::git@github.com:gruntwork-io/module-cache.git//modules/memcached?ref=v0.10.0"
 
   name = var.name
 
