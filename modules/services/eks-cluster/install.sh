@@ -4,7 +4,7 @@
 set -e
 
 # renovate.json auto-update: terraform-aws-eks
-readonly DEFAULT_TERRAFORM_AWS_EKS_VERSION="v0.23.2"
+readonly DEFAULT_TERRAFORM_AWS_EKS_VERSION="v0.23.3"
 
 # NOTE: A few variables will be imported from ec2-baseline
 # - DEFAULT_MODULE_SECURITY_VERSION
