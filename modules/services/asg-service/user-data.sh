@@ -9,7 +9,7 @@ exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
 # Include common functions
 source /etc/user-data/user-data-common.sh
 
-readonly users_for_ip_lockdown=(%{ for user in ip_lockdown_users }"${user}" %{ endfor })
+readonly users_for_ip_lockdown=(${ip_lockdown_users})
 start_ec2_baseline \
   "${enable_cloudwatch_log_aggregation}" \
   "${enable_ssh_grunt}" \

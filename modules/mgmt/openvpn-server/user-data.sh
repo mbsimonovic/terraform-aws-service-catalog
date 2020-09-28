@@ -67,7 +67,7 @@ function start_openvpn {
   touch /etc/openvpn/openvpn-init-complete
 }
 
-readonly users_for_ip_lockdown=(%{ for user in ip_lockdown_users }"${user}" %{ endfor })
+readonly users_for_ip_lockdown=(${ip_lockdown_users})
 start_ec2_baseline \
   "${enable_cloudwatch_log_aggregation}" \
   "${enable_ssh_grunt}" \

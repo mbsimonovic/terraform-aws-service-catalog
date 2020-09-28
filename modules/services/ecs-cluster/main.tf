@@ -57,6 +57,18 @@ locals {
   # Merge in all the cloud init scripts the user has passed in
   cloud_init_parts = merge({ default : local.cloud_init }, var.cloud_init_parts)
 
+  ip_lockdown_users = compact([
+    var.default_user,
+    # User used to push cloudwatch metrics from the server. This should only be included in the ip-lockdown list if
+    # reporting cloudwatch metrics is enabled.
+    var.enable_cloudwatch_metrics ? "cwmonitoring" : ""
+  ])
+  # We want a space separated list of the users, quoted with ''
+  ip_lockdown_users_bash_array = join(
+    " ",
+    [for user in local.ip_lockdown_users : "'${user}'"],
+  )
+
   base_user_data = templatefile(
     "${path.module}/user-data.sh",
     {
@@ -70,12 +82,7 @@ locals {
       external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
       enable_fail2ban                     = var.enable_fail2ban
       enable_ip_lockdown                  = var.enable_ip_lockdown
-      ip_lockdown_users = compact([
-        var.default_user,
-        # User used to push cloudwatch metrics from the server. This should only be included in the ip-lockdown list if
-        # reporting cloudwatch metrics is enabled.
-        var.enable_cloudwatch_metrics ? "cwmonitoring" : ""
-      ])
+      ip_lockdown_users                   = local.ip_lockdown_users_bash_array
     },
   )
 }

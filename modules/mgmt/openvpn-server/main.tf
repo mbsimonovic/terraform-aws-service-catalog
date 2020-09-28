@@ -60,6 +60,18 @@ module "openvpn" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 locals {
+  ip_lockdown_users = compact([
+    var.default_user,
+    # User used to push cloudwatch metrics from the server. This should only be included in the ip-lockdown list if
+    # reporting cloudwatch metrics is enabled.
+    var.enable_cloudwatch_metrics ? "cwmonitoring" : ""
+  ])
+  # We want a space separated list of the users, quoted with ''
+  ip_lockdown_users_bash_array = join(
+    " ",
+    [for user in local.ip_lockdown_users : "'${user}'"],
+  )
+
   user_data_vars = {
     backup_bucket_name = module.openvpn.backup_bucket_name
     kms_key_arn        = local.kms_key_arn
@@ -100,12 +112,7 @@ locals {
     ssh_grunt_iam_group                 = var.ssh_grunt_iam_group
     ssh_grunt_iam_group_sudo            = var.ssh_grunt_iam_group_sudo
     external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
-    ip_lockdown_users = compact([
-      var.default_user,
-      # User used to push cloudwatch metrics from the server. This should only be included in the ip-lockdown list if
-      # reporting cloudwatch metrics is enabled.
-      var.enable_cloudwatch_metrics ? "cwmonitoring" : ""
-    ])
+    ip_lockdown_users                   = local.ip_lockdown_users_bash_array
   }
 
   # Default cloud init script for this module
