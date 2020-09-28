@@ -17,7 +17,7 @@ defaults: &defaults
     # renovate.json auto-update: kubergrunt
     KUBERGRUNT_VERSION: v0.6.0
     # renovate.json auto-update: module-ci
-    MODULE_CI_VERSION: v0.28.3
+    MODULE_CI_VERSION: v0.28.4
     # renovate.json auto-update: terragrunt
     TERRAGRUNT_VERSION: v0.25.1
     # renovate.json auto-update-github-releases: hashicorp/terraform
