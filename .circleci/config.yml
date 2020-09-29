@@ -34,6 +34,10 @@ defaults: &defaults
     HUB_VERSION: 2.14.2
     MINIKUBE_VERSION: v1.11.0
     KUBECONFIG: /home/circleci/.kube/config
+    # The GOPRIVATE environment variable controls which modules the go command considers to be private 
+    # (not available publicly) and should therefore not use the proxy or checksum database.
+    # Without this, tests fail with a "410 Gone" error
+    GOPRIVATE: github.com
 
 install_gruntwork_utils: &install_gruntwork_utils
   name: install gruntwork utils
