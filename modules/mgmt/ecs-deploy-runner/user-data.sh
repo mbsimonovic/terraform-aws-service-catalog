@@ -21,6 +21,7 @@ readonly hardcoded_ssh_grunt_iam_group=""
 readonly hardcoded_ssh_grunt_iam_group_sudo=""
 readonly hardcoded_external_account_ssh_grunt_role_arn=""
 
+readonly users_for_ip_lockdown=(${ip_lockdown_users})
 start_ec2_baseline \
   "${enable_cloudwatch_log_aggregation}" \
   "$hardcoded_enable_ssh_grunt" \
@@ -30,7 +31,7 @@ start_ec2_baseline \
   "$hardcoded_ssh_grunt_iam_group_sudo" \
   "${log_group_name}" \
   "$hardcoded_external_account_ssh_grunt_role_arn" \
-  "${default_user}"
+  "$${users_for_ip_lockdown[@]}"  # Need a double dollar-sign here to avoid Terraform interpolation
 
 configure-ecs-instance \
   --ecs-cluster-name ${ecs_cluster_name} \
