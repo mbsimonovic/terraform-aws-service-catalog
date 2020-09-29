@@ -30,9 +30,9 @@ func TestTlsScripts(t *testing.T) {
 	t.Parallel()
 
 	// Uncomment the items below to skip certain parts of the test
-	// os.Setenv("TERRATEST_REGION", "us-east-1")
-	// os.Setenv("SKIP_deploy", "true")
-	// os.Setenv("SKIP_validate", "true")
+	os.Setenv("TERRATEST_REGION", "us-east-1")
+	os.Setenv("SKIP_deploy", "true")
+	os.Setenv("SKIP_validate", "true")
 	// os.Setenv("SKIP_cleanup", "true")
 
 	requireEnvVar(t, "GITHUB_OAUTH_TOKEN")
@@ -45,9 +45,9 @@ func TestTlsScripts(t *testing.T) {
 
 	// Create TLS Cert vars
 	createTLSDir := filepath.Join(tmpBaseDir, "certs")
-	//createCertFiles := []string{"ca.crt.pem", "my-app.cert", "my-app.key.pem.kms.encrypted"}
+	//createCertFiles := []string{"ca.crt", "app.crt", "app.key.kms.encrypted"}
 	//TODO: this is no longer encrypted with gruntkms. Should we just not store these files locally anymore? Or should we keep gruntkms just for the local encryption?
-	createCertFiles := []string{"ca.crt.pem", "my-app.cert", "my-app.key.pem"}
+	createCertFiles := []string{"CA.crt", "app.crt", "app.key"}
 
 	// Download RDS CA Certs vars
 	downloadPath := filepath.Join(tmpBaseDir, "rds-cert")
@@ -80,16 +80,18 @@ func TestTlsScripts(t *testing.T) {
 					filepath.Join(scriptsDir, "docker-compose.yml"),
 					"run",
 					"certs",
-					"--ca-path",
-					"ca.crt.pem",
-					"--cert-path",
-					"my-app.cert",
-					"--key-path",
-					"my-app.key.pem",
 					"--secret-name",
 					certSecretName,
 					"--company-name",
 					"Acme",
+					"--country",
+					"US",
+					"--state",
+					"Arizona",
+					"--city",
+					"Phoenix",
+					"--org",
+					"Gruntwork",
 					"--aws-region",
 					awsRegion,
 					"--upload-to-acm",
