@@ -9,12 +9,12 @@
 #
 # Note: You must be authenticated to the AWS account for KMS based encryption and uploading to IAM to work.
 #
-# Script dependencies:
-# - gruntkms
+# Dependencies:
 # - terraform
 # - git
 # - aws CLI
 # - jq
+# Note: These dependencies are automatically included in the Dockerfile in this module folder.
 
 set -e
 

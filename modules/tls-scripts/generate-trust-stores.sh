@@ -6,16 +6,16 @@
 #
 # Note: You must be authenticated to the AWS account for KMS based encryption to work.
 #
-# Script dependencies:
-# - gruntkms
+# Dependencies:
 # - terraform
 # - git
+# - jq
 # - pwgen
 # - aws cli
 # - keytool
 # - openssl
 # - github.com/gruntwork-io/package-kafka/modules/generate-key-stores/generate-key-stores.sh must be installed and its path added to the PATH environment variable
-#   - This is automatically done in the Dockerfile in this module folder.
+# Note: These dependencies are automatically included in the Dockerfile in this module folder.
 
 set -e
 
