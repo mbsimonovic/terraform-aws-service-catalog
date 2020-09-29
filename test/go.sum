@@ -195,6 +195,8 @@ github.com/grpc-ecosystem/grpc-gateway v1.9.5/go.mod h1:vNeuVxBJEsws4ogUvrchl83t
 github.com/gruntwork-io/gruntwork-cli v0.5.1/go.mod h1:IBX21bESC1/LGoV7jhXKUnTQTZgQ6dYRsoj/VqxUSZQ=
 github.com/gruntwork-io/gruntwork-cli v0.6.1 h1:sPeSdsn3TU1PJMPUHJRFfrxTBHNF0Y0O33zfen9QeN8=
 github.com/gruntwork-io/gruntwork-cli v0.6.1/go.mod h1:jp6Z7NcLF2avpY8v71fBx6hds9eOFPELSuD/VPv7w00=
+github.com/gruntwork-io/module-ci v0.28.4-0.20200929205406-ec2baa10da76 h1:wRDlGr6Nnuzi630sbiQrS28XW2pAUkV9XfXNhsv77yw=
+github.com/gruntwork-io/module-ci v0.28.4-0.20200929205406-ec2baa10da76/go.mod h1:mhB8gbdWIwh66Fl5j8fX6LjByNm4ORp7+Q33NPaxDq4=
 github.com/gruntwork-io/terratest v0.28.12 h1:XPLiZMV0XkRGNj1JRVvvZ2wj99tiQ4CWYfDtPI9cBlI=
 github.com/gruntwork-io/terratest v0.28.12/go.mod h1:PkVylPuUNmItkfOTwSiFreYA4FkanK8AluBuNeGxQOw=
 github.com/hashicorp/golang-lru v0.5.0/go.mod h1:/m3WP610KZHVQ1SGc6re/UDhFvYD7pJ4Ao+sR/qLZy8=

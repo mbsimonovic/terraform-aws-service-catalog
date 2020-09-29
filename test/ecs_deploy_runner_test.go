@@ -8,7 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gruntwork-io/aws-service-catalog/test/edrhelpers"
+	awsgo "github.com/aws/aws-sdk-go/aws"
+	"github.com/gruntwork-io/module-ci/test/edrhelpers"
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/docker"
 	"github.com/gruntwork-io/terratest/modules/git"
@@ -23,6 +24,7 @@ import (
 
 const (
 	serviceCatalogRepo = "git@github.com:gruntwork-io/aws-service-catalog.git"
+	moduleCITag        = "v0.28.1"
 	deployRunnerImgTag = "deploy-runner-v1"
 	kanikoImgTag       = "kaniko-v1"
 
@@ -73,7 +75,7 @@ func TestEcsDeployRunner(t *testing.T) {
 		test_structure.SaveString(t, workingDir, "AwsRegion", region)
 
 		// Use gruntwork-installer to install infrastructure-deployer into module dir so we can use it for testing
-		edrhelpers.InstallInfrastructureDeployer(t, modulePath, edrhelpers.ModuleCITag)
+		edrhelpers.InstallInfrastructureDeployer(t, modulePath, moduleCITag)
 	})
 	uniqueID := test_structure.LoadString(t, workingDir, "UniqueID")
 	region := test_structure.LoadString(t, workingDir, "AwsRegion")
@@ -104,10 +106,11 @@ func TestEcsDeployRunner(t *testing.T) {
 
 	// Setup ECR repository
 	defer test_structure.RunTestStage(t, "cleanup_ecr_repo", func() {
-		edrhelpers.DeleteECRRepo(t, region, repository)
+		repo := aws.GetECRRepo(t, region, repository)
+		aws.DeleteECRRepo(t, region, repo)
 	})
 	test_structure.RunTestStage(t, "setup_ecr_repo", func() {
-		repositoryUri := edrhelpers.CreateECRRepo(t, region, repository)
+		repositoryUri := awsgo.StringValue(aws.CreateECRRepo(t, region, repository).RepositoryUri)
 		test_structure.SaveString(t, workingDir, "EcrRepositoryUri", repositoryUri)
 	})
 	repositoryUri := test_structure.LoadString(t, workingDir, "EcrRepositoryUri")
@@ -146,22 +149,22 @@ func TestEcsDeployRunner(t *testing.T) {
 			Tags: []string{deployRunnerImg},
 			BuildArgs: []string{
 				"GITHUB_OAUTH_TOKEN",
-				fmt.Sprintf("module_ci_tag=%s", edrhelpers.ModuleCITag),
+				fmt.Sprintf("module_ci_tag=%s", moduleCITag),
 			},
 			OtherOptions: []string{"--no-cache"},
 		}
-		edrhelpers.GitCloneAndDockerBuild(t, edrhelpers.ModuleCIRepo, edrhelpers.ModuleCITag, "modules/ecs-deploy-runner/docker/deploy-runner", deployRunnerBuildOpts)
+		edrhelpers.GitCloneAndDockerBuild(t, edrhelpers.ModuleCIRepo, moduleCITag, "modules/ecs-deploy-runner/docker/deploy-runner", deployRunnerBuildOpts)
 
 		// kaniko docker image
 		kanikoBuildOpts := &docker.BuildOptions{
 			Tags: []string{kanikoImg},
 			BuildArgs: []string{
 				"GITHUB_OAUTH_TOKEN",
-				fmt.Sprintf("module_ci_tag=%s", edrhelpers.ModuleCITag),
+				fmt.Sprintf("module_ci_tag=%s", moduleCITag),
 			},
 			OtherOptions: []string{"--no-cache"},
 		}
-		edrhelpers.GitCloneAndDockerBuild(t, edrhelpers.ModuleCIRepo, edrhelpers.ModuleCITag, "modules/ecs-deploy-runner/docker/kaniko", kanikoBuildOpts)
+		edrhelpers.GitCloneAndDockerBuild(t, edrhelpers.ModuleCIRepo, moduleCITag, "modules/ecs-deploy-runner/docker/kaniko", kanikoBuildOpts)
 	})
 	test_structure.RunTestStage(t, "push_docker_image", func() {
 		pushCmd := shell.Command{
