@@ -1,13 +1,13 @@
 #!/bin/bash
-# This script will automatically create a CA cert and a TLS cert signed by that CA, assuming those certs don't already
-# exist. The TLS cert private key will be encrypted with gruntkms. Optionally, this script can also upload the cert to
-# IAM, so it can be used with an ELB or ALB.
+# This script creates a CA cert and a TLS cert signed by that CA, assuming those certs don't already exist. The TLS
+# cert is uploaded to AWS Secrets Manager in the region you provide. It is also saved to the tls/ sub-directory.
+# Optionally, this script can also upload the cert to ACM, so it can be used with an ELB or ALB.
 #
 # These certs are meant for private/internal use only, such as to set up end-to-end encryption within an AWS account.
 # The only IP address in the cert will be 127.0.0.1 and localhost, so you can test your servers locally. You can also
 # use the servers with the ELB or ALB, as the AWS load balancers don't verify the CA.
 #
-# Note: You must be authenticated to the AWS account for KMS based encryption and uploading to IAM to work.
+# Note: You must be authenticated to the AWS account for uploading to ACM to work.
 #
 # Dependencies:
 # - terraform
@@ -38,28 +38,44 @@ function print_usage {
   log
   log "Usage: create-tls-cert.sh [OPTIONS]"
   log
-  log "This script will automatically create a CA cert and a TLS cert signed by that CA, assuming those certs don't already exist. The TLS cert private key will be encrypted with gruntkms. Optionally, this script can also upload the cert to IAM, so it can be used with an ELB or ALB."
+  log "This script creates a CA cert and a TLS cert signed by that CA, assuming those certs don't already exist. The TLS cert is uploaded to AWS Secrets Manager in the region you provide. It is also saved to the tls/ sub-directory. Optionally, this script can also upload the cert to ACM, so it can be used with an ELB or ALB."
   log
-  log "Arguments:"
+  log "Required Arguments:"
   log
-  log "  --ca-path\t\tThe path to write the CA public key to. Required."
-  log "  --cert-path\t\tThe path to write the TLS cert public key to. Required."
-  log "  --key-path\t\tThe path to write the TLS cert private key to. This file will be encrypted with gruntkms. Required."
-  log "  --dns-name\tA custom DNS name to associate with the cert. May be specified more than once. Optional. Default: ${DEFAULT_DNS_NAMES[@]}"
-  log "  --ip-address\tA custom IP address to associate with the cert. May be specified more than once. Optional. Default: ${DEFAULT_IP_ADDRESSES[@]}"
+  log "  --ca-path\t\tThe path to write the CA public key to."
+  log "  --cert-path\t\tThe path to write the TLS cert public key to."
+  log "  --key-path\t\tThe path to write the TLS cert private key to."
+  log "  --secret-name\t\tThe name of the secret you'd like to use to store the cert in AWS Secrets Manager."
+  log "  --company-name\tThe name of the company this cert is for."
+  log "  --aws-region\t\tThe AWS region to use for AWS Secrets Manager and AWS Certificate Manager."
+  log
+  log "Optional Arguments:"
+  log
+  log "  --upload-to-acm\tIf specified, the cert will be uploaded to AWS Certificate Manager and its ARN will be written to stdout."
+  log "  --role-arn\t\tThe AWS ARN of the IAM role to assume."
+  log "  --dns-name\tA custom DNS name to associate with the cert. May be specified more than once. Default: ${DEFAULT_DNS_NAMES[@]}"
+  log "  --ip-address\tA custom IP address to associate with the cert. May be specified more than once. Default: ${DEFAULT_IP_ADDRESSES[@]}"
   log "  --no-dns-names\tIf set, the cert won't be associated with any DNS names."
   log "  --no-ips\tIf set, the cert won't be associated with any IP addresses."
-  log "  --company-name\tThe name of the company this cert is for. Required."
-  log "  --upload-to-iam\tIf specified, the cert will be uploaded to IAM (for use with an ELB or ALB) and its ARN will be written to stdout. Optional."
-  log "  --cert-name-in-iam\tThe name to use for the cert when uploading to IAM. Only used if --upload-to-iam is set."
-  log "  --kms-key-id\t\tThe ID of the CMK to use for encryption. This value can be a globally unique identifier (e.g. 12345678-1234-1234-1234-123456789012), a fully specified ARN (e.g. arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012), or an alias name prefixed by \"alias/\" (e.g. alias/MyAliasName). Optional."
-  log "  --aws-region\t\tThe AWS region where the kms-key lives. Required if --kms-key-id is set."
-  log "  --role-arn\t\tThe AWS ARN of the IAM role to assume. Optional."
   log
   log "Examples:"
   log
-  log "  create-tls-cert.sh --ca-path ca.crt.pem --cert-path my-app.crt.pem --key-path my-app.key.pem --company-name Acme"
-  log "  create-tls-cert.sh --ca-path ca.crt.pem --cert-path my-app.crt.pem --key-path my-app.key.pem --company-name Acme --upload-to-iam --kms-key-id alias/cmk-dev --aws-region us-east-1"
+  log "  create-tls-cert.sh \\"
+  log "    --ca-path ca.crt.pem \\"
+  log "    --cert-path my-app.crt.pem \\"
+  log "    --key-path my-app.key.pem \\"
+  log "    --secret-name my-tls-secrets \\"
+  log "    --company-name Acme \\"
+  log "    --aws-region us-east-1"
+  log
+  log "  create-tls-cert.sh \\"
+  log "    --ca-path ca.crt.pem \\"
+  log "    --cert-path my-app.crt.pem \\"
+  log "    --key-path my-app.key.pem \\"
+  log "    --secret-name my-tls-secrets \\"
+  log "    --company-name Acme \\"
+  log "    --aws-region us-east-1 \\"
+  log "    --upload-to-acm"
 }
 
 # The Vault blueprint has a Terraform module that can be used to generate private TLS certs
@@ -127,27 +143,72 @@ function cleanup_tls_module_terraform_state {
   rm -f "$tls_module_path"/terraform.tfstate
 }
 
-function encrypt_private_key {
-  local -r cert_private_key_path="$1"
-  local -r kms_key_id="$2"
-  local -r aws_region="$3"
-  local -r encrypted_cert_private_key_path="$cert_private_key_path.kms.encrypted"
+# Renders the public and private key as well as the CA public key into a JSON object that is stored in Secrets Manager
+function store_tls_certs_in_secrets_manager {
+  local -r cert_public_key_path="$1"
+  local -r cert_private_key_path="$2"
+  local -r ca_public_key_path="$3"
+  local -r aws_region="$4"
+  local -r secret_name="$5"
+  local -r secret_description="The private key generated by create-tls-certs."
 
-  if [[ -z "$kms_key_id" || -z "$aws_region" ]]; then
-    log "WARNING: --kms-key-id or --aws-region not specified. Will NOT be encrypting the TLS cert private key."
+  log "Storing TLS Cert in AWS Secrets Manager..."
+
+  local public_key_plaintext
+  local private_key_plaintext
+  local ca_public_key_plaintext
+  local tls_secret_json
+  local store_secret_response
+
+  public_key_plaintext=$(cat "${VAULT_TLS_MODULE_PATH}/$cert_public_key_path")
+  private_key_plaintext=$(cat "${VAULT_TLS_MODULE_PATH}/$cert_private_key_path")
+  ca_public_key_plaintext=$(cat "${VAULT_TLS_MODULE_PATH}/$ca_public_key_path")
+
+  tls_secret_json=$(render_tls_secret_json "$public_key_plaintext" "$private_key_plaintext" "$ca_public_key_plaintext")
+  store_secret_response=$(store_in_secrets_manager "$secret_name" "$secret_description" "$tls_secret_json" "$aws_region")
+
+  # Extract the ARN of the tls secret in AWS Secrets Manager
+  tls_secret_arn=$(echo "$store_secret_response" | jq '.ARN')
+
+  log "TLS Cert stored! Secret ARN: $tls_secret_arn"
+}
+
+function upload_to_acm {
+  local -r should_upload_to_acm="$1"
+  local -r cert_public_key_path="$2"
+  local -r cert_private_key_path="$3"
+  local -r ca_public_key_path="$4"
+  local -r aws_region="$5"
+
+  if [[ "$should_upload_to_acm" != "true" ]]; then
+    log "--upload-to-acm flag not set. Will not upload cert to ACM."
     return
   fi
 
-  log "Encrypting private key at $cert_private_key_path with KMS key $kms_key_id"
+  log "Uploading the certificate to ACM..."
 
-  local private_key_plaintext
-  local private_key_ciphertext
-  private_key_plaintext=$(cat "${VAULT_TLS_MODULE_PATH}/$cert_private_key_path")
-  private_key_ciphertext=$(gruntkms encrypt --plaintext "$private_key_plaintext" --aws-region "$aws_region" --key-id "$kms_key_id")
-  echo -n "$private_key_ciphertext" > "${VAULT_TLS_MODULE_PATH}/$encrypted_cert_private_key_path"
-  log "Stored encrypted key as ${VAULT_TLS_MODULE_PATH}/$encrypted_cert_private_key_path"
-  log "Removing original unencrypted key"
-  rm "${VAULT_TLS_MODULE_PATH}/$cert_private_key_path"
+  cert_arn=$(import_certificate_to_acm "$cert_public_key_path" "$cert_private_key_path" "$ca_public_key_path" "$aws_region")
+
+  log "Certificate uploaded! Certificate ARN: $cert_arn"
+}
+
+function render_tls_secret_json {
+  local -r app_public_key="$1"
+  local -r app_private_key="$2"
+  local -r app_ca_public_key="$3"
+
+  local -r json=$(cat <<END_HEREDOC
+{
+    "app": {
+      "crt": "$app_public_key",
+      "key": "$app_private_key",
+      "ca": "$app_ca_public_key"
+    }
+}
+END_HEREDOC
+)
+
+  echo -n "$json"
 }
 
 function prepare_folders {
@@ -164,17 +225,11 @@ function move_files {
   local -r ca_public_key_path="$1"
   local -r cert_public_key_path="$2"
   local -r cert_private_key_path="$3"
-  local -r kms_key_id="$4"
-  local -r aws_region="$5"
 
   log "Moving generated files to ${TLS_PATH}"
   mkdir -p "${TLS_PATH}/"
 
-  if [[ -z $kms_key_id ]] || [[ -z $aws_region ]]; then
-    mv "${VAULT_TLS_MODULE_PATH}/$ca_public_key_path" "${VAULT_TLS_MODULE_PATH}/$cert_public_key_path" "${VAULT_TLS_MODULE_PATH}/$cert_private_key_path" "${TLS_PATH}/"
-  else
-    mv "${VAULT_TLS_MODULE_PATH}/$ca_public_key_path" "${VAULT_TLS_MODULE_PATH}/$cert_public_key_path" "${VAULT_TLS_MODULE_PATH}/$cert_private_key_path.kms.encrypted" "${TLS_PATH}/"
-  fi
+  mv "${VAULT_TLS_MODULE_PATH}/$ca_public_key_path" "${VAULT_TLS_MODULE_PATH}/$cert_public_key_path" "${VAULT_TLS_MODULE_PATH}/$cert_private_key_path" "${TLS_PATH}/"
 }
 
 function terraform_init {
@@ -185,59 +240,12 @@ function terraform_init {
 
 function exit_if_cert_file_exists {
   local -r path="$1"
-  local -r should_upload_to_iam="$2"
-  local -r cert_name="$3"
-  local -r aws_region="$4"
 
   if [[ -f "${TLS_PATH}/$path" ]]; then
-    log "${TLS_PATH}/$path already exists. Will not generate again."
-    print_cert_arn_from_iam "$should_upload_to_iam" "$cert_name" "$aws_region"
+    log "${TLS_PATH}/$path already exists. Will not generate certificate again."
+    log "Exiting."
     exit 0
   fi
-}
-
-function print_cert_arn_from_iam {
-  local -r should_upload_to_iam="$1"
-  local -r cert_name="$2"
-  local -r aws_region="$3"
-
-  if [[ "$should_upload_to_iam" != "true" ]]; then
-    return
-  fi
-
-  log "Looking up ARN for TLS cert $cert_name in IAM in $aws_region"
-
-  local output
-  local cert_arn
-
-  output=$(aws iam get-server-certificate --region "$aws_region" --server-certificate-name "$cert_name")
-  cert_arn="$(echo "$output" | jq -r '.ServerCertificate.ServerCertificateMetadata.Arn')"
-
-  echo -n "$cert_arn"
-}
-
-function upload_to_iam {
-  local -r should_upload_to_iam="$1"
-  local -r cert_public_key_path="$2"
-  local -r cert_private_key_path="$3"
-  local -r cert_name="$4"
-  local -r aws_region="$5"
-
-  if [[ "$should_upload_to_iam" != "true" ]]; then
-    log "--upload-to-iam flag not set, so will not upload cert to IAM"
-    return
-  fi
-
-  log "Uploading the cert to IAM with the name $cert_name"
-
-  local output
-  local cert_arn
-
-  output=$(aws iam upload-server-certificate --region "$aws_region" --server-certificate-name "$cert_name" --certificate-body "file://${VAULT_TLS_MODULE_PATH}/$cert_public_key_path" --private-key "file://${VAULT_TLS_MODULE_PATH}/$cert_private_key_path")
-  cert_arn="$(echo "$output" | jq -r '.ServerCertificateMetadata.Arn')"
-
-  log "Certificate uploaded. ARN: $cert_arn."
-  echo -n "$cert_arn"
 }
 
 function do_create {
@@ -245,35 +253,28 @@ function do_create {
   local -r cert_public_key_path="$2"
   local -r cert_private_key_path="$3"
   local -r company_name="$4"
-  local -r kms_key_id="$5"
-  local -r aws_region="$6"
-  local -r upload_to_iam="$7"
-  local -r cert_name_in_iam="$8"
-  local -r dns_names_str="${9}"
-  local -r ip_addresses_str="${10}"
-  local -r no_dns_names="${11}"
-  local -r no_ips="${12}"
+  local -r aws_region="$5"
+  local -r upload_to_acm="$6"
+  local -r dns_names_str="${7}"
+  local ip_addresses_str="${8}"
+  local -r no_dns_names="${9}"
+  local -r no_ips="${10}"
 
-  if [[ "$upload_to_iam" == true && -z "$cert_name_in_iam" ]]; then
-    log "The --cert-name-in-iam parameter cannot be empty if the --upload-to-iam flag is set"
-    exit 1
-  fi
-
-  exit_if_cert_file_exists "$ca_public_key_path" "$upload_to_iam" "$cert_name_in_iam" "$aws_region"
-  exit_if_cert_file_exists "$cert_public_key_path" "$upload_to_iam" "$cert_name_in_iam" "$aws_region"
-  exit_if_cert_file_exists "$cert_private_key_path" "$upload_to_iam" "$cert_name_in_iam" "$aws_region"
+  exit_if_cert_file_exists "$ca_public_key_path"
+  exit_if_cert_file_exists "$cert_public_key_path"
+  exit_if_cert_file_exists "$cert_private_key_path"
 
   if [[ "$no_dns_names" == "true" ]]; then
-    log "The --no-dns-names flag is set, so won't associate cert with any DNS names."
+    log "--no-dns-names flag is set. Won't associate cert with any DNS names."
     dns_names_str=""
   fi
 
   if [[ "$no_ips" == "true" ]]; then
-    log "The --no-ips flag is set, so won't associate cert with any IP addresses."
+    log "--no-ips flag is set. Won't associate cert with any IP addresses."
     ip_addresses_str=""
   fi
 
-  log "Staring TLS cert generation..."
+  log "Starting TLS cert generation..."
 
   clone_vault_blueprint "$VAULT_BLUEPRINT_CHECKOUT_PATH"
   cleanup_tls_module_terraform_state "$VAULT_TLS_MODULE_PATH"
@@ -281,9 +282,9 @@ function do_create {
   terraform_init "$VAULT_TLS_MODULE_PATH"
   generate_tls_cert "$ca_public_key_path" "$cert_public_key_path" "$cert_private_key_path" "$company_name" "$VAULT_TLS_MODULE_PATH" "$dns_names_str" "$ip_addresses_str"
   cleanup_tls_module_terraform_state "$VAULT_TLS_MODULE_PATH"
-  upload_to_iam "$upload_to_iam" "$cert_public_key_path" "$cert_private_key_path" "$cert_name_in_iam" "$aws_region"
-  encrypt_private_key "$cert_private_key_path" "$kms_key_id" "$aws_region"
-  move_files "$ca_public_key_path" "$cert_public_key_path" "$cert_private_key_path" "$kms_key_id" "$aws_region"
+  store_tls_certs_in_secrets_manager "$cert_public_key_path" "$cert_private_key_path" "$ca_public_key_path" "$aws_region" "$secret_name"
+  upload_to_acm "$upload_to_acm" "$cert_public_key_path" "$cert_private_key_path" "$ca_public_key_path" "$aws_region"
+  move_files "$ca_public_key_path" "$cert_public_key_path" "$cert_private_key_path"
   cleanup_vault_blueprint "$VAULT_BLUEPRINT_CHECKOUT_PATH"
 
   log "Done with TLS cert generation!"
@@ -294,15 +295,14 @@ function run {
   local cert_public_key_path
   local cert_private_key_path
   local company_name
-  local kms_key_id
   local aws_region
   local role_arn
-  local upload_to_iam="false"
-  local cert_name_in_iam
+  local upload_to_acm="false"
   local -a dns_names=()
   local -a ip_addresses=()
   local no_dns_names="false"
   local no_ips="false"
+  local secret_name
 
   while [[ $# > 0 ]]; do
     local key="$1"
@@ -320,14 +320,10 @@ function run {
         cert_private_key_path="$2"
         shift
         ;;
-      --upload-to-iam)
-        upload_to_iam="true"
+      --upload-to-acm)
+        upload_to_acm="true"
         ;;
-      --cert-name-in-iam)
-        cert_name_in_iam="$2"
-        shift
-        ;;
-      --company-name)
+     --company-name)
         company_name="$2"
         shift
         ;;
@@ -345,12 +341,12 @@ function run {
       --no-ips)
         no_ips="true"
         ;;
-      --kms-key-id)
-        kms_key_id="$2"
-        shift
-        ;;
       --aws-region)
         aws_region="$2"
+        shift
+        ;;
+      --secret-name)
+        secret_name="$2"
         shift
         ;;
       --role-arn)
@@ -375,8 +371,9 @@ function run {
   assert_not_empty "--cert-public-key-path" "$cert_public_key_path"
   assert_not_empty "--cert-private-key-path" "$cert_private_key_path"
   assert_not_empty "--company-name" "$company_name"
+  assert_not_empty "--aws-region" "$aws_region"
+  assert_not_empty "--secret-name" "$secret_name"
 
-  assert_is_installed "gruntkms"
   assert_is_installed "terraform"
   assert_is_installed "git"
   assert_is_installed "aws"
@@ -397,7 +394,7 @@ function run {
   local dns_names_str="\"$(join "\",\"" "${dns_names[@]}")\""
   local ip_addresses_str="\"$(join "\",\"" "${ip_addresses[@]}")\""
 
-  (do_create "$ca_public_key_path" "$cert_public_key_path" "$cert_private_key_path" "$company_name" "$kms_key_id" "$aws_region" "$upload_to_iam" "$cert_name_in_iam" "$dns_names_str" "$ip_addresses_str" "$no_dns_names" "$no_ips")
+  (do_create "$ca_public_key_path" "$cert_public_key_path" "$cert_private_key_path" "$company_name" "$aws_region" "$upload_to_acm" "$dns_names_str" "$ip_addresses_str" "$no_dns_names" "$no_ips" "$secret_name")
 }
 
 run "$@"
