@@ -10,8 +10,6 @@
 # Note: You must be authenticated to the AWS account for uploading to ACM to work.
 #
 # Dependencies:
-# - terraform
-# - git
 # - aws CLI
 # - jq
 # Note: These dependencies are automatically included in the Dockerfile in this module folder.
@@ -26,13 +24,10 @@ fi
 readonly script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$script_dir/helpers.sh"
 
-readonly VAULT_BLUEPRINT_CLONE_URL="https://github.com/hashicorp/terraform-aws-vault.git"
-readonly VAULT_BLUEPRINT_CHECKOUT_PATH="/tls/vault-blueprint"
-readonly VAULT_TLS_MODULE_PATH="/tls/vault-blueprint/modules/private-tls-cert"
 readonly TLS_PATH="/tls/certs"
-
-readonly DEFAULT_DNS_NAMES=("localhost")
-readonly DEFAULT_IP_ADDRESSES=("127.0.0.1")
+readonly CERT_PUBLIC_KEY_PATH="${TLS_PATH}/app.crt"
+readonly CERT_PRIVATE_KEY_PATH="${TLS_PATH}/app.key"
+readonly CA_PUBLIC_KEY_PATH="${TLS_PATH}/CA.crt"
 
 function print_usage {
   log
@@ -42,115 +37,47 @@ function print_usage {
   log
   log "Required Arguments:"
   log
-  log "  --ca-path\t\tThe path to write the CA public key to."
-  log "  --cert-path\t\tThe path to write the TLS cert public key to."
-  log "  --key-path\t\tThe path to write the TLS cert private key to."
   log "  --secret-name\t\tThe name of the secret you'd like to use to store the cert in AWS Secrets Manager."
-  log "  --company-name\tThe name of the company this cert is for."
+  log "  --company-name\t\tThe name of the company this cert is for."
+  log "  --cn\t\tThe Common Name (CN) for the certificate: e.g., what domain name to issue it for."
+  log "  --country\t\tThe two-letter country code for where your company is located."
+  log "  --state\t\tThe two-letter state code for where your company is located."
+  log "  --city\t\tThe name of the city for where your company is located."
+  log "  --org\t\tThe name of organization in your company."
   log "  --aws-region\t\tThe AWS region to use for AWS Secrets Manager and AWS Certificate Manager."
   log
   log "Optional Arguments:"
   log
   log "  --upload-to-acm\tIf specified, the cert will be uploaded to AWS Certificate Manager and its ARN will be written to stdout."
   log "  --role-arn\t\tThe AWS ARN of the IAM role to assume."
-  log "  --dns-name\tA custom DNS name to associate with the cert. May be specified more than once. Default: ${DEFAULT_DNS_NAMES[@]}"
-  log "  --ip-address\tA custom IP address to associate with the cert. May be specified more than once. Default: ${DEFAULT_IP_ADDRESSES[@]}"
-  log "  --no-dns-names\tIf set, the cert won't be associated with any DNS names."
-  log "  --no-ips\tIf set, the cert won't be associated with any IP addresses."
   log
   log "Examples:"
   log
   log "  create-tls-cert.sh \\"
-  log "    --ca-path ca.crt.pem \\"
-  log "    --cert-path my-app.crt.pem \\"
-  log "    --key-path my-app.key.pem \\"
   log "    --secret-name my-tls-secrets \\"
   log "    --company-name Acme \\"
+  log "    --country US \\"
+  log "    --state AZ \\"
+  log "    --city Phoenix \\"
+  log "    --org Acme \\"
   log "    --aws-region us-east-1"
   log
   log "  create-tls-cert.sh \\"
-  log "    --ca-path ca.crt.pem \\"
-  log "    --cert-path my-app.crt.pem \\"
-  log "    --key-path my-app.key.pem \\"
   log "    --secret-name my-tls-secrets \\"
   log "    --company-name Acme \\"
+  log "    --country US \\"
+  log "    --state AZ \\"
+  log "    --city Phoenix \\"
+  log "    --org Acme \\"
   log "    --aws-region us-east-1 \\"
   log "    --upload-to-acm"
 }
 
-# The Vault blueprint has a Terraform module that can be used to generate private TLS certs
-function clone_vault_blueprint {
-  local -r checkout_path="$1"
-
-  if [[ -d "$checkout_path" ]]; then
-    log "$checkout_path exists already. Will not clone Vault blueprint again."
-  else
-    log "Cloning Vault blueprint to $checkout_path"
-    git clone "$VAULT_BLUEPRINT_CLONE_URL" "$checkout_path"
-  fi
-}
-
-function cleanup_vault_blueprint {
-  local -r checkout_path="$1"
-
-  log "Cleaning up $checkout_path"
-  rm -r "$checkout_path"
-}
-
-# Use the TLS module in the vault-aws-blueprint to generate a CA public key and a TLS cert public and private key
-# signed by the CA.
-function generate_tls_cert {
-  local -r ca_public_key_path="$1"
-  local -r cert_public_key_path="$2"
-  local -r cert_private_key_path="$3"
-  local -r company_name="$4"
-  local -r tls_module_path="$5"
-  local -r dns_names="$6"
-  local -r ip_addresses="$7"
-
-  local -r owner=$(whoami)
-  local -r validity_period_hours="43800" # 5 years
-
-  local -a args=()
-  args+=("apply")
-  args+=("-input=false")
-  args+=("-auto-approve")
-  args+=("-var" "ca_public_key_file_path=$ca_public_key_path")
-  args+=("-var" "public_key_file_path=$cert_public_key_path")
-  args+=("-var" "private_key_file_path=$cert_private_key_path")
-  args+=("-var" "owner=$owner")
-  args+=("-var" "organization_name=$company_name")
-  args+=("-var" "ca_common_name=$company_name CA")
-  args+=("-var" "common_name=$company_name private TLS cert")
-  args+=("-var" "dns_names=[$dns_names]")
-  args+=("-var" "ip_addresses=[$ip_addresses]")
-  args+=("-var" "validity_period_hours=$validity_period_hours")
-  args+=("-state=$tls_module_path/terraform.tfstate")
-  args+=("-backup=-")
-
-  log "Using Terraform module $tls_module_path to generate TLS certs"
-  log "terraform ${args[@]}"
-  (cd "$tls_module_path" && terraform "${args[@]}" 1>&2)
-}
-
-# Delete the Terraform state files, if they exist, from the Vault TLS module. The state files store the TLS cert
-# private key, so we want to be sure to delete them so we don't leave this secret, unencrypted, lying around on the
-# hard drive.
-function cleanup_tls_module_terraform_state {
-  local -r tls_module_path="$1"
-
-  log "Cleaning up Terraform state files in $tls_module_path"
-  rm -f "$tls_module_path"/terraform.tfstate
-}
-
 # Renders the public and private key as well as the CA public key into a JSON object that is stored in Secrets Manager
 function store_tls_certs_in_secrets_manager {
-  local -r cert_public_key_path="$1"
-  local -r cert_private_key_path="$2"
-  local -r ca_public_key_path="$3"
-  local -r aws_region="$4"
-  local -r secret_name="$5"
-  local -r secret_description="The private key generated by create-tls-certs."
+  local -r aws_region="$1"
+  local -r secret_name="$2"
+  local -r secret_description="The private key generated by create-tls-cert."
 
   log "Storing TLS Cert in AWS Secrets Manager..."
 
@@ -160,9 +87,9 @@ function store_tls_certs_in_secrets_manager {
   local tls_secret_json
   local store_secret_response
 
-  public_key_plaintext=$(cat "${VAULT_TLS_MODULE_PATH}/$cert_public_key_path")
-  private_key_plaintext=$(cat "${VAULT_TLS_MODULE_PATH}/$cert_private_key_path")
-  ca_public_key_plaintext=$(cat "${VAULT_TLS_MODULE_PATH}/$ca_public_key_path")
+  public_key_plaintext=$(cat "${CERT_PUBLIC_KEY_PATH}")
+  private_key_plaintext=$(cat "${CERT_PRIVATE_KEY_PATH}")
+  ca_public_key_plaintext=$(cat "${CA_PUBLIC_KEY_PATH}")
 
   tls_secret_json=$(render_tls_secret_json "$public_key_plaintext" "$private_key_plaintext" "$ca_public_key_plaintext")
   store_secret_response=$(store_in_secrets_manager "$secret_name" "$secret_description" "$tls_secret_json" "$aws_region")
@@ -174,11 +101,8 @@ function store_tls_certs_in_secrets_manager {
 }
 
 function upload_to_acm {
-  local -r should_upload_to_acm="$1"
-  local -r cert_public_key_path="$2"
-  local -r cert_private_key_path="$3"
-  local -r ca_public_key_path="$4"
-  local -r aws_region="$5"
+  local -r aws_region="$1"
+  local -r should_upload_to_acm="$2"
 
   if [[ "$should_upload_to_acm" != "true" ]]; then
     log "--upload-to-acm flag not set. Will not upload cert to ACM."
@@ -187,7 +111,7 @@ function upload_to_acm {
 
   log "Uploading the certificate to ACM..."
 
-  cert_arn=$(import_certificate_to_acm "$cert_public_key_path" "$cert_private_key_path" "$ca_public_key_path" "$aws_region")
+  cert_arn=$(import_certificate_to_acm "$CERT_PUBLIC_KEY_PATH" "$CERT_PRIVATE_KEY_PATH" "$CA_PUBLIC_KEY_PATH" "$aws_region")
 
   log "Certificate uploaded! Certificate ARN: $cert_arn"
 }
@@ -211,135 +135,71 @@ END_HEREDOC
   echo -n "$json"
 }
 
-function prepare_folders {
-  local -r ca_public_key_path="$1"
-  local -r cert_public_key_path="$2"
-  local -r cert_private_key_path="$3"
-
-  mkdir -p "$(dirname "$ca_public_key_path")"
-  mkdir -p "$(dirname "$cert_public_key_path")"
-  mkdir -p "$(dirname "$cert_private_key_path")"
-}
-
-function move_files {
-  local -r ca_public_key_path="$1"
-  local -r cert_public_key_path="$2"
-  local -r cert_private_key_path="$3"
-
-  log "Moving generated files to ${TLS_PATH}"
-  mkdir -p "${TLS_PATH}/"
-
-  mv "${VAULT_TLS_MODULE_PATH}/$ca_public_key_path" "${VAULT_TLS_MODULE_PATH}/$cert_public_key_path" "${VAULT_TLS_MODULE_PATH}/$cert_private_key_path" "${TLS_PATH}/"
-}
-
-function terraform_init {
-  local -r tls_module_path="$1"
-  log "Running terraform init in $tls_module_path"
-  (cd "$tls_module_path" && terraform init 1>&2)
-}
-
-function exit_if_cert_file_exists {
-  local -r path="$1"
-
-  if [[ -f "${TLS_PATH}/$path" ]]; then
-    log "${TLS_PATH}/$path already exists. Will not generate certificate again."
-    log "Exiting."
-    exit 0
-  fi
-}
-
 function do_create {
-  local -r ca_public_key_path="$1"
-  local -r cert_public_key_path="$2"
-  local -r cert_private_key_path="$3"
-  local -r company_name="$4"
-  local -r aws_region="$5"
-  local -r upload_to_acm="$6"
-  local -r dns_names_str="${7}"
-  local ip_addresses_str="${8}"
-  local -r no_dns_names="${9}"
-  local -r no_ips="${10}"
-
-  exit_if_cert_file_exists "$ca_public_key_path"
-  exit_if_cert_file_exists "$cert_public_key_path"
-  exit_if_cert_file_exists "$cert_private_key_path"
-
-  if [[ "$no_dns_names" == "true" ]]; then
-    log "--no-dns-names flag is set. Won't associate cert with any DNS names."
-    dns_names_str=""
-  fi
-
-  if [[ "$no_ips" == "true" ]]; then
-    log "--no-ips flag is set. Won't associate cert with any IP addresses."
-    ip_addresses_str=""
-  fi
+  local -r company_name="$1"
+  local -r aws_region="$2"
+  local -r upload_to_acm="$3"
+  local -r secret_name="$4"
+  local -r country="$5"
+  local -r state="$6"
+  local -r city="$7"
+  local -r org="$8"
 
   log "Starting TLS cert generation..."
 
-  clone_vault_blueprint "$VAULT_BLUEPRINT_CHECKOUT_PATH"
-  cleanup_tls_module_terraform_state "$VAULT_TLS_MODULE_PATH"
-  prepare_folders "$ca_public_key_path" "$cert_public_key_path" "$cert_private_key_path"
-  terraform_init "$VAULT_TLS_MODULE_PATH"
-  generate_tls_cert "$ca_public_key_path" "$cert_public_key_path" "$cert_private_key_path" "$company_name" "$VAULT_TLS_MODULE_PATH" "$dns_names_str" "$ip_addresses_str"
-  cleanup_tls_module_terraform_state "$VAULT_TLS_MODULE_PATH"
-  store_tls_certs_in_secrets_manager "$cert_public_key_path" "$cert_private_key_path" "$ca_public_key_path" "$aws_region" "$secret_name"
-  upload_to_acm "$upload_to_acm" "$cert_public_key_path" "$cert_private_key_path" "$ca_public_key_path" "$aws_region"
-  move_files "$ca_public_key_path" "$cert_public_key_path" "$cert_private_key_path"
-  cleanup_vault_blueprint "$VAULT_BLUEPRINT_CHECKOUT_PATH"
+  "generate-self-signed-tls-cert.sh" \
+    --cn "$company_name" \
+    --country "$country" \
+    --state "$state" \
+    --city "$city" \
+    --org "$org" \
+    --dir "${TLS_PATH}" \
+    --size 2048 \
+    --san "DNS:$company_name,DNS:localhost,IP:127.0.0.1"
+
+  store_tls_certs_in_secrets_manager "$aws_region" "$secret_name"
+  upload_to_acm "$aws_region" "$upload_to_acm"
 
   log "Done with TLS cert generation!"
 }
 
 function run {
-  local ca_public_key_path
-  local cert_public_key_path
-  local cert_private_key_path
   local company_name
+  local country
+  local state
+  local city
+  local org
   local aws_region
   local role_arn
   local upload_to_acm="false"
-  local -a dns_names=()
-  local -a ip_addresses=()
-  local no_dns_names="false"
-  local no_ips="false"
   local secret_name
 
   while [[ $# > 0 ]]; do
     local key="$1"
 
     case "$key" in
-      --ca-path)
-        ca_public_key_path="$2"
-        shift
-        ;;
-      --cert-path)
-        cert_public_key_path="$2"
-        shift
-        ;;
-      --key-path)
-        cert_private_key_path="$2"
-        shift
-        ;;
       --upload-to-acm)
         upload_to_acm="true"
         ;;
-     --company-name)
+      --company-name)
         company_name="$2"
         shift
         ;;
-      --dns-name)
-        dns_names+=("$2")
+      --country)
+        country="$2"
         shift
         ;;
-      --ip-address)
-        ip_addresses+=("$2")
+      --state)
+        state="$2"
         shift
         ;;
-      --no-dns-names)
-        no_dns_names="true"
+      --city)
+        city="$2"
+        shift
         ;;
-      --no-ips)
-        no_ips="true"
+      --org)
+        org="$2"
+        shift
         ;;
       --aws-region)
         aws_region="$2"
@@ -367,15 +227,14 @@ function run {
     shift
   done
 
-  assert_not_empty "--ca-public-key-path" "$ca_public_key_path"
-  assert_not_empty "--cert-public-key-path" "$cert_public_key_path"
-  assert_not_empty "--cert-private-key-path" "$cert_private_key_path"
   assert_not_empty "--company-name" "$company_name"
+  assert_not_empty "--country" "$country"
+  assert_not_empty "--state" "$state"
+  assert_not_empty "--city" "$city"
+  assert_not_empty "--org" "$org"
   assert_not_empty "--aws-region" "$aws_region"
   assert_not_empty "--secret-name" "$secret_name"
 
-  assert_is_installed "terraform"
-  assert_is_installed "git"
   assert_is_installed "aws"
   assert_is_installed "jq"
 
@@ -383,18 +242,7 @@ function run {
     assume_iam_role "$role_arn"
   fi
 
-  if [[ "${#dns_names[@]}" -eq 0 ]]; then
-    dns_names="${DEFAULT_DNS_NAMES[@]}"
-  fi
-
-  if [[ "${#ip_addresses[@]}" -eq 0 ]]; then
-    ip_addresses="${DEFAULT_IP_ADDRESSES[@]}"
-  fi
-
-  local dns_names_str="\"$(join "\",\"" "${dns_names[@]}")\""
-  local ip_addresses_str="\"$(join "\",\"" "${ip_addresses[@]}")\""
-
-  (do_create "$ca_public_key_path" "$cert_public_key_path" "$cert_private_key_path" "$company_name" "$aws_region" "$upload_to_acm" "$dns_names_str" "$ip_addresses_str" "$no_dns_names" "$no_ips" "$secret_name")
+  (do_create "$company_name" "$aws_region" "$upload_to_acm" "$secret_name" "$country" "$state" "$city" "$org")
 }
 
 run "$@"
