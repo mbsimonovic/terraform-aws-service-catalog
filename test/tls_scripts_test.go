@@ -6,7 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/service/iam"
+	// "github.com/aws/aws-sdk-go/service/acm"
+	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/docker"
 	"github.com/gruntwork-io/terratest/modules/random"
@@ -22,8 +23,7 @@ import (
 //     - e.g.: export GITHUB_OAUTH_TOKEN=7d1c645272775xxxxd5cd68bb2dxxxxeb35858c9
 // - Export AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
 // - If you're using temporary credentials, export AWS_SESSION_TOKEN
-// - Export a KMS CMK in TLS_SCRIPTS_KMS_KEY_ID and its region in TLS_SCRIPTS_AWS_REGION
-//     - e.g.: export TLS_SCRIPTS_KMS_KEY_ID=alias/dedicated-test-key
+// - Export a region in TLS_SCRIPTS_AWS_REGION
 //     - e.g.: export TLS_SCRIPTS_AWS_REGION=us-east-1
 
 func TestTlsScripts(t *testing.T) {
@@ -38,7 +38,6 @@ func TestTlsScripts(t *testing.T) {
 	requireEnvVar(t, "GITHUB_OAUTH_TOKEN")
 	requireEnvVar(t, "AWS_ACCESS_KEY_ID")
 	requireEnvVar(t, "AWS_SECRET_ACCESS_KEY")
-	requireEnvVar(t, "TLS_SCRIPTS_KMS_KEY_ID")
 	requireEnvVar(t, "TLS_SCRIPTS_AWS_REGION")
 
 	scriptsDir := "../modules/tls-scripts"
@@ -46,7 +45,9 @@ func TestTlsScripts(t *testing.T) {
 
 	// Create TLS Cert vars
 	createTLSDir := filepath.Join(tmpBaseDir, "certs")
-	createCertFiles := []string{"ca.crt.pem", "my-app.cert", "my-app.key.pem.kms.encrypted"}
+	//createCertFiles := []string{"ca.crt.pem", "my-app.cert", "my-app.key.pem.kms.encrypted"}
+	//TODO: this is no longer encrypted with gruntkms. Should we just not store these files locally anymore? Or should we keep gruntkms just for the local encryption?
+	createCertFiles := []string{"ca.crt.pem", "my-app.cert", "my-app.key.pem"}
 
 	// Download RDS CA Certs vars
 	downloadPath := filepath.Join(tmpBaseDir, "rds-cert")
@@ -55,7 +56,8 @@ func TestTlsScripts(t *testing.T) {
 	trustStoresDir := filepath.Join(tmpBaseDir, "trust-stores")
 	trustStoresFiles := []string{"kafka.server.ca.default.pem", "kafka.server.cert.default.pem", "keystore/kafka.server.keystore.default.jks", "truststore/kafka.server.truststore.default.jks"}
 
-	kmsKeyId := os.Getenv("TLS_SCRIPTS_KMS_KEY_ID")
+	// This region should match where you want the secrets stored in AWS Secrets Manager.
+	// awsRegion := "us-east-1"
 	awsRegion := os.Getenv("TLS_SCRIPTS_AWS_REGION")
 
 	var testCases = []struct {
@@ -67,10 +69,9 @@ func TestTlsScripts(t *testing.T) {
 		{
 			"CreateTlsCert",
 			func() {
-				// Store the cert name in .test_data so we can clean it up
-				// if test stages are skipped
-				certNameInIam := fmt.Sprintf("tls-scripts-test-%s", random.UniqueId())
-				test_structure.SaveString(t, scriptsDir, "certNameInIam", certNameInIam)
+				// Store the secret name in .test_data so we can clean it up if test stages are skipped.
+				certSecretName := fmt.Sprintf("tls-secrets-%s", random.UniqueId())
+				test_structure.SaveString(t, scriptsDir, "certSecretName", certSecretName)
 
 				docker.RunDockerCompose(
 					t,
@@ -85,15 +86,13 @@ func TestTlsScripts(t *testing.T) {
 					"my-app.cert",
 					"--key-path",
 					"my-app.key.pem",
+					"--secret-name",
+					certSecretName,
 					"--company-name",
 					"Acme",
-					"--upload-to-iam",
-					"--cert-name-in-iam",
-					certNameInIam,
-					"--kms-key-id",
-					kmsKeyId,
 					"--aws-region",
 					awsRegion,
+					"--upload-to-acm",
 				)
 			},
 
@@ -132,14 +131,25 @@ func TestTlsScripts(t *testing.T) {
 
 				os.RemoveAll(filepath.Join(scriptsDir, createTLSDir))
 
-				// Remove server certificate from IAM
-				certNameInIam := test_structure.LoadString(t, scriptsDir, "certNameInIam")
+				// TODO: can I get the ARN somehow so that I can delete it?
+				// Remove certificate from ACM using ARN
+				// 				sess, err := aws.NewAuthenticatedSession(awsRegion)
+				// 				require.NoError(t, err)
+				// 				acmClient := acm.New(sess)
+				// 				input := acm.DeleteCertificateInput{CertificateArn: &certARN}
+				// 				_, err = acmClient.DeleteCertificate(&input)
+				// 				require.NoError(t, err)
+
+				// Delete from Secrets Manager, too.
+				certSecretName := test_structure.LoadString(t, scriptsDir, "certSecretName")
 				sess, err := aws.NewAuthenticatedSession(awsRegion)
 				require.NoError(t, err)
-				iamClient := iam.New(sess)
-				input := iam.DeleteServerCertificateInput{ServerCertificateName: &certNameInIam}
-				_, err = iamClient.DeleteServerCertificate(&input)
+				smClient := secretsmanager.New(sess)
+				input := secretsmanager.DeleteSecretInput{SecretId: &certSecretName}
+				_, err = smClient.DeleteSecret(&input)
 				require.NoError(t, err)
+
+				test_structure.CleanupTestData(t, fmt.Sprintf("%s/.test-data/certSecretName.json", scriptsDir))
 			},
 		},
 		{
@@ -170,6 +180,10 @@ func TestTlsScripts(t *testing.T) {
 		{
 			"GenerateTrustStores",
 			func() {
+				// Store the secret name in .test_data so we can clean it up if test stages are skipped.
+				storesSecretName := fmt.Sprintf("trust-stores-%s", random.UniqueId())
+				test_structure.SaveString(t, scriptsDir, "storesSecretName", storesSecretName)
+
 				docker.RunDockerCompose(
 					t,
 					&docker.Options{},
@@ -179,6 +193,8 @@ func TestTlsScripts(t *testing.T) {
 					"trust-stores",
 					"--keystore-name",
 					"kafka",
+					"--secret-name",
+					storesSecretName,
 					"--store-path",
 					trustStoresDir,
 					"--vpc-name",
@@ -193,8 +209,6 @@ func TestTlsScripts(t *testing.T) {
 					"AZ",
 					"--company-country",
 					"US",
-					"--kms-key-id",
-					kmsKeyId,
 					"--aws-region",
 					awsRegion,
 				)
@@ -211,6 +225,17 @@ func TestTlsScripts(t *testing.T) {
 			},
 			func() {
 				os.RemoveAll(filepath.Join(scriptsDir, trustStoresDir))
+
+				// Delete from Secrets Manager, too.
+				storesSecretName := test_structure.LoadString(t, scriptsDir, "storesSecretName")
+				sess, err := aws.NewAuthenticatedSession(awsRegion)
+				require.NoError(t, err)
+				smClient := secretsmanager.New(sess)
+				input := secretsmanager.DeleteSecretInput{SecretId: &storesSecretName}
+				_, err = smClient.DeleteSecret(&input)
+				require.NoError(t, err)
+
+				test_structure.CleanupTestData(t, fmt.Sprintf("%s/.test-data/storesSecretName.json", scriptsDir))
 			},
 		},
 	}
