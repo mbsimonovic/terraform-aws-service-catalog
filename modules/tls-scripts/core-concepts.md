@@ -208,7 +208,9 @@ TODO: This might be with or without .kms.encryption suffix
 - If you see `my-app.key.pem`, the script was not able to encrypt your private key using the KMS key you provided (or you didn't provide a key), so this is the private key in PEM format, in plain text.
 
 Optionally, you can upload the certificate to ACM using `--upload-to-acm`, so that the cert can be used with an
-internal ELB or ALB.
+internal ELB or ALB. 
+
+Note that, although operating private CAs via AWS ACM incurs costs, uploading self-signed certificates to ACM is totally free. 
 
 E.g.:
 ```sh
