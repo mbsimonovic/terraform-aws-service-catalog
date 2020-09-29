@@ -191,6 +191,12 @@ variable "vpn_route_cidr_blocks" {
   default     = []
 }
 
+variable "vpn_search_domains" {
+  description = "A list of domains to push down to the client to resolve over VPN. This will configure the OpenVPN server to pass through domains that should be resolved over the VPN connection (as opposed to the locally configured resolver) to the client. Note that for each domain, all subdomains will be resolved as well. E.g., if you pass in 'mydomain.local', subdomains such as 'hello.world.mydomain.local' and 'example.mydomain.local' will also be forwarded to through the VPN server."
+  type        = list(string)
+  default     = []
+}
+
 variable "tenancy" {
   description = "The tenancy of this server. Must be one of: default, dedicated, or host."
   type        = string
