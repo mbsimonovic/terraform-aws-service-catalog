@@ -252,7 +252,7 @@ resource "aws_route53_record" "service" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "route53_health_check" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/route53-health-check-alarms?ref=v0.22.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/route53-health-check-alarms?ref=v0.23.1"
 
   create_resources               = var.enable_route53_health_check
   alarm_configs                  = local.route53_alarm_configurations
