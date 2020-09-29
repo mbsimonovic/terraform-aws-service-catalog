@@ -77,6 +77,7 @@ So here's our strategy for issuing a TLS cert for a private service:
     - This means anyone who trusts the CA will trust that the possessor the private key that corresponds to this public key
     is who they claim to be.
     - We will be extremely careful with the TLS private key since anyone who obtains it can impersonate our private service!
+TODO UPDATE THIS!!
     This is why we recommend immediately encrypting the private key with [AWS KMS](https://aws.amazon.com/kms/) by
     using [gruntkms](https://github.com/gruntwork-io/gruntkms).
 
@@ -119,21 +120,21 @@ TLS certificates for any public services.
 
 ## How does create-tls-cert work?
 
-You can use [create-tls-cert.sh](create-tls-cert.sh) to create self-signed TLS certificates. These are appropriate for private / internal services (e.g., for your microservices talking to each other). If you need TLS certificates for public use (e.g., for services directly accessed by your users) you'll need to use a well-known commercial Certificate Authority (CA) such as [AWS Certificate Manager (ACM)](https://aws.amazon.com/certificate-manager/) or [LetsEncrypt](https://letsencrypt.org/) instead.
+You can use [create-tls-cert.sh](create-tls-cert.sh) to create self-signed TLS certificates. These are meant for private / internal services only, such as to set up end-to-end encryption within an AWS account, or for your microservices to talk to each other. If you need TLS certificates for public use (e.g., for services directly accessed by your users) you'll need to use a well-known commercial Certificate Authority (CA) such as [AWS Certificate Manager (ACM)](https://aws.amazon.com/certificate-manager/) or [LetsEncrypt](https://letsencrypt.org/) instead.
 
 This script does the following:
 
 1. Create a private CA, including a private key and public key.
 1. Create a TLS certificate, including a private key and public key, that is signed by that CA.
-1. Delete the private key of the CA so no one can ever use it again. However, the public key of the CA is kept around so anyone who needs to call your service can use that CA public key to verify your TLS certificate.
+1. Delete the private key of the CA so no one can ever use it again. However, the public key of the CA is kept
+around so anyone who needs to call your service can use that CA public key to verify your TLS certificate.
+TODO: decide about this step!!
 1. Optionally encrypt the private key of the TLS cert with KMS.
-1. Optionally upload the TLS certificate to IAM so you can use it with an internal ELB.
+1. Optionally upload the TLS certificate to AWS Certificate Manager so you can use it with an internal ELB or ALB.
 
-Optionally with the `--upload-to-iam` flag, [create-tls-cert.sh](create-tls-cert.sh) can also upload the cert to IAM, so it can be used with an ELB or ALB.
-These certs are meant for private/internal use only, such as to set up end-to-end encryption within an AWS account.
 The only IP address in the cert will be 127.0.0.1 and localhost, so you can test your servers locally.
 You can also use the servers with the ELB or ALB, as the AWS load balancers don't verify the CA.
-Also see [Loading TLS secrets from AWS Secrets Manager](https://github.com/gruntwork-io/aws-sample-app/blob/master/core-concepts.md#loading-tls-secrets-from-aws-secrets-manager).
+See [Loading TLS secrets from AWS Secrets Manager](https://github.com/gruntwork-io/aws-sample-app/blob/master/core-concepts.md#loading-tls-secrets-from-aws-secrets-manager).
 
 [back to readme](README.adoc#about-the-scripts-specifically)
 
@@ -155,7 +156,8 @@ Secrets Manager. The script writes the KMS-encrypted password for the Key Store 
 
 ## How do I run these scripts using Docker?
 
-We've provided a [Dockerfile](Dockerfile) in this module for you to use for both using and testing the TLS scripts.
+We've provided a [Dockerfile](Dockerfile) in this module for you to use for both using and testing the TLS
+scripts.
 
 All the scripts require some environment variables to be set.
 1. Export your [GitHub Personal Access Token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) in `GITHUB_OAUTH_TOKEN`.
@@ -185,24 +187,28 @@ variables are set, and Docker is running.
     --cert-path my-app.crt.pem \
     --key-path my-app.key.pem \
     --company-name Acme \ # change this to be correct
+TODO: Decide about this key!!
     --kms-key-id alias/test-key \ # change this to be correct
     --aws-region us-east-1 # change this to be correct
     ```
-    You'll notice that you need to pass in the correct KMS key id in `--kms-key-id`, and the region where it's located in `--aws-region`.
+TODO: Decide about this text!!
+    You'll notice that you need to pass in the correct KMS key id in `--kms-key-id`, and the region where it's
+    located in `--aws-region`.
     _We highly recommend including these two options, so that you don't have an unencrypted private key on your system._
     By providing both `--kms-key-id` and `--aws-region`, the script will automatically encrypt the private key, save it as
     `my-app.key.pem.kms.encrypted`, and delete the unencrypted key, `my-app.key.pem`.
+    The certificate is uploaded to Secrets Manager in the region specified by `--aws-region`.
 1. After running that command, the generated cert files will be located on your local machine within a new subfolder in this directory: `tls/certs/`.
 
 If you used the above example, you should see:
 - `ca.crt.pem`: This is the CA public key, or CA certificate, in PEM format.
 - `my-app.crt.pem`: This is the app's public key, or TLS certificate, signed by the CA cert, in PEM format.
+TODO: This might be with or without .kms.encryption suffix
 - `my-app.key.pem.kms.encrypted`: This is the app's private key in PEM format, encrypted with the KMS key you provided.
 - If you see `my-app.key.pem`, the script was not able to encrypt your private key using the KMS key you provided (or you didn't provide a key), so this is the private key in PEM format, in plain text.
 
-Optionally, you can upload the certificate to IAM so that the cert can be used with an ELB. Simply add two more flags to the previous command.
-- `--upload-to-iam`
-- `--cert-name-in-iam <NAME>`
+Optionally, you can upload the certificate to ACM using `--upload-to-acm`, so that the cert can be used with an
+internal ELB or ALB.
 
 E.g.:
 ```sh
@@ -211,15 +217,11 @@ docker-compose run tls \
 --cert-path my-app.crt.pem \
 --key-path my-app.key.pem \
 --company-name Acme \ # change this to be correct
+TODO: Decide about this!
 --kms-key-id alias/test-key \ # change this to be correct
 --aws-region us-east-1 \ # change this to be correct
---upload-to-iam \
---cert-name-in-iam tls-scripts-test
+--upload-to-acm
 ```
-
-The certificate is uploaded to IAM as a Server Certificate, which cannot be managed using the AWS Console UI.
-You must use the AWS API to upload, update, and delete these certs! If you need to list, rename, or delete them,
-consult the [AWS API guide for Server Certificate management](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_server-certs.html).
 
 [back to readme](README.adoc#running)
 
@@ -250,6 +252,7 @@ variables are set, and Docker is running.
     --company-city Phoenix \ # change this to be correct
     --company-state AZ \ # change this to be correct
     --company-country US \ # change this to be correct
+TODO: Delete the next line: Will this be okay? It will use the default CMK for this.
     --kms-key-id alias/test-key \ # change this to be correct
     --aws-region us-east-1 # change this to be correct
     ```
@@ -268,10 +271,12 @@ If you're just using the scripts to create certs, you can skip this section. Oth
 ### Setup
 1. First make sure you followed [these instructions](#how-do-i-run-these-scripts-using-docker), so that environment
 variables are set, and Docker is running.
+TODO: If we're not letting users pass in a kms-key at all we don't need the next line.
 1. Run `export TLS_SCRIPTS_KMS_KEY_ID=[your-key-name]`, setting it to the ID of the CMK to use for encryption.
 This value can be a globally unique identifier (e.g. 12345678-1234-1234-1234-123456789012), a fully specified ARN
 (e.g. arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012), or an alias name prefixed by
 `alias/` (e.g. `alias/MyAliasName`).
+TODO: Update the description here if we're not using KMS key.
 1. Run `export TLS_SCRIPTS_AWS_REGION=[your-key-region]`, setting it to the AWS region where the KMS key is located
 (e.g. `us-east-1`).
 
