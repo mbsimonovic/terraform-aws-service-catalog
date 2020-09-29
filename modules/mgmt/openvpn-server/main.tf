@@ -60,6 +60,17 @@ module "openvpn" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 locals {
+  # init-openvpn expects the subnet routes in [subnet] [mask] format (e.g., "10.100.0.0 255.255.255.0"), so we
+  # need to translate the CIDR blocks to this format.
+  vpn_subnet_routes = [for cidr_block in var.vpn_route_cidr_blocks : "'${cidrhost(cidr_block, 0)} ${cidrnetmask(cidr_block)}'"]
+
+  extra_args = flatten(
+    concat(
+      [for route in local.vpn_subnet_routes : ["--vpn-route", route]],
+      [for domain in var.vpn_search_domains : ["--search-domain", "'${domain}'"]],
+    )
+  )
+
   ip_lockdown_users = compact([
     var.default_user,
     # User used to push cloudwatch metrics from the server. This should only be included in the ip-lockdown list if
@@ -93,16 +104,8 @@ locals {
     revocation_queue_url = module.openvpn.client_revocation_queue
     queue_region         = data.aws_region.current.name
 
-    vpn_subnet = var.vpn_subnet
-    routes = join(
-      " ",
-      formatlist(
-        "\"%s\"",
-        # init-openvpn expects the subnet routes in [subnet] [mask] format (e.g., "10.100.0.0 255.255.255.0"), so we
-        # need to translate the CIDR blocks to this format.
-        [for cidr_block in var.vpn_route_cidr_blocks : "${cidrhost(cidr_block, 0)} ${cidrnetmask(cidr_block)}"],
-      ),
-    )
+    vpn_subnet              = var.vpn_subnet
+    init_openvpn_extra_args = join(" ", local.extra_args)
 
     log_group_name                      = "${var.name}_log_group"
     enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
