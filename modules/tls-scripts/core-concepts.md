@@ -273,8 +273,8 @@ If you're just using the scripts to create certs, you can skip this section. Oth
 variables are set, and Docker is running.
 TODO: If we're not letting users pass in a kms-key at all we don't need the next line.
 1. Run `export TLS_SCRIPTS_KMS_KEY_ID=[your-key-name]`, setting it to the ID of the CMK to use for encryption.
-This value can be a globally unique identifier (e.g. 12345678-1234-1234-1234-123456789012), a fully specified ARN
-(e.g. arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012), or an alias name prefixed by
+This value can be a globally unique identifier (e.g. `12345678-1234-1234-1234-123456789012`), a fully specified ARN
+(e.g. `arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012`), or an alias name prefixed by
 `alias/` (e.g. `alias/MyAliasName`).
 TODO: Update the description here if we're not using KMS key.
 1. Run `export TLS_SCRIPTS_AWS_REGION=[your-key-region]`, setting it to the AWS region where the KMS key is located
