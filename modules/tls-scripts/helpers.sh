@@ -68,18 +68,12 @@ function store_in_secrets_manager {
 
   local create_secret_response
 
-  if password=$(read_from_secrets_manager "$password_name" "$aws_region"); then
-    log "ERROR: Password '$password_name' already exists in AWS Secrets Manager. Will not create password again."
-    exit 1
-  else
-    password=$(generate_password "$password_length")
-    log "Creating secret '$password_name' in AWS Secrets Manager."
-    create_secret_response=$(aws secretsmanager create-secret \
-      --region "$aws_region" \
-      --name "$password_name" \
-      --description "$password_description" \
-      --secret-string "$password")
-  fi
+  log "Creating secret '$password_name' in AWS Secrets Manager."
+  create_secret_response=$(aws secretsmanager create-secret \
+    --region "$aws_region" \
+    --name "$password_name" \
+    --description "$password_description" \
+    --secret-string "$password")
 
   echo -n "$create_secret_response"
 }
@@ -93,15 +87,7 @@ function import_certificate_to_acm {
   local cert_upload_output
   local cert_arn
 
-  # TODO: This is what I'd like to do to avoid passing in another environment var, but
-  # I get a weird error: Invalid endpoint: https://acm..amazonaws..com, and it doesn't upload to ACM.
-
   cert_upload_output=$(AWS_DEFAULT_REGION="$aws_region" aws acm import-certificate --certificate "fileb://${VAULT_TLS_MODULE_PATH}/$cert_public_key_path" --private-key "fileb://${VAULT_TLS_MODULE_PATH}/$cert_private_key_path" --certificate-chain "fileb://${VAULT_TLS_MODULE_PATH}/$ca_public_key_path")
-
-  # Something like this?
-  #KEY_STORE_PASSWORD="$key_store_password" TRUST_STORE_PASSWORD="$key_store_password" "$installed_script" "${args[@]}" 1>&2
-
-  #cert_upload_output=$(aws acm import-certificate --certificate "fileb://${VAULT_TLS_MODULE_PATH}/$cert_public_key_path" --private-key "fileb://${VAULT_TLS_MODULE_PATH}/$cert_private_key_path" --certificate-chain "fileb://${VAULT_TLS_MODULE_PATH}/$ca_public_key_path")
 
   cert_arn=$(echo "$cert_upload_output" | jq '.CertificateArn')
   echo -n "$cert_arn"

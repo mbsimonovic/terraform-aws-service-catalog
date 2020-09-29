@@ -5,13 +5,14 @@ services:
       context: .
       args:
         - GITHUB_OAUTH_TOKEN
-    entrypoint: create-tls-cert.sh
+    entrypoint: /scripts/create-tls-cert.sh
     environment:
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
       - AWS_SESSION_TOKEN
     volumes:
       - ./tls:/tls
+      - .:/scripts
   rds:
     build:
       context: .
@@ -25,10 +26,11 @@ services:
       context: .
       args:
         - GITHUB_OAUTH_TOKEN
-    entrypoint: generate-trust-stores.sh
+    entrypoint: /scripts/generate-trust-stores.sh
     environment:
       - AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY
       - AWS_SESSION_TOKEN
     volumes:
       - ./tls:/tls
+      - .:/scripts
