@@ -26,7 +26,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_deploy_runner" {
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner?ref=v0.28.3"
+  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner?ref=v0.28.4"
 
   name                          = var.name
   container_images              = module.standard_config.container_images
@@ -43,7 +43,7 @@ module "ecs_deploy_runner" {
 }
 
 module "standard_config" {
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner-standard-configuration?ref=v0.28.3"
+  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner-standard-configuration?ref=v0.28.4"
 
   docker_image_builder = (
     var.docker_image_builder_config != null
@@ -190,6 +190,18 @@ locals {
     : null
   )
 
+  ip_lockdown_users = compact([
+    lookup(var.ec2_worker_pool_configuration, "default_user", "ec2-user"),
+    # User used to push cloudwatch metrics from the server. This should only be included in the ip-lockdown list if
+    # reporting cloudwatch metrics is enabled.
+    lookup(var.ec2_worker_pool_configuration, "enable_cloudwatch_metrics", true) ? "cwmonitoring" : ""
+  ])
+  # We want a space separated list of the users, quoted with ''
+  ip_lockdown_users_bash_array = join(
+    " ",
+    [for user in local.ip_lockdown_users : "'${user}'"],
+  )
+
   # Default cloud init script for this module
   cloud_init = (
     local.should_use_ec2_worker_pool
@@ -203,9 +215,9 @@ locals {
           enable_cloudwatch_log_aggregation = lookup(var.ec2_worker_pool_configuration, "enable_cloudwatch_log_aggregation", true)
           enable_fail2ban                   = lookup(var.ec2_worker_pool_configuration, "enable_fail2ban", true)
           enable_ip_lockdown                = lookup(var.ec2_worker_pool_configuration, "enable_ip_lockdown", true)
-          default_user                      = lookup(var.ec2_worker_pool_configuration, "default_user", "ec2-user")
           ecs_cluster_name                  = var.name
           aws_region                        = data.aws_region.current.name
+          ip_lockdown_users                 = local.ip_lockdown_users_bash_array
         },
       )
     }
@@ -332,7 +344,7 @@ data "aws_iam_policy_document" "terraform_applier" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "kms_grants" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-grant-multi-region?ref=v0.37.1"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-grant-multi-region?ref=v0.38.3"
 
   aws_account_id    = data.aws_caller_identity.current.account_id
   kms_grant_regions = local.kms_grant_regions
@@ -406,7 +418,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "invoke_policy" {
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner-invoke-iam-policy?ref=v0.28.3"
+  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner-invoke-iam-policy?ref=v0.28.4"
 
   name                                      = "invoke-${var.name}"
   deploy_runner_invoker_lambda_function_arn = module.ecs_deploy_runner.invoker_function_arn

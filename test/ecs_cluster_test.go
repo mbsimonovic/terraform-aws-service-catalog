@@ -9,6 +9,7 @@ import (
 
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/git"
+	"github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/packer"
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/terraform"
@@ -30,10 +31,10 @@ func TestEcsCluster(t *testing.T) {
 	// Uncomment the items below to skip certain parts of the test
 	// os.Setenv("TERRATEST_REGION", "eu-west-1")
 	// os.Setenv("SKIP_build_ami", "true")
-	// os.Setenv("SKIP deploy_ecs_cluster", "true")
+	// os.Setenv("SKIP_deploy_cluster", "true")
 	// os.Setenv("SKIP_validate_cluster", "true")
-	//os.Setenv("SKIP_deploy_service", "true")
-	//os.Setenv("SKIP_validate_service", "true")
+	// os.Setenv("SKIP_deploy_service", "true")
+	// os.Setenv("SKIP_validate_service", "true")
 	// os.Setenv("SKIP_destroy_service", "true")
 	// os.Setenv("SKIP_destroy_cluster", "true")
 	// os.Setenv("SKIP_cleanup_keypairs", "true")
@@ -148,6 +149,7 @@ func validateECSCluster(t *testing.T, testFolder string) {
 	assert.NotEmpty(t, ecsClusterArn)
 
 	// Even after EC2 instances are successfully launched, it can take some time for them to be registered with the cluster
+	logger.Logf(t, "Sleeping for %d minutes to wait for cluster instances", MinsToWaitForClusterInstances)
 	time.Sleep(time.Minute * MinsToWaitForClusterInstances)
 
 	// Sanity check that the cluster can be retrieved via the SDK and that it has at least 1 successfully registered container instance

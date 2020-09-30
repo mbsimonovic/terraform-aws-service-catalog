@@ -5,7 +5,7 @@
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ssh_grunt_policies" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-policies?ref=v0.37.1"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-policies?ref=v0.38.3"
 
   aws_account_id = data.aws_caller_identity.current.account_id
 
@@ -31,7 +31,7 @@ resource "aws_iam_role_policy" "ssh_grunt_permissions" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "cloudwatch_metrics" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-custom-metrics-iam-policy?ref=v0.22.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-custom-metrics-iam-policy?ref=v0.23.1"
 
   name_prefix = var.name
 
@@ -50,7 +50,7 @@ resource "aws_iam_role_policy" "custom_cloudwatch_metrics" {
 # ------------------------------------------------------------------------------
 
 module "cloudwatch_log_aggregation" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/logs/cloudwatch-log-aggregation-iam-policy?ref=v0.22.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/logs/cloudwatch-log-aggregation-iam-policy?ref=v0.23.1"
 
   name_prefix = var.name
 
@@ -69,7 +69,7 @@ resource "aws_iam_role_policy" "cloudwatch_log_aggregation" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "high_instance_cpu_usage_alarms" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/ec2-cpu-alarms?ref=v0.22.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/ec2-cpu-alarms?ref=v0.23.1"
 
   instance_ids         = [var.instance_id]
   instance_count       = 1
@@ -78,7 +78,7 @@ module "high_instance_cpu_usage_alarms" {
 }
 
 module "high_instance_memory_usage_alarms" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/ec2-memory-alarms?ref=v0.22.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/ec2-memory-alarms?ref=v0.23.1"
 
   instance_ids         = [var.instance_id]
   instance_count       = 1
@@ -87,7 +87,7 @@ module "high_instance_memory_usage_alarms" {
 }
 
 module "high_instance_disk_usage_alarms" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/ec2-disk-alarms?ref=v0.22.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/ec2-disk-alarms?ref=v0.23.1"
 
   instance_ids         = [var.instance_id]
   instance_count       = 1
@@ -103,7 +103,7 @@ module "high_instance_disk_usage_alarms" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "high_asg_cpu_usage_alarms" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/asg-cpu-alarms?ref=v0.22.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/asg-cpu-alarms?ref=v0.23.1"
 
   asg_names            = var.asg_names
   num_asg_names        = var.num_asg_names
@@ -112,7 +112,7 @@ module "high_asg_cpu_usage_alarms" {
 }
 
 module "high_asg_memory_usage_alarms" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/asg-memory-alarms?ref=v0.22.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/asg-memory-alarms?ref=v0.23.1"
 
   asg_names            = var.asg_names
   num_asg_names        = var.num_asg_names
@@ -121,7 +121,7 @@ module "high_asg_memory_usage_alarms" {
 }
 
 module "high_asg_disk_usage_root_volume_alarms" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/asg-disk-alarms?ref=v0.22.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/asg-disk-alarms?ref=v0.23.1"
 
   asg_names            = var.asg_names
   num_asg_names        = var.num_asg_names

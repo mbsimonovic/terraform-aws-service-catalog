@@ -27,7 +27,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "jenkins" {
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/jenkins-server?ref=v0.28.3"
+  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/jenkins-server?ref=v0.28.4"
 
   name       = var.name
   aws_region = data.aws_region.current.name
@@ -99,35 +99,47 @@ locals {
   cloud_init = {
     filename     = "jenkins-default-cloud-init"
     content_type = "text/x-shellscript"
-    content      = data.template_file.user_data.rendered
+    content      = local.base_user_data
   }
 
   # Merge in all the cloud init scripts the user has passed in
   cloud_init_parts = merge({ default : local.cloud_init }, var.cloud_init_parts)
-}
 
-data "template_file" "user_data" {
-  template = file("${path.module}/user-data.sh")
+  ip_lockdown_users = compact([
+    var.default_user,
+    var.jenkins_user,
+    # User used to push cloudwatch metrics from the server. This should only be included in the ip-lockdown list if
+    # reporting cloudwatch metrics is enabled.
+    var.enable_cloudwatch_metrics ? "cwmonitoring" : ""
+  ])
+  # We want a space separated list of the users, quoted with ''
+  ip_lockdown_users_bash_array = join(
+    " ",
+    [for user in local.ip_lockdown_users : "'${user}'"],
+  )
 
-  vars = {
-    # This is the default name tag for the server-group module Jenkins uses under the hood
-    volume_name_tag = "ebs-volume-0"
+  base_user_data = templatefile(
+    "${path.module}/user-data.sh",
+    {
+      # This is the default name tag for the server-group module Jenkins uses under the hood
+      volume_name_tag = "ebs-volume-0"
 
-    aws_region                          = data.aws_region.current.name
-    device_name                         = var.jenkins_device_name
-    mount_point                         = var.jenkins_mount_point
-    owner                               = var.jenkins_user
-    memory                              = var.memory
-    log_group_name                      = var.name
-    enable_ssh_grunt                    = var.enable_ssh_grunt
-    enable_fail2ban                     = false
-    enable_ip_lockdown                  = var.enable_ip_lockdown
-    enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
-    ssh_grunt_iam_group                 = var.ssh_grunt_iam_group
-    ssh_grunt_iam_group_sudo            = var.ssh_grunt_iam_group_sudo
-    external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
-    default_user                        = var.default_user
-  }
+      aws_region                          = data.aws_region.current.name
+      device_name                         = var.jenkins_device_name
+      mount_point                         = var.jenkins_mount_point
+      owner                               = var.jenkins_user
+      memory                              = var.memory
+      log_group_name                      = var.name
+      enable_ssh_grunt                    = var.enable_ssh_grunt
+      enable_fail2ban                     = false
+      enable_ip_lockdown                  = var.enable_ip_lockdown
+      enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
+      ssh_grunt_iam_group                 = var.ssh_grunt_iam_group
+      ssh_grunt_iam_group_sudo            = var.ssh_grunt_iam_group_sudo
+      external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
+      ip_lockdown_users                   = local.ip_lockdown_users_bash_array
+    },
+  )
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -156,7 +168,7 @@ resource "aws_iam_role_policy" "deploy_this_account_permissions" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "auto_deploy_iam_policies" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-policies?ref=v0.37.1"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-policies?ref=v0.38.3"
 
   aws_account_id = data.aws_caller_identity.current.account_id
 
@@ -180,7 +192,7 @@ resource "aws_iam_role_policy" "deploy_other_account_permissions" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "high_disk_usage_jenkins_volume_alarms" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/asg-disk-alarms?ref=v0.22.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/asg-disk-alarms?ref=v0.23.1"
 
   asg_names            = [module.jenkins.jenkins_asg_name]
   num_asg_names        = 1
@@ -196,7 +208,7 @@ module "high_disk_usage_jenkins_volume_alarms" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "jenkins_backup" {
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ec2-backup?ref=v0.28.3"
+  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ec2-backup?ref=v0.28.4"
 
   instance_name = module.jenkins.jenkins_asg_name
 

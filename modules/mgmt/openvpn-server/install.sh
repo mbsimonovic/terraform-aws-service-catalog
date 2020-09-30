@@ -4,7 +4,7 @@
 set -e
 
 # renovate.json auto-update: package-openvpn
-readonly DEFAULT_PACKAGE_OPENVPN_VERSION="v0.11.1"
+readonly DEFAULT_PACKAGE_OPENVPN_VERSION="v0.12.0"
 
 function include_ec2_baseline {
   if [[ "$1" ]]; then
