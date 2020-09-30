@@ -24,7 +24,7 @@ import (
 
 const (
 	serviceCatalogRepo = "git@github.com:gruntwork-io/aws-service-catalog.git"
-	moduleCITag        = "v0.28.1"
+	moduleCITag        = "v0.28.5"
 	deployRunnerImgTag = "deploy-runner-v1"
 	kanikoImgTag       = "kaniko-v1"
 
