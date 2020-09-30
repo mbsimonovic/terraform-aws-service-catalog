@@ -4,18 +4,18 @@
 
 ### How does TLS/SSL work?
 
-The industry-standard way to add encryption for data in motion is to use TLS (the successor to SSL). There are many examples
-online explaining how TLS works, but here are the basics:
+The industry-standard way to add encryption for data in motion is to use TLS (the successor to SSL). There are many
+examples online explaining how TLS works, but here are the basics:
 
 - Some entity decides to be a _Certificate Authority_ (_CA_) meaning it will issue TLS certificates to websites or
     other services.
-- An entity becomes a Certificate Authority by creating a public/private key pair and publishing the public portion (typically
-    known as the _CA Cert_). The private key is kept under the tightest possible security since anyone who possesses it could issue
-    TLS certificates as if they were this Certificate Authority!
-- In fact, the consequences of a CA's private key being compromised are so disastrous that CAs typically create an _intermediate_
-    CA keypair with their _root_ CA key, and only issue TLS certificates with the intermediate key.
-- Your client (e.g. a web browser) can decide to trust this newly created Certificate Authority by including its CA Cert
-    (the CA's public key) when making an outbound request to a service that uses the TLS certificate.
+- An entity becomes a Certificate Authority by creating a public/private key pair and publishing the public portion
+    (typically known as the _CA Cert_). The private key is kept under the tightest possible security since anyone who
+    possesses it could issue TLS certificates as if they were this Certificate Authority!
+- In fact, the consequences of a CA's private key being compromised are so disastrous that CAs typically create an
+   _intermediate_ CA keypair with their _root_ CA key, and only issue TLS certificates with the intermediate key.
+- Your client (e.g. a web browser) can decide to trust this newly created Certificate Authority by including its CA
+  Cert (the CA's public key) when making an outbound request to a service that uses the TLS certificate.
 - When CAs issue a TLS certificate to a service, they again create a public/private keypair, but this time the
     public key is _signed_ by the CA. That public key is what you see when you click on the lock icon in a web browser
     and what a service _advertises_ to any clients, such as web browsers, to declare who it is. When we say that the CA
@@ -27,8 +27,8 @@ online explaining how TLS works, but here are the basics:
 - How does that proof work? Well, your web browser will attempt to validate the TLS cert in two ways:
     - First, the web browser will ensure this public key (TLS cert) is in fact signed by a CA it trusts.
     - Second, using the TLS protocol, the browser will encrypt a message with the public key (TLS cert) that only the
-        possessor of the corresponding private key can decrypt. In this manner, your browser will be able to come up with a
-        symmetric encryption key it can use to encrypt all traffic for just that one web session.
+        possessor of the corresponding private key can decrypt. In this manner, your browser will be able to come up
+        with a symmetric encryption key it can use to encrypt all traffic for just that one web session.
 - Now your client/browser has:
     - declared which CA it will trust,
     - verified that the service it's connecting to possesses a certificate issued by a CA it trusts,
@@ -77,7 +77,6 @@ So here's our strategy for issuing a TLS cert for a private service:
     - This means anyone who trusts the CA will trust that the possessor the private key that corresponds to this public key
     is who they claim to be.
     - We will be extremely careful with the TLS private key since anyone who obtains it can impersonate our private service!
-TODO UPDATE THIS!!
     This is why we recommend immediately encrypting the private key with [AWS KMS](https://aws.amazon.com/kms/) by
     using [gruntkms](https://github.com/gruntwork-io/gruntkms).
 
@@ -120,7 +119,12 @@ TLS certificates for any public services.
 
 ## How does create-tls-cert work?
 
-You can use [create-tls-cert.sh](create-tls-cert.sh) to create self-signed TLS certificates. These are meant for private / internal services only, such as to set up end-to-end encryption within an AWS account, or for your microservices to talk to each other. If you need TLS certificates for public use (e.g., for services directly accessed by your users) you'll need to use a well-known commercial Certificate Authority (CA) such as [AWS Certificate Manager (ACM)](https://aws.amazon.com/certificate-manager/) or [LetsEncrypt](https://letsencrypt.org/) instead.
+You can use [create-tls-cert.sh](create-tls-cert.sh) to create self-signed TLS certificates. These are meant for
+private / internal services only, such as to set up end-to-end encryption within an AWS account, or for your
+microservices to talk to each other. If you need TLS certificates for public use (e.g., for services directly
+accessed by your users) you'll need to use a well-known commercial Certificate Authority (CA) such as
+[AWS Certificate Manager (ACM)](https://aws.amazon.com/certificate-manager/)
+or [LetsEncrypt](https://letsencrypt.org/) instead.
 
 This script does the following:
 
@@ -128,8 +132,9 @@ This script does the following:
 1. Create a TLS certificate, including a private key and public key, that is signed by that CA.
 1. Delete the private key of the CA so no one can ever use it again. However, the public key of the CA is kept
 around so anyone who needs to call your service can use that CA public key to verify your TLS certificate.
-TODO: decide about this step!!
 1. Optionally encrypt the private key of the TLS cert with KMS.
+1. Upload the private key, public key, and CA to AWS Secrets Manager using the default CMK for encryption, or the
+KMS key you provide.
 1. Optionally upload the TLS certificate to AWS Certificate Manager so you can use it with an internal ELB or ALB.
 
 The only IP address in the cert will be 127.0.0.1 and localhost, so you can test your servers locally.
@@ -180,48 +185,50 @@ and [Dockerfile](Dockerfile).
 
 1. First make sure you followed [these instructions](#how-do-i-run-these-scripts-using-docker), so that environment
 variables are set, and Docker is running.
-1. Run the following command (which calls [create-tls-cert.sh](create-tls-cert.sh)):
+1. Run the following command (which calls [create-tls-cert.sh](create-tls-cert.sh)). Be sure to change the values
+to be correct!
     ```sh
-    docker-compose run tls \
-    --ca-path ca.crt.pem \
-    --cert-path my-app.crt.pem \
-    --key-path my-app.key.pem \
-    --company-name Acme \ # change this to be correct
-TODO: Decide about this key!!
-    --kms-key-id alias/test-key \ # change this to be correct
-    --aws-region us-east-1 # change this to be correct
+    docker-compose run certs \
+    --company-name Acme \
+    --country US
+    --state AZ \
+    --city Phoenix \
+    --org Acme \
+    --secret-name my-tls-secret \
+    --aws-region us-east-1 \
+    --kms-key-id alias/dedicated-test-key
     ```
-TODO: Decide about this text!!
-    You'll notice that you need to pass in the correct KMS key id in `--kms-key-id`, and the region where it's
-    located in `--aws-region`.
-    _We highly recommend including these two options, so that you don't have an unencrypted private key on your system._
-    By providing both `--kms-key-id` and `--aws-region`, the script will automatically encrypt the private key, save it as
-    `my-app.key.pem.kms.encrypted`, and delete the unencrypted key, `my-app.key.pem`.
-    The certificate is uploaded to Secrets Manager in the region specified by `--aws-region`.
-1. After running that command, the generated cert files will be located on your local machine within a new subfolder in this directory: `tls/certs/`.
+    You'll notice that you need to pass in the correct KMS key id in `--kms-key-id`.
+    _We highly recommend including this option, so that you don't have an unencrypted private key on your system._
+    By providing `--kms-key-id` the script will automatically encrypt the private key, save it as
+    `my-app.key.pem.kms.encrypted`, and delete the unencrypted key (`my-app.key.pem`).
+    The certificate is then uploaded to AWS Secrets Manager in the region specified by `--aws-region`, and encrypted
+    using the KMS key you provided. If you didn't provide a key, AWS Secrets Manager will use your default CMK.
+1. After running that command, the generated cert files will be located on your local machine within a new subfolder
+in this directory: `tls/certs/`.
 
 If you used the above example, you should see:
-- `ca.crt.pem`: This is the CA public key, or CA certificate, in PEM format.
-- `my-app.crt.pem`: This is the app's public key, or TLS certificate, signed by the CA cert, in PEM format.
-TODO: This might be with or without .kms.encryption suffix
-- `my-app.key.pem.kms.encrypted`: This is the app's private key in PEM format, encrypted with the KMS key you provided.
-- If you see `my-app.key.pem`, the script was not able to encrypt your private key using the KMS key you provided (or you didn't provide a key), so this is the private key in PEM format, in plain text.
+- `CA.crt`: This is the CA public key, or CA certificate, in PEM format.
+- `app.crt`: This is the app's public key, or TLS certificate, signed by the CA cert, in PEM format.
+- `app.key.kms.encrypted`: This is the app's TLS private key in PEM format, encrypted with the KMS key you provided.
+- If you see `app.key`, the script was not able to encrypt your private key using the KMS key you provided (or you
+didn't provide a key), so this is the private key in PEM format, in plain text.
 
 Optionally, you can upload the certificate to ACM using `--upload-to-acm`, so that the cert can be used with an
-internal ELB or ALB. 
-
-Note that, although operating private CAs via AWS ACM incurs costs, uploading self-signed certificates to ACM is totally free. 
+internal ELB or ALB. Note that although _operating_ private CAs via AWS ACM incurs costs, _uploading_ self-signed
+certificates to ACM is totally free!
 
 E.g.:
 ```sh
-docker-compose run tls \
---ca-path ca.crt.pem \
---cert-path my-app.crt.pem \
---key-path my-app.key.pem \
---company-name Acme \ # change this to be correct
-TODO: Decide about this!
---kms-key-id alias/test-key \ # change this to be correct
---aws-region us-east-1 \ # change this to be correct
+docker-compose run certs \
+--company-name Acme \
+--country US
+--state AZ \
+--city Phoenix \
+--org Acme \
+--secret-name my-tls-secret \
+--aws-region us-east-1 \
+--kms-key-id alias/dedicated-test-key
 --upload-to-acm
 ```
 
@@ -254,7 +261,6 @@ variables are set, and Docker is running.
     --company-city Phoenix \ # change this to be correct
     --company-state AZ \ # change this to be correct
     --company-country US \ # change this to be correct
-TODO: Delete the next line: Will this be okay? It will use the default CMK for this.
     --kms-key-id alias/test-key \ # change this to be correct
     --aws-region us-east-1 # change this to be correct
     ```
@@ -273,12 +279,10 @@ If you're just using the scripts to create certs, you can skip this section. Oth
 ### Setup
 1. First make sure you followed [these instructions](#how-do-i-run-these-scripts-using-docker), so that environment
 variables are set, and Docker is running.
-TODO: If we're not letting users pass in a kms-key at all we don't need the next line.
 1. Run `export TLS_SCRIPTS_KMS_KEY_ID=[your-key-name]`, setting it to the ID of the CMK to use for encryption.
 This value can be a globally unique identifier (e.g. `12345678-1234-1234-1234-123456789012`), a fully specified ARN
 (e.g. `arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012`), or an alias name prefixed by
 `alias/` (e.g. `alias/MyAliasName`).
-TODO: Update the description here if we're not using KMS key.
 1. Run `export TLS_SCRIPTS_AWS_REGION=[your-key-region]`, setting it to the AWS region where the KMS key is located
 (e.g. `us-east-1`).
 

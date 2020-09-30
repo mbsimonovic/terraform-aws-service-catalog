@@ -73,7 +73,7 @@ function print_usage {
   log "    --state AZ \\"
   log "    --city Phoenix \\"
   log "    --org Acme \\"
-  log "    --secret-name my-tls-secrets \\"
+  log "    --secret-name my-tls-secret \\"
   log "    --aws-region us-east-1 \\"
   log "    --kms-key-id alias/dedicated-test-key"
   log
@@ -83,7 +83,7 @@ function print_usage {
   log "    --state AZ \\"
   log "    --city Phoenix \\"
   log "    --org Acme \\"
-  log "    --secret-name my-tls-secrets \\"
+  log "    --secret-name my-tls-secret \\"
   log "    --aws-region us-east-1 \\"
   log "    --kms-key-id alias/dedicated-test-key \\"
   log "    --upload-to-acm"
@@ -95,7 +95,7 @@ function encrypt_private_key {
   local -r encrypted_cert_private_key_path="${CERT_PRIVATE_KEY_PATH}.kms.encrypted"
 
   if [[ -z "$kms_key_id" ]]; then
-    log "WARNING: --kms-key-id not specified. Will NOT be encrypting the TLS cert private key."
+    log "WARNING: --kms-key-id not specified. Will NOT be encrypting the TLS Cert private key."
     return
   fi
 

@@ -45,9 +45,7 @@ func TestTlsScripts(t *testing.T) {
 
 	// Create TLS Cert vars
 	createTLSDir := filepath.Join(tmpBaseDir, "certs")
-	//createCertFiles := []string{"ca.crt", "app.crt", "app.key.kms.encrypted"}
-	//TODO: this is no longer encrypted with gruntkms. Should we just not store these files locally anymore? Or should we keep gruntkms just for the local encryption?
-	createCertFiles := []string{"CA.crt", "app.crt", "app.key"}
+	createCertFiles := []string{"CA.crt", "app.crt", "app.key.kms.encrypted"}
 
 	// Download RDS CA Certs vars
 	downloadPath := filepath.Join(tmpBaseDir, "rds-cert")
