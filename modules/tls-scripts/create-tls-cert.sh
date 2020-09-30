@@ -1,6 +1,9 @@
 #!/bin/bash
-# This script creates a CA cert and a TLS cert signed by that CA, assuming those certs don't already exist. The TLS
-# cert is uploaded to AWS Secrets Manager in the region you provide. It is also saved to the tls/ sub-directory.
+# This script creates a CA cert and a TLS cert signed by that CA, if those certs don't already exist. If a kms
+# key is provided, the TLS cert private key is encrypted locally with gruntkms, and the TLS cert is uploaded
+# to AWS Secrets Manager encrypted with the same key. If a kms key is not provided, the TLS cert is stored
+# locally unencrypted, and the TLS cert is uploaded to AWS Secrets Manager encrypted with the default CMK.
+# Locally the files are saved to the tls/ sub-directory.
 # Optionally, this script can also upload the cert to ACM, so it can be used with an ELB or ALB.
 #
 # These certs are meant for private/internal use only, such as to set up end-to-end encryption within an AWS account.
@@ -11,6 +14,7 @@
 #
 # Dependencies:
 # - aws CLI
+# - gruntkms
 # - jq
 # Note: These dependencies are automatically included in the Dockerfile in this module folder.
 
@@ -29,48 +33,82 @@ readonly CERT_PUBLIC_KEY_PATH="${TLS_PATH}/app.crt"
 readonly CERT_PRIVATE_KEY_PATH="${TLS_PATH}/app.key"
 readonly CA_PUBLIC_KEY_PATH="${TLS_PATH}/CA.crt"
 
+readonly DEFAULT_DNS_NAMES=("localhost")
+readonly DEFAULT_IP_ADDRESSES=("127.0.0.1")
+
 function print_usage {
   log
   log "Usage: create-tls-cert.sh [OPTIONS]"
   log
-  log "This script creates a CA cert and a TLS cert signed by that CA, assuming those certs don't already exist. The TLS cert is uploaded to AWS Secrets Manager in the region you provide. It is also saved to the tls/ sub-directory. Optionally, this script can also upload the cert to ACM, so it can be used with an ELB or ALB."
+  log "This script creates a CA cert and a TLS cert signed by that CA, if those certs don't already exist. If a kms key is provided, the TLS cert private key is encrypted locally with gruntkms, and the TLS cert is uploaded to AWS Secrets Manager encrypted with the same key. If a kms key is not provided, the TLS cert is stored locally unencrypted, and the TLS cert is uploaded to AWS Secrets Manager encrypted with the default CMK. Locally the files are saved to the tls/ sub-directory. Optionally, this script can also upload the cert to ACM, so it can be used with an ELB or ALB."
   log
   log "Required Arguments:"
   log
-  log "  --secret-name\t\tThe name of the secret you'd like to use to store the cert in AWS Secrets Manager."
   log "  --company-name\t\tThe name of the company this cert is for."
   log "  --cn\t\tThe Common Name (CN) for the certificate: e.g., what domain name to issue it for."
   log "  --country\t\tThe two-letter country code for where your company is located."
   log "  --state\t\tThe two-letter state code for where your company is located."
   log "  --city\t\tThe name of the city for where your company is located."
   log "  --org\t\tThe name of organization in your company."
-  log "  --aws-region\t\tThe AWS region to use for AWS Secrets Manager and AWS Certificate Manager."
+  log "  --secret-name\t\tThe name of the secret you'd like to be used to store the cert in AWS Secrets Manager."
+  # TODO: is it acceptable for --aws-region to be all of these? would a customer ever want separate regions for each?
+  log "  --aws-region\t\tThe AWS region to use for storing in AWS Secrets Manager and AWS Certificate Manager, and where the kms-key lives, if --kms-key-id is set."
+  log "  --role-arn\t\tThe AWS ARN of the IAM role to assume. Optional."
+  log "  --role-arn\t\tThe AWS ARN of the IAM role to assume. Optional."
   log
   log "Optional Arguments:"
   log
   log "  --upload-to-acm\tIf specified, the cert will be uploaded to AWS Certificate Manager and its ARN will be written to stdout."
-  log "  --role-arn\t\tThe AWS ARN of the IAM role to assume."
+  log "  --kms-key-id\t\tThe KMS key to use for encryption. This value can be a globally unique identifier (e.g. 12345678-1234-1234-1234-123456789012), a fully specified ARN (e.g. arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012), or an alias name prefixed by \"alias/\" (e.g. alias/MyAliasName)."
+  log "  --dns-name\tA custom DNS name to associate with the cert, in addition to the default. May be specified more than once. Default: ${DEFAULT_DNS_NAMES[@]}"
+  log "  --ip-address\tA custom IP address to associate with the cert, in addition to the default. May be specified more than once. Default: ${DEFAULT_IP_ADDRESSES[@]}"
+  log "  --no-dns-names\tIf set, the cert won't be associated with any DNS names."
+  log "  --no-ips\tIf set, the cert won't be associated with any IP addresses."
   log
   log "Examples:"
   log
   log "  create-tls-cert.sh \\"
-  log "    --secret-name my-tls-secrets \\"
   log "    --company-name Acme \\"
   log "    --country US \\"
   log "    --state AZ \\"
   log "    --city Phoenix \\"
   log "    --org Acme \\"
-  log "    --aws-region us-east-1"
+  log "    --secret-name my-tls-secrets \\"
+  log "    --aws-region us-east-1 \\"
+  log "    --kms-key-id alias/dedicated-test-key"
   log
   log "  create-tls-cert.sh \\"
-  log "    --secret-name my-tls-secrets \\"
   log "    --company-name Acme \\"
   log "    --country US \\"
   log "    --state AZ \\"
   log "    --city Phoenix \\"
   log "    --org Acme \\"
+  log "    --secret-name my-tls-secrets \\"
   log "    --aws-region us-east-1 \\"
+  log "    --kms-key-id alias/dedicated-test-key \\"
   log "    --upload-to-acm"
+}
+
+function encrypt_private_key {
+  local -r aws_region="$1"
+  local -r kms_key_id="$2"
+  local -r encrypted_cert_private_key_path="${CERT_PRIVATE_KEY_PATH}.kms.encrypted"
+
+  if [[ -z "$kms_key_id" ]]; then
+    log "WARNING: --kms-key-id not specified. Will NOT be encrypting the TLS cert private key."
+    return
+  fi
+
+  log "Encrypting private key at ${CERT_PRIVATE_KEY_PATH} with KMS key $kms_key_id"
+
+  local private_key_plaintext
+  local private_key_ciphertext
+  private_key_plaintext=$(cat "${CERT_PRIVATE_KEY_PATH}")
+  private_key_ciphertext=$(gruntkms encrypt --plaintext "$private_key_plaintext" --aws-region "$aws_region" --key-id "$kms_key_id")
+  echo -n "$private_key_ciphertext" > "$encrypted_cert_private_key_path"
+  log "Stored encrypted key as $encrypted_cert_private_key_path"
+  rm "${CERT_PRIVATE_KEY_PATH}"
+  log "Removed original unencrypted key."
 }
 
 # Renders the public and private key as well as the CA public key into a JSON object that is stored in Secrets Manager
@@ -119,14 +157,14 @@ function upload_to_acm {
 function render_tls_secret_json {
   local -r app_public_key="$1"
   local -r app_private_key="$2"
-  local -r app_ca_public_key="$3"
+  local -r ca_public_key="$3"
 
   local -r json=$(cat <<END_HEREDOC
 {
     "app": {
       "crt": "$app_public_key",
       "key": "$app_private_key",
-      "ca": "$app_ca_public_key"
+      "ca": "$ca_public_key"
     }
 }
 END_HEREDOC
@@ -136,35 +174,41 @@ END_HEREDOC
 }
 
 function do_create {
+  # TODO: unused...
   local -r company_name="$1"
-  local -r aws_region="$2"
-  local -r upload_to_acm="$3"
-  local -r secret_name="$4"
-  local -r country="$5"
-  local -r state="$6"
-  local -r city="$7"
-  local -r org="$8"
+  local -r common_name="$2"
+  local -r aws_region="$3"
+  local -r upload_to_acm="$4"
+  local -r secret_name="$5"
+  local -r country="$6"
+  local -r state="$7"
+  local -r city="$8"
+  local -r org="$9"
+  local -r kms_key_id="${10}"
+  local -r san="${11}"
 
   log "Starting TLS cert generation..."
 
   "generate-self-signed-tls-cert.sh" \
-    --cn "$company_name" \
+    --cn "$common_name" \
     --country "$country" \
     --state "$state" \
     --city "$city" \
     --org "$org" \
     --dir "${TLS_PATH}" \
     --size 2048 \
-    --san "DNS:$company_name,DNS:localhost,IP:127.0.0.1"
+    --san "$san"
 
   store_tls_certs_in_secrets_manager "$aws_region" "$secret_name"
   upload_to_acm "$aws_region" "$upload_to_acm"
+  encrypt_private_key "$aws_region" "$kms_key_id"
 
   log "Done with TLS cert generation!"
 }
 
 function run {
   local company_name
+  local common_name
   local country
   local state
   local city
@@ -173,6 +217,10 @@ function run {
   local role_arn
   local upload_to_acm="false"
   local secret_name
+  local -a dns_names=()
+  local -a ip_addresses=()
+  local no_dns="false"
+  local no_ips="false"
 
   while [[ $# > 0 ]]; do
     local key="$1"
@@ -183,6 +231,10 @@ function run {
         ;;
       --company-name)
         company_name="$2"
+        shift
+        ;;
+      --common-name)
+        common_name="$2"
         shift
         ;;
       --country)
@@ -205,13 +257,27 @@ function run {
         aws_region="$2"
         shift
         ;;
+      --role-arn)
+        role_arn="$2"
+        shift
+        ;;
       --secret-name)
         secret_name="$2"
         shift
         ;;
-      --role-arn)
-        role_arn="$2"
+      --dns-name)
+        dns_names+=("$2")
         shift
+        ;;
+      --ip-address)
+        ip_addresses+=("$2")
+        shift
+        ;;
+      --no-dns-names)
+        no_dns="true"
+        ;;
+      --no-ips)
+        no_ips="true"
         ;;
       --help)
         print_usage
@@ -228,6 +294,7 @@ function run {
   done
 
   assert_not_empty "--company-name" "$company_name"
+  assert_not_empty "--common-name" "$common_name"
   assert_not_empty "--country" "$country"
   assert_not_empty "--state" "$state"
   assert_not_empty "--city" "$city"
@@ -236,13 +303,50 @@ function run {
   assert_not_empty "--secret-name" "$secret_name"
 
   assert_is_installed "aws"
+  assert_is_installed "gruntkms"
   assert_is_installed "jq"
 
   if [[ ! -z "$role_arn" ]]; then
     assume_iam_role "$role_arn"
   fi
 
-  (do_create "$company_name" "$aws_region" "$upload_to_acm" "$secret_name" "$country" "$state" "$city" "$org")
+  # If no dns_names or ip_addresses were passed in, use the defaults
+  if [[ "${#dns_names[@]}" -eq 0 ]]; then
+    dns_names="${DEFAULT_DNS_NAMES[@]}"
+  fi
+
+  if [[ "${#ip_addresses[@]}" -eq 0 ]]; then
+    ip_addresses="${DEFAULT_IP_ADDRESSES[@]}"
+  fi
+
+  local dns_names_str="DNS:\"$(join "\",DNS:\"" "${dns_names[@]}")\""
+  local ip_addresses_str="IP:\"$(join "\",IP:\"" "${ip_addresses[@]}")\""
+
+  # Blank them out if specified
+  if [[ "$no_dns" == "true" ]]; then
+    log "The --no-dns-names flag is set, so won't associate cert with any DNS names."
+    dns_names_str=""
+  fi
+
+  if [[ "$no_ips" == "true" ]]; then
+    log "The --no-ips flag is set, so won't associate cert with any IP addresses."
+    ip_addresses_str=""
+  fi
+
+  # Join them into a SAN list
+  local san
+  if [[ -z "$dns_names_str" ]]; then
+    san="$ip_addresses_str"
+    if [[ -z "$ip_addresses_str" ]]; then
+      san=""
+    fi
+  elif [[ -z "$ip_addresses_str" ]]; then
+    san="$dns_names_str"
+  else
+    san="$dns_names_str,$ip_addresses_str"
+  fi
+
+  (do_create "$company_name" "$common_name" "$aws_region" "$upload_to_acm" "$secret_name" "$country" "$state" "$city" "$org" "$kms_key_id" "$san")
 }
 
 run "$@"
