@@ -65,6 +65,7 @@ function store_in_secrets_manager {
   local -r password_description="$2"
   local -r password="$3"
   local -r aws_region="$4"
+  local -r kms_key_id="$5"
 
   local create_secret_response
 
@@ -73,7 +74,8 @@ function store_in_secrets_manager {
     --region "$aws_region" \
     --name "$password_name" \
     --description "$password_description" \
-    --secret-string "$password")
+    --secret-string "$password" \
+    --kms-key-id "$kms_key_id")
 
   echo -n "$create_secret_response"
 }

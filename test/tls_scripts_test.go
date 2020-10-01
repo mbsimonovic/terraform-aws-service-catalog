@@ -23,6 +23,8 @@ import (
 //     - e.g.: export GITHUB_OAUTH_TOKEN=7d1c645272775xxxxd5cd68bb2dxxxxeb35858c9
 // - Export AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
 // - If you're using temporary credentials, export AWS_SESSION_TOKEN
+// - Export a KMS CMK in TLS_SCRIPTS_KMS_KEY_ID
+//     - e.g.: export TLS_SCRIPTS_KMS_KEY_ID=alias/dedicated-test-key
 // - Export a region in TLS_SCRIPTS_AWS_REGION
 //     - e.g.: export TLS_SCRIPTS_AWS_REGION=us-east-1
 
@@ -30,14 +32,15 @@ func TestTlsScripts(t *testing.T) {
 	t.Parallel()
 
 	// Uncomment the items below to skip certain parts of the test
-	os.Setenv("TERRATEST_REGION", "us-east-1")
-	os.Setenv("SKIP_deploy", "true")
-	os.Setenv("SKIP_validate", "true")
+	// os.Setenv("TERRATEST_REGION", "us-east-1")
+	// os.Setenv("SKIP_deploy", "true")
+	// os.Setenv("SKIP_validate", "true")
 	// os.Setenv("SKIP_cleanup", "true")
 
 	requireEnvVar(t, "GITHUB_OAUTH_TOKEN")
 	requireEnvVar(t, "AWS_ACCESS_KEY_ID")
 	requireEnvVar(t, "AWS_SECRET_ACCESS_KEY")
+	requireEnvVar(t, "TLS_SCRIPTS_KMS_KEY_ID")
 	requireEnvVar(t, "TLS_SCRIPTS_AWS_REGION")
 
 	scriptsDir := "../modules/tls-scripts"
@@ -54,6 +57,9 @@ func TestTlsScripts(t *testing.T) {
 	trustStoresDir := filepath.Join(tmpBaseDir, "trust-stores")
 	trustStoresFiles := []string{"kafka.server.ca.default.pem", "kafka.server.cert.default.pem", "keystore/kafka.server.keystore.default.jks", "truststore/kafka.server.truststore.default.jks"}
 
+	// This KMS key id should match the key you'd like to use to encrypt the secret
+	// awsRegion := "alias/dedicated-test-key"
+	kmsKeyId := os.Getenv("TLS_SCRIPTS_KMS_KEY_ID")
 	// This region should match where you want the secrets stored in AWS Secrets Manager.
 	// awsRegion := "us-east-1"
 	awsRegion := os.Getenv("TLS_SCRIPTS_AWS_REGION")
@@ -80,8 +86,8 @@ func TestTlsScripts(t *testing.T) {
 					"certs",
 					"--secret-name",
 					certSecretName,
-					"--company-name",
-					"Acme",
+					"--cn",
+					"acme.com",
 					"--country",
 					"US",
 					"--state",
@@ -90,6 +96,8 @@ func TestTlsScripts(t *testing.T) {
 					"Phoenix",
 					"--org",
 					"Gruntwork",
+					"--kms-key-id",
+					kmsKeyId,
 					"--aws-region",
 					awsRegion,
 					"--upload-to-acm",
@@ -185,8 +193,7 @@ func TestTlsScripts(t *testing.T) {
 				test_structure.SaveString(t, scriptsDir, "storesSecretName", storesSecretName)
 
 				docker.RunDockerCompose(
-					t,
-					&docker.Options{},
+					t, &docker.Options{},
 					"-f",
 					filepath.Join(scriptsDir, "docker-compose.yml"),
 					"run",
@@ -209,6 +216,8 @@ func TestTlsScripts(t *testing.T) {
 					"AZ",
 					"--company-country",
 					"US",
+					"--kms-key-id",
+					kmsKeyId,
 					"--aws-region",
 					awsRegion,
 				)

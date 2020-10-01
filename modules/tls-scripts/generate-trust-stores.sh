@@ -32,7 +32,7 @@ function print_usage {
   log
   log "Usage: generate-trust-stores.sh [OPTIONS]"
   log
-  log "This script is meant to be used to automatically generate a Key Store and Trust Store, which are typically used with Java apps to securely store SSL certificates. If they don't already exist, the Key Store, Trust Store, and public cert / CA will be generated to the specified paths."
+  log "This script generates a Key Store and Trust Store, which are typically used with Java apps to securely store SSL certificates. The Key Store, Trust Store, and public cert / CA will be generated to the specified paths, and the Key Store Password encrypted and stored in AWS Secrets Manager."
   log
   log "Required Arguments:"
   log
@@ -45,6 +45,7 @@ function print_usage {
   log "  --company-city\t\t\tThe city the company is in."
   log "  --company-state\t\t\tThe state the company is in."
   log "  --company-country\t\t\tThe country the company is in."
+  log "  --kms-key-id\t\tThe ID of the CMK to use for encryption. This value can be a globally unique identifier (e.g. 12345678-1234-1234-1234-123456789012), a fully specified ARN (e.g. arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012), or an alias name prefixed by \"alias/\" (e.g. alias/MyAliasName). Optional."
   log "  --aws-region\t\t\tThe AWS region where to store the secrets in AWS Secrets Manager."
   log
   log "Optional Arguments:"
@@ -54,7 +55,7 @@ function print_usage {
   log "  --san-domain\t\t\t\tThe domain name to include in the SAN field on the generated cert. *May be repeated*."
   log "  --export-cert-key\t\t\tOptional boolean whether to export the generated self-signed certificate's private key. If not specified, private key will not be exported."
   log "  --export-cert-p8-key\t\t\tOptional boolean whether to export the generated self-signed certificate's private key in P8 format. If not specified, will not exported private key."
-  log "  --generate-certs-in-one-folder\tOptional boolean. If present all cert/jks/truststore files will be outputted into --store-path. Otherwise trust-store and jks will be in separate dirs."
+  log "  --generate-certs-in-one-folder\tOptional boolean. If present all cert/jks/truststore files will be output to --store-path. Otherwise trust-store and jks will be in separate dirs."
   log
   log "Example:"
   log
@@ -68,6 +69,7 @@ function print_usage {
   log "    --company-city Phoenix \\"
   log "    --company-state AZ \\"
   log "    --company-country US \\"
+  log "    --kms-key-id alias/cmk-dev \\"
   log "    --aws-region us-east-1"
 }
 
@@ -91,6 +93,7 @@ function generate_trust_stores {
   local company_country
   local aws_region
   local role_arn
+  local kms_key_id
   local keystore_name
   local secret_name
   local -a san_ips=()
@@ -139,6 +142,10 @@ function generate_trust_stores {
         role_arn="$2"
         shift
         ;;
+      --kms-key-id)
+        kms_key_id="$2"
+        shift
+        ;;
       --keystore-name)
         keystore_name="$2"
         shift
@@ -178,6 +185,7 @@ function generate_trust_stores {
     shift
   done
 
+  assert_is_installed "gruntkms"
   assert_is_installed "aws"
   assert_is_installed "git"
   assert_is_installed "jq"
@@ -196,6 +204,7 @@ function generate_trust_stores {
   assert_not_empty "--aws-region" "$aws_region"
   assert_not_empty "--keystore-name" "$keystore_name"
   assert_not_empty "--secret-name" "$secret_name"
+  assert_not_empty "--kms-key-id" "$kms_key_id"
 
   if [[ ! -z "$role_arn" ]]; then
     assume_iam_role "$role_arn"
@@ -225,6 +234,7 @@ function generate_trust_stores {
   # Determine if we need to generate key and trust stores.
   if [[ -f "$key_store_path" && -f "$trust_store_path" ]]; then
     log "The Key Store at $key_store_path and Trust Store at $trust_store_path already exist. Will not create again."
+    return
   elif [[ -f "$key_store_path" || -f "$trust_store_path" ]]; then
     log "ERROR: One of the Key Store at $key_store_path and Trust Store at $trust_store_path already exists, but the other does not. This likely indicates a bug! Please investigate."
     exit 1
@@ -273,12 +283,16 @@ function generate_trust_stores {
     KEY_STORE_PASSWORD="$key_store_password" TRUST_STORE_PASSWORD="$key_store_password" "$installed_script" "${args[@]}" 1>&2
   fi
 
+  local password_ciphertext
+  password_ciphertext=$(gruntkms encrypt --plaintext "$key_store_password" --aws-region "$aws_region" --key-id "$kms_key_id")
+  echo -n "$password_ciphertext"
+
   local api_response
   local secret_arn
 
   # Make an API call to AWS Secrets Manager to create the secret representing the key store's password
   log "Calling AWS Secrets Manager API to store secret..."
-  api_response=$(store_in_secrets_manager "$secret_name" "Key store password for $company_name" "$key_store_password" "$aws_region")
+  api_response=$(store_in_secrets_manager "$secret_name" "Key store password for $company_name" "$key_store_password" "$aws_region" "$kms_key_id")
 
   secret_arn=$(echo "$api_response" | jq '.ARN')
   log "Stored key store password in AWS Secrets Manager! Secret ARN: $secret_arn"

@@ -166,7 +166,8 @@ function create_self_signed_cert_for_app {
 
   if [[ -f "$app_cert_path" || -f "$app_key_path" || -f "$ca_cert_path" ]]; then
     log_info "Self-signed TLS certs already exist at $app_cert_path, $app_key_path, and/or $ca_cert_path. Will not generate again."
-    return
+    # NOTE: This script was modified to return a code when generation stops
+    exit 1
   fi
 
   log_info "Generating self-signed TLS certs..."
