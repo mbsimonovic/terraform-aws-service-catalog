@@ -190,16 +190,24 @@ locals {
     : null
   )
 
-  ip_lockdown_users = compact([
-    lookup(var.ec2_worker_pool_configuration, "default_user", "ec2-user"),
-    # User used to push cloudwatch metrics from the server. This should only be included in the ip-lockdown list if
-    # reporting cloudwatch metrics is enabled.
-    lookup(var.ec2_worker_pool_configuration, "enable_cloudwatch_metrics", true) ? "cwmonitoring" : ""
-  ])
+  ip_lockdown_users = (
+    local.should_use_ec2_worker_pool
+    ? compact([
+      lookup(var.ec2_worker_pool_configuration, "default_user", "ec2-user"),
+      # User used to push cloudwatch metrics from the server. This should only be included in the ip-lockdown list if
+      # reporting cloudwatch metrics is enabled.
+      lookup(var.ec2_worker_pool_configuration, "enable_cloudwatch_metrics", true) ? "cwmonitoring" : ""
+    ])
+    : null
+  )
   # We want a space separated list of the users, quoted with ''
-  ip_lockdown_users_bash_array = join(
-    " ",
-    [for user in local.ip_lockdown_users : "'${user}'"],
+  ip_lockdown_users_bash_array = (
+    local.should_use_ec2_worker_pool
+    ? join(
+      " ",
+      [for user in local.ip_lockdown_users : "'${user}'"],
+    )
+    : null
   )
 
   # Default cloud init script for this module
