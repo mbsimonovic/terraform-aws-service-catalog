@@ -153,7 +153,8 @@ function upload_to_acm {
 
   cert_arn=$(import_certificate_to_acm "$CERT_PUBLIC_KEY_PATH" "$CERT_PRIVATE_KEY_PATH" "$CA_PUBLIC_KEY_PATH" "$aws_region")
 
-  log "Certificate uploaded! Certificate ARN: $cert_arn"
+  log "Certificate uploaded! Certificate ARN will be printed on next line."
+  echo $cert_arn
 }
 
 function render_tls_secret_json {

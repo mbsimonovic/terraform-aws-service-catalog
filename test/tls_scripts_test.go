@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	// "github.com/aws/aws-sdk-go/service/acm"
+	"github.com/aws/aws-sdk-go/service/acm"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/docker"
@@ -77,7 +77,17 @@ func TestTlsScripts(t *testing.T) {
 				certSecretName := fmt.Sprintf("tls-secrets-%s", random.UniqueId())
 				test_structure.SaveString(t, scriptsDir, "certSecretName", certSecretName)
 
+				// Run the build step first so that the build output doesn't go to stdout during the compose step.
 				docker.RunDockerCompose(
+					t,
+					&docker.Options{},
+					"-f",
+					filepath.Join(scriptsDir, "docker-compose.yml"),
+					"build",
+				)
+
+				// Save output to grab the Certificate ARN output by the script.
+				out := docker.RunDockerComposeAndGetStdOut(
 					t,
 					&docker.Options{},
 					"-f",
@@ -102,6 +112,9 @@ func TestTlsScripts(t *testing.T) {
 					awsRegion,
 					"--upload-to-acm",
 				)
+
+				// Save the Certificate ARN for cleanup.
+				test_structure.SaveString(t, scriptsDir, "certARNinAWS", out)
 			},
 
 			func() {
@@ -139,25 +152,25 @@ func TestTlsScripts(t *testing.T) {
 
 				os.RemoveAll(filepath.Join(scriptsDir, createTLSDir))
 
-				// TODO: can I get the ARN somehow so that I can delete it?
+				sess, err := aws.NewAuthenticatedSession(awsRegion)
+				require.NoError(t, err)
+
 				// Remove certificate from ACM using ARN
-				// 				sess, err := aws.NewAuthenticatedSession(awsRegion)
-				// 				require.NoError(t, err)
-				// 				acmClient := acm.New(sess)
-				// 				input := acm.DeleteCertificateInput{CertificateArn: &certARN}
-				// 				_, err = acmClient.DeleteCertificate(&input)
-				// 				require.NoError(t, err)
+				certARN := test_structure.LoadString(t, scriptsDir, "certARNinAWS")
+				acmClient := acm.New(sess)
+				input := acm.DeleteCertificateInput{CertificateArn: &certARN}
+				_, err = acmClient.DeleteCertificate(&input)
+				require.NoError(t, err)
 
 				// Delete from Secrets Manager, too.
 				certSecretName := test_structure.LoadString(t, scriptsDir, "certSecretName")
-				sess, err := aws.NewAuthenticatedSession(awsRegion)
-				require.NoError(t, err)
 				smClient := secretsmanager.New(sess)
-				input := secretsmanager.DeleteSecretInput{SecretId: &certSecretName}
-				_, err = smClient.DeleteSecret(&input)
+				secretInput := secretsmanager.DeleteSecretInput{SecretId: &certSecretName}
+				_, err = smClient.DeleteSecret(&secretInput)
 				require.NoError(t, err)
 
 				test_structure.CleanupTestData(t, fmt.Sprintf("%s/.test-data/certSecretName.json", scriptsDir))
+				test_structure.CleanupTestData(t, fmt.Sprintf("%s/.test-data/certARNinAWS.json", scriptsDir))
 			},
 		},
 		{
