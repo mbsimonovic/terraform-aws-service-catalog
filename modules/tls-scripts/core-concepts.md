@@ -506,7 +506,8 @@ local -r app_private_key
 
 secret_output=$(read_secret_from_aws_secrets_manager "dev" "us-east-1" "my-tls-secret")
 
-# $secret_output now contains the JSON object that we stored in AWS Secrets Manager, so we can use the JSON parsing tool jq to extract the individual keys and certificates
+# $secret_output now contains the JSON object that we stored in AWS Secrets Manager
+# so we can use the JSON parsing tool jq to extract the individual keys and certificates
 
 # fetch the value of the "ca" field nested under the "app" object in our JSON
 $ca_public_key=$(echo "$secret_output" | jq .app.ca)
