@@ -74,6 +74,7 @@ Service Catalog]!
 == Operate
 
 * link:core-concepts.md#how-do-i-use-these-certs-with-my-apps[How do I use these certs with my apps?]
+* link:core-concepts.md#fetching-remote-certificates-from-aws-secrets-manager[Fetching certificates from AWS Secrets Manager]
 * link:core-concepts.md#how-do-i-talk-to-other-apps-that-are-listening-with-certs[How do I talk to other apps that are listening with certs?]
 
 == Support
