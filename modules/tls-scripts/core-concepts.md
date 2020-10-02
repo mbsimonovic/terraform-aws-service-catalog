@@ -555,7 +555,7 @@ public, well-known CAs, such as Let's Encrypt and Amazon, those tools will NOT a
 by private CAs (self-signed certs). If your app is using a self-signed TLS certificate and you try to access it over
 HTTPS, you'll see an error like this:
 
-![Self-signed cert TLS error](_docs/tls-error.png)
+![Self-signed cert TLS error](../../_docs/tls-error.png)
 
 Similarly, if you try to use `curl`, you'll get an error like this:
 
@@ -569,7 +569,7 @@ In the local dev environment, it's OK to ignore this error, as you know that it'
 for itself, and you can trust it. In Chrome, you can tell the browser to ignore the error by clicking the "Advanced"
 button and then the "Proceed to localhost" link:
 
-![Ignoring the self-signed cert TLS error](_docs/tls-error-ignore.png)
+![Ignoring the self-signed cert TLS error](../../_docs/tls-error-ignore.png)
 
 Similarly, you can tell `curl`  to ignore the error using the `-k` flag:
 
