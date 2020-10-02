@@ -39,6 +39,8 @@ For more information, check out this [illustrated guide to the entire TLS proces
 
 [back to readme](README.adoc#about-tls)
 
+
+
 ### What are commercial or public Certificate Authorities?
 
 For public services like banks, healthcare, and the like, it makes sense to use a _Commercial CA_ like Verisign, Thawte,
@@ -470,7 +472,29 @@ Let's take a look at how to do that now.
 
 With our TLS secrets stored in AWS Secrets Manager, we now need our app to fetch them via the AWS API so that it can use them to serve encrypted traffic over HTTPS. 
 
-Here's an example of doing so in bash. You might do something similar if you have a Dockerized app that runs a bash script as the entrypoint: 
+Note that, before your app can fetch secrets from AWS Secrets Manager, it must have the proper IAM permissions to do so. Here's an example of configuring a policy and role via Terraform: 
+
+The following code creates an IAM policy that allows for reading of the specific secret, and then attaches this policy to an IAM role that will be attached to your app (i.e., attached to the ECS Task, or EKS Pod, or ASG):
+
+    ```hcl
+    resource "aws_iam_role_policy" "read_secrets_manager_secret" {
+      name   = "read-secrets-manager-secret"
+      # This should reference an IAM role accessible to your app 
+      role   = var.iam_role_id
+      policy = data.aws_iam_policy_document.read_secrets_manager_secret.json
+    }
+    
+    data "aws_iam_policy_document" "read_secrets_manager_secret" {
+      statement {
+        effect    = "Allow"
+        actions   = ["secretsmanager:GetSecretValue"]
+        # Make sure to replace this ARN with the ARN of the secret you created in AWS Secrets Manager
+        resources = ["arn:aws:secretsmanager:<region>:<account-id>:secret:my-db-config-<unique-id>"]
+      }
+    }
+    ```
+
+With permissions in place, your app can now make a request to AWS Secrets Manager for the secret it needs. Here's an example of doing so in bash. If your app were running in a Docker container, for example, you might have this function in a bash script that is set as the [Entrypoint](https://docs.docker.com/engine/reference/builder/#entrypoint): 
 
 ```
 # Returns the raw value of a secret string stored in AWS Secrets Manager.
@@ -524,9 +548,45 @@ With your TLS secrets now extracted, you could now write them to `tmpfs`, a virt
 
 [back to readme](README.adoc#operate)
 
-## How do I talk to other apps that are listening with certs?
+### Working with private, self-signed TLS certificates
 
-Instructions to come soon!
-<!-- TODO: (i.e., by using the CA public key to validate the connection) -->
+While your web browser and other HTTP clients will automatically be able to verify and trust certificates signed by 
+public, well-known CAs, such as Let's Encrypt and Amazon, those tools will NOT automatically trust certificates signed 
+by private CAs (self-signed certs). If your app is using a self-signed TLS certificate and you try to access it over
+HTTPS, you'll see an error like this:
+
+![Self-signed cert TLS error](_docs/tls-error.png)
+
+Similarly, if you try to use `curl`, you'll get an error like this:
+
+```
+$ curl https://localhost:8443
+curl: (60) SSL certificate problem: self signed certificate in certificate chain
+More details here: https://curl.haxx.se/docs/sslcerts.html
+```
+ 
+In the local dev environment, it's OK to ignore this error, as you know that it's a self-signed cert the app generated
+for itself, and you can trust it. In Chrome, you can tell the browser to ignore the error by clicking the "Advanced"
+button and then the "Proceed to localhost" link:
+
+![Ignoring the self-signed cert TLS error](_docs/tls-error-ignore.png)
+
+Similarly, you can tell `curl`  to ignore the error using the `-k` flag:
+
+```
+$ curl -k https://localhost:8443
+```
+
+In all other environments, you'll want to get access to the CA public key to validate the certificate. In the local dev 
+environment, the CA public key is copied to `tls/CA-<app_name>.crt` (e.g., `tls/CA-frontend.crt`). 
+
+The instructions for getting your browser to trust it depend on the browser and OS, so do a Google search: e.g., in 
+Chrome, you can go to Settings -> Manage certificates and add a certificate in the window that pops up.
+
+For `curl`, it's simpler, as you just pass the cert in via the `--cacert` argument. For example:
+
+```bash
+curl --cacert ../tls/my-ca.crt https://localhost:8443
+```  
 
 [back to readme](README.adoc#operate)
