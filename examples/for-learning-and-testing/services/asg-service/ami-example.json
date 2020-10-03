@@ -36,6 +36,7 @@
     },
     "ssh_username": "ubuntu",
     "encrypt_boot": "{{user `encrypt_boot`}}",
+    "associate_public_ip_address": true,
     "tags": {
       "version": "{{user `version_tag`}}"
     }

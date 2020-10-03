@@ -60,6 +60,29 @@ module "openvpn" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 locals {
+  # init-openvpn expects the subnet routes in [subnet] [mask] format (e.g., "10.100.0.0 255.255.255.0"), so we
+  # need to translate the CIDR blocks to this format.
+  vpn_subnet_routes = [for cidr_block in var.vpn_route_cidr_blocks : "'${cidrhost(cidr_block, 0)} ${cidrnetmask(cidr_block)}'"]
+
+  extra_args = flatten(
+    concat(
+      [for route in local.vpn_subnet_routes : ["--vpn-route", route]],
+      [for domain in var.vpn_search_domains : ["--search-domain", "'${domain}'"]],
+    )
+  )
+
+  ip_lockdown_users = compact([
+    var.default_user,
+    # User used to push cloudwatch metrics from the server. This should only be included in the ip-lockdown list if
+    # reporting cloudwatch metrics is enabled.
+    var.enable_cloudwatch_metrics ? "cwmonitoring" : ""
+  ])
+  # We want a space separated list of the users, quoted with ''
+  ip_lockdown_users_bash_array = join(
+    " ",
+    [for user in local.ip_lockdown_users : "'${user}'"],
+  )
+
   user_data_vars = {
     backup_bucket_name = module.openvpn.backup_bucket_name
     kms_key_arn        = local.kms_key_arn
@@ -81,16 +104,8 @@ locals {
     revocation_queue_url = module.openvpn.client_revocation_queue
     queue_region         = data.aws_region.current.name
 
-    vpn_subnet = var.vpn_subnet
-    routes = join(
-      " ",
-      formatlist(
-        "\"%s\"",
-        # init-openvpn expects the subnet routes in [subnet] [mask] format (e.g., "10.100.0.0 255.255.255.0"), so we
-        # need to translate the CIDR blocks to this format.
-        [for cidr_block in var.vpn_route_cidr_blocks : "${cidrhost(cidr_block, 0)} ${cidrnetmask(cidr_block)}"],
-      ),
-    )
+    vpn_subnet              = var.vpn_subnet
+    init_openvpn_extra_args = join(" ", local.extra_args)
 
     log_group_name                      = "${var.name}_log_group"
     enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
@@ -100,12 +115,7 @@ locals {
     ssh_grunt_iam_group                 = var.ssh_grunt_iam_group
     ssh_grunt_iam_group_sudo            = var.ssh_grunt_iam_group_sudo
     external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
-    ip_lockdown_users = compact([
-      var.default_user,
-      # User used to push cloudwatch metrics from the server. This should only be included in the ip-lockdown list if
-      # reporting cloudwatch metrics is enabled.
-      var.enable_cloudwatch_metrics ? "cwmonitoring" : ""
-    ])
+    ip_lockdown_users                   = local.ip_lockdown_users_bash_array
   }
 
   # Default cloud init script for this module
