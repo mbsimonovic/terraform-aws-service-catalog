@@ -428,18 +428,6 @@ For staging and production *we strongly recommend* the use of a production-grade
 The TLS scripts module allows you to optionally store the self-signed certificates it generates in AWS Secrets Manager. Here's how to store your generated certs in AWS Secrets Manager when running this module: 
 
 ```
-TODO - add the correct command once the interfaces / flags are finalized
-```
-
-Note that AWS Secrets Manager optionally allows you to specify the ID of an [AWS Customer Managed Key](https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html) (CMK) that will be used to encrypt your secret. However, if you do not provide this key ID, then AWS Secret Manager's default behavior is to create new key and use it to encrypt your secret data. 
-
-The TLS scripts module accomodates both use cases, by allowing you to optionally provide the ID fo the KMS key you want to use for encryption via the optional `--kms-key-id` flag. Note that this flag accepts **either** a KMS key ID or the [alias](https://docs.aws.amazon.com/kms/latest/developerguide/programming-aliases.html) of an existing KMS key.
-
-#### Create certs and store them in AWS Secrets Manager
-
-The following code will create the self-signed certs, upload them to AWS Secrets Manager, and encrypt them with the KMS key specified by the `--kms-key-id` flag: 
-
-```
 docker-compose run certs \
     --company-name Acme \
     --country US
@@ -450,6 +438,22 @@ docker-compose run certs \
     --aws-region us-east-1 \
     --kms-key-id alias/dedicated-test-key
 ```
+
+Note that AWS Secrets Manager optionally allows you to specify an [AWS Customer Managed Key](https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html) (CMK) that will be used to encrypt your secret. The `--kms-key-id` flag accepts **either** a KMS key ID or the [alias](https://docs.aws.amazon.com/kms/latest/developerguide/programming-aliases.html) of an existing KMS key, mirroring the behavior of AWS Secrets Manager. In the above example, we pass `--kms-key-id alias/dedicated-test-key`
+
+However, if you do not provide this key ID, then AWS Secret Manager's default behavior is to create new key and use it to encrypt your secret data. 
+
+The TLS scripts module accomodates both use cases, by allowing you to optionally provide the ID fo the KMS key you want to use for encryption via the optional `--kms-key-id` flag, or omit this flag entirely, in which case AWS Secrets Manager will generate a key for you when encrypting your secret.
+
+### Verifying your TLS Secrets in AWS Secrets Manager
+
+The TLS scripts module puts the: 
+
+* certificate authority's public key 
+* app's public key 
+* app's private key 
+
+into a single JSON object and stores it as one secret in AWS Secrets Manager for greater ease of use. This allows us to fetch all 3 TLS Secrets whenever we need them with a single API call. 
 
 Here's what the resulting secret will look like in AWS Secrets Manager: 
 
@@ -464,7 +468,7 @@ Here's what the resulting secret will look like in AWS Secrets Manager:
 
 ```
 
-At this point, your apps can fetch this secret from AWS Secrets Manager and process the JSON to retrieve the keys and certificates as needed. 
+Your apps can now fetch this secret from AWS Secrets Manager and process the JSON to retrieve the keys and certificates as needed. 
 
 Let's take a look at how to do that now. 
 
@@ -472,7 +476,7 @@ Let's take a look at how to do that now.
 
 With our TLS secrets stored in AWS Secrets Manager, we now need our app to fetch them via the AWS API so that it can use them to serve encrypted traffic over HTTPS. 
 
-Note that, before your app can fetch secrets from AWS Secrets Manager, it must have the proper IAM permissions to do so. Here's an example of configuring a policy and role via Terraform: 
+Note that, before your app can fetch secrets from AWS Secrets Manager, it must have the proper IAM permissions to do so. We can use Terraform to create the correct IAM polciy and role. 
 
 The following code creates an IAM policy that allows for reading of the specific secret, and then attaches this policy to an IAM role that will be attached to your app (i.e., attached to the ECS Task, or EKS Pod, or ASG):
 
@@ -494,7 +498,9 @@ The following code creates an IAM policy that allows for reading of the specific
     }
     ```
 
-With permissions in place, your app can now make a request to AWS Secrets Manager for the secret it needs. Here's an example of doing so in bash. If your app were running in a Docker container, for example, you might have this function in a bash script that is set as the [Entrypoint](https://docs.docker.com/engine/reference/builder/#entrypoint): 
+With permissions in place, your app can now make a request to AWS Secrets Manager for the secret it needs. How and when you actually retrieve the secret is up to you. You could do it via a bash script at startup, or make an API call in Node prior to starting up your HTTPS web server.
+
+ Here's an example of doing so in bash. If your app were running in a Docker container, for example, you might have this function in a bash script that is set as the [Entrypoint](https://docs.docker.com/engine/reference/builder/#entrypoint): 
 
 ```
 # Returns the raw value of a secret string stored in AWS Secrets Manager.
@@ -520,7 +526,7 @@ In the above example, we're using the [AWS CLI](https://aws.amazon.com/cli/) to 
 
 Keeping the secret in JSON as discussed earlier allows us to make only a single API call to get everything we need from the remote secret store. 
 
-It just means we'll need to process the JSON in order to retrieve the keys and certificates as needed: 
+Since the above call returns a JSON object containing all of our TLS secrets, we'll need to process the JSON in order to retrieve the individual keys and certificates as needed. Here's some sample bash demonstrating how to do that using [the jq command line tool](https://stedolan.github.io/jq/) for processing JSON: 
 
 ```
 local -r secret_output 
@@ -528,6 +534,8 @@ local -r ca_public_key
 local -r app_public_key 
 local -r app_private_key 
 
+# Note that we're calling the bash function shown above to get our secret out of AWS Secrets Manager
+# which in this case is a JSON object containing all our TLS secrets
 secret_output=$(read_secret_from_aws_secrets_manager "dev" "us-east-1" "my-tls-secret")
 
 # $secret_output now contains the JSON object that we stored in AWS Secrets Manager
