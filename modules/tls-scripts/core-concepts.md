@@ -314,26 +314,79 @@ We'll first explore the local option.
 ### Using local certificates to serve content over HTTPS
 First, [use the TLS Scripts module to generate our self-signed certificates locally](#how-do-i-create-tls-certs).
 
-Secondly, configure your HTTPS serving process to find the newly generated self-signed certificates. 
+Once you've completed this step successfully, you should see the following when you run `ls` in your working copy of `aws-service-catalog/modules/tls-scripts`: 
+
+```
+tls
+└── certs
+    ├── app.crt
+    ├── app.key
+    └── CA.crt
+
+1 directory, 3 files
+```
+
+Next you're going to configure your HTTPS serving process to find the newly generated self-signed certificates. 
 
 Your app might employ any number of web servers, from [Nginx](https://www.nginx.com) or [Apache](https://www.apache.org), to the standard library HTTPS functionality available in [Node.js](https://nodejs.org/api/https.html) or [Golang](https://golang.org/pkg/net/http/#ListenAndServeTLS).
 
-The exact configurations differ slightly depending on the web server you are using, so we'll share a couple of examples next, but the common thread amongst most servers is that you must specify the path where your server can find the expected keys and certificates.
+The exact configurations differ slightly depending on the web server you are using, so we'll share a couple of examples next, but the common thread amongst most servers is that you must specify the path where your server can find the expected keys and certificates (which, in our curent example, is `./tls/certs/<filename>`).
+
+We're now going to step through a sampling of major web servers / languages and configure them to use our the self-signed certificates we just generated. **N.B: the following examples are intended to demonstrate how to use self-signed certificates with common servers, but are not recommended best-practices for running in production!**
 
 #### Nginx
-The following example nginx config demonstrates how to provide the web server with the required certificate and certificate key, in this case `app.crt` and `app.key`: 
+
+1. [Install Nginx](https://www.nginx.com/resources/wiki/start/topics/tutorials/install/)
+1. `sudo touch /usr/share/nginx/example.conf`
+1. Write the following contents to your new `/usr/share/nginx/example.conf` file: 
+```
+events {}
+
+http {
+
+    server {
+        listen              8443 ssl default_server;
+        server_name         www.my-example-app.com;
+
+        # Begin SSL configuratioon
+        ssl on; 
+        # We are telling nginx to use the app.crt and app.key to serve traffic over HTTPS
+        ssl_certificate     ./tls/certs/app.crt;
+        ssl_certificate_key ./tls/certs/app.key;
+        ssl_protocols       TLSv1.2;
+        ssl_ciphers         HIGH:!aNULL:!MD5;
+    }
+}
 
 ```
-server {
-    listen              443 ssl;
-    server_name         www.my-example-app.com;
-    ssl_certificate     app.crt;
-    ssl_certificate_key app.key;
-    ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
-    ssl_ciphers         HIGH:!aNULL:!MD5;
-    ...
-}
+1. Verify your new nginx config looks good: `sudo nginx -t -c example.conf`. You should see the following output: 
+
 ```
+nginx: the configuration file /usr/share/nginx/example.conf syntax is ok
+nginx: configuration file /usr/share/nginx/example.conf test is successful
+
+```
+1. Copy your locally generated certs to the nginx directory so that nginx can find them when starting up: `sudo cp -R tls/ /usr/share/nginx/tls`
+1. In our `example.conf` we specified a listening port of `8443`, so ensure you don't already have anything listening on that port!
+1. Run nginx, specifying that it should use the `example.conf` file: `sudo nginx -c example.conf`
+1. The previous command should return no output, indicating success. You can also verify that nginx is running locally: `ps -ef | grep nginx`
+1. You should see similar output to the following: 
+```
+
+root     25527     1  0 10:01 ?        00:00:00 nginx: master process /usr/sbin/nginx -g daemon on; master_process on;
+www-data 25530 25527  0 10:01 ?        00:00:00 nginx: worker process
+www-data 25532 25527  0 10:01 ?        00:00:00 nginx: worker process
+www-data 25534 25527  0 10:01 ?        00:00:00 nginx: worker process
+www-data 25537 25527  0 10:01 ?        00:00:00 nginx: worker process
+www-data 25539 25527  0 10:01 ?        00:00:00 nginx: worker process
+www-data 25541 25527  0 10:01 ?        00:00:00 nginx: worker process
+www-data 25542 25527  0 10:01 ?        00:00:00 nginx: worker process
+www-data 25543 25527  0 10:01 ?        00:00:00 nginx: worker process
+root     27554  3049  0 10:10 ?        00:00:00 nginx: master process nginx -c example.conf`
+```
+1. Visit `https://localhost:8443` in your browser. You will receive the errors specified in [the guide to working with self-signed certificates locally](#Working-with-private-self-signed-tls-certificates). Tell your browser to ignore the SSL error as indicated in this guide. 
+1. You should now see the welcome to Nginx page, serving traffic locally over SSL using your self-signed certificates!
+[! nginx serving HTTPS locally with self-signed certificates](../../_docs/nginx-local-ssl-example.png)
 
 #### Node.js
 
