@@ -459,40 +459,6 @@ my example app listening on https://127.0.0.1:8443!
 * Visit `https://localhost:8443` in your browser. You will receive the errors specified in [the guide to working with self-signed certificates locally](#Working-with-private-self-signed-tls-certificates). Tell your browser to ignore the SSL error as indicated in this guide. 
 * You should see the output `"Hello world over HTTPS!"`
 
-```
-/**
- * Create an HTTPS server by supplying the paths to the TLS secrets
- */
-const startHttpsServer = exports.startHttpsServer = () => {
-
-  const httpsPort = config.get("server.httpsPort");
-  console.log(`Starting HTTPS server on port ${httpsPort}`);
-
-  // Load the TLS certs by reading them from their paths
-  //
-  // By convention, the certs should be written to the following folder:
-  //
-  // <secrets_dir>/<app_name>/tls.
-  //
-  // Within that folder, by convention, we expect the following files:
-  //
-  // - CA.crt: The Certificate Authority (CA) public key
-  // - app.crt: The public key for the app's TLS cert, signed by the CA
-  // - app.key: The private key for the app's TLS cert
-  const httpsOptions = {
-    ca: fs.readFileSync(path.join(secretsDir, appName, "tls", "CA.crt")),
-    key: fs.readFileSync(path.join(secretsDir, appName, "tls", "app.key")),
-    cert: fs.readFileSync(path.join(secretsDir, appName, "tls", "app.crt"))
-  };
-
-  const httpsServer = exports.httpsServer = https.createServer(httpsOptions, app);
-
-  httpsServer.listen(httpsPort, host, () => console.log(`my example app listening on https://${host}:${httpsPort}!`));
-
-  return httpsServer;
-};
-```
-
 #### Golang
 
 Similarly, here's an example using the Golang stdlib to create an HTTPS web server, where the:
