@@ -363,7 +363,6 @@ http {
         ssl_ciphers         HIGH:!aNULL:!MD5;
     }
 }
-
 ```
 * Verify your new nginx config looks good: `sudo nginx -t -c example.conf`. You should see the following output: 
 
@@ -377,7 +376,6 @@ nginx: configuration file /usr/share/nginx/example.conf test is successful
 * The previous command should return no output, indicating success. You can also verify that nginx is running locally: `ps -ef | grep nginx`
 * You should see similar output to the following: 
 ```
-
 root     25527     1  0 10:01 ?        00:00:00 nginx: master process /usr/sbin/nginx -g daemon on; master_process on;
 www-data 25530 25527  0 10:01 ?        00:00:00 nginx: worker process
 www-data 25532 25527  0 10:01 ?        00:00:00 nginx: worker process
@@ -399,11 +397,7 @@ root     27554  3049  0 10:10 ?        00:00:00 nginx: master process nginx -c e
 
 You don't have to use a common web server such as nginx or apache. The following example demonstrates configuring an HTTPS server using [express.js](https://expressjs.com/) in [node.js](https://nodejs.org/en/) with the standard library. 
 
-In this example, the: 
-* certificate authority's public key (`CA.crt`)
-* certificate's private key (`app.key`)
-* certificate's public key (`app.crt`)
-are all read from disk via `fs.readFileSync` and passed into the HTTPS server via an object configuring its options. 
+In this example, the certificate authority's public key (`CA.crt`), app's private key (`app.key`) and the app's public key (`app.crt`) are all read from disk via `fs.readFileSync` and passed into the HTTPS server via an object configuring its options. 
 
 * [Install node.js](https://nodejs.org/en/download/package-manager/)
 * `touch node-ssl.js`
