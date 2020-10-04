@@ -398,7 +398,66 @@ In this example, the:
 * certificate authority's public key (`CA.crt`)
 * certificate's private key (`app.key`)
 * certificate's public key (`app.crt`)
-are all read from disk via `fs.readFileSync` and passed into the HTTPS server via an object configuring its options: 
+are all read from disk via `fs.readFileSync` and passed into the HTTPS server via an object configuring its options. 
+
+* [Install node.js](https://nodejs.org/en/download/package-manager/)
+* `touch node-ssl.js`
+* Write the following contents to `node-ssl.js`
+```
+const 
+    fs = require('fs')
+    path = require('path')
+    https = require('https')
+    httpsPort = 8443
+    host = '127.0.0.1'
+
+/**
+ * Create an HTTPS server by supplying the paths to the TLS secrets
+ */
+const startHttpsServer = exports.startHttpsServer = () => {
+
+  console.log(`Starting HTTPS server on host ${host} port ${httpsPort}`);
+
+  // Load the TLS certs by reading them from their paths
+  //
+  // By convention, the certs should be written to the following folder:
+  //
+  // <secrets_dir>/<app_name>/tls.
+  //
+  // Within that folder, by convention, we expect the following files:
+  //
+  // - CA.crt: The Certificate Authority (CA) public key
+  // - app.crt: The public key for the app's TLS cert, signed by the CA
+  // - app.key: The private key for the app's TLS cert
+  const httpsOptions = {
+    ca: fs.readFileSync(path.join("tls", "certs", "CA.crt")),
+    key: fs.readFileSync(path.join("tls", "certs","app.key")),
+    cert: fs.readFileSync(path.join("tls", "certs", "app.crt"))
+  };
+
+    const httpsServer = exports.httpsServer = https.createServer(httpsOptions, (req, res) => {
+        res.writeHead(200)
+        res.end("Hello World over HTTPS!\n")
+    });
+
+  httpsServer.listen(httpsPort, host, () => console.log(`my example app listening on https://${host}:${httpsPort}!`));
+
+  return httpsServer;
+};
+
+startHttpsServer()
+
+```
+* This example is hardcoded to use port `8443` as port to listen on, so ensure nothing else is listening on that port!
+* Start the server with `sudo node-ssl.js`
+* You should see the following output: 
+```
+Starting HTTPS server on host 127.0.0.1 port 8443
+my example app listening on https://127.0.0.1:8443!
+```
+**Verifying everything worked**
+* Visit `https://localhost:8443` in your browser. You will receive the errors specified in [the guide to working with self-signed certificates locally](#Working-with-private-self-signed-tls-certificates). Tell your browser to ignore the SSL error as indicated in this guide. 
+* You should see the output `"Hello world over HTTPS!"`
 
 ```
 /**
