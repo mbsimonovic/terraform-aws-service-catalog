@@ -370,7 +370,6 @@ http {
 ```
 nginx: the configuration file /usr/share/nginx/example.conf syntax is ok
 nginx: configuration file /usr/share/nginx/example.conf test is successful
-
 ```
 * Copy your locally generated certs to the nginx directory so that nginx can find them when starting up: `sudo cp -R tls/ /usr/share/nginx/tls`
 * In our `example.conf` we specified a listening port of `8443`, so ensure you don't already have anything listening on that port!
