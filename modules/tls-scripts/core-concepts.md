@@ -326,7 +326,7 @@ tls
 1 directory, 3 files
 ```
 
-Next you're going to configure your HTTPS serving process to find the newly generated self-signed certificates. 
+Next, you're going to configure your HTTPS serving process to find the newly generated self-signed certificates. 
 
 Your app might employ any number of web servers, from [Nginx](https://www.nginx.com) or [Apache](https://www.apache.org), to the standard library HTTPS functionality available in [Node.js](https://nodejs.org/api/https.html) or [Golang](https://golang.org/pkg/net/http/#ListenAndServeTLS).
 
@@ -336,7 +336,7 @@ We're now going to step through a sampling of major web servers / languages and 
 
 Our examples for serving HTTPS traffic using self-signed certificates will be: 
 * [nginx](#nginx)
-* [node.js](#node.js)
+* [node.js](#nodejs)
 * [golang](#golang)
 
 
