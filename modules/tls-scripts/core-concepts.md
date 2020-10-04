@@ -195,7 +195,6 @@ step, nothing build-related appears in `stdout`, which we use to clean up tests.
 to be correct!
     ```sh
     docker-compose run certs \
-    --company-name Acme \
     --country US
     --state AZ \
     --city Phoenix \
@@ -227,7 +226,6 @@ certificates to ACM is totally free!
 E.g.:
 ```sh
 docker-compose run certs \
---company-name Acme \
 --country US
 --state AZ \
 --city Phoenix \
@@ -429,7 +427,6 @@ The TLS scripts module allows you to optionally store the self-signed certificat
 
 ```
 docker-compose run certs \
-    --company-name Acme \
     --country US
     --state AZ \
     --city Phoenix \
