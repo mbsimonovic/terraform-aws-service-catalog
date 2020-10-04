@@ -314,7 +314,7 @@ We'll first explore the local option.
 ### Using local certificates to serve content over HTTPS
 First, [use the TLS Scripts module to generate our self-signed certificates locally](#how-do-i-create-tls-certs).
 
-Once you've completed this step successfully, you should see the following when you run `ls tls` in your working copy of `aws-service-catalog/modules/tls-scripts`: 
+Once you've completed this step successfully, you should see the following when you run `tree tls` in your working copy of `aws-service-catalog/modules/tls-scripts`: 
 
 ```
 tls
