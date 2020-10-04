@@ -446,7 +446,7 @@ const startHttpsServer = (exports.startHttpsServer = () => {
 startHttpsServer();
 ```
 * This example is hardcoded to use port `8443` as port to listen on, so ensure nothing else is listening on that port!
-* Start the server with `sudo node-ssl.js`
+* Start the server with `sudo node node-ssl.js`
 * You should see the following output: 
 ```
 Starting HTTPS server on host 127.0.0.1 port 8443
