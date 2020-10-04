@@ -336,9 +336,9 @@ We're now going to step through a sampling of major web servers / languages and 
 
 #### Nginx
 
-1. [Install Nginx](https://www.nginx.com/resources/wiki/start/topics/tutorials/install/)
-1. `sudo touch /usr/share/nginx/example.conf`
-1. Write the following contents to your new `/usr/share/nginx/example.conf` file: 
+* [Install Nginx](https://www.nginx.com/resources/wiki/start/topics/tutorials/install/)
+* `sudo touch /usr/share/nginx/example.conf`
+* Write the following contents to your new `/usr/share/nginx/example.conf` file: 
 ```
 events {}
 
@@ -359,18 +359,18 @@ http {
 }
 
 ```
-1. Verify your new nginx config looks good: `sudo nginx -t -c example.conf`. You should see the following output: 
+* Verify your new nginx config looks good: `sudo nginx -t -c example.conf`. You should see the following output: 
 
 ```
 nginx: the configuration file /usr/share/nginx/example.conf syntax is ok
 nginx: configuration file /usr/share/nginx/example.conf test is successful
 
 ```
-1. Copy your locally generated certs to the nginx directory so that nginx can find them when starting up: `sudo cp -R tls/ /usr/share/nginx/tls`
-1. In our `example.conf` we specified a listening port of `8443`, so ensure you don't already have anything listening on that port!
-1. Run nginx, specifying that it should use the `example.conf` file: `sudo nginx -c example.conf`
-1. The previous command should return no output, indicating success. You can also verify that nginx is running locally: `ps -ef | grep nginx`
-1. You should see similar output to the following: 
+* Copy your locally generated certs to the nginx directory so that nginx can find them when starting up: `sudo cp -R tls/ /usr/share/nginx/tls`
+* In our `example.conf` we specified a listening port of `8443`, so ensure you don't already have anything listening on that port!
+* Run nginx, specifying that it should use the `example.conf` file: `sudo nginx -c example.conf`
+* The previous command should return no output, indicating success. You can also verify that nginx is running locally: `ps -ef | grep nginx`
+* You should see similar output to the following: 
 ```
 
 root     25527     1  0 10:01 ?        00:00:00 nginx: master process /usr/sbin/nginx -g daemon on; master_process on;
@@ -386,8 +386,8 @@ root     27554  3049  0 10:10 ?        00:00:00 nginx: master process nginx -c e
 ```
 
 **Verifying everything worked**
-1. Visit `https://localhost:8443` in your browser. You will receive the errors specified in [the guide to working with self-signed certificates locally](#Working-with-private-self-signed-tls-certificates). Tell your browser to ignore the SSL error as indicated in this guide. 
-1. You should now see the welcome to Nginx page, serving traffic locally over SSL using your self-signed certificates!
+* Visit `https://localhost:8443` in your browser. You will receive the errors specified in [the guide to working with self-signed certificates locally](#Working-with-private-self-signed-tls-certificates). Tell your browser to ignore the SSL error as indicated in this guide. 
+* You should now see the welcome to Nginx page, serving traffic locally over SSL using your self-signed certificates!
 ![nginx serving HTTPS locally with self-signed certificates](../../_docs/nginx-local-ssl-example.png)
 
 #### Node.js
