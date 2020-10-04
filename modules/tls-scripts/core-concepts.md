@@ -334,6 +334,12 @@ The exact configurations differ slightly depending on the web server you are usi
 
 We're now going to step through a sampling of major web servers / languages and configure them to use our the self-signed certificates we just generated. **N.B: the following examples are intended to demonstrate how to use self-signed certificates with common servers, but are not recommended best-practices for running in production!**
 
+Our examples for serving HTTPS traffic using self-signed certificates will be: 
+* [nginx](#nginx)
+* [node.js](#node.js)
+* [golang](#golang)
+
+
 #### Nginx
 
 * [Install Nginx](https://www.nginx.com/resources/wiki/start/topics/tutorials/install/)
@@ -461,31 +467,48 @@ my example app listening on https://127.0.0.1:8443!
 
 #### Golang
 
-Similarly, here's an example using the Golang stdlib to create an HTTPS web server, where the:
-* desired port to listen on for HTTPS traffic
-* the app's public key (`app.crt`)
-* the app's private key (`app.key`)
-are passed into the `http.ListenAndServeTLS` function:
+Let's now setup a simple HTTPS server using the standard library in Golang and our self-signed cerificates. 
 
+* [Install Golang](https://golang.org/doc/install)
+* `touch go-ssl.go`
+* Write the following contents to `go-ssl.go`: 
 ```
 package main
 
 import (
+    "fmt"
     "io"
-    "log"
     "net/http"
 )
 
 func main() {
     http.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
-        io.WriteString(w, "Hello, TLS!\n")
+        io.WriteString(w, "Hello, over HTTPS!\n")
     })
 
-    log.Printf("About to listen on 8443. Go to https://127.0.0.1:8443/")
-    err := http.ListenAndServeTLS(":8443", "app.crt", "app.key", nil)
-    log.Fatal(err)
+    fmt.Println("Server listening on 8443. Go to https://127.0.0.1:8443")
+    err := http.ListenAndServeTLS(":8443", "./tls/certs/app.crt", "./tls/certs/app.key", nil)
+    fmt.Println(err)
 }
+
 ```
+* Build the program with `go build go-ssl.go`
+* This example listens on port `8443`, so ensure you don't already have something listening on that port!
+* Run the resulting binary with super user privileges: `sudo ./go-ssl`
+* You should see the following output: 
+```
+Server listening on 8443. Go to https://127.0.0.1:8443
+```
+
+In this example, we've used the Golang stdlib to create an HTTPS web server, where the:
+* desired port to listen on for HTTPS traffic
+* the app's public key (`app.crt`)
+* the app's private key (`app.key`)
+are passed into the [`http.ListenAndServeTLS`](https://golang.org/pkg/net/http/#ListenAndServeTLS) function.
+
+**Verifying everything worked**
+ Visit `https://localhost:8443` in your browser. You will receive the errors specified in [the guide to working with self-signed certificates locally](#Working-with-private-self-signed-tls-certificates). Tell your browser to ignore the SSL error as indicated in this guide. 
+* You should see the output `"Hello, over HTTPS!"`
 
 [back to readme](README.adoc#operate)
 
