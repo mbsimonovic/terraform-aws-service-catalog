@@ -403,18 +403,16 @@ In this example, the certificate authority's public key (`CA.crt`), app's privat
 * `touch node-ssl.js`
 * Write the following contents to `node-ssl.js`
 ```
-const 
-    fs = require('fs')
-    path = require('path')
-    https = require('https')
-    httpsPort = 8443
-    host = '127.0.0.1'
+const fs = require("fs");
+path = require("path");
+https = require("https");
+httpsPort = 8443;
+host = "127.0.0.1";
 
 /**
  * Create an HTTPS server by supplying the paths to the TLS secrets
  */
-const startHttpsServer = exports.startHttpsServer = () => {
-
+const startHttpsServer = (exports.startHttpsServer = () => {
   console.log(`Starting HTTPS server on host ${host} port ${httpsPort}`);
 
   // Load the TLS certs by reading them from their paths
@@ -430,22 +428,26 @@ const startHttpsServer = exports.startHttpsServer = () => {
   // - app.key: The private key for the app's TLS cert
   const httpsOptions = {
     ca: fs.readFileSync(path.join("tls", "certs", "CA.crt")),
-    key: fs.readFileSync(path.join("tls", "certs","app.key")),
-    cert: fs.readFileSync(path.join("tls", "certs", "app.crt"))
+    key: fs.readFileSync(path.join("tls", "certs", "app.key")),
+    cert: fs.readFileSync(path.join("tls", "certs", "app.crt")),
   };
 
-    const httpsServer = exports.httpsServer = https.createServer(httpsOptions, (req, res) => {
-        res.writeHead(200)
-        res.end("Hello World over HTTPS!\n")
-    });
+  const httpsServer = (exports.httpsServer = https.createServer(
+    httpsOptions,
+    (req, res) => {
+      res.writeHead(200);
+      res.end("Hello World over HTTPS!\n");
+    }
+  ));
 
-  httpsServer.listen(httpsPort, host, () => console.log(`my example app listening on https://${host}:${httpsPort}!`));
+  httpsServer.listen(httpsPort, host, () =>
+    console.log(`my example app listening on https://${host}:${httpsPort}!`)
+  );
 
   return httpsServer;
-};
+});
 
-startHttpsServer()
-
+startHttpsServer();
 ```
 * This example is hardcoded to use port `8443` as port to listen on, so ensure nothing else is listening on that port!
 * Start the server with `sudo node-ssl.js`
