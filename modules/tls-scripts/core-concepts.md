@@ -386,7 +386,7 @@ root     27554  3049  0 10:10 ?        00:00:00 nginx: master process nginx -c e
 ```
 1. Visit `https://localhost:8443` in your browser. You will receive the errors specified in [the guide to working with self-signed certificates locally](#Working-with-private-self-signed-tls-certificates). Tell your browser to ignore the SSL error as indicated in this guide. 
 1. You should now see the welcome to Nginx page, serving traffic locally over SSL using your self-signed certificates!
-[! nginx serving HTTPS locally with self-signed certificates](../../_docs/nginx-local-ssl-example.png)
+![nginx serving HTTPS locally with self-signed certificates](../../_docs/nginx-local-ssl-example.png)
 
 #### Node.js
 
