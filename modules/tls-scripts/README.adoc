@@ -74,6 +74,10 @@ Service Catalog]!
 == Operate
 
 * link:core-concepts.md#how-do-i-use-these-certs-with-my-apps[How do I use these certs with my apps?]
+* link:core-concepts.md#using-local-certificates-to-serve-content-over-https[Using local certificates to serve content over HTTPS]
+* link:core-concepts.md#nginx[An example of using these certs with Nginx]
+* link:core-concepts.md#nodejs[An example of using these certs with Node.js]
+* link:core-concepts.md#golang[An example of using these certs with Golang]
 * link:core-concepts.md#fetching-remote-certificates-from-aws-secrets-manager[Fetching certificates from AWS Secrets Manager]
 * link:core-concepts.md#how-do-i-talk-to-other-apps-that-are-listening-with-certs[How do I talk to other apps that are listening with certs?]
 
