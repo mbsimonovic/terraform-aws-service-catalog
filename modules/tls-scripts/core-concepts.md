@@ -403,7 +403,7 @@ In this example, the certificate authority's public key (`CA.crt`), app's privat
 * `touch node-ssl.js`
 * Write the following contents to `node-ssl.js`
 ```
-const fs = require("fs");
+fs = require("fs");
 path = require("path");
 https = require("https");
 httpsPort = 8443;
@@ -415,13 +415,9 @@ host = "127.0.0.1";
 const startHttpsServer = (exports.startHttpsServer = () => {
   console.log(`Starting HTTPS server on host ${host} port ${httpsPort}`);
 
-  // Load the TLS certs by reading them from their paths
-  //
-  // By convention, the certs should be written to the following folder:
-  //
-  // <secrets_dir>/<app_name>/tls.
-  //
-  // Within that folder, by convention, we expect the following files:
+  // Load the TLS certs by reading them from their paths:
+  // 
+  // Note that in this example our certs exist in ./tls/certs
   //
   // - CA.crt: The Certificate Authority (CA) public key
   // - app.crt: The public key for the app's TLS cert, signed by the CA
