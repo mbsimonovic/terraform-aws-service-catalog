@@ -510,11 +510,12 @@ In this example, we've used the Golang stdlib to create an HTTPS web server, whe
 ## Fetching remote certificates from AWS Secrets manager
 
 ### Why use a remote secrets store?
-Generating TLS secrets and storing them locally works well for local development purposes, but *this approach is not sufficiently secure for production applications*, as the keys and certs remain on disk where they could be compromised.
 
-We recommend that you *never* store any secrets, such as app or certificate authority private keys, on disk or in version control in plaintext.
+We recommend that you *never* store any secrets, such as app or certificate authority private keys, on disk or in version control in plaintext, as this could lead to them becoming compromised.
 
-Instead, they should be stored in an encrypted format and decrypted in memory when the app needs to use the data. For a deeper dive into best practices for managing secrets for your apps, see [this guide](https://github.com/gruntwork-io/aws-sample-app/blob/master/core-concepts.md#managing-secrets).
+Instead, always ensure your TLS certs are encrypted on disk and only decrypted to plaintext, perhaps to an in-memory virtual filesystem such as `tmpfs`, when the app server is booting up. 
+
+For a deeper dive into best practices for managing secrets for your apps, see [this guide](https://github.com/gruntwork-io/aws-sample-app/blob/master/core-concepts.md#managing-secrets).
 
 For staging and production *we strongly recommend* the use of a production-grade secrets store such as [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/).
 
