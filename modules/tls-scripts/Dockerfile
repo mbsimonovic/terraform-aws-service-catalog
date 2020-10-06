@@ -22,7 +22,6 @@ RUN apt-get update && apt-get install -y \
 # install gruntwork-installer
 RUN curl -LsS "https://raw.githubusercontent.com/gruntwork-io/gruntwork-installer/master/bootstrap-gruntwork-installer.sh" | bash /dev/stdin --version v0.0.28 --no-sudo true
 
-#TODO: may or may not need gruntkms
 # install gruntkms
 RUN gruntwork-install --binary-name "gruntkms" --repo "https://github.com/gruntwork-io/gruntkms" --tag 'v0.0.8' --no-sudo true
 RUN gruntkms --version
