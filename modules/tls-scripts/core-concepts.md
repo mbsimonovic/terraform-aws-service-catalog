@@ -206,7 +206,7 @@ to be correct!
     ```
     You'll notice that you need to pass in the correct KMS key id in `--kms-key-id`.
     _We highly recommend including this option, so that you don't have an unencrypted private key on your system._
-    By providing `--kms-key-id` the script will automatically encrypt the private key, save it as
+    By providing `--kms-key-id` the script will automatically encrypt the TLS certificate's private key, save it as
     `my-app.key.pem.kms.encrypted`, and delete the unencrypted key (`my-app.key.pem`).
     The certificate is then uploaded to AWS Secrets Manager in the region specified by `--aws-region`, and encrypted
     using the KMS key you provided. If you didn't provide a key, AWS Secrets Manager will use your default CMK.
