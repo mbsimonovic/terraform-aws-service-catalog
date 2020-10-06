@@ -67,3 +67,4 @@ RUN curl -LsS "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "aws
 
 # Copy over scripts for running tls-scripts tests
 COPY *.sh /usr/local/bin/
+COPY helpers/*.sh /usr/local/bin/
