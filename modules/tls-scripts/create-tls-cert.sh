@@ -29,10 +29,10 @@ readonly script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$script_dir/helpers.sh"
 
 readonly TLS_PATH="/tls/certs"
-readonly CERT_PUBLIC_KEY_PATH="${TLS_PATH}/app.crt"
-readonly CERT_PRIVATE_KEY_PATH="${TLS_PATH}/app.key"
-readonly ENCRYPTED_CERT_PRIVATE_KEY_PATH="${TLS_PATH}/app.key.kms.encrypted"
-readonly CA_PUBLIC_KEY_PATH="${TLS_PATH}/CA.crt"
+readonly CERT_PUBLIC_KEY_PATH="$TLS_PATH/app.crt"
+readonly CERT_PRIVATE_KEY_PATH="$TLS_PATH/app.key"
+readonly ENCRYPTED_CERT_PRIVATE_KEY_PATH="$TLS_PATH/app.key.kms.encrypted"
+readonly CA_PUBLIC_KEY_PATH="$TLS_PATH/CA.crt"
 
 readonly DEFAULT_DNS_NAMES=("localhost")
 readonly DEFAULT_IP_ADDRESSES=("127.0.0.1")
@@ -98,16 +98,16 @@ function encrypt_private_key {
     return
   fi
 
-  log "Encrypting private key at ${CERT_PRIVATE_KEY_PATH} with KMS key $kms_key_id"
+  log "Encrypting private key at $CERT_PRIVATE_KEY_PATH with KMS key $kms_key_id"
 
   local private_key_plaintext
   local private_key_ciphertext
-  private_key_plaintext=$(cat "${CERT_PRIVATE_KEY_PATH}")
+  private_key_plaintext=$(cat "$CERT_PRIVATE_KEY_PATH")
   private_key_ciphertext=$(gruntkms encrypt --plaintext "$private_key_plaintext" --aws-region "$aws_region" --key-id "$kms_key_id")
-  echo -n "$private_key_ciphertext" > "${ENCRYPTED_CERT_PRIVATE_KEY_PATH}"
-  log "Stored encrypted key as ${ENCRYPTED_CERT_PRIVATE_KEY_PATH}"
-  rm "${CERT_PRIVATE_KEY_PATH}"
-  log "Removed original unencrypted key."
+  echo -n "$private_key_ciphertext" > "$ENCRYPTED_CERT_PRIVATE_KEY_PATH"
+  log "Stored encrypted key as $ENCRYPTED_CERT_PRIVATE_KEY_PATH"
+  rm "$CERT_PRIVATE_KEY_PATH"
+  log "Removed original unencrypted key at $CERT_PRIVATE_KEY_PATH."
 }
 
 # Stores the public and private key and CA public key into a JSON object in Secrets Manager
@@ -125,9 +125,9 @@ function store_tls_certs_in_secrets_manager {
   local tls_secret_json
   local store_secret_response
 
-  private_key_plaintext=$(cat "${CERT_PRIVATE_KEY_PATH}")
-  public_key_plaintext=$(cat "${CERT_PUBLIC_KEY_PATH}")
-  ca_public_key_plaintext=$(cat "${CA_PUBLIC_KEY_PATH}")
+  private_key_plaintext=$(cat "$CERT_PRIVATE_KEY_PATH")
+  public_key_plaintext=$(cat "$CERT_PUBLIC_KEY_PATH")
+  ca_public_key_plaintext=$(cat "$CA_PUBLIC_KEY_PATH")
 
   tls_secret_json=$(render_tls_secret_json "$public_key_plaintext" "$private_key_plaintext" "$ca_public_key_plaintext")
   store_secret_response=$(store_in_secrets_manager "$secret_name" "$secret_description" "$tls_secret_json" "$aws_region" "$kms_key_id")
@@ -135,7 +135,7 @@ function store_tls_certs_in_secrets_manager {
   # Extract the ARN of the tls secret from AWS Secrets Manager
   tls_secret_arn=$(echo "$store_secret_response" | jq '.ARN')
 
-  if [[ ! -z "$tls_secret_arn" ]]; then
+  if [[ -n "$tls_secret_arn" ]]; then
     log "TLS Cert stored! Secret ARN: $tls_secret_arn"
   fi
 }
@@ -196,7 +196,7 @@ function do_create {
     --state "$state" \
     --city "$city" \
     --org "$org" \
-    --dir "${TLS_PATH}" \
+    --dir "$TLS_PATH" \
     --size 2048 \
     --san "$san"
 
