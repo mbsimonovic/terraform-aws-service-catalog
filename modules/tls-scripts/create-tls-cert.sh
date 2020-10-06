@@ -10,7 +10,7 @@
 # The only IP address in the cert will be 127.0.0.1 and localhost, so you can test your servers locally. You can also
 # use the servers with the ELB or ALB, as the AWS load balancers don't verify the CA.
 #
-# Note: You must be authenticated to the AWS account for uploading to ACM to work.
+# Note: You must be authenticated to the AWS account for KMS encryption and uploading to ACM to work.
 #
 # Dependencies:
 # - aws CLI
