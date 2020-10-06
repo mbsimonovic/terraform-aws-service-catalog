@@ -513,7 +513,7 @@ Instead, they should be stored in an encrypted format and decrypted in memory wh
 For staging and production *we strongly recommend* the use of a production-grade secrets store such as [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/).
 
 ### Using AWS Secrets Manager
-[AWS Secrets Manager](https://aws.amazon.com/secrets-manager/) allows you to store arbitrary JSON objects. We recommend storing your secrets in JSON objects within AWS Secrets Manager because JSON is easier to work with.
+[AWS Secrets Manager](https://aws.amazon.com/secrets-manager/) allows you to store arbitrary text. We recommend storing your secrets in a format that's easy to parse programmatically, such as JSON.
 
 The TLS scripts module allows you to optionally store the self-signed certificates it generates in AWS Secrets Manager. Here's how to store your generated certs in AWS Secrets Manager when running this module:
 
