@@ -5,6 +5,7 @@ services:
       context: .
       args:
         - GITHUB_OAUTH_TOKEN
+    image: tls-scripts_certs
     entrypoint: create-tls-cert.sh
     environment:
       - AWS_ACCESS_KEY_ID
@@ -17,6 +18,7 @@ services:
       context: .
       args:
         - GITHUB_OAUTH_TOKEN
+    image: tls-scripts_rds
     entrypoint: download-rds-ca-certs.sh
     volumes:
       - ./tls:/tls
@@ -25,6 +27,7 @@ services:
       context: .
       args:
         - GITHUB_OAUTH_TOKEN
+    image: tls-scripts_trust-stores
     entrypoint: generate-trust-stores.sh
     environment:
       - AWS_ACCESS_KEY_ID
