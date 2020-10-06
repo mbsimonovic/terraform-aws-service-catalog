@@ -492,9 +492,8 @@ func main() {
     fmt.Println(err)
 }
 ```
-* Build the program with `go build go-ssl.go`
 * This example listens on port `8443`, so ensure you don't already have something listening on that port!
-* Run the resulting binary with super user privileges: `sudo ./go-ssl`
+* Build and run the Go program with the following single command `go run go-ssl.go`
 * You should see the following output:
 ```
 Server listening on 8443. Go to https://127.0.0.1:8443
