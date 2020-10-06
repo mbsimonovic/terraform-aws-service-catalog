@@ -347,6 +347,8 @@ Our examples for serving HTTPS traffic using self-signed certificates will be:
 
 #### Nginx
 
+[Nginx](https://www.nginx.com) is a popular web server and reverse proxy that is production ready and highly scalable. 
+
 * [Install Nginx](https://www.nginx.com/resources/wiki/start/topics/tutorials/install/)
 * `sudo touch /usr/share/nginx/example.conf`
 * Write the following contents to your new `/usr/share/nginx/example.conf` file:
