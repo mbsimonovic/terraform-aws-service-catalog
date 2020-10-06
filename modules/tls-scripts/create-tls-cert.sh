@@ -107,7 +107,7 @@ function encrypt_private_key {
   echo -n "$private_key_ciphertext" > "${ENCRYPTED_CERT_PRIVATE_KEY_PATH}"
   log "Stored encrypted key as ${ENCRYPTED_CERT_PRIVATE_KEY_PATH}"
   rm "${CERT_PRIVATE_KEY_PATH}"
-  log "Removed original unencrypted key."
+  log "Removed original unencrypted key at $CERT_PRIVATE_KEY_PATH."
 }
 
 # Stores the public and private key and CA public key into a JSON object in Secrets Manager
