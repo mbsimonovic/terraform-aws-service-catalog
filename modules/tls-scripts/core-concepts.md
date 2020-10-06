@@ -461,7 +461,7 @@ my example app listening on https://127.0.0.1:8443!
 
 #### Golang
 
-Let's now setup a simple HTTPS server using the standard library in Golang and our self-signed cerificates.
+Let's now set up a simple HTTPS server using the standard library in Golang and our self-signed cerificates.
 
 * [Install Golang](https://golang.org/doc/install)
 * `touch go-ssl.go`
