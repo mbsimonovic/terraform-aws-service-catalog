@@ -47,8 +47,8 @@ func TestTlsScripts(t *testing.T) {
 	tmpBaseDir := "tls"
 
 	// Create TLS Cert vars
-	createTLSDir := filepath.Join(tmpBaseDir, "certs")
-	createCertFiles := []string{"CA.crt", "app.crt", "app.key.kms.encrypted"}
+	createCertFiles := []string{"CA.crt", "app.crt", "app.key"}
+	createCertEncryptedFiles := []string{"CA.crt", "app.crt", "app.key.kms.encrypted"}
 
 	// Download RDS CA Certs vars
 	downloadPath := filepath.Join(tmpBaseDir, "rds-cert")
@@ -73,9 +73,9 @@ func TestTlsScripts(t *testing.T) {
 		{
 			"CreateTlsCert",
 			func() {
-				// Store the secret name in .test_data so we can clean it up if test stages are skipped.
-				certSecretName := fmt.Sprintf("tls-secrets-%s", random.UniqueId())
-				test_structure.SaveString(t, scriptsDir, "certSecretName", certSecretName)
+				// Store the certs locally in a random id folder for this test.
+				storePath := fmt.Sprintf("tls/certs_%s", random.UniqueId())
+				test_structure.SaveString(t, scriptsDir, "storePath", storePath)
 
 				// Run the build step first so that the build output doesn't go to stdout during the compose step.
 				docker.RunDockerCompose(
@@ -84,18 +84,16 @@ func TestTlsScripts(t *testing.T) {
 					"-f",
 					filepath.Join(scriptsDir, "docker-compose.yml"),
 					"build",
+					"certs",
 				)
 
-				// Save output to grab the Certificate ARN output by the script.
-				out := docker.RunDockerComposeAndGetStdOut(
+				docker.RunDockerCompose(
 					t,
 					&docker.Options{},
 					"-f",
 					filepath.Join(scriptsDir, "docker-compose.yml"),
 					"run",
 					"certs",
-					"--secret-name",
-					certSecretName,
 					"--cn",
 					"acme.com",
 					"--country",
@@ -106,24 +104,20 @@ func TestTlsScripts(t *testing.T) {
 					"Phoenix",
 					"--org",
 					"Gruntwork",
-					"--kms-key-id",
-					kmsKeyId,
-					"--aws-region",
-					awsRegion,
-					"--upload-to-acm",
+					"--store-path",
+					storePath,
 				)
-
-				// Save the Certificate ARN for cleanup.
-				test_structure.SaveString(t, scriptsDir, "certARNinAWS", out)
 			},
 
 			func() {
+				storePath := test_structure.LoadString(t, scriptsDir, "storePath")
+
 				for _, file := range createCertFiles {
 					require.FileExistsf(
 						t,
-						filepath.Join(scriptsDir, createTLSDir, file),
+						filepath.Join(scriptsDir, storePath, file),
 						"Error Validating Create TLS Cert %s",
-						filepath.Join(scriptsDir, createTLSDir, file),
+						filepath.Join(scriptsDir, storePath, file),
 					)
 				}
 			},
@@ -150,7 +144,102 @@ func TestTlsScripts(t *testing.T) {
 					shell.RunCommand(t, cmd)
 				}
 
-				os.RemoveAll(filepath.Join(scriptsDir, createTLSDir))
+				storePath := test_structure.LoadString(t, scriptsDir, "storePath")
+				os.RemoveAll(filepath.Join(scriptsDir, storePath))
+			},
+		},
+		{
+			"CreateTlsCert_WithUploadStoreAndEncryption",
+			func() {
+				// Store the secret name in .test_data so we can clean it up if test stages are skipped.
+				suffix := random.UniqueId()
+				storePath := fmt.Sprintf("tls/certs_%s", suffix)
+				test_structure.SaveString(t, scriptsDir, "storePathEnc", storePath)
+
+				certSecretName := fmt.Sprintf("tls-secrets-%s", suffix)
+				test_structure.SaveString(t, scriptsDir, "certSecretName", certSecretName)
+
+				// Run the build step first so that the build output doesn't go to stdout during the compose step.
+				docker.RunDockerCompose(
+					t,
+					&docker.Options{},
+					"-f",
+					filepath.Join(scriptsDir, "docker-compose.yml"),
+					"build",
+					"certs",
+				)
+
+				// Save output to grab the Certificate ARN output by the script.
+				out := docker.RunDockerComposeAndGetStdOut(
+					t,
+					&docker.Options{},
+					"-f",
+					filepath.Join(scriptsDir, "docker-compose.yml"),
+					"run",
+					"certs",
+					"--cn",
+					"acme.com",
+					"--country",
+					"US",
+					"--state",
+					"Arizona",
+					"--city",
+					"Phoenix",
+					"--org",
+					"Gruntwork",
+					"--aws-region",
+					awsRegion,
+					"--store-in-sm",
+					"--secret-name",
+					certSecretName,
+					"--kms-key-id",
+					kmsKeyId,
+					"--upload-to-acm",
+					"--store-path",
+					storePath,
+				)
+
+				// Save the Certificate ARN for cleanup.
+				test_structure.SaveString(t, scriptsDir, "certARNinAWS", out)
+			},
+
+			func() {
+				storePath := test_structure.LoadString(t, scriptsDir, "storePathEnc")
+
+				for _, file := range createCertEncryptedFiles {
+					require.FileExistsf(
+						t,
+						filepath.Join(scriptsDir, storePath, file),
+						"Error Validating Create TLS Cert %s",
+						filepath.Join(scriptsDir, storePath, file),
+					)
+				}
+			},
+			func() {
+				// Because CircleCI runs this test as root, the output folders cannot be cleaned up
+				// as the test/circleci user. Therefore we have to sudo chown that directory.
+				cmd := shell.Command{
+					Command: "whoami",
+					Args:    []string{},
+				}
+				username := shell.RunCommandAndGetOutput(t, cmd)
+
+				if username == "circleci" {
+
+					cmd = shell.Command{
+						Command: "sudo",
+						Args: []string{
+							"chown",
+							"-R",
+							fmt.Sprintf("%d:%d", os.Getuid(), os.Getuid()),
+							filepath.Join(scriptsDir, tmpBaseDir),
+						},
+					}
+					shell.RunCommand(t, cmd)
+				}
+
+				storePath := test_structure.LoadString(t, scriptsDir, "storePathEnc")
+				os.RemoveAll(filepath.Join(scriptsDir, storePath))
 
 				sess, err := aws.NewAuthenticatedSession(awsRegion)
 				require.NoError(t, err)
@@ -168,9 +257,6 @@ func TestTlsScripts(t *testing.T) {
 				secretInput := secretsmanager.DeleteSecretInput{SecretId: &certSecretName}
 				_, err = smClient.DeleteSecret(&secretInput)
 				require.NoError(t, err)
-
-				test_structure.CleanupTestData(t, fmt.Sprintf("%s/.test-data/certSecretName.json", scriptsDir))
-				test_structure.CleanupTestData(t, fmt.Sprintf("%s/.test-data/certARNinAWS.json", scriptsDir))
 			},
 		},
 		{
