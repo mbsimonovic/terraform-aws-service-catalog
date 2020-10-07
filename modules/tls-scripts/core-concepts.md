@@ -290,8 +290,8 @@ Manager, you'd run:
 
 ## How do I download CA public keys for validating RDS TLS connections?
 
-1. First make sure you followed [these instructions](#how-do-i-run-these-scripts-using-docker), so that environment
-variables are set, and Docker is running.
+1. You only need steps 1 and 4 from [these instructions](#how-do-i-run-these-scripts-using-docker), so that
+`GITHUB_OAUTH_TOKEN` is set and Docker is running.
 1. Run the following command (which calls [download-rds-ca-certs.sh](download-rds-ca-certs.sh)):
     ```sh
     docker-compose run rds tls/rds-cert
