@@ -59,10 +59,10 @@ function print_usage {
   log
   log "Optional Arguments for Cert Creation:"
   log
-  log "  --dns-name\tA custom DNS name to associate with the cert, in addition to the default. May be specified more than once. Default: ${DEFAULT_DNS_NAMES[@]}"
-  log "  --ip-address\tA custom IP address to associate with the cert, in addition to the default. May be specified more than once. Default: ${DEFAULT_IP_ADDRESSES[@]}"
+  log "  --dns-name\t\tA custom DNS name to associate with the cert, in addition to the default. May be specified more than once. Default: ${DEFAULT_DNS_NAMES[@]}"
+  log "  --ip-address\t\tA custom IP address to associate with the cert, in addition to the default. May be specified more than once. Default: ${DEFAULT_IP_ADDRESSES[@]}"
   log "  --no-dns-names\tIf set, the cert won't be associated with any DNS names."
-  log "  --no-ips\tIf set, the cert won't be associated with any IP addresses."
+  log "  --no-ips\t\tIf set, the cert won't be associated with any IP addresses."
   log "  --role-arn\t\tThe AWS ARN of the IAM role to assume."
   log
   log "Optional Arguments for Cert Encryption and Storage:"
