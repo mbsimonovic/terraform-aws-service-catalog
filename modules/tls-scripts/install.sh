@@ -11,6 +11,11 @@ readonly script_path="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Move the bin files into /usr/local/bin
 cp "${script_path}"/{create-tls-cert.sh,download-rds-ca-certs.sh,generate-trust-stores.sh} /usr/local/bin
 
-# Change ownership and permissions
+# Move the helpers directory into /usr/local/bin
+cp -R "${script_path}"/helpers /usr/local/bin/helpers
+
+# Change ownership and permissions of the scripts
 chmod +x /usr/local/bin/{create-tls-cert.sh,download-rds-ca-certs.sh,generate-trust-stores.sh}
 
+# Change ownership and permissions of the helpers
+chmod -R +x /usr/local/bin/helpers
