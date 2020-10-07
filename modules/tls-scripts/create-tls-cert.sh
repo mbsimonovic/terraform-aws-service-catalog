@@ -1,16 +1,18 @@
 #!/bin/bash
-# This script creates a CA cert and a TLS cert signed by that CA, if those certs don't already exist. If a kms
-# key is provided, the TLS cert private key is encrypted locally with gruntkms, and the TLS cert is uploaded
-# to AWS Secrets Manager encrypted with the same key. If a kms key is not provided, the TLS cert is stored
-# locally unencrypted, and the TLS cert is uploaded to AWS Secrets Manager encrypted with the default CMK.
-# Locally the files are saved to the tls/ sub-directory.
-# Optionally, this script can also upload the cert to ACM, so it can be used with an ELB or ALB.
+# This script creates a self-signed TLS certificate. The certificate is signed by a CA temporarily generated
+# at runtime and then deleted, leaving only the CA public key behind so you can validate the TLS certificate.
+# By default, the script writes the TLS certificate public and private key and the CA public key to local
+# disk. However, the script can also optionally (a) store the cert in AWS Secrets Manager, so your apps
+# running in AWS can securely access it, (b) upload the certs to AWS Certificate Manager, so AWS services
+# such as ELBs can securely access it, and/or (c) encrypt the private key locally with KMS to protect it.
 #
-# These certs are meant for private/internal use only, such as to set up end-to-end encryption within an AWS account.
-# The only IP address in the cert will be 127.0.0.1 and localhost, so you can test your servers locally. You can also
-# use the servers with the ELB or ALB, as the AWS load balancers don't verify the CA.
+# These certs are meant for private/internal use only, such as to set up end-to-end encryption within an AWS
+# account. By default, the only IP address in the cert will be 127.0.0.1 and the only dns name will
+# be localhost, so you can test your servers locally. You can also use the servers with the ELB or ALB, as
+# the AWS load balancers don't verify the CA.
 #
-# Note: You must be authenticated to the AWS account for KMS encryption and uploading to ACM to work.
+# Note: You must be authenticated to the AWS account for KMS encryption, storing in Secrets Manager, and
+# uploading to ACM to work.
 #
 # Dependencies:
 # - aws CLI
@@ -41,7 +43,11 @@ function print_usage {
   log
   log "Usage: create-tls-cert.sh [OPTIONS]"
   log
-  log "This script creates a self-signed TLS certificate. The certificate is signed by a CA temporarily generated at runtime and then deleted, leaving only the CA public key behind so you can validate the TLS certificate. By default, the script writes the TLS certificate public and private key and the CA public key to local disk. However, the script can also optionally (a) encrypt the private key with KMS to protect it, and/or (b) upload the data to AWS Secrets Manager, so your apps running in AWS can securely access it, and/or (c) upload the data to AWS Certificate Manager, so AWS services such as ELBs can securely access it."
+  log "This script creates a self-signed TLS certificate. The certificate is signed by a CA temporarily generated at runtime and then deleted, leaving only the CA public key behind so you can validate the TLS certificate. By default, the script writes the TLS certificate public and private key and the CA public key to local disk. However, the script can also optionally (a) store the cert in AWS Secrets Manager, so your apps running in AWS can securely access it, (b) upload the data to AWS Certificate Manager, so AWS services such as ELBs can securely access it, and/or (c) encrypt the private key locally with KMS to protect it."
+  log
+  log "These certs are meant for private/internal use only, such as to set up end-to-end encryption within an AWS account. By default, the only IP address in the cert will be 127.0.0.1 and the only dns name will be localhost, so you can test your servers locally. You can also use the servers with the ELB or ALB, as the AWS load balancers don't verify the CA."
+  log
+  log "Note: You must be authenticated to the AWS account for KMS encryption, storing in Secrets Manager, and uploading to ACM to work."
   log
   log "Required Arguments:"
   log
