@@ -111,7 +111,6 @@ func TestTlsScripts(t *testing.T) {
 
 			func() {
 				storePath := test_structure.LoadString(t, scriptsDir, "storePath")
-
 				for _, file := range createCertFiles {
 					require.FileExistsf(
 						t,
@@ -205,7 +204,6 @@ func TestTlsScripts(t *testing.T) {
 
 			func() {
 				storePath := test_structure.LoadString(t, scriptsDir, "storePathEnc")
-
 				for _, file := range createCertEncryptedFiles {
 					require.FileExistsf(
 						t,
@@ -288,7 +286,57 @@ func TestTlsScripts(t *testing.T) {
 			"GenerateTrustStores",
 			func() {
 				// Store the secret name in .test_data so we can clean it up if test stages are skipped.
-				storesSecretName := fmt.Sprintf("trust-stores-%s", random.UniqueId())
+				storePath := fmt.Sprintf("%s-%s", trustStoresDir, random.UniqueId())
+				test_structure.SaveString(t, scriptsDir, "storesStorePath", storePath)
+
+				docker.RunDockerCompose(
+					t, &docker.Options{},
+					"-f",
+					filepath.Join(scriptsDir, "docker-compose.yml"),
+					"run",
+					"trust-stores",
+					"--keystore-name",
+					"kafka",
+					"--vpc-name",
+					"default",
+					"--company-name",
+					"Acme",
+					"--company-org-unit",
+					"IT",
+					"--company-city",
+					"Phoenix",
+					"--company-state",
+					"AZ",
+					"--company-country",
+					"US",
+					"--store-path",
+					storePath,
+				)
+			},
+			func() {
+				storePath := test_structure.LoadString(t, scriptsDir, "storesStorePath")
+				for _, file := range trustStoresFiles {
+					require.FileExistsf(
+						t,
+						filepath.Join(scriptsDir, storePath, file),
+						"Error Validating Generate Trust Stores %s",
+						filepath.Join(scriptsDir, storePath, file),
+					)
+				}
+			},
+			func() {
+				storePath := test_structure.LoadString(t, scriptsDir, "storesStorePath")
+				os.RemoveAll(filepath.Join(scriptsDir, storePath))
+			},
+		},
+		{
+			"GenerateTrustStores_WithEncryptedStore",
+			func() {
+				suffix := random.UniqueId()
+				storePath := fmt.Sprintf("%s-%s", trustStoresDir, suffix)
+				test_structure.SaveString(t, scriptsDir, "storesStorePath", storePath)
+
+				storesSecretName := fmt.Sprintf("trust-stores-%s", suffix)
 				test_structure.SaveString(t, scriptsDir, "storesSecretName", storesSecretName)
 
 				docker.RunDockerCompose(
@@ -318,20 +366,24 @@ func TestTlsScripts(t *testing.T) {
 					kmsKeyId,
 					"--aws-region",
 					awsRegion,
+					"--store-path",
+					storePath,
 				)
 			},
 			func() {
+				storePath := test_structure.LoadString(t, scriptsDir, "storesStorePath")
 				for _, file := range trustStoresFiles {
 					require.FileExistsf(
 						t,
-						filepath.Join(scriptsDir, trustStoresDir, file),
+						filepath.Join(scriptsDir, storePath, file),
 						"Error Validating Generate Trust Stores %s",
-						filepath.Join(scriptsDir, trustStoresDir, file),
+						filepath.Join(scriptsDir, storePath, file),
 					)
 				}
 			},
 			func() {
-				os.RemoveAll(filepath.Join(scriptsDir, trustStoresDir))
+				storePath := test_structure.LoadString(t, scriptsDir, "storesStorePath")
+				os.RemoveAll(filepath.Join(scriptsDir, storePath))
 
 				// Delete from Secrets Manager, too.
 				storesSecretName := test_structure.LoadString(t, scriptsDir, "storesSecretName")
@@ -341,8 +393,6 @@ func TestTlsScripts(t *testing.T) {
 				input := secretsmanager.DeleteSecretInput{SecretId: &storesSecretName}
 				_, err = smClient.DeleteSecret(&input)
 				require.NoError(t, err)
-
-				test_structure.CleanupTestData(t, fmt.Sprintf("%s/.test-data/storesSecretName.json", scriptsDir))
 			},
 		},
 	}
