@@ -71,6 +71,7 @@ function print_usage {
   log "  --store-in-sm\t\tIf provided, the cert will be stored in AWS Secrets Manager. If --kms-key-id is provided, it will be used to encrypt the cert. Otherwise the default CMK will be used."
   log "  --secret-name\t\tIf --store-in-sm is set, this is the name of the secret you'd like to use to store the cert in AWS Secrets Manager."
   log "  --upload-to-acm\tIf provided, the cert will be uploaded to AWS Certificate Manager and its ARN will be written to stdout."
+  log "  --encrypt-local\tIf provided, the TLS cert private key will be stored locally in encrypted form using --kms-key-id."
   log "  --kms-key-id\t\tThe KMS key to use for encryption. If provided, the TLS cert private key will be encrypted locally. If --store-in-sm is provided, this key will be used to encrypt the cert in AWS Secrets Manager. This value can be a globally unique identifier (e.g. 12345678-1234-1234-1234-123456789012), a fully specified ARN (e.g. arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012), or an alias name prefixed by \"alias/\" (e.g. alias/MyAliasName)."
   log
   log "Examples:"
@@ -84,6 +85,7 @@ function print_usage {
   log "    --store-in-sm \\"
   log "    --secret-name my-tls-secret \\"
   log "    --aws-region us-east-1 \\"
+  log "    --encrypt-local \\"
   log "    --kms-key-id alias/dedicated-test-key"
   log
   log "  create-tls-cert.sh \\"
@@ -95,6 +97,7 @@ function print_usage {
   log "    --store-in-sm \\"
   log "    --secret-name my-tls-secret \\"
   log "    --aws-region us-east-1 \\"
+  log "    --encrypt-local \\"
   log "    --kms-key-id alias/dedicated-test-key \\"
   log "    --upload-to-acm"
 }
