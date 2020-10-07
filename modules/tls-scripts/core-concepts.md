@@ -209,7 +209,7 @@ to be correct!
     - The TLS certificate will not get stored in AWS Secrets Manager, and will not upload to AWS Certificate Manager.
     - However, running the above also doesn't require you to be authenticated with AWS, so `AWS_ACCESS_KEY_ID` and
     `AWS_SECRET_ACCESS_KEY` don't need to be set. <br />
-    
+
     The cert files will be stored in this folder, under `tls/certs`.
     - `CA.crt`: This is the CA public key, or CA certificate, in PEM format.
     - `app.crt`: This is the app's public key, or TLS certificate, signed by the CA cert, in PEM format.
