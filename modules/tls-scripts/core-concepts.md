@@ -211,9 +211,9 @@ to be correct!
     `AWS_SECRET_ACCESS_KEY` don't need to be set. <br />
 
     The cert files will be stored in this folder, under `tls/certs`.
-    - `CA.crt`: This is the CA public key, or CA certificate, in PEM format.
-    - `app.crt`: This is the app's public key, or TLS certificate, signed by the CA cert, in PEM format.
-    - `app.key`: This is the app's TLS private key in PEM format, in plain text.
+    - `CA.crt`: The CA public key, or CA certificate, in PEM format.
+    - `app.crt`: The app's public key, or TLS certificate, signed by the CA cert, in PEM format.
+    - `app.key`: The app's TLS private key in PEM format, in plain text.
 1. For production use, we recommend using this set of options instead. Be sure to change the values to be correct!
     **Note: You must set `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables for this and the
     following examples to work.**
