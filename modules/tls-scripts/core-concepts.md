@@ -369,7 +369,8 @@ store secrets in AWS Secrets Manager.
     ```
 1. This command will build and run a docker container for each of the tests, just the same way that you would
 run the scripts outside of testing.
-1. The tests do their own cleanup, so you will not see files created in your system, but the tests should pass.
+1. The tests do their own cleanup, so you will not see files created in your system, but the tests should pass with
+helpful output.
 
 [back to readme](README.adoc#testing)
 
