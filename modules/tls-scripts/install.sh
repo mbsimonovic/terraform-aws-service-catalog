@@ -9,7 +9,8 @@ set -e
 readonly script_path="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Move the bin files into /usr/local/bin
-sudo cp "${script_path}/{create-tls-cert.sh, download-rds-ca-certs.sh, generate-trust-stores.sh}" /usr/local/bin
+cp "${script_path}/{create-tls-cert.sh, download-rds-ca-certs.sh, generate-trust-stores.sh}" /usr/local/bin
 
 # Change ownership and permissions
-sudo chmod +x "/usr/local/bin/{create-tls-cert.sh, download-rds-ca-certs.sh, generate-trust-stores.sh}"
+chmod +x "/usr/local/bin/{create-tls-cert.sh, download-rds-ca-certs.sh, generate-trust-stores.sh}"
+
