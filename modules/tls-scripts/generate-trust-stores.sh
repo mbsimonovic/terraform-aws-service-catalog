@@ -47,11 +47,11 @@ function print_usage {
   log
   log "Optional Arguments:"
   log
-  log "  --role-arn\t\tThe AWS ARN of the IAM role to assume."
-  log "  --store-in-sm\t\tIf provided, all files will be stored in AWS Secrets Manager."
-  log "  --secret-name\t\t\tThe name of the AWS Secrets Manager secret backing the Key Store."
-  log "  --kms-key-id\t\tThe ID of the CMK to use for encryption. This value can be a globally unique identifier (e.g. 12345678-1234-1234-1234-123456789012), a fully specified ARN (e.g. arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012), or an alias name prefixed by \"alias/\" (e.g. alias/MyAliasName)."
-  log "  --aws-region\t\t\tThe AWS region where to store the secrets in AWS Secrets Manager."
+  log "  --role-arn\t\t\t\tThe AWS ARN of the IAM role to assume."
+  log "  --store-in-sm\t\t\t\tIf provided, all files will be stored in AWS Secrets Manager."
+  log "  --secret-name\t\t\t\tThe name of the AWS Secrets Manager secret backing the Key Store."
+  log "  --kms-key-id\t\t\t\tThe ID of the CMK to use for encryption. This value can be a globally unique identifier (e.g. 12345678-1234-1234-1234-123456789012), a fully specified ARN (e.g. arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012), or an alias name prefixed by \"alias/\" (e.g. alias/MyAliasName)."
+  log "  --aws-region\t\t\t\tThe AWS region where to store the secrets in AWS Secrets Manager."
   log "  --san-ip\t\t\t\tThe IP address to include in the SAN field on the generated cert. *May be repeated*."
   log "  --san-domain\t\t\t\tThe domain name to include in the SAN field on the generated cert. *May be repeated*."
   log "  --export-cert-key\t\t\tBoolean whether to export the generated self-signed certificate's private key. If not specified, private key will not be exported."
@@ -333,10 +333,28 @@ function generate_trust_stores {
   fi
 
   local password_ciphertext
-  password_ciphertext=$(gruntkms encrypt --plaintext "$key_store_password" --aws-region "$aws_region" --key-id "$kms_key_id")
-  echo -n "$password_ciphertext"
+  password_ciphertext=$(encrypt_password "$key_store_password" "$aws_region" "$kms_key_id")
+  echo "$password_ciphertext"
 
   store_password_in_secrets_manager "$aws_region" "$secret_name" "$kms_key_id" "$store_in_sm" "$key_store_password" "$company_name"
- }
+}
+
+function encrypt_password {
+  local -r key_store_password="$1"
+  local -r aws_region="$2"
+  local -r kms_key_id="$3"
+
+  if [[ -z "$kms_key_id" ]]; then
+    log "--kms-key-id not specified. Will not encrypt password."
+    return
+  fi
+
+  log "Encrypting password with KMS key $kms_key_id."
+
+  local password_ciphertext
+  password_ciphertext=$(gruntkms encrypt --plaintext "$key_store_password" --aws-region "$aws_region" --key-id "$kms_key_id")
+  log "Encrypted password."
+  echo "$password_ciphertext"
+}
 
 generate_trust_stores "$@"
