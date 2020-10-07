@@ -261,19 +261,34 @@ variables are set, and Docker is running.
 
 1. First make sure you followed [these instructions](#how-do-i-run-these-scripts-using-docker), so that environment
 variables are set, and Docker is running.
-1. Run the following command (which calls [generate-trust-stores.sh](generate-trust-stores.sh)):
+1. If you don't want to store your key store password in AWS Secrets Manager, run the following command
+(which calls [generate-trust-stores.sh](generate-trust-stores.sh)). Be sure to change the values to be correct!
     ```sh
-    generate-trust-stores.sh \
+    docker-compose run trust-stores \
     --keystore-name kafka \
     --store-path /tls/trust-stores \
     --vpc-name default \
-    --company-name Acme \ # change this to be correct
-    --company-org-unit IT \ # change this to be correct
-    --company-city Phoenix \ # change this to be correct
-    --company-state AZ \ # change this to be correct
-    --company-country US \ # change this to be correct
-    --kms-key-id alias/test-key \ # change this to be correct
-    --aws-region us-east-1 # change this to be correct
+    --company-name Acme \
+    --company-org-unit IT \
+    --company-city Phoenix \
+    --company-state AZ \
+    --company-country US \
+    ```
+1. If you do want to store the password in AWS Secrets Manager, add the optional arguments `--secret-name`,
+`--kms-key-id`, and `--aws-region`:
+    ```sh
+    docker-compose run trust-stores \
+    --keystore-name kafka \
+    --store-path /tls/trust-stores \
+    --vpc-name default \
+    --company-name Acme \
+    --company-org-unit IT \
+    --company-city Phoenix \
+    --company-state AZ \
+    --company-country US \
+    --secret-name my-trust-stores-secret \
+    --kms-key-id alias/dedicated-test-key \
+    --aws-region us-east-1
     ```
 1. Check `tls/trust-stores/` in the current directory for all your created files:
 - `kafka.server.ca.default.pem`
@@ -299,7 +314,7 @@ This value can be a globally unique identifier (e.g. `12345678-1234-1234-1234-12
 store secrets in AWS Secrets Manager.
 
 ### Test
-1. Okay, now you're ready to run the test suite (all three tests) in the [test file](../../test/tls_scripts_test.go).
+1. Okay, now you're ready to run the test suite in the [test file](../../test/tls_scripts_test.go).
     ```sh
     # Assuming you're in this directory:
     cd ../../test
