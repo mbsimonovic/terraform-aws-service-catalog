@@ -1,9 +1,9 @@
 #!/bin/bash
-# This script is meant to be used to automatically generate a Key Store and Trust Store, which are typically used with
-# Java apps to securely store SSL certificates. If they don't already exist, the Key Store, Trust Store, and public cert
-# / CA will be generated to the specified paths.
+# This script generates a Key Store and Trust Store, which are typically used with Java apps to securely store SSL
+# certificates. The Key Store, Trust Store, and public cert / CA will be generated to the specified paths. Optionally,
+# the Key Store Password can be encrypted and stored in AWS Secrets Manager.
 #
-# Note: You must be authenticated to the AWS account for uploading to AWS Secrets Manager.
+# Note: You must be authenticated to the AWS account for storing in AWS Secrets Manager.
 #
 # Dependencies:
 # - terraform
@@ -18,11 +18,6 @@
 
 set -e
 
-if [[ -z $AWS_ACCESS_KEY_ID ]] || [[ -z $AWS_SECRET_ACCESS_KEY ]]; then
-  echo "ERROR: AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY is not set."
-  exit 1
-fi
-
 readonly script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$script_dir/helpers.sh"
 
@@ -32,12 +27,11 @@ function print_usage {
   log
   log "Usage: generate-trust-stores.sh [OPTIONS]"
   log
-  log "This script generates a Key Store and Trust Store, which are typically used with Java apps to securely store SSL certificates. The Key Store, Trust Store, and public cert / CA will be generated to the specified paths, and the Key Store Password encrypted and stored in AWS Secrets Manager."
+  log "This script generates a Key Store and Trust Store, which are typically used with Java apps to securely store SSL certificates. The Key Store, Trust Store, and public cert / CA will be generated to the specified paths. Optionally, the Key Store Password can be encrypted and stored in AWS Secrets Manager."
   log
   log "Required Arguments:"
   log
   log "  --keystore-name\t\t\tThe first part of the filename for all ssl output files. Ex: [keystore-name].server.keystore.[vpc_name].jks."
-  log "  --secret-name\t\t\tThe name of the AWS Secrets Manager secret backing the Key Store."
   log "  --store-path\t\t\t\tThe path to the folder where the Key Store, Trust Store, cert, and CA should be generated."
   log "  --vpc-name\t\t\t\tThe name of the VPC for which we're generating the Key Store, Trust Store, etc."
   log "  --company-name\t\t\tThe name of the company."
@@ -45,23 +39,23 @@ function print_usage {
   log "  --company-city\t\t\tThe city the company is in."
   log "  --company-state\t\t\tThe state the company is in."
   log "  --company-country\t\t\tThe country the company is in."
-  log "  --kms-key-id\t\tThe ID of the CMK to use for encryption. This value can be a globally unique identifier (e.g. 12345678-1234-1234-1234-123456789012), a fully specified ARN (e.g. arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012), or an alias name prefixed by \"alias/\" (e.g. alias/MyAliasName). Optional."
-  log "  --aws-region\t\t\tThe AWS region where to store the secrets in AWS Secrets Manager."
   log
   log "Optional Arguments:"
   log
   log "  --role-arn\t\tThe AWS ARN of the IAM role to assume."
+  log "  --secret-name\t\t\tThe name of the AWS Secrets Manager secret backing the Key Store."
+  log "  --kms-key-id\t\tThe ID of the CMK to use for encryption. This value can be a globally unique identifier (e.g. 12345678-1234-1234-1234-123456789012), a fully specified ARN (e.g. arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012), or an alias name prefixed by \"alias/\" (e.g. alias/MyAliasName)."
+  log "  --aws-region\t\t\tThe AWS region where to store the secrets in AWS Secrets Manager."
   log "  --san-ip\t\t\t\tThe IP address to include in the SAN field on the generated cert. *May be repeated*."
   log "  --san-domain\t\t\t\tThe domain name to include in the SAN field on the generated cert. *May be repeated*."
-  log "  --export-cert-key\t\t\tOptional boolean whether to export the generated self-signed certificate's private key. If not specified, private key will not be exported."
-  log "  --export-cert-p8-key\t\t\tOptional boolean whether to export the generated self-signed certificate's private key in P8 format. If not specified, will not exported private key."
-  log "  --generate-certs-in-one-folder\tOptional boolean. If present all cert/jks/truststore files will be output to --store-path. Otherwise trust-store and jks will be in separate dirs."
+  log "  --export-cert-key\t\t\tBoolean whether to export the generated self-signed certificate's private key. If not specified, private key will not be exported."
+  log "  --export-cert-p8-key\t\t\tBoolean whether to export the generated self-signed certificate's private key in P8 format. If not specified, will not exported private key."
+  log "  --generate-certs-in-one-folder\tBoolean. If present all cert/jks/truststore files will be output to --store-path. Otherwise trust-store and jks will be in separate dirs."
   log
   log "Example:"
   log
   log "  generate-trust-stores.sh \\"
   log "    --keystore-name kafka \\"
-  log "    --secret-name my-secret \\"
   log "    --store-path /tls/trust-stores \\"
   log "    --vpc-name default \\"
   log "    --company-name Acme \\"
@@ -69,6 +63,7 @@ function print_usage {
   log "    --company-city Phoenix \\"
   log "    --company-state AZ \\"
   log "    --company-country US \\"
+  log "    --secret-name my-secret \\"
   log "    --kms-key-id alias/cmk-dev \\"
   log "    --aws-region us-east-1"
 }
@@ -83,6 +78,42 @@ function verify_installed_script {
   fi
 }
 
+function store_password_in_secrets_manager {
+  local -r aws_region="$1"
+  local -r secret_name="$2"
+  local -r kms_key_id="$3"
+  local -r store_in_sm="$4"
+  local -r key_store_password="$5"
+  local -r company_name="$6"
+  local -r secret_description="Key store password for $company_name"
+
+  if [[ "$store_in_sm" != "true" ]]; then
+    log "--store-in-sm flag not set. Will not store cert in Secrets Manager."
+    return
+  fi
+
+  log "Storing password secret in TLS Cert in AWS Secrets Manager..."
+
+  local public_key_plaintext
+  local private_key_plaintext
+  local ca_public_key_plaintext
+  local tls_secret_json
+  local store_secret_response
+
+  private_key_plaintext=$(cat "$CERT_PRIVATE_KEY_PATH")
+  public_key_plaintext=$(cat "$CERT_PUBLIC_KEY_PATH")
+  ca_public_key_plaintext=$(cat "$CA_PUBLIC_KEY_PATH")
+
+  store_secret_response=$(store_in_secrets_manager "$secret_name" "$secret_description" "$key_store_password" "$aws_region" "$kms_key_id")
+
+  # Extract the ARN of the password secret from AWS Secrets Manager
+  secret_arn=$(echo "$store_secret_response" | jq '.ARN')
+
+  if [[ -n "$secret_arn" ]]; then
+    log "Password stored! Secret ARN: $secret_arn"
+  fi
+}
+
 function generate_trust_stores {
   local store_path
   local vpc_name
@@ -94,8 +125,8 @@ function generate_trust_stores {
   local aws_region
   local role_arn
   local kms_key_id
-  local keystore_name
   local secret_name
+  local keystore_name
   local -a san_ips=()
   local -a san_domains=()
   local export_cert_key=false
@@ -176,7 +207,7 @@ function generate_trust_stores {
         exit
         ;;
       *)
-        log "ERROR: Unrecognized argument: $key"
+        log "Unrecognized argument: $key"
         print_usage
         exit 1
         ;;
@@ -194,6 +225,7 @@ function generate_trust_stores {
   assert_is_installed "pwgen"
   assert_is_installed "terraform"
 
+  # Required arguments
   assert_not_empty "--store-path" "$store_path"
   assert_not_empty "--vpc-name" "$vpc_name"
   assert_not_empty "--company-name" "$company_name"
@@ -201,13 +233,30 @@ function generate_trust_stores {
   assert_not_empty "--company-city" "$company_city"
   assert_not_empty "--company-state" "$company_state"
   assert_not_empty "--company-country" "$company_country"
-  assert_not_empty "--aws-region" "$aws_region"
   assert_not_empty "--keystore-name" "$keystore_name"
-  assert_not_empty "--secret-name" "$secret_name"
-  assert_not_empty "--kms-key-id" "$kms_key_id"
 
-  if [[ ! -z "$role_arn" ]]; then
+  # Optional arguments
+  local store_in_sm="false"
+  if [[ -n "$kms_key_id" ]] || [[ -n "$secret_name" ]]; then
+    assert_not_empty "--aws-region" "$aws_region"
+    assert_not_empty "--secret-name" "$secret_name"
+    assert_not_empty "--kms-key-id" "$kms_key_id"
+    store_in_sm="true"
+  fi
+
+  if [[ -n "$role_arn" ]]; then
     assume_iam_role "$role_arn"
+  fi
+
+  # Required environment variables if any AWS specific arguments are set/provided.
+  if [[ -n "$aws_region" ]] ||
+    [[ -n "$role_arn" ]] ||
+    [[ -n "$kms_key_id" ]] ||
+    [[ -n "$secret_name" ]]; then
+      if [[ -z $AWS_ACCESS_KEY_ID ]] || [[ -z $AWS_SECRET_ACCESS_KEY ]]; then
+        echo "ERROR: AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY is not set."
+        exit 1
+      fi
   fi
 
   # package-kafka requires this structure with the keystore and truststore in separate folders
@@ -287,15 +336,7 @@ function generate_trust_stores {
   password_ciphertext=$(gruntkms encrypt --plaintext "$key_store_password" --aws-region "$aws_region" --key-id "$kms_key_id")
   echo -n "$password_ciphertext"
 
-  local api_response
-  local secret_arn
-
-  # Make an API call to AWS Secrets Manager to create the secret representing the key store's password
-  log "Calling AWS Secrets Manager API to store secret..."
-  api_response=$(store_in_secrets_manager "$secret_name" "Key store password for $company_name" "$key_store_password" "$aws_region" "$kms_key_id")
-
-  secret_arn=$(echo "$api_response" | jq '.ARN')
-  log "Stored key store password in AWS Secrets Manager! Secret ARN: $secret_arn"
+  store_password_in_secrets_manager "$aws_region" "$secret_name" "$kms_key_id" "$store_in_sm" "$key_store_password" "$company_name"
  }
 
 generate_trust_stores "$@"
