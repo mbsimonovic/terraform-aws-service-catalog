@@ -215,8 +215,8 @@ to be correct!
     - `app.crt`: This is the app's public key, or TLS certificate, signed by the CA cert, in PEM format.
     - `app.key`: This is the app's TLS private key in PEM format, in plain text.
 1. For production use, we recommend using this set of options instead. Be sure to change the values to be correct!
-    _Note: You will need to set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables for this and following
-    examples to work._
+    _Note: You must set `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables for this and the
+    following examples to work._
     ```sh
     docker-compose run certs \
     --cn acme.com \
@@ -230,9 +230,11 @@ to be correct!
     ```
     _We highly recommend including `--encrypt-local` and `--kms-key-id`, along with `--aws-region`, so that you don't
     have an unencrypted private key on your system._
+
     The script will encrypt the TLS cert's private key, save it as `app.key.kms.encrypted`, and delete the unencrypted
     `app.key`.
-    After running that command, the generated cert files will be stored in this folder, under `tls/certs`.
+
+    The generated cert files will be stored in this folder, under `tls/certs`.
     - `CA.crt`: This is the CA public key, or CA certificate, in PEM format.
     - `app.crt`: This is the app's public key, or TLS certificate, signed by the CA cert, in PEM format.
     - `app.key.kms.encrypted`: This is the app's TLS private key in PEM format, encrypted with the KMS key you provided.
@@ -254,6 +256,7 @@ the region specified by `--aws-region`.
     ```
 1. Optionally, you can also upload the certificate to ACM using `--upload-to-acm`, in the region specified by
 `--aws-region`. If you don't provide a key, AWS Secrets Manager will use your default CMK.
+
     Note that although creating and operating private CAs using AWS Certificate Manager costs you money, _uploading_ your
     own self-signed certificates to ACM is free.
     ```sh
