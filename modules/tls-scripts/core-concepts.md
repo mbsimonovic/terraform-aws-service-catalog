@@ -340,6 +340,7 @@ variables are set, and Docker is running.
     - `kafka.server.cert.default.pem`
     - `keystore/kafka.server.keystore.default.jks`
     - `truststore/kafka.server.truststore.default.jks`
+
     If you pass in `--generate-certs-in-one-folder`, the above four files will all be under `tls/trust-stores`.
 
 [back to readme](README.adoc#running)
