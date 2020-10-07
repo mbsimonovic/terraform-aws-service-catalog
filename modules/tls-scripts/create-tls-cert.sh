@@ -226,6 +226,7 @@ function run {
   local aws_region
   local role_arn
   local upload_to_acm="false"
+  local store_in_sm="false"
   local kms_key_id
   local secret_name
   local -a dns_names=()
@@ -237,6 +238,9 @@ function run {
     local key="$1"
 
     case "$key" in
+      --store-in-sm)
+        store_in_sm="true"
+        ;;
       --upload-to-acm)
         upload_to_acm="true"
         ;;
@@ -304,19 +308,29 @@ function run {
     shift
   done
 
+  # Required arguments
   assert_not_empty "--cn" "$common_name"
   assert_not_empty "--country" "$country"
   assert_not_empty "--state" "$state"
   assert_not_empty "--city" "$city"
   assert_not_empty "--org" "$org"
-  assert_not_empty "--aws-region" "$aws_region"
-  assert_not_empty "--secret-name" "$secret_name"
+
+  # Optional arguments
+  if [[ -n "$kms_key_id" ]] || [[ -n "$upload_to_acm" ]]; then
+    assert_not_empty "--aws-region" "$aws_region"
+  fi
+
+  if [[ -n "$store_in_sm" ]] || [[ -n "$secret_name" ]]; then
+    assert_not_empty "--aws-region" "$aws_region"
+    assert_not_empty "--store-in-sm" "$store_in_sm"
+    assert_not_empty "--secret-name" "$secret_name"
+  fi
 
   assert_is_installed "aws"
   assert_is_installed "gruntkms"
   assert_is_installed "jq"
 
-  if [[ ! -z "$role_arn" ]]; then
+  if [[ -n "$role_arn" ]]; then
     assume_iam_role "$role_arn"
   fi
 

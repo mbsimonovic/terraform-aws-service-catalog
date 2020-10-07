@@ -137,12 +137,15 @@ This script does the following:
 1. Create a TLS certificate, including a private key and public key, that is signed by that CA.
 1. Delete the private key of the CA so no one can ever use it again. However, the public key of the CA is kept
 around so anyone who needs to call your service can use that CA public key to verify your TLS certificate.
-1. Optionally encrypt the private key of the TLS cert with KMS.
-1. Upload the private key, public key, and CA to AWS Secrets Manager using the default CMK for encryption, or the
-KMS key you provide.
+1. Optionally upload the private key, public key, and CA to AWS Secrets Manager using the default CMK for encryption,
+or the KMS key you provide.
 1. Optionally upload the TLS certificate to AWS Certificate Manager so you can use it with an internal ELB or ALB.
+The ARN of the certificate will be output to `stdout`.
+1. Optionally encrypt the private key of the TLS cert with KMS.
 
-The only IP address in the cert will be 127.0.0.1 and localhost, so you can test your servers locally.
+By default, the only IP address in the cert will be 127.0.0.1, and the only DNS name in the cert will be localhost,
+so you can test your servers locally. But you can pass in optional parameters to customize the DNS names and
+IP addresses in the cert.
 You can also use the servers with the ELB or ALB, as the AWS load balancers don't verify the CA.
 See [Loading TLS secrets from AWS Secrets Manager](https://github.com/gruntwork-io/aws-sample-app/blob/master/core-concepts.md#loading-tls-secrets-from-aws-secrets-manager).
 
@@ -159,15 +162,16 @@ when connecting to RDS over TLS.
 
 This script automatically generates a Key Store and Trust Store, which are typically used with Java apps to
 securely store TLS certificates. If they don't already exist, the Key Store, Trust Store, and public
-cert / CA will be generated to the specified paths, and the Key Store password will be stored in AWS
-Secrets Manager. The script writes the KMS-encrypted password for the Key Store to `stdout`.
+cert / CA will be generated to the specified paths.
+
+Optionally the Key Store password can be stored in AWS Secrets Manager. The script writes the KMS-encrypted password for the Key Store to `stdout`.
 
 [back to readme](README.adoc#about-the-scripts-specifically)
 
 ## How do I run these scripts using Docker?
 
-We've provided a [Dockerfile](Dockerfile) in this module for you to use for both using and testing the TLS
-scripts.
+We recommend running the scripts with Docker to avoid cluttering up your development environment. We've provided
+a [Dockerfile](Dockerfile) in this module for you to use for both using and testing the TLS scripts.
 
 All the scripts require some environment variables to be set.
 1. Export your [GitHub Personal Access Token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) in `GITHUB_OAUTH_TOKEN`.
@@ -190,7 +194,6 @@ and [Dockerfile](Dockerfile).
 
 1. First make sure you followed [these instructions](#how-do-i-run-these-scripts-using-docker), so that environment
 variables are set, and Docker is running.
-step, nothing build-related appears in `stdout`, which we use to clean up tests.
 1. Run the following command (which calls [create-tls-cert.sh](create-tls-cert.sh)). Be sure to change the values
 to be correct!
     ```sh
@@ -200,17 +203,18 @@ to be correct!
     --state AZ \
     --city Phoenix \
     --org Acme \
+    --store-in-sm \
     --secret-name my-tls-secret \
     --aws-region us-east-1 \
     --kms-key-id alias/dedicated-test-key
     ```
-    You'll notice that you need to pass in the correct KMS key id in `--kms-key-id`.
-    _We highly recommend including this option, so that you don't have an unencrypted private key on your system._
+    _We highly recommend including --kms-key-id, so that you don't have an unencrypted private key on your system._
     By providing `--kms-key-id` the script will automatically encrypt the TLS certificate's private key, save it as
-    `my-app.key.pem.kms.encrypted`, and delete the unencrypted key (`my-app.key.pem`).
-    The certificate is then uploaded to AWS Secrets Manager in the region specified by `--aws-region`, and encrypted
-    using the KMS key you provided. If you didn't provide a key, AWS Secrets Manager will use your default CMK.
-1. After running that command, the generated cert files will be located on your local machine within a new subfolder
+    `app.key.kms.encrypted`, and delete the unencrypted key (`app.key`).
+    Because `--store-in-sm`, `--secret-name` are included, the certificate can then be uploaded to AWS Secrets
+    Manager in the region specified by `--aws-region`, and encrypted using the KMS key you provided. If you
+    don't provide a key, AWS Secrets Manager will use your default CMK.
+1. After running that command, the generated cert files will be on your local machine within a new subfolder
 in this directory: `tls/certs/`.
 
 If you used the above example, you should see:
@@ -220,9 +224,9 @@ If you used the above example, you should see:
 - If you see `app.key`, the script was not able to encrypt your private key using the KMS key you provided (or you
 didn't provide a key), so this is the private key in PEM format, in plain text.
 
-Optionally, you can upload the certificate to ACM using `--upload-to-acm`, so that the cert can be used with an
-internal ELB or ALB. Note that although _operating_ private CAs via AWS ACM incurs costs, _uploading_ self-signed
-certificates to ACM is totally free!
+Optionally, you can upload the certificate to ACM using `--upload-to-acm` in the region specified by `--aws-region`.
+Note that although creating and operating private CAs using AWS ACM costs you money, _uploading_ your own self-signed
+certificates to ACM is totally free.
 
 E.g.:
 ```sh
@@ -232,6 +236,7 @@ docker-compose run certs \
 --state AZ \
 --city Phoenix \
 --org Acme \
+--store-in-sm \
 --secret-name my-tls-secret \
 --aws-region us-east-1 \
 --kms-key-id alias/dedicated-test-key
@@ -290,7 +295,8 @@ This value can be a globally unique identifier (e.g. `12345678-1234-1234-1234-12
 (e.g. `arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012`), or an alias name prefixed by
 `alias/` (e.g. `alias/MyAliasName`).
 1. Run `export TLS_SCRIPTS_AWS_REGION=[your-key-region]`, setting it to the AWS region where the KMS key is located
-(e.g. `us-east-1`).
+(e.g. `us-east-1`). This is also the region that will be used to upload certs to AWS Certificate Manager and
+store secrets in AWS Secrets Manager.
 
 ### Test
 1. Okay, now you're ready to run the test suite (all three tests) in the [test file](../../test/tls_scripts_test.go).
@@ -299,6 +305,8 @@ This value can be a globally unique identifier (e.g. `12345678-1234-1234-1234-12
     cd ../../test
     go test -v -run TestTlsScripts
     ```
+1. This command will build and run a docker container for each of the tests, just the same way that you would
+run the scripts outside of testing.
 1. The tests do their own cleanup, so you will not see files created in your system, but the tests should pass.
 
 [back to readme](README.adoc#testing)
@@ -307,7 +315,7 @@ This value can be a globally unique identifier (e.g. `12345678-1234-1234-1234-12
 
 Using these certs with your app involves providing them to the app process that will serve HTTPS (a web server) so that the server can use them to set up secure connections with clients.
 
-There are two options for providing the certs generated by this app: 
+There are two options for providing the certs generated by this app:
 
 1. Write them to a path that your web server will read them from when starting up
 2. Store them in AWS Secrets Manager, and have your app fetch them via the AWS API
@@ -317,9 +325,9 @@ Let's explore these one at a time.
 ### Using local certificates to serve content over HTTPS
 First, [use the TLS Scripts module to generate our self-signed certificates locally](#how-do-i-create-tls-certs).
 
-Second, if you encrypted your cert on disk, which you should always do for production use cases, you'll need to decrypt it first. We recommend storing the decrypted result in [`tmpfs`](https://man7.org/linux/man-pages/man5/tmpfs.5.html), which is a virtual filesystem that remains in memory and therefore does not carry with it the same risks of writing your secrets to disk. 
+Second, if you encrypted your cert on disk, which you should always do for production use cases, you'll need to decrypt it first. We recommend storing the decrypted result in [`tmpfs`](https://man7.org/linux/man-pages/man5/tmpfs.5.html), which is a virtual filesystem that remains in memory and therefore does not carry with it the same risks of writing your secrets to disk.
 
-Now that the private key is unencrypted, either because you decrypted it, or because this is a TLS cert solely-used for local dev and wasn't encrypted in the first place, you should have the following files on disk (run `tree tls` in your working copy of `aws-service-catalog/modules/tls-scripts` to confirm): 
+Now that the private key is unencrypted, either because you decrypted it, or because this is a TLS cert solely-used for local dev and wasn't encrypted in the first place, you should have the following files on disk (run `tree tls` in your working copy of `aws-service-catalog/modules/tls-scripts` to confirm):
 
 ```
 tls
@@ -347,7 +355,7 @@ Our examples for serving HTTPS traffic using self-signed certificates will be:
 
 #### Nginx
 
-[Nginx](https://www.nginx.com) is a popular web server and reverse proxy that is production ready and highly scalable. 
+[Nginx](https://www.nginx.com) is a popular web server and reverse proxy that is production ready and highly scalable.
 
 * [Install Nginx](https://www.nginx.com/resources/wiki/start/topics/tutorials/install/)
 * `sudo touch /usr/share/nginx/example.conf`
@@ -513,7 +521,7 @@ In this example, we've used the Golang stdlib to create an HTTPS web server, whe
 
 We recommend that you *never* store any secrets, such as app or certificate authority private keys, on disk or in version control in plaintext, as this could lead to them becoming compromised.
 
-Instead, always ensure your TLS certs are encrypted on disk and only decrypted to plaintext, perhaps to an in-memory virtual filesystem such as `tmpfs`, when the app server is booting up. 
+Instead, always ensure your TLS certs are encrypted on disk and only decrypted to plaintext, perhaps to an in-memory virtual filesystem such as `tmpfs`, when the app server is booting up.
 
 For a deeper dive into best practices for managing secrets for your apps, see [this guide](https://github.com/gruntwork-io/aws-sample-app/blob/master/core-concepts.md#managing-secrets).
 
