@@ -50,20 +50,22 @@ function print_usage {
   log "  --state\t\tThe two-letter state code for where your company is located."
   log "  --city\t\tThe name of the city for where your company is located."
   log "  --org\t\t\tThe name of organization in your company."
-  log "  --secret-name\t\tThe name of the secret you'd like to be used to store the cert in AWS Secrets Manager."
-  # TODO: is it acceptable for --aws-region to be all of these? would a customer ever want separate regions for each?
-  log "  --aws-region\t\tThe AWS region to use for storing in AWS Secrets Manager and AWS Certificate Manager, and where the kms-key lives, if --kms-key-id is set."
-  log "  --role-arn\t\tThe AWS ARN of the IAM role to assume. Optional."
-  log "  --role-arn\t\tThe AWS ARN of the IAM role to assume. Optional."
   log
-  log "Optional Arguments:"
+  log "Optional Arguments for Cert Creation:"
   log
-  log "  --upload-to-acm\tIf specified, the cert will be uploaded to AWS Certificate Manager and its ARN will be written to stdout."
-  log "  --kms-key-id\t\tThe KMS key to use for encryption. This value can be a globally unique identifier (e.g. 12345678-1234-1234-1234-123456789012), a fully specified ARN (e.g. arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012), or an alias name prefixed by \"alias/\" (e.g. alias/MyAliasName)."
   log "  --dns-name\tA custom DNS name to associate with the cert, in addition to the default. May be specified more than once. Default: ${DEFAULT_DNS_NAMES[@]}"
   log "  --ip-address\tA custom IP address to associate with the cert, in addition to the default. May be specified more than once. Default: ${DEFAULT_IP_ADDRESSES[@]}"
   log "  --no-dns-names\tIf set, the cert won't be associated with any DNS names."
   log "  --no-ips\tIf set, the cert won't be associated with any IP addresses."
+  log "  --role-arn\t\tThe AWS ARN of the IAM role to assume."
+  log
+  log "Optional Arguments for Cert Encryption and Storage:"
+  log
+  log "  --aws-region\t\tThe AWS region corresponding to AWS Secrets Manager, AWS Certificate Manager, and where the kms-key lives, if these other options are set."
+  log "  --store-in-sm\t\tIf provided, the cert will be stored in AWS Secrets Manager. If --kms-key-id is provided, it will be used to encrypt the cert. Otherwise the default CMK will be used."
+  log "  --secret-name\t\tIf --store-in-sm is set, this is the name of the secret you'd like to use to store the cert in AWS Secrets Manager."
+  log "  --upload-to-acm\tIf provided, the cert will be uploaded to AWS Certificate Manager and its ARN will be written to stdout."
+  log "  --kms-key-id\t\tThe KMS key to use for encryption. If provided, the TLS cert private key will be encrypted locally. If --store-in-sm is provided, this key will be used to encrypt the cert in AWS Secrets Manager. This value can be a globally unique identifier (e.g. 12345678-1234-1234-1234-123456789012), a fully specified ARN (e.g. arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012), or an alias name prefixed by \"alias/\" (e.g. alias/MyAliasName)."
   log
   log "Examples:"
   log
@@ -73,6 +75,7 @@ function print_usage {
   log "    --state AZ \\"
   log "    --city Phoenix \\"
   log "    --org Acme \\"
+  log "    --store-in-sm \\"
   log "    --secret-name my-tls-secret \\"
   log "    --aws-region us-east-1 \\"
   log "    --kms-key-id alias/dedicated-test-key"
@@ -83,6 +86,7 @@ function print_usage {
   log "    --state AZ \\"
   log "    --city Phoenix \\"
   log "    --org Acme \\"
+  log "    --store-in-sm \\"
   log "    --secret-name my-tls-secret \\"
   log "    --aws-region us-east-1 \\"
   log "    --kms-key-id alias/dedicated-test-key \\"
