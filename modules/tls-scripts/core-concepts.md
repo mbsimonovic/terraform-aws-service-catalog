@@ -306,6 +306,8 @@ Manager, you'd run:
 variables are set, and Docker is running.
 1. If you don't want to store your key store password in AWS Secrets Manager, run the following command
 (which calls [generate-trust-stores.sh](generate-trust-stores.sh)). Be sure to change the values to be correct!
+
+    For this case, you don't need to have `AWS_ACCESS_KEY_ID` or `AWS_SECRET_ACCESS_KEY` set.
     ```sh
     docker-compose run trust-stores \
     --keystore-name kafka \
@@ -334,10 +336,11 @@ variables are set, and Docker is running.
     --aws-region us-east-1
     ```
 1. Check `tls/trust-stores/` in the current directory for all your created files:
-- `kafka.server.ca.default.pem`
-- `kafka.server.cert.default.pem`
-- `keystore/kafka.server.keystore.default.jks`
-- `truststore/kafka.server.truststore.default.jks`
+    - `kafka.server.ca.default.pem`
+    - `kafka.server.cert.default.pem`
+    - `keystore/kafka.server.keystore.default.jks`
+    - `truststore/kafka.server.truststore.default.jks`
+    If you pass in `--generate-certs-in-one-folder`, the above four files will all be under `tls/trust-stores`.
 
 [back to readme](README.adoc#running)
 
