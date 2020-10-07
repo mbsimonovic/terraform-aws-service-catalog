@@ -311,7 +311,6 @@ variables are set, and Docker is running.
     ```sh
     docker-compose run trust-stores \
     --keystore-name kafka \
-    --store-path /tls/trust-stores \
     --vpc-name default \
     --company-name Acme \
     --company-org-unit IT \
@@ -319,18 +318,18 @@ variables are set, and Docker is running.
     --company-state AZ \
     --company-country US \
     ```
-1. If you do want to store the password in AWS Secrets Manager, add the optional arguments `--secret-name`,
-`--kms-key-id`, and `--aws-region`:
+1. If you do want to store the password in AWS Secrets Manager, add the optional arguments `--store-in-sm`,
+`--secret-name`, `--kms-key-id`, and `--aws-region`:
     ```sh
     docker-compose run trust-stores \
     --keystore-name kafka \
-    --store-path /tls/trust-stores \
     --vpc-name default \
     --company-name Acme \
     --company-org-unit IT \
     --company-city Phoenix \
     --company-state AZ \
     --company-country US \
+    --store-in-sm \
     --secret-name my-trust-stores-secret \
     --kms-key-id alias/dedicated-test-key \
     --aws-region us-east-1
