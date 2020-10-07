@@ -341,12 +341,21 @@ variables are set, and Docker is running.
     - `truststore/kafka.server.truststore.default.jks`
 
     If you pass in `--generate-certs-in-one-folder`, the above four files will all be under `tls/trust-stores`.
+    - `kafka.server.ca.default.pem`
+    - `kafka.server.cert.default.pem`
+    - `kafka.server.keystore.default.jks`
+    - `kafka.server.truststore.default.jks`
+
+    You can also pass in `--export-cert-key` and `--export-cert-p8-key` to generate these extra files:
+    - `kafka.server.cert.default.key`
+    - `kafka.server.cert.default.key.p8`
 
 [back to readme](README.adoc#running)
 
 ## How do I test these scripts using Docker?
 
-If you're just using the scripts to create certs, you can skip this section. Otherwise, if you're modifying these scripts, read on!
+If you're just using the scripts to create certs, you can skip this section. Otherwise, if you're modifying these
+scripts, read on!
 
 ### Setup
 1. First make sure you followed [these instructions](#how-do-i-run-these-scripts-using-docker), so that environment
