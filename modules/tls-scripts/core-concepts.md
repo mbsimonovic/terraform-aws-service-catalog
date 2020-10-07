@@ -141,12 +141,11 @@ around so anyone who needs to call your service can use that CA public key to ve
 or the KMS key you provide.
 1. Optionally upload the TLS certificate to AWS Certificate Manager so you can use it with an internal ELB or ALB.
 The ARN of the certificate will be output to `stdout`.
-1. Optionally encrypt the private key of the TLS cert with KMS.
+1. Optionally encrypt the private key of the TLS cert with KMS in local storage.
 
 By default, the only IP address in the cert will be 127.0.0.1, and the only DNS name in the cert will be localhost,
-so you can test your servers locally. But you can pass in optional parameters to customize the DNS names and
-IP addresses in the cert.
-You can also use the servers with the ELB or ALB, as the AWS load balancers don't verify the CA.
+so you can test your servers locally. But you can pass in optional parameters to customize the DNS names and IP
+addresses in the cert. You can also use the servers with the ELB or ALB, as the AWS load balancers don't verify the CA.
 See [Loading TLS secrets from AWS Secrets Manager](https://github.com/gruntwork-io/aws-sample-app/blob/master/core-concepts.md#loading-tls-secrets-from-aws-secrets-manager).
 
 [back to readme](README.adoc#about-the-scripts-specifically)
@@ -160,9 +159,9 @@ when connecting to RDS over TLS.
 
 ## How does generate-trust-stores work?
 
-This script automatically generates a Key Store and Trust Store, which are typically used with Java apps to
-securely store TLS certificates. If they don't already exist, the Key Store, Trust Store, and public
-cert / CA will be generated to the specified paths.
+This script generates a Key Store and Trust Store, which are typically used with Java apps to securely store TLS
+certificates. If they don't already exist, the Key Store, Trust Store, and public cert / CA will be generated to
+the specified paths.
 
 Optionally the Key Store password can be stored in AWS Secrets Manager. The script writes the KMS-encrypted password for the Key Store to `stdout`.
 
@@ -175,7 +174,8 @@ a [Dockerfile](Dockerfile) in this module for you to use for both using and test
 
 All the scripts require some environment variables to be set.
 1. Export your [GitHub Personal Access Token](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) in `GITHUB_OAUTH_TOKEN`.
-1. Export your AWS credentials as the environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
+1. For most use cases, you'll need to export your AWS credentials as the environment variables `AWS_ACCESS_KEY_ID`
+and `AWS_SECRET_ACCESS_KEY`.
 1. If you're using temporary credentials, which is the case if you're assuming an IAM role, using SAML, or using an MFA token,
 also export your `AWS_SESSION_TOKEN`.
 1. Start Docker.
@@ -194,8 +194,51 @@ and [Dockerfile](Dockerfile).
 
 1. First make sure you followed [these instructions](#how-do-i-run-these-scripts-using-docker), so that environment
 variables are set, and Docker is running.
-1. Run the following command (which calls [create-tls-cert.sh](create-tls-cert.sh)). Be sure to change the values
+1. For local development, i.e. **NOT in production**, you can run the following command. Be sure to change the values
 to be correct!
+    ```sh
+    docker-compose run certs \
+    --cn acme.com \
+    --country US
+    --state AZ \
+    --city Phoenix \
+    --org Acme
+    ```
+    Caveats:
+    - The TLS private key will be stored locally unencrypted. We don't recommend this.
+    - The TLS certificate will not get stored in AWS Secrets Manager, and will not upload to AWS Certificate Manager.
+    - However, running the above also doesn't require you to be authenticated with AWS, so `AWS_ACCESS_KEY_ID` and
+    `AWS_SECRET_ACCESS_KEY` don't need to be set.
+    The cert files will be stored in this folder, under `tls/certs`.
+    - `CA.crt`: This is the CA public key, or CA certificate, in PEM format.
+    - `app.crt`: This is the app's public key, or TLS certificate, signed by the CA cert, in PEM format.
+    - `app.key`: This is the app's TLS private key in PEM format, in plain text.
+1. For production use, we recommend using this set of options instead. Be sure to change the values to be correct!
+    _Note: You will need to set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables for this and following
+    examples to work._
+    ```sh
+    docker-compose run certs \
+    --cn acme.com \
+    --country US
+    --state AZ \
+    --city Phoenix \
+    --org Acme \
+    --aws-region us-east-1 \
+    --encrypt-local \
+    --kms-key-id alias/dedicated-test-key
+    ```
+    _We highly recommend including `--encrypt-local` and `--kms-key-id`, along with `--aws-region`, so that you don't
+    have an unencrypted private key on your system._
+    The script will encrypt the TLS cert's private key, save it as `app.key.kms.encrypted`, and delete the unencrypted
+    `app.key`.
+    After running that command, the generated cert files will be stored in this folder, under `tls/certs`.
+    - `CA.crt`: This is the CA public key, or CA certificate, in PEM format.
+    - `app.crt`: This is the app's public key, or TLS certificate, signed by the CA cert, in PEM format.
+    - `app.key.kms.encrypted`: This is the app's TLS private key in PEM format, encrypted with the KMS key you provided.
+    - If you see `app.key`, the script was not able to encrypt your private key using the KMS key you provided (or you
+    didn't provide a key), so this is the private key in PEM format, in plain text.
+1. Optionally, you can store the cert as a secret in AWS Secrets Manager using `--store-in-sm` and `--secret-name`, in
+the region specified by `--aws-region`.
     ```sh
     docker-compose run certs \
     --cn acme.com \
@@ -208,40 +251,36 @@ to be correct!
     --aws-region us-east-1 \
     --kms-key-id alias/dedicated-test-key
     ```
-    _We highly recommend including --kms-key-id, so that you don't have an unencrypted private key on your system._
-    By providing `--kms-key-id` the script will automatically encrypt the TLS certificate's private key, save it as
-    `app.key.kms.encrypted`, and delete the unencrypted key (`app.key`).
-    Because `--store-in-sm`, `--secret-name` are included, the certificate can then be uploaded to AWS Secrets
-    Manager in the region specified by `--aws-region`, and encrypted using the KMS key you provided. If you
-    don't provide a key, AWS Secrets Manager will use your default CMK.
-1. After running that command, the generated cert files will be on your local machine within a new subfolder
-in this directory: `tls/certs/`.
-
-If you used the above example, you should see:
-- `CA.crt`: This is the CA public key, or CA certificate, in PEM format.
-- `app.crt`: This is the app's public key, or TLS certificate, signed by the CA cert, in PEM format.
-- `app.key.kms.encrypted`: This is the app's TLS private key in PEM format, encrypted with the KMS key you provided.
-- If you see `app.key`, the script was not able to encrypt your private key using the KMS key you provided (or you
-didn't provide a key), so this is the private key in PEM format, in plain text.
-
-Optionally, you can upload the certificate to ACM using `--upload-to-acm` in the region specified by `--aws-region`.
-Note that although creating and operating private CAs using AWS ACM costs you money, _uploading_ your own self-signed
-certificates to ACM is totally free.
-
-E.g.:
-```sh
-docker-compose run certs \
---cn acme.com \
---country US
---state AZ \
---city Phoenix \
---org Acme \
---store-in-sm \
---secret-name my-tls-secret \
---aws-region us-east-1 \
---kms-key-id alias/dedicated-test-key
---upload-to-acm
-```
+1. Optionally, you can also upload the certificate to ACM using `--upload-to-acm`, in the region specified by
+`--aws-region`. If you don't provide a key, AWS Secrets Manager will use your default CMK.
+    Note that although creating and operating private CAs using AWS Certificate Manager costs you money, _uploading_ your
+    own self-signed certificates to ACM is free.
+    ```sh
+    docker-compose run certs \
+    --cn acme.com \
+    --country US
+    --state AZ \
+    --city Phoenix \
+    --org Acme \
+    --upload-to-acm \
+    --aws-region us-east-1
+    ```
+1. To take full advantage of all the options, including local encryption, AWS Secrets Manager, and AWS Certificate
+Manager, you'd run:
+    ```sh
+    docker-compose run certs \
+    --cn acme.com \
+    --country US
+    --state AZ \
+    --city Phoenix \
+    --org Acme \
+    --store-in-sm \
+    --secret-name my-tls-secret \
+    --upload-to-acm \
+    --encrypt-local \
+    --aws-region us-east-1 \
+    --kms-key-id alias/dedicated-test-key
+    ```
 
 [back to readme](README.adoc#running)
 
