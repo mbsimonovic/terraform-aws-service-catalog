@@ -92,17 +92,9 @@ function store_password_in_secrets_manager {
     return
   fi
 
-  log "Storing password secret in TLS Cert in AWS Secrets Manager..."
+  log "Storing password secret in AWS Secrets Manager..."
 
-  local public_key_plaintext
-  local private_key_plaintext
-  local ca_public_key_plaintext
-  local tls_secret_json
   local store_secret_response
-
-  private_key_plaintext=$(cat "$CERT_PRIVATE_KEY_PATH")
-  public_key_plaintext=$(cat "$CERT_PUBLIC_KEY_PATH")
-  ca_public_key_plaintext=$(cat "$CA_PUBLIC_KEY_PATH")
 
   store_secret_response=$(store_in_secrets_manager "$secret_name" "$secret_description" "$key_store_password" "$aws_region" "$kms_key_id")
 
