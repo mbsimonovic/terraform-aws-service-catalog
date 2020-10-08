@@ -23,7 +23,8 @@
 set -e
 
 readonly script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$script_dir/helpers.sh"
+source "$script_dir"/helpers/helpers.sh
+source "$script_dir"/helpers/generate-self-signed-tls-cert.sh
 
 function set_paths {
   local -r tls_path="$1"
