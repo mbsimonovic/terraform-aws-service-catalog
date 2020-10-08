@@ -128,7 +128,7 @@ You can use [create-tls-cert.sh](create-tls-cert.sh) to create self-signed TLS c
 private / internal services only, such as to set up end-to-end encryption within an AWS account, or for your
 microservices to talk to each other. If you need TLS certificates for public use (e.g., for services directly
 accessed by your users) you'll need to use a well-known commercial Certificate Authority (CA) such as
-[AWS Certificate Manager (ACM)](https://aws.amazon.com/certificate-manager/)
+[Amazon Certificate Manager (ACM)](https://aws.amazon.com/certificate-manager/)
 or [LetsEncrypt](https://letsencrypt.org/) instead.
 
 This script does the following:
@@ -138,15 +138,18 @@ This script does the following:
 1. Delete the private key of the CA so no one can ever use it again. However, the public key of the CA is kept
 around so anyone who needs to call your service can use that CA public key to verify your TLS certificate.
 1. Optionally upload the private key, public key, and CA to AWS Secrets Manager using the default CMK for encryption,
-or the KMS key you provide.
-1. Optionally upload the TLS certificate to AWS Certificate Manager so you can use it with an internal ELB or ALB.
+or the KMS key you provide. See [Loading TLS secrets from AWS Secrets Manager](https://github.com/gruntwork-io/aws-sample-app/blob/master/core-concepts.md#loading-tls-secrets-from-aws-secrets-manager).
+1. Optionally upload the TLS certificate to Amazon Certificate Manager so you can use it with an internal ELB or ALB.
 The ARN of the certificate will be output to `stdout`.
 1. Optionally encrypt the private key of the TLS cert with KMS in local storage.
 
 By default, the only IP address in the cert will be 127.0.0.1, and the only DNS name in the cert will be localhost,
 so you can test your servers locally. But you can pass in optional parameters to customize the DNS names and IP
-addresses in the cert. You can also use the servers with the ELB or ALB, as the AWS load balancers don't verify the CA.
-See [Loading TLS secrets from AWS Secrets Manager](https://github.com/gruntwork-io/aws-sample-app/blob/master/core-concepts.md#loading-tls-secrets-from-aws-secrets-manager).
+addresses in the cert. You can also use the self-signed certificates with internal ELBs and ALBs. For example,
+microservice A could talk to microservice B via an internal ALB. You could encrypt all traffic in transit by having
+the ALB use a self-signed cert, so that the connection from A to the ALB is encrypted, and having B use a self-signed
+cert, so that the connection from the ALB to B is encrypted. Note: ELBs and ALBs don't check CAs, so they will accept
+B's self-signed cert without complaining.
 
 [back to readme](README.adoc#about-the-scripts-specifically)
 
@@ -187,104 +190,145 @@ _for how to authenticate to AWS with environment variables._
 
 [back to readme](README.adoc#running)
 
-## How do I create TLS certs?
+## How do I create self-signed TLS certs?
 
 To create a TLS cert for your app, the easiest way is to use our provided [docker-compose.yml](docker-compose.yml)
 and [Dockerfile](Dockerfile).
 
-1. First make sure you followed [these instructions](#how-do-i-run-these-scripts-using-docker), so that environment
+* First make sure you followed [these instructions](#how-do-i-run-these-scripts-using-docker), so that environment
 variables are set, and Docker is running.
-1. For local development, i.e. **NOT in production**, you can run the following command. Be sure to change the values
-to be correct!
-    ```sh
-    docker-compose run certs \
-    --cn acme.com \
-    --country US
-    --state AZ \
-    --city Phoenix \
-    --org Acme
-    ```
-    Caveats:
-    - The TLS private key will be stored locally unencrypted. We don't recommend this for a production use case, but for local dev, it's fine.
-    - The TLS certificate will not get stored in AWS Secrets Manager, and will not upload to AWS Certificate Manager.
-    - However, running the above also doesn't require you to be authenticated with AWS, so `AWS_ACCESS_KEY_ID` and
-    `AWS_SECRET_ACCESS_KEY` don't need to be set. <br />
+* Choose what use case you're going for, and skip to that section below.
+    - You can [store the cert files on disk unencrypted](#generating-self-signed-certs-for-local-dev-and-testing), or
+    - [store them on disk with the private key encrypted](#generating-self-signed-certs-for-prod-encrypting-certs-locally-with-kms), or
+    - [store the cert files in AWS Secrets Manager](#generating-self-signed-certs-for-prod-using-aws-secrets-manager-for-storage) so that your app can pull them down, or
+    - [store the cert files in Amazon Certificate Manager](#generating-self-signed-certs-for-prod-using-amazon-certificate-manager-for-storage) for use with other AWS services.
 
-    The cert files will be stored in this folder, under `tls/certs`.
-    - `CA.crt`: The CA public key, or CA certificate, in PEM format.
-    - `app.crt`: The app's public key, or TLS certificate, signed by the CA cert, in PEM format.
-    - `app.key`: The app's TLS private key in PEM format, in plain text.
-1. For production use, we recommend using this set of options instead. Be sure to change the values to be correct!
-    **Note: You must set `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables for this and the
-    following examples to work.**
-    ```sh
-    docker-compose run certs \
-    --cn acme.com \
-    --country US
-    --state AZ \
-    --city Phoenix \
-    --org Acme \
-    --aws-region us-east-1 \
-    --encrypt-local \
-    --kms-key-id alias/dedicated-test-key
-    ```
-    _We highly recommend including `--encrypt-local` and `--kms-key-id`, along with `--aws-region`, so that you don't
-    have an unencrypted private key on your system._
+[back to readme](README.adoc#running)
 
-    The script will encrypt the TLS cert's private key, save it as `app.key.kms.encrypted`, and delete the unencrypted
-    `app.key`.
+### Should I store certs in AWS Secrets Manager or Amazon Certificate Manager?
 
-    The generated cert files will be stored in this folder, under `tls/certs`.
-    - `CA.crt`: The CA public key, or CA certificate, in PEM format.
-    - `app.crt`: The app's public key, or TLS certificate, signed by the CA cert, in PEM format.
-    - `app.key.kms.encrypted`: The app's TLS private key in PEM format, encrypted with `--kms-key-id`.
-    - If you see `app.key`, the script was not able to encrypt your private key using the KMS key you provided (or you
-    didn't provide a key), so this is the private key in PEM format, in plain text.
-1. Optionally, you can store the cert as a secret in AWS Secrets Manager using `--store-in-sm` and `--secret-name`, in
-the region specified by `--aws-region`.
-    ```sh
-    docker-compose run certs \
-    --cn acme.com \
-    --country US
-    --state AZ \
-    --city Phoenix \
-    --org Acme \
-    --store-in-sm \
-    --secret-name my-tls-secret \
-    --aws-region us-east-1 \
-    --kms-key-id alias/dedicated-test-key
-    ```
-1. Optionally, you can also upload the certificate to ACM using `--upload-to-acm`, in the region specified by
-`--aws-region`. If you don't provide a key, AWS Secrets Manager will use your default CMK.
+The short answer is, it depends whether or not you're integrating with other AWS Services.
 
-    Note that although creating and operating private CAs using AWS Certificate Manager costs you money, _uploading_ your
-    own self-signed certificates to ACM is free.
-    ```sh
-    docker-compose run certs \
-    --cn acme.com \
-    --country US
-    --state AZ \
-    --city Phoenix \
-    --org Acme \
-    --upload-to-acm \
-    --aws-region us-east-1
-    ```
-1. To take full advantage of all the options, including local encryption, AWS Secrets Manager, and AWS Certificate
-Manager, you'd run:
-    ```sh
-    docker-compose run certs \
-    --cn acme.com \
-    --country US
-    --state AZ \
-    --city Phoenix \
-    --org Acme \
-    --store-in-sm \
-    --secret-name my-tls-secret \
-    --upload-to-acm \
-    --encrypt-local \
-    --aws-region us-east-1 \
-    --kms-key-id alias/dedicated-test-key
-    ```
+- Amazon Certificate Manager is designed specifically for storing TLS certs securely. It provides automatic
+integration with other AWS services so that you can use the certs, for example, with ELB / ALB. However, ACM does
+not provide a way for you to retrieve the private key of any of the certs you store in it. So it only works for certs
+that are meant to be used with AWS services, not your own running apps.
+- AWS Secrets Manager stores any secret you want securely. It's more generic, not designed specifically for TLS certs.
+You'll need to store them in a format that your app can then expect to read. This script stores them using the
+following format:
+
+```
+{
+  "app": {
+    "crt": "$app_public_key",
+    "key": "$app_private_key",
+    "ca": "$ca_public_key"
+  }
+}
+```
+The app you're running that needs to access the private key of this cert will need to hit the AWS Secrets Manager
+API to retrieve that private key. This is a workflow that supports your app (rather than an AWS service) being
+able to listen on TLS with a cert.
+
+[back to readme](README.adoc#running)
+
+### Generating self-signed certs for local dev and testing
+
+For local development, you can store the cert files on disk unencrypted. Run this command, and be sure to change the
+values to be correct!
+```sh
+docker-compose run certs \
+--cn acme.com \
+--country US
+--state AZ \
+--city Phoenix \
+--org Acme
+```
+The cert files will be stored in this folder, under `tls/certs`.
+- `CA.crt`: The CA public key, or CA certificate, in PEM format.
+- `app.crt`: The app's public key, or TLS certificate, signed by the CA cert, in PEM format.
+- `app.key`: The app's TLS private key in PEM format, in plain text.
+
+Caveats:
+- The TLS private key will be stored locally unencrypted. We don't recommend this for a production use case, but
+for local dev, it's fine.
+- The TLS certificate will not be stored in AWS Secrets Manager, and will not upload to Amazon Certificate Manager.
+- However, running the above also doesn't require you to be authenticated with AWS, so `AWS_ACCESS_KEY_ID` and
+`AWS_SECRET_ACCESS_KEY` don't need to be set.
+
+[back to readme](README.adoc#running)
+
+### Generating self-signed certs for prod, encrypting certs locally with KMS
+
+A step up from local dev and testing, but still a safe production use case, you can store the cert files on disk
+with the private key encrypted. Add the `--encrypt-local`, `-aws-region`, and `--kms-key-id` options. `--aws-region`
+corresponds to the region where your KMS key is stored.
+
+_We highly recommend this option, so that you don't have unencrypted private keys on your system._
+
+**Note: You must set `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables for this and the
+following examples to work.**
+```sh
+docker-compose run certs \
+--cn acme.com \
+--country US
+--state AZ \
+--city Phoenix \
+--org Acme \
+--encrypt-local \
+--aws-region us-east-1 \
+--kms-key-id alias/dedicated-test-key
+```
+The cert files will be stored in this folder, under `tls/certs`.
+- `CA.crt`: The CA public key, or CA certificate, in PEM format.
+- `app.crt`: The app's public key, or TLS certificate, signed by the CA cert, in PEM format.
+- `app.key.kms.encrypted`: The app's TLS private key in PEM format, encrypted with `--kms-key-id`.
+
+The script will encrypt the TLS cert's private key, save it as `app.key.kms.encrypted`, and delete the unencrypted
+`app.key`.
+
+[back to readme](README.adoc#running)
+
+### Generating self-signed certs for prod, using AWS Secrets Manager for storage
+
+Optionally, you can store the cert in AWS Secrets Manager. Add `--store-in-sm`, `--secret-name`, and specify the
+corresponding region with `--aws-region`. You can also provide `--kms-key-id`, but if you don't provide a key, AWS
+Secrets Manager will use your default CMK. Use `--kms-key-id` to leverage more granular control over access and
+permissions.
+
+```sh
+docker-compose run certs \
+--cn acme.com \
+--country US
+--state AZ \
+--city Phoenix \
+--org Acme \
+--store-in-sm \
+--secret-name my-tls-secret \
+--aws-region us-east-1 \
+--kms-key-id alias/dedicated-test-key
+```
+
+[back to readme](README.adoc#running)
+
+### Generating self-signed certs for prod, using Amazon Certificate Manager for storage
+
+Optionally, you can upload the certificate to ACM for use with other AWS services, such as ALBs and ELBs. Add
+`--upload-to-acm` and the corresponding region in `--aws-region`.
+
+Note: Although creating and operating private CAs using Amazon Certificate Manager costs you money, _uploading_ your
+own self-signed certificates to ACM, which is what this script will do, is free.
+
+```sh
+docker-compose run certs \
+--cn acme.com \
+--country US
+--state AZ \
+--city Phoenix \
+--org Acme \
+--upload-to-acm \
+--aws-region us-east-1
+```
 
 [back to readme](README.adoc#running)
 
@@ -365,7 +409,7 @@ This value can be a globally unique identifier (e.g. `12345678-1234-1234-1234-12
 (e.g. `arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012`), or an alias name prefixed by
 `alias/` (e.g. `alias/MyAliasName`).
 1. Run `export TLS_SCRIPTS_AWS_REGION=[your-key-region]`, setting it to the AWS region where the KMS key is located
-(e.g. `us-east-1`). This is also the region that will be used to upload certs to AWS Certificate Manager and
+(e.g. `us-east-1`). This is also the region that will be used to upload certs to Amazon Certificate Manager and
 store secrets in AWS Secrets Manager.
 
 ### Test

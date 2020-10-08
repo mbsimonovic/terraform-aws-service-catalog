@@ -194,6 +194,7 @@ func TestTlsScripts(t *testing.T) {
 					"--kms-key-id",
 					kmsKeyId,
 					"--upload-to-acm",
+					"--encrypt-local",
 					"--store-path",
 					storePath,
 				)

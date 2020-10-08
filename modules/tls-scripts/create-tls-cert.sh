@@ -3,7 +3,7 @@
 # at runtime and then deleted, leaving only the CA public key behind so you can validate the TLS certificate.
 # By default, the script writes the TLS certificate public and private key and the CA public key to local
 # disk. However, the script can also optionally (a) store the cert in AWS Secrets Manager, so your apps
-# running in AWS can securely access it, (b) upload the certs to AWS Certificate Manager, so AWS services
+# running in AWS can securely access it, (b) upload the certs to Amazon Certificate Manager, so AWS services
 # such as ELBs can securely access it, and/or (c) encrypt the private key locally with KMS to protect it.
 #
 # These certs are meant for private/internal use only, such as to set up end-to-end encryption within an AWS
@@ -25,15 +25,10 @@ set -e
 readonly script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$script_dir/helpers.sh"
 
-function set_paths {
-  local -r tls_path="$1"
-
-  readonly TLS_PATH="$tls_path"
-  readonly CERT_PUBLIC_KEY_PATH="$TLS_PATH/app.crt"
-  readonly CERT_PRIVATE_KEY_PATH="$TLS_PATH/app.key"
-  readonly ENCRYPTED_CERT_PRIVATE_KEY_PATH="$TLS_PATH/app.key.kms.encrypted"
-  readonly CA_PUBLIC_KEY_PATH="$TLS_PATH/CA.crt"
-}
+readonly CERT_PUBLIC_KEY_PATH="app.crt"
+readonly CERT_PRIVATE_KEY_PATH="app.key"
+readonly ENCRYPTED_CERT_PRIVATE_KEY_PATH="app.key.kms.encrypted"
+readonly CA_PUBLIC_KEY_PATH="CA.crt"
 
 readonly DEFAULT_DNS_NAMES=("localhost")
 readonly DEFAULT_IP_ADDRESSES=("127.0.0.1")
@@ -42,7 +37,7 @@ function print_usage {
   log
   log "Usage: create-tls-cert.sh [OPTIONS]"
   log
-  log "This script creates a self-signed TLS certificate. The certificate is signed by a CA temporarily generated at runtime and then deleted, leaving only the CA public key behind so you can validate the TLS certificate. By default, the script writes the TLS certificate public and private key and the CA public key to local disk. However, the script can also optionally (a) store the cert in AWS Secrets Manager, so your apps running in AWS can securely access it, (b) upload the data to AWS Certificate Manager, so AWS services such as ELBs can securely access it, and/or (c) encrypt the private key locally with KMS to protect it."
+  log "This script creates a self-signed TLS certificate. The certificate is signed by a CA temporarily generated at runtime and then deleted, leaving only the CA public key behind so you can validate the TLS certificate. By default, the script writes the TLS certificate public and private key and the CA public key to local disk. However, the script can also optionally (a) store the cert in AWS Secrets Manager, so your apps running in AWS can securely access it, (b) upload the data to Amazon Certificate Manager, so AWS services such as ELBs can securely access it, and/or (c) encrypt the private key locally with KMS to protect it."
   log
   log "These certs are meant for private/internal use only, such as to set up end-to-end encryption within an AWS account. By default, the only IP address in the cert will be 127.0.0.1 and the only dns name will be localhost, so you can test your servers locally. You can also use the servers with the ELB or ALB, as the AWS load balancers don't verify the CA."
   log
@@ -67,10 +62,10 @@ function print_usage {
   log
   log "Optional Arguments for Cert Encryption and Storage:"
   log
-  log "  --aws-region\t\tThe AWS region corresponding to AWS Secrets Manager, AWS Certificate Manager, and where the kms-key lives, if these other options are set."
+  log "  --aws-region\t\tThe AWS region corresponding to AWS Secrets Manager, Amazon Certificate Manager, and where the kms-key lives, if these other options are set."
   log "  --store-in-sm\t\tIf provided, the cert will be stored in AWS Secrets Manager. If --kms-key-id is provided, it will be used to encrypt the cert. Otherwise the default CMK will be used."
   log "  --secret-name\t\tIf --store-in-sm is set, this is the name of the secret you'd like to use to store the cert in AWS Secrets Manager."
-  log "  --upload-to-acm\tIf provided, the cert will be uploaded to AWS Certificate Manager and its ARN will be written to stdout."
+  log "  --upload-to-acm\tIf provided, the cert will be uploaded to Amazon Certificate Manager and its ARN will be written to stdout."
   log "  --encrypt-local\tIf provided, the TLS cert private key will be stored locally in encrypted form using --kms-key-id."
   log "  --kms-key-id\t\tThe KMS key to use for encryption. If provided, the TLS cert private key will be encrypted locally. If --store-in-sm is provided, this key will be used to encrypt the cert in AWS Secrets Manager. This value can be a globally unique identifier (e.g. 12345678-1234-1234-1234-123456789012), a fully specified ARN (e.g. arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012), or an alias name prefixed by \"alias/\" (e.g. alias/MyAliasName)."
   log
@@ -103,33 +98,35 @@ function print_usage {
 }
 
 function encrypt_private_key {
-  local -r aws_region="$1"
-  local -r encrypt_local="$2"
+  local -r store_path="$1"
+  local -r aws_region="$2"
   local -r kms_key_id="$3"
+  local -r encrypt_local="$4"
 
   if [[ "$encrypt_local" != "true" ]]; then
-    log "⚠️ --encrypt-local flag not set. Will not encrypt TLS Cert private key."
+    log "⚠️  --encrypt-local flag not set. Will not encrypt TLS Cert private key."
     return
   fi
 
-  log "Encrypting private key at $CERT_PRIVATE_KEY_PATH with KMS key $kms_key_id"
+  log "Encrypting private key at $store_path/$CERT_PRIVATE_KEY_PATH with KMS key $kms_key_id"
 
   local private_key_plaintext
   local private_key_ciphertext
-  private_key_plaintext=$(cat "$CERT_PRIVATE_KEY_PATH")
+  private_key_plaintext=$(cat "$store_path/$CERT_PRIVATE_KEY_PATH")
   private_key_ciphertext=$(gruntkms encrypt --plaintext "$private_key_plaintext" --aws-region "$aws_region" --key-id "$kms_key_id")
-  echo -n "$private_key_ciphertext" > "$ENCRYPTED_CERT_PRIVATE_KEY_PATH"
-  log "Stored encrypted key as $ENCRYPTED_CERT_PRIVATE_KEY_PATH"
-  rm "$CERT_PRIVATE_KEY_PATH"
-  log "Removed original unencrypted key at $CERT_PRIVATE_KEY_PATH."
+  echo -n "$private_key_ciphertext" > "$store_path/$ENCRYPTED_CERT_PRIVATE_KEY_PATH"
+  log "✅ Encrypted key stored at $store_path/$ENCRYPTED_CERT_PRIVATE_KEY_PATH"
+  rm "$store_path/$CERT_PRIVATE_KEY_PATH"
+  log "Original unencrypted key removed from $store_path/$CERT_PRIVATE_KEY_PATH."
 }
 
 # Stores the public and private key and CA public key into a JSON object in Secrets Manager
 function store_tls_certs_in_secrets_manager {
-  local -r aws_region="$1"
-  local -r secret_name="$2"
-  local -r kms_key_id="$3"
-  local -r store_in_sm="$4"
+  local -r store_path="$1"
+  local -r aws_region="$2"
+  local -r secret_name="$3"
+  local -r kms_key_id="$4"
+  local -r store_in_sm="$5"
   local -r secret_description="The private key generated by create-tls-cert."
 
   if [[ "$store_in_sm" != "true" ]]; then
@@ -145,9 +142,9 @@ function store_tls_certs_in_secrets_manager {
   local tls_secret_json
   local store_secret_response
 
-  private_key_plaintext=$(cat "$CERT_PRIVATE_KEY_PATH")
-  public_key_plaintext=$(cat "$CERT_PUBLIC_KEY_PATH")
-  ca_public_key_plaintext=$(cat "$CA_PUBLIC_KEY_PATH")
+  private_key_plaintext=$(cat "$store_path/$CERT_PRIVATE_KEY_PATH")
+  public_key_plaintext=$(cat "$store_path/$CERT_PUBLIC_KEY_PATH")
+  ca_public_key_plaintext=$(cat "$store_path/$CA_PUBLIC_KEY_PATH")
 
   tls_secret_json=$(render_tls_secret_json "$public_key_plaintext" "$private_key_plaintext" "$ca_public_key_plaintext")
   store_secret_response=$(store_in_secrets_manager "$secret_name" "$secret_description" "$tls_secret_json" "$aws_region" "$kms_key_id")
@@ -156,13 +153,17 @@ function store_tls_certs_in_secrets_manager {
   tls_secret_arn=$(echo "$store_secret_response" | jq '.ARN')
 
   if [[ -n "$tls_secret_arn" ]]; then
-    log "TLS Cert stored! Secret ARN: $tls_secret_arn"
+    log "✅ TLS Cert stored! Secret ARN: $tls_secret_arn"
+  else
+    # The aws secretsmanager API will output an error automatically.
+    log "⚠️  TLS Cert failed to store."
   fi
 }
 
 function upload_to_acm {
-  local -r aws_region="$1"
-  local -r should_upload_to_acm="$2"
+  local -r store_path="$1"
+  local -r aws_region="$2"
+  local -r should_upload_to_acm="$3"
 
   if [[ "$should_upload_to_acm" != "true" ]]; then
     log "--upload-to-acm flag not set. Will not upload cert to ACM."
@@ -171,10 +172,20 @@ function upload_to_acm {
 
   log "Uploading the certificate to ACM..."
 
-  cert_arn=$(import_certificate_to_acm "$CERT_PUBLIC_KEY_PATH" "$CERT_PRIVATE_KEY_PATH" "$CA_PUBLIC_KEY_PATH" "$aws_region")
+  import_cert_response=$(import_certificate_to_acm "$store_path/$CERT_PUBLIC_KEY_PATH" "$store_path/$CERT_PRIVATE_KEY_PATH" "$store_path/$CA_PUBLIC_KEY_PATH" "$aws_region")
 
-  log "Certificate uploaded! Certificate ARN will be printed on next line."
-  echo $cert_arn
+  # Extract the ARN of the tls secret from AWS Secrets Manager
+  cert_arn=$(echo "$import_cert_response" | jq -r '.CertificateArn')
+
+  if [[ -n "$cert_arn" ]]; then
+    log "✅ Certificate uploaded! Certificate ARN: $cert_arn"
+    # Write the Certificate ARN to stdout, which the test captures.
+    # This depends on nothing else being written to stdout in this script.
+    echo -n "$cert_arn"
+  else
+    # The aws acm API will output an error automatically.
+    log "⚠️  TLS Cert failed to be uploaded to Amazon Certificate Manager."
+  fi
 }
 
 function render_tls_secret_json {
@@ -209,8 +220,7 @@ function do_create {
   local -r san="${10}"
   local -r store_in_sm="${11}"
   local -r store_path="${12}"
-
-  set_paths "$store_path"
+  local -r encrypt_local="${13}"
 
   log "Starting TLS cert generation..."
 
@@ -224,9 +234,9 @@ function do_create {
     --size 2048 \
     --san "$san"
 
-  store_tls_certs_in_secrets_manager "$aws_region" "$secret_name" "$kms_key_id" "$store_in_sm"
-  upload_to_acm "$aws_region" "$upload_to_acm"
-  encrypt_private_key "$aws_region" "$encrypt_local" "$kms_key_id"
+  store_tls_certs_in_secrets_manager "$store_path" "$aws_region" "$secret_name" "$kms_key_id" "$store_in_sm"
+  upload_to_acm "$store_path" "$aws_region" "$upload_to_acm"
+  encrypt_private_key "$store_path" "$aws_region" "$kms_key_id" "$encrypt_local"
 
   log "🎉 Done with TLS cert generation!"
 }
@@ -248,6 +258,7 @@ function run {
   local no_dns="false"
   local no_ips="false"
   local store_path="/tls/certs"
+  local encrypt_local="false"
 
   while [[ $# > 0 ]]; do
     local key="$1"
@@ -258,6 +269,9 @@ function run {
         ;;
       --upload-to-acm)
         upload_to_acm="true"
+        ;;
+      --encrypt-local)
+        encrypt_local="true"
         ;;
       --store-path)
         store_path="$2"
@@ -335,8 +349,13 @@ function run {
   assert_not_empty "--org" "$org"
 
   # Optional arguments
-  if [[ -n "$kms_key_id" || "$upload_to_acm" == "true" ]]; then
+  if [[ "$upload_to_acm" == "true" ]]; then
     assert_not_empty "--aws-region" "$aws_region"
+  fi
+
+  if [[ "$encrypt_local" == "true" ]]; then
+    assert_not_empty "--aws-region" "$aws_region"
+    assert_not_empty "--kms-key-id" "$kms_key_id"
   fi
 
   if [[ "$store_in_sm" == "true" || -n "$secret_name" ]]; then
@@ -346,7 +365,7 @@ function run {
   fi
 
   # Required environment variables if the above optional arguments are given.
-  if [[ -n "$kms_key_id" || "$upload_to_acm" == "true" || "$store_in_sm" == "true" || -n "$secret_name" ]]; then
+  if [[ "$encrypt_local" == "true" || "$upload_to_acm" == "true" || "$store_in_sm" == "true" || -n "$secret_name" ]]; then
       if [[ -z $AWS_ACCESS_KEY_ID || -z $AWS_SECRET_ACCESS_KEY ]]; then
         log "ERROR: AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY is not set."
         exit 1
@@ -405,7 +424,7 @@ function run {
     san="$dns_names_str,$ip_addresses_str"
   fi
 
-  (do_create "$common_name" "$aws_region" "$upload_to_acm" "$secret_name" "$country" "$state" "$city" "$org" "$kms_key_id" "$san" "$store_in_sm" "$store_path")
+  (do_create "$common_name" "$aws_region" "$upload_to_acm" "$secret_name" "$country" "$state" "$city" "$org" "$kms_key_id" "$san" "$store_in_sm" "$store_path" "$encrypt_local")
 }
 
 run "$@"

@@ -342,7 +342,7 @@ function encrypt_password {
   local -r kms_key_id="$3"
 
   if [[ -z "$kms_key_id" ]]; then
-    log "--kms-key-id not specified. Will not encrypt password."
+    log "⚠️  --kms-key-id not specified. Will not encrypt password."
     return
   fi
 

@@ -89,10 +89,9 @@ function import_certificate_to_acm {
   local cert_upload_output
   local cert_arn
 
-  cert_upload_output=$(AWS_DEFAULT_REGION="$aws_region" aws acm import-certificate --certificate "fileb://${VAULT_TLS_MODULE_PATH}/$cert_public_key_path" --private-key "fileb://${VAULT_TLS_MODULE_PATH}/$cert_private_key_path" --certificate-chain "fileb://${VAULT_TLS_MODULE_PATH}/$ca_public_key_path")
+  cert_upload_output=$(AWS_DEFAULT_REGION="$aws_region" aws acm import-certificate --certificate "fileb://$cert_public_key_path" --private-key "fileb://$cert_private_key_path" --certificate-chain "fileb://$ca_public_key_path")
 
-  cert_arn=$(echo "$cert_upload_output" | jq -r '.CertificateArn')
-  echo -n "$cert_arn"
+  echo -n "$cert_upload_output"
 }
 
 function generate_password {

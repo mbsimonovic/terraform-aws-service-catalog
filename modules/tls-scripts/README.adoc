@@ -64,7 +64,12 @@ Service Catalog]!
 
 === Running
 * link:core-concepts.md#how-do-i-run-these-scripts-using-docker[How do I run these scripts using Docker?]
-* link:core-concepts.md#how-do-i-create-tls-certs[How do I create TLS certs?]
+* link:core-concepts.md#how-do-i-create-self-signed-tls-certs[How do I create self-signed TLS certs?]
+** link:core-concepts.md#should-i-store-certs-in-aws-secrets-manager-or-amazon-certificate-manager[Should I store certs in AWS Secrets Manager or Amazon Certificate Manager?]
+** link:core-concepts.md#generating-self-signed-certs-for-local-dev-and-testing[Generating self-signed certs for local dev and testing]
+** link:core-concepts.md#generating-self-signed-certs-for-prod-encrypting-certs-locally-with-kms[Generating self-signed certs for prod, encrypting certs locally with KMS]
+** link:core-concepts.md#generating-self-signed-certs-for-prod-using-aws-secrets-manager-for-storage[Generating self-signed certs for prod, using AWS Secrets Manager for storage]
+** link:core-concepts.md#generating-self-signed-certs-for-prod-using-amazon-certificate-manager-for-storage[Generating self-signed certs for prod, using Amazon Certificate Manager for storage]
 * link:core-concepts.md#how-do-i-download-CA-public-keys-for-validating-rds-tls-connections[How do I download CA public keys for validating RDS TLS connections?]
 * link:core-concepts.md#how-do-i-generate-key-stores-and-trust-stores-to-manage-tls-certificates-for-jvm-apps[How do I generate key stores and trust stores to manage TLS certificates for JVM apps?]
 
