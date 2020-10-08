@@ -104,10 +104,11 @@ function print_usage {
 
 function encrypt_private_key {
   local -r aws_region="$1"
-  local -r kms_key_id="$2"
+  local -r encrypt_local="$2"
+  local -r kms_key_id="$3"
 
-  if [[ -z "$kms_key_id" ]]; then
-    log "⚠️ --kms-key-id not specified. Will not encrypt TLS Cert private key."
+  if [[ "$encrypt_local" != "true" ]]; then
+    log "⚠️ --encrypt-local flag not set. Will not encrypt TLS Cert private key."
     return
   fi
 
@@ -225,7 +226,7 @@ function do_create {
 
   store_tls_certs_in_secrets_manager "$aws_region" "$secret_name" "$kms_key_id" "$store_in_sm"
   upload_to_acm "$aws_region" "$upload_to_acm"
-  encrypt_private_key "$aws_region" "$kms_key_id"
+  encrypt_private_key "$aws_region" "$encrypt_local" "$kms_key_id"
 
   log "🎉 Done with TLS cert generation!"
 }
