@@ -67,7 +67,7 @@ function print_usage {
   log "  --secret-name\t\tIf --store-in-sm is set, this is the name of the secret you'd like to use to store the cert in AWS Secrets Manager."
   log "  --upload-to-acm\tIf provided, the cert will be uploaded to Amazon Certificate Manager and its ARN will be written to stdout."
   log "  --encrypt-local\tIf provided, the TLS cert private key will be stored locally in encrypted form using --kms-key-id."
-  log "  --kms-key-id\t\tThe KMS key to use for encryption. If provided, the TLS cert private key will be encrypted locally. If --store-in-sm is provided, this key will be used to encrypt the cert in AWS Secrets Manager. This value can be a globally unique identifier (e.g. 12345678-1234-1234-1234-123456789012), a fully specified ARN (e.g. arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012), or an alias name prefixed by \"alias/\" (e.g. alias/MyAliasName)."
+  log "  --kms-key-id\t\tThe KMS key to use for encryption. If --store-in-sm is provided, this key will be used to encrypt the cert in AWS Secrets Manager. If --encrypt-local is provided, this key will be used to encrypt the private key locally. This value can be a globally unique identifier (e.g. 12345678-1234-1234-1234-123456789012), a fully specified ARN (e.g. arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012), or an alias name prefixed by \"alias/\" (e.g. alias/MyAliasName)."
   log
   log "Examples:"
   log
@@ -109,6 +109,7 @@ function encrypt_private_key {
   fi
 
   log "Encrypting private key at $store_path/$CERT_PRIVATE_KEY_PATH with KMS key $kms_key_id"
+  log "and writing result to $store_path/$ENCRYPTED_CERT_PRIVATE_KEY_PATH."
 
   local private_key_plaintext
   local private_key_ciphertext
@@ -156,7 +157,8 @@ function store_tls_certs_in_secrets_manager {
     log "✅ TLS Cert stored! Secret ARN: $tls_secret_arn"
   else
     # The aws secretsmanager API will output an error automatically.
-    log "⚠️  TLS Cert failed to store."
+    log "❌ TLS Cert failed to store."
+    exit 1
   fi
 }
 
@@ -184,7 +186,8 @@ function upload_to_acm {
     echo -n "$cert_arn"
   else
     # The aws acm API will output an error automatically.
-    log "⚠️  TLS Cert failed to be uploaded to Amazon Certificate Manager."
+    log "❌ TLS Cert failed to be uploaded to Amazon Certificate Manager."
+    exit 1
   fi
 }
 
@@ -367,7 +370,7 @@ function run {
   # Required environment variables if the above optional arguments are given.
   if [[ "$encrypt_local" == "true" || "$upload_to_acm" == "true" || "$store_in_sm" == "true" || -n "$secret_name" ]]; then
       if [[ -z $AWS_ACCESS_KEY_ID || -z $AWS_SECRET_ACCESS_KEY ]]; then
-        log "ERROR: AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY is not set."
+        log "❌ ERROR: AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY is not set."
         exit 1
       fi
   fi
