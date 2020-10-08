@@ -205,7 +205,7 @@ to be correct!
     --org Acme
     ```
     Caveats:
-    - The TLS private key will be stored locally unencrypted. We don't recommend this for a production use case.
+    - The TLS private key will be stored locally unencrypted. We don't recommend this for a production use case, but for local dev, it's fine.
     - The TLS certificate will not get stored in AWS Secrets Manager, and will not upload to AWS Certificate Manager.
     - However, running the above also doesn't require you to be authenticated with AWS, so `AWS_ACCESS_KEY_ID` and
     `AWS_SECRET_ACCESS_KEY` don't need to be set. <br />
