@@ -201,7 +201,7 @@ variables are set, and Docker is running.
     - You can [store the cert files on disk unencrypted](#generating-self-signed-certs-for-local-dev-and-testing), or
     - [store them on disk with the private key encrypted](#generating-self-signed-certs-for-prod-encrypting-certs-locally-with-kms), or
     - [store the cert files in AWS Secrets Manager](#generating-self-signed-certs-for-prod-using-aws-secrets-manager-for-storage) so that your app can pull them down, or
-    - [store the cert files in Amazon Certificate Manager](#generating-self-signed-certs-for-prod-using-amazon-certificate-manager-for-storage) for use with other AWS services.
+    - [store the cert files in Amazon Certificate Manager](#generating-self-signed-certs-for-prod-using-amazon-certificate-manager-for-storage) for use with other AWS services such as ALB / ELB.
 
 [back to readme](README.adoc#running)
 
@@ -291,7 +291,9 @@ The script will encrypt the TLS cert's private key, save it as `app.key.kms.encr
 
 ### Generating self-signed certs for prod, using AWS Secrets Manager for storage
 
-Optionally, you can store the cert in AWS Secrets Manager. Add `--store-in-sm`, `--secret-name`, and specify the
+**This is our recommended default way to use this script for a production use case.**
+
+You can store the cert in AWS Secrets Manager. Add `--store-in-sm`, `--secret-name`, and specify the
 corresponding region with `--aws-region`. You can also provide `--kms-key-id`, but if you don't provide a key, AWS
 Secrets Manager will use your default CMK. Use `--kms-key-id` to leverage more granular control over access and
 permissions.
