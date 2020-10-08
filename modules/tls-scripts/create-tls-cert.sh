@@ -356,9 +356,20 @@ function run {
       fi
   fi
 
-  assert_is_installed "aws"
-  assert_is_installed "gruntkms"
-  assert_is_installed "jq"
+  if [[ "$store_in_sm" = true ]] ||
+    [[ "$upload_to_acm" = true ]] ||
+    [[ "$encrypt_local" = true ]] ||
+    [[ -n "$role_arn" ]]; then
+    assert_is_installed "aws"
+  fi
+
+  if [[ "$encrypt_local" = true ]]; then
+    assert_is_installed "gruntkms"
+  fi
+
+  if [[ "$store_in_sm" = true ]]; then
+    assert_is_installed "jq"
+  fi
 
   if [[ -n "$role_arn" ]]; then
     assume_iam_role "$role_arn"
