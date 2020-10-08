@@ -43,7 +43,7 @@ IGNORE_PREFIX_LIST = [
     # Ignore legacy packer file
     'modules/services/ecs-cluster/packer/ecs-node.json',
 
-    #Ignore helper scripts
+    # Ignore helper scripts
     'modules/tls-scripts/helpers/',
 ]
 IGNORE_SUFFIX_LIST = [

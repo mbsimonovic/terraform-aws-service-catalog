@@ -318,7 +318,7 @@ function run {
         ;;
       *)
         log "Unrecognized argument: $key"
-        #print_usage
+        print_usage
         exit 1
         ;;
     esac
@@ -334,39 +334,33 @@ function run {
   assert_not_empty "--org" "$org"
 
   # Optional arguments
-  if [[ -n "$kms_key_id" ]] || [[ "$upload_to_acm" = true ]]; then
+  if [[ -n "$kms_key_id" || "$upload_to_acm" == "true" ]]; then
     assert_not_empty "--aws-region" "$aws_region"
   fi
 
-  if [[ "$store_in_sm" = true ]] || [[ -n "$secret_name" ]]; then
+  if [[ "$store_in_sm" == "true" || -n "$secret_name" ]]; then
     assert_not_empty "--aws-region" "$aws_region"
     assert_not_empty "--store-in-sm" "$store_in_sm"
     assert_not_empty "--secret-name" "$secret_name"
   fi
 
   # Required environment variables if the above optional arguments are given.
-  if [[ -n "$kms_key_id" ]] ||
-    [[ "$upload_to_acm" = true ]] ||
-    [[ "$store_in_sm" = true ]] ||
-    [[ -n "$secret_name" ]]; then
+  if [[ -n "$kms_key_id" || "$upload_to_acm" == "true" || "$store_in_sm" == "true" || -n "$secret_name" ]]; then
       if [[ -z $AWS_ACCESS_KEY_ID ]] || [[ -z $AWS_SECRET_ACCESS_KEY ]]; then
         log "ERROR: AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY is not set."
         exit 1
       fi
   fi
 
-  if [[ "$store_in_sm" = true ]] ||
-    [[ "$upload_to_acm" = true ]] ||
-    [[ "$encrypt_local" = true ]] ||
-    [[ -n "$role_arn" ]]; then
+  if [[ "$store_in_sm" == "true" || "$upload_to_acm" == "true" || "$encrypt_local" == "true" || -n "$role_arn" ]]; then
     assert_is_installed "aws"
   fi
 
-  if [[ "$encrypt_local" = true ]]; then
+  if [[ "$encrypt_local" == "true" ]]; then
     assert_is_installed "gruntkms"
   fi
 
-  if [[ "$store_in_sm" = true ]]; then
+  if [[ "$store_in_sm" == "true" ]]; then
     assert_is_installed "jq"
   fi
 
@@ -387,12 +381,12 @@ function run {
   local ip_addresses_str="IP:\"$(join "\",IP:\"" "${ip_addresses[@]}")\""
 
   # Blank them out if specified
-  if [[ "$no_dns" = true ]]; then
+  if [[ "$no_dns" == "true" ]]; then
     log "The --no-dns-names flag is set, so won't associate cert with any DNS names."
     dns_names_str=""
   fi
 
-  if [[ "$no_ips" = true ]]; then
+  if [[ "$no_ips" == "true" ]]; then
     log "The --no-ips flag is set, so won't associate cert with any IP addresses."
     ip_addresses_str=""
   fi

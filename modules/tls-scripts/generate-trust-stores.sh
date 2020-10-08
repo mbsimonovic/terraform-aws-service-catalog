@@ -238,7 +238,7 @@ function generate_trust_stores {
   assert_not_empty "--company-country" "$company_country"
 
   # Optional arguments
-  if [[ "$store_in_sm" = true ]]; then
+  if [[ "$store_in_sm" == "true" ]]; then
     assert_not_empty "--aws-region" "$aws_region"
     assert_not_empty "--secret-name" "$secret_name"
     assert_not_empty "--kms-key-id" "$kms_key_id"
@@ -249,11 +249,8 @@ function generate_trust_stores {
   fi
 
   # Required environment variables if any AWS specific arguments are set/provided.
-  if [[ -n "$aws_region" ]] ||
-    [[ -n "$role_arn" ]] ||
-    [[ -n "$kms_key_id" ]] ||
-    [[ -n "$secret_name" ]]; then
-      if [[ -z $AWS_ACCESS_KEY_ID ]] || [[ -z $AWS_SECRET_ACCESS_KEY ]]; then
+  if [[ -n "$aws_region" || -n "$role_arn" || -n "$kms_key_id" || -n "$secret_name" ]]; then
+      if [[ -z $AWS_ACCESS_KEY_ID || -z $AWS_SECRET_ACCESS_KEY ]]; then
         echo "ERROR: AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY is not set."
         exit 1
       fi
