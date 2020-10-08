@@ -346,7 +346,7 @@ function run {
 
   # Required environment variables if the above optional arguments are given.
   if [[ -n "$kms_key_id" || "$upload_to_acm" == "true" || "$store_in_sm" == "true" || -n "$secret_name" ]]; then
-      if [[ -z $AWS_ACCESS_KEY_ID ]] || [[ -z $AWS_SECRET_ACCESS_KEY ]]; then
+      if [[ -z $AWS_ACCESS_KEY_ID || -z $AWS_SECRET_ACCESS_KEY ]]; then
         log "ERROR: AWS_ACCESS_KEY_ID or AWS_SECRET_ACCESS_KEY is not set."
         exit 1
       fi
