@@ -198,9 +198,9 @@ and [Dockerfile](Dockerfile).
 * First make sure you followed [these instructions](#how-do-i-run-these-scripts-using-docker), so that environment
 variables are set, and Docker is running.
 * Choose what use case you're going for, and skip to that section below.
-    - You can [store the cert files on disk unencrypted](#generating-self-signed-certs-for-local-dev-and-testing), or
-    - [store them on disk with the private key encrypted](#generating-self-signed-certs-for-prod-encrypting-certs-locally-with-kms), or
-    - [store the cert files in AWS Secrets Manager](#generating-self-signed-certs-for-prod-using-aws-secrets-manager-for-storage) so that your app can pull them down, or
+    - You can [store the cert files on disk unencrypted for local dev and testing](#generating-self-signed-certs-for-local-dev-and-testing), or
+    - [store them on disk with the private key encrypted](#generating-self-signed-certs-for-prod-encrypting-certs-locally-with-kms) as one option for production usage, or
+    - [store the cert files in AWS Secrets Manager](#generating-self-signed-certs-for-prod-using-aws-secrets-manager-for-storage) so that your app can pull them down during boot up, as another option for production usage, or
     - [store the cert files in Amazon Certificate Manager](#generating-self-signed-certs-for-prod-using-amazon-certificate-manager-for-storage) for use with other AWS services such as ALB / ELB.
 
 [back to readme](README.adoc#running)
@@ -260,14 +260,12 @@ for local dev, it's fine.
 
 ### Generating self-signed certs for prod, encrypting certs locally with KMS
 
-A step up from local dev and testing, but still a safe production use case, you can store the cert files on disk
-with the private key encrypted. Add the `--encrypt-local`, `-aws-region`, and `--kms-key-id` options. `--aws-region`
+We don't recommend storing unencrypted private keys on your system, so the next easiest way to create TLS certs in a
+production-safe way is to use encryption. This option stores the cert files on disk with the private key encrypted,
+using `--encrypt-local`, `-aws-region`, and `--kms-key-id` additional options. Make sure `--aws-region`
 corresponds to the region where your KMS key is stored.
 
-_We highly recommend this option, so that you don't have unencrypted private keys on your system._
-
-**Note: You must set `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables for this and the
-following examples to work.**
+**Note: You must set `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables for this to work.**
 ```sh
 docker-compose run certs \
 --cn acme.com \
@@ -293,11 +291,12 @@ The script will encrypt the TLS cert's private key, save it as `app.key.kms.encr
 
 **This is our recommended default way to use this script for a production use case.**
 
-You can store the cert in AWS Secrets Manager. Add `--store-in-sm`, `--secret-name`, and specify the
-corresponding region with `--aws-region`. You can also provide `--kms-key-id`, but if you don't provide a key, AWS
-Secrets Manager will use your default CMK. Use `--kms-key-id` to leverage more granular control over access and
-permissions.
+Our recommended way to create TLS certs is using this option! You can store the cert files in AWS Secrets Manager,
+by adding `--store-in-sm`, `--secret-name`, and specifying the corresponding region with `--aws-region`. You can
+also provide `--kms-key-id`, but if you don't provide a key, AWS Secrets Manager will use your default CMK. Use
+`--kms-key-id` to leverage more granular control over access and permissions.
 
+**Note: You must set `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables for this to work.**
 ```sh
 docker-compose run certs \
 --cn acme.com \
@@ -319,8 +318,9 @@ Optionally, you can upload the certificate to ACM for use with other AWS service
 `--upload-to-acm` and the corresponding region in `--aws-region`.
 
 Note: Although creating and operating private CAs using Amazon Certificate Manager costs you money, _uploading_ your
-own self-signed certificates to ACM, which is what this script will do, is free.
+own created self-signed certificates to ACM, which is what this script will do, is free.
 
+**Note: You must set `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables for this to work.**
 ```sh
 docker-compose run certs \
 --cn acme.com \
