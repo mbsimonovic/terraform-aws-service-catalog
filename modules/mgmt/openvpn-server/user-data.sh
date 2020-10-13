@@ -13,7 +13,6 @@ exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
 # Include common functions
 source /etc/user-data/user-data-common.sh
 
-
 function init_openvpn {
   local -r ca_country="$1"
   local -r ca_state="$2"
@@ -29,13 +28,7 @@ function init_openvpn {
   local -r cert_expiration_days="$2"
   local -r vpn_subnet="$3"
   shift 3
-  local -a routes=()
-
-  while [[ $# -gt 0 ]]; do
-    local route="$1"
-    routes+=("--vpn-route" "$route")
-    shift 1
-  done
+  local -a extra_args=("$@")
 
   echo 'Initializing PKI and Copying OpenVPN config into place...'
   init-openvpn  \
@@ -51,7 +44,7 @@ function init_openvpn {
    --ca-expiration-days "$ca_expiration_days" \
    --cert-expiration-days "$cert_expiration_days" \
    --vpn-subnet "$vpn_subnet" \
-   "$${routes[@]}" # Need a double dollar-sign here to avoid Terraform interpolation
+   "$${extra_args[@]}" # Need a double dollar-sign here to avoid Terraform interpolation
 }
 
 function start_openvpn {
@@ -67,8 +60,36 @@ function start_openvpn {
   touch /etc/openvpn/openvpn-init-complete
 }
 
-# The variable below are interpolated from Terraform
+readonly users_for_ip_lockdown=(${ip_lockdown_users})
+start_ec2_baseline \
+  "${enable_cloudwatch_log_aggregation}" \
+  "${enable_ssh_grunt}" \
+  "${enable_fail2ban}" \
+  "${enable_ip_lockdown}" \
+  "${ssh_grunt_iam_group}" \
+  "${ssh_grunt_iam_group_sudo}" \
+  "${log_group_name}" \
+  "${external_account_ssh_grunt_role_arn}" \
+  "$${users_for_ip_lockdown[@]}"  # Need a double dollar-sign here to avoid Terraform interpolation
+
+# The variables below are interpolated from Terraform
 # See: https://www.terraform.io/docs/configuration/expressions.html#interpolation
+
 attach_eip "${eip_id}"
-init_openvpn "${ca_country}" "${ca_state}" "${ca_locality}" "${ca_org}" "${ca_org_unit}" "${ca_email}" "${backup_bucket_name}" "${kms_key_arn}" "${key_size}" "${ca_expiration_days}" "${cert_expiration_days}" "${vpn_subnet}" ${routes}
+
+init_openvpn \
+  "${ca_country}" \
+  "${ca_state}" \
+  "${ca_locality}" \
+  "${ca_org}" \
+  "${ca_org_unit}" \
+  "${ca_email}" \
+  "${backup_bucket_name}" \
+  "${kms_key_arn}" \
+  "${key_size}" \
+  "${ca_expiration_days}" \
+  "${cert_expiration_days}" \
+  "${vpn_subnet}" \
+  ${init_openvpn_extra_args}
+
 start_openvpn "${queue_region}"

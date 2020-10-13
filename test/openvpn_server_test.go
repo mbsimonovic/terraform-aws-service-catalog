@@ -93,6 +93,13 @@ func TestOpenvpnServer(t *testing.T) {
 				"keypair_name":          awsKeyPair.Name,
 				"backup_bucket_name":    s3BucketName,
 				"instance_type":         "c5.large",
+				"vpn_search_domains": []string{
+					"example.com",
+					"foo.com",
+				},
+				"additional_vpn_route_cidr_blocks": []string{
+					"192.168.0.0/24",
+				},
 			},
 		}
 

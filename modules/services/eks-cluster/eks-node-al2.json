@@ -57,6 +57,7 @@
     "kms_key_id": "{{user `encrypt_kms_key_id`}}",
     "ami_users": "{{user `ami_users`}}",
     "ami_regions": "{{user `copy_to_regions`}}",
+    "associate_public_ip_address": true,
     "tags": {
       "service": "{{ user `ami_name` }}",
       "version": "{{user `version_tag`}}"

@@ -25,7 +25,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "openvpn" {
-  source = "git::git@github.com:gruntwork-io/package-openvpn.git//modules/openvpn-server?ref=v0.11.1"
+  source = "git::git@github.com:gruntwork-io/package-openvpn.git//modules/openvpn-server?ref=v0.12.0"
 
   aws_region     = data.aws_region.current.name
   aws_account_id = data.aws_caller_identity.current.account_id
@@ -60,6 +60,29 @@ module "openvpn" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 locals {
+  # init-openvpn expects the subnet routes in [subnet] [mask] format (e.g., "10.100.0.0 255.255.255.0"), so we
+  # need to translate the CIDR blocks to this format.
+  vpn_subnet_routes = [for cidr_block in var.vpn_route_cidr_blocks : "'${cidrhost(cidr_block, 0)} ${cidrnetmask(cidr_block)}'"]
+
+  extra_args = flatten(
+    concat(
+      [for route in local.vpn_subnet_routes : ["--vpn-route", route]],
+      [for domain in var.vpn_search_domains : ["--search-domain", "'${domain}'"]],
+    )
+  )
+
+  ip_lockdown_users = compact([
+    var.default_user,
+    # User used to push cloudwatch metrics from the server. This should only be included in the ip-lockdown list if
+    # reporting cloudwatch metrics is enabled.
+    var.enable_cloudwatch_metrics ? "cwmonitoring" : ""
+  ])
+  # We want a space separated list of the users, quoted with ''
+  ip_lockdown_users_bash_array = join(
+    " ",
+    [for user in local.ip_lockdown_users : "'${user}'"],
+  )
+
   user_data_vars = {
     backup_bucket_name = module.openvpn.backup_bucket_name
     kms_key_arn        = local.kms_key_arn
@@ -81,10 +104,18 @@ locals {
     revocation_queue_url = module.openvpn.client_revocation_queue
     queue_region         = data.aws_region.current.name
 
-    vpn_subnet = var.vpn_subnet
-    routes     = join(" ", formatlist("\"%s\"", var.vpn_route_cidr_blocks))
+    vpn_subnet              = var.vpn_subnet
+    init_openvpn_extra_args = join(" ", local.extra_args)
 
-    log_group_name = "${var.name}_log_group"
+    log_group_name                      = "${var.name}_log_group"
+    enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
+    enable_ssh_grunt                    = var.enable_ssh_grunt
+    enable_fail2ban                     = var.enable_fail2ban
+    enable_ip_lockdown                  = var.enable_ip_lockdown
+    ssh_grunt_iam_group                 = var.ssh_grunt_iam_group
+    ssh_grunt_iam_group_sudo            = var.ssh_grunt_iam_group_sudo
+    external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
+    ip_lockdown_users                   = local.ip_lockdown_users_bash_array
   }
 
   # Default cloud init script for this module
@@ -118,7 +149,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "kms_cmk" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-master-key?ref=v0.36.10"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-master-key?ref=v0.38.3"
   customer_master_keys = (
     var.kms_key_arn == null
     ? {

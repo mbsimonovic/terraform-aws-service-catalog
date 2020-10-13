@@ -51,9 +51,9 @@ func TestEksCluster(t *testing.T) {
 	//os.Setenv("SKIP_validate_cluster", "true")
 	//os.Setenv("SKIP_deploy_core_services", "true")
 	//os.Setenv("SKIP_validate_external_dns", "true")
-	//os.Setenv("SKIP_deploy_nginx", "true")
-	//os.Setenv("SKIP_validate_nginx", "true")
-	//os.Setenv("SKIP_cleanup_nginx", "true")
+	//os.Setenv("SKIP_deploy_sampleapp", "true")
+	//os.Setenv("SKIP_validate_sampleapp", "true")
+	//os.Setenv("SKIP_cleanup_sampleapp", "true")
 	//os.Setenv("SKIP_cleanup_core_services", "true")
 	//os.Setenv("SKIP_cleanup", "true")
 	//os.Setenv("SKIP_cleanup_keypair", "true")
@@ -107,17 +107,17 @@ func TestEksCluster(t *testing.T) {
 		validateExternalDNS(t, testFolder)
 	})
 
-	defer test_structure.RunTestStage(t, "cleanup_nginx", func() {
+	defer test_structure.RunTestStage(t, "cleanup_sampleapp", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, k8sServiceTestFolder)
 		terraform.Destroy(t, terraformOptions)
 	})
 
-	test_structure.RunTestStage(t, "deploy_nginx", func() {
-		deployNginx(t, testFolder, k8sServiceTestFolder)
+	test_structure.RunTestStage(t, "deploy_sampleapp", func() {
+		deploySampleApp(t, testFolder, k8sServiceTestFolder)
 	})
 
-	test_structure.RunTestStage(t, "validate_nginx", func() {
-		validateNginx(t, testFolder, k8sServiceTestFolder)
+	test_structure.RunTestStage(t, "validate_sampleapp", func() {
+		validateSampleApp(t, testFolder, k8sServiceTestFolder)
 	})
 }
 
@@ -244,20 +244,17 @@ func validateExternalDNS(t *testing.T, testFolder string) {
 	require.NotNil(t, net.ParseIP(maybeIP))
 }
 
-func deployNginx(t *testing.T, eksClusterTestFolder string, k8sServiceTestFolder string) {
+func deploySampleApp(t *testing.T, eksClusterTestFolder string, k8sServiceTestFolder string) {
 	uniqueID := test_structure.LoadString(t, eksClusterTestFolder, "uniqueID")
 	awsRegion := test_structure.LoadString(t, eksClusterTestFolder, "region")
 	clusterName := test_structure.LoadString(t, eksClusterTestFolder, "clusterName")
-	applicationName := fmt.Sprintf("nginx-%s", strings.ToLower(uniqueID))
+	applicationName := fmt.Sprintf("sampleapp-%s", strings.ToLower(uniqueID))
 	test_structure.SaveString(t, k8sServiceTestFolder, "applicationName", applicationName)
 
 	k8sServiceOptions := createBaseTerraformOptions(t, k8sServiceTestFolder, awsRegion)
 	k8sServiceOptions.Vars["application_name"] = applicationName
-	k8sServiceOptions.Vars["image"] = "nginx"
-	k8sServiceOptions.Vars["image_version"] = "1.17"
-	k8sServiceOptions.Vars["container_port"] = 80
 	k8sServiceOptions.Vars["expose_type"] = "external"
-	k8sServiceOptions.Vars["domain_name"] = fmt.Sprintf("nginx-%s.%s", clusterName, baseDomainForTest)
+	k8sServiceOptions.Vars["domain_name"] = fmt.Sprintf("sample-app-%s.%s", clusterName, baseDomainForTest)
 	k8sServiceOptions.Vars["aws_region"] = awsRegion
 	k8sServiceOptions.Vars["kubeconfig_auth_type"] = "eks"
 	k8sServiceOptions.Vars["kubeconfig_eks_cluster_name"] = clusterName
@@ -266,7 +263,7 @@ func deployNginx(t *testing.T, eksClusterTestFolder string, k8sServiceTestFolder
 	terraform.InitAndApply(t, k8sServiceOptions)
 }
 
-func validateNginx(t *testing.T, eksClusterTestFolder string, k8sServiceTestFolder string) {
+func validateSampleApp(t *testing.T, eksClusterTestFolder string, k8sServiceTestFolder string) {
 	terraformOptions := test_structure.LoadTerraformOptions(t, eksClusterTestFolder)
 	clusterName := test_structure.LoadString(t, eksClusterTestFolder, "clusterName")
 	eksClusterArn := terraform.OutputRequired(t, terraformOptions, "eks_cluster_arn")
@@ -275,17 +272,20 @@ func validateNginx(t *testing.T, eksClusterTestFolder string, k8sServiceTestFold
 	tmpKubeConfigPath := configureKubectlForEKSCluster(t, eksClusterArn)
 	defer os.Remove(tmpKubeConfigPath)
 	options := k8s.NewKubectlOptions("", tmpKubeConfigPath, "default")
-	verifyPodsCreatedSuccessfully(t, options, applicationName)
-	verifyAllPodsAvailable(t, options, applicationName, nginxValidationFunction)
 
-	ingressEndpoint := fmt.Sprintf("https://nginx-%s.%s", clusterName, baseDomainForTest)
+	sampleAppValidationFunction := sampleAppValidationWithGreetingFunctionGenerator("Hello from the dev config!")
+
+	verifyPodsCreatedSuccessfully(t, options, applicationName)
+	verifyAllPodsAvailable(t, options, applicationName, "/greeting", sampleAppValidationFunction)
+
+	ingressEndpoint := fmt.Sprintf("https://sample-app-%s.%s/greeting", clusterName, baseDomainForTest)
 	http_helper.HttpGetWithRetryWithCustomValidation(
 		t,
 		ingressEndpoint,
 		nil,
 		K8SServiceWaitTimerRetries,
 		K8SIngressWaitTimerSleep,
-		nginxValidationFunction,
+		sampleAppValidationFunction,
 	)
 }
 

@@ -41,6 +41,7 @@ function start_server {
   start_jenkins "$mount_point" "$memory"
 }
 
+readonly users_for_ip_lockdown=(${ip_lockdown_users})
 start_ec2_baseline \
   "${enable_cloudwatch_log_aggregation}" \
   "${enable_ssh_grunt}" \
@@ -50,8 +51,7 @@ start_ec2_baseline \
   "${ssh_grunt_iam_group_sudo}" \
   "${log_group_name}" \
   "${external_account_ssh_grunt_role_arn}" \
-  "${default_user}" \
-  "${owner}"
+  "$${users_for_ip_lockdown[@]}"  # Need a double dollar-sign here to avoid Terraform interpolation
 
 start_server \
   "${aws_region}" \

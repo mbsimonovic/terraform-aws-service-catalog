@@ -54,6 +54,18 @@ variable "name" {
   default     = "openvpn-server"
 }
 
+variable "additional_vpn_route_cidr_blocks" {
+  description = "A list of CIDR ranges to be routed over the VPN. This example will automatically append the VPC route, so this should only include extra routes to configure in addition to the VPC CIDR block."
+  type        = list(string)
+  default     = []
+}
+
+variable "vpn_search_domains" {
+  description = "A list of domains to push down to the client to resolve over VPN. This will configure the OpenVPN server to pass through domains that should be resolved over the VPN connection (as opposed to the locally configured resolver) to the client. Note that for each domain, all subdomains will be resolved as well. E.g., if you pass in 'mydomain.local', subdomains such as 'hello.world.mydomain.local' and 'example.mydomain.local' will also be forwarded to through the VPN server."
+  type        = list(string)
+  default     = []
+}
+
 variable "aws_region" {
   description = "The AWS region to deploy into"
   type        = string
