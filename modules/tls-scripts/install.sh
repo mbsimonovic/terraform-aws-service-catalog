@@ -8,11 +8,12 @@ set -e
 # Locate the directory in which this script is located
 readonly script_path="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Move the bin files into /usr/local/bin
-cp "${script_path}"/{create-tls-cert.sh,download-rds-ca-certs.sh,generate-trust-stores.sh} /usr/local/bin
-
-# Move the helpers scripts into /usr/local/bin
-cp -R "${script_path}"/helpers/*.sh /usr/local/bin/
-
 # Change ownership and permissions of the scripts
-chmod +x /usr/local/bin/{create-tls-cert.sh,download-rds-ca-certs.sh,generate-trust-stores.sh,helpers.sh,generate-self-signed-tls-cert.sh}
+chmod -R +x "${script_path}"/{create-tls-cert.sh,download-rds-ca-certs.sh,generate-trust-stores.sh,helpers.sh,generate-self-signed-tls-cert.sh}
+
+# Expand the helpers scripts into the main script dir  
+mv "${script_path}"/helpers/*.sh "${script_path}"
+
+# Clean up the helpers directory
+rm -rf "${script_path}/helpers"
+
