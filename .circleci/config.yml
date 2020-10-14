@@ -177,6 +177,8 @@ jobs:
 
   run_all_tests:
     <<: *defaults
+    context: 
+      - Gruntwork Admin
     steps:
       - checkout
 
@@ -231,6 +233,4 @@ workflows:
             branches:
               only: master
     jobs:
-      run_all_tests:
-        context: 
-          - Gruntwork Admin
+      - run_all_tests
