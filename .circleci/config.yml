@@ -139,8 +139,6 @@ commands:
 jobs:
   test:
     <<: *defaults
-    context: 
-      - Gruntwork Admin
     steps:
       - checkout
 
@@ -177,8 +175,6 @@ jobs:
 
   run_all_tests:
     <<: *defaults
-    context: 
-      - Gruntwork Admin
     steps:
       - checkout
 
