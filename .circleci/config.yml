@@ -139,6 +139,8 @@ commands:
 jobs:
   test:
     <<: *defaults
+    context: 
+      - Gruntwork Admin
     steps:
       - checkout
 
@@ -205,10 +207,14 @@ workflows:
   build-and-test:
     jobs:
       - test:
+          context: 
+            - Gruntwork Admin
           filters:
             tags:
               only: /^v.*/
       - deploy:
+          context: 
+            - Gruntwork Admin
           requires:
             - test
           filters:
@@ -226,3 +232,5 @@ workflows:
               only: master
     jobs:
       - run_all_tests
+          context: 
+            - Gruntwork Admin
