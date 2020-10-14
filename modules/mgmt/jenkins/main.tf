@@ -27,7 +27,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "jenkins" {
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/jenkins-server?ref=v0.28.4"
+  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/jenkins-server?ref=v0.29.0"
 
   name       = var.name
   aws_region = data.aws_region.current.name
@@ -168,7 +168,7 @@ resource "aws_iam_role_policy" "deploy_this_account_permissions" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "auto_deploy_iam_policies" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-policies?ref=v0.38.3"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-policies?ref=v0.38.4"
 
   aws_account_id = data.aws_caller_identity.current.account_id
 
@@ -208,7 +208,7 @@ module "high_disk_usage_jenkins_volume_alarms" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "jenkins_backup" {
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ec2-backup?ref=v0.28.4"
+  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ec2-backup?ref=v0.29.0"
 
   instance_name = module.jenkins.jenkins_asg_name
 
