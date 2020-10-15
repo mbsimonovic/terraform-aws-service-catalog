@@ -210,7 +210,7 @@ resource "aws_alb_target_group" "service" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "listener_rules" {
-  source = "git::git@github.com:gruntwork-io/module-load-balancer.git//modules/lb-listener-rules?ref=v0.20.4"
+  source = "git::git@github.com:gruntwork-io/module-load-balancer.git//modules/lb-listener-rules?ref=v0.21.0"
 
   default_listener_arns  = var.listener_arns
   default_listener_ports = var.listener_ports
