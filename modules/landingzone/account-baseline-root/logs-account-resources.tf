@@ -53,7 +53,7 @@ locals {
 # that does the computation.
 # See https://github.com/hashicorp/terraform/issues/2430 for more details
 data "template_file" "logs_account_iam_role_arn" {
-  template = "arn:aws:iam::${null_resource.wait_for_account_creation.triggers.logs_account_id}:role/${local.logs_account_role_name}"
+  template = local.has_logs_account ? "arn:aws:iam::${null_resource.wait_for_account_creation.triggers.logs_account_id}:role/${local.logs_account_role_name}" : ""
 }
 
 provider "aws" {

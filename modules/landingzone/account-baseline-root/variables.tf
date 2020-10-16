@@ -217,7 +217,7 @@ variable "config_tags" {
 variable "config_aggregate_config_data_in_external_account" {
   description = "Set to true to send the AWS Config data to another account (e.g., a logs account) for aggregation purposes. You must set the ID of that other account via the config_central_account_id variable. Note that if one of the accounts in var.child_accounts has is_logs_account set to true (this is the approach we recommended!), this variable will be assumed to be true, so you don't have to pass any value for it.  This redundant variable has to exist because Terraform does not allow computed data in count and for_each parameters and var.config_central_account_id may be computed if its the ID of a newly-created AWS account."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "config_central_account_id" {
