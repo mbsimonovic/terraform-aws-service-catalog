@@ -10,7 +10,8 @@
 
 terraform {
   # Require at least 0.12.26, which knows what to do with the source syntax of required_providers.
-  # Make sure we don't accidentally pull in 0.13.x, as that may have backwards incompatible changes when it comes out.
+  # Make sure we don't accidentally pull in 0.13.x, as that has backwards incompatible changes that are known to NOT
+  # work with the terraform-aws-eks repo. We are working on a fix, but until that's ready, we need to avoid 0.13.x.
   required_version = "~> 0.12.26"
 
   required_providers {
