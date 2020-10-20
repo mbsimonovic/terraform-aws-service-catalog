@@ -96,6 +96,12 @@ variable "access_logs_s3_bucket_name" {
   default     = null
 }
 
+variable "should_create_access_logs_bucket" {
+  description = "If true, create the S3 bucket named in var.access_logs_s3_bucket_name. If false, the bucket named in var.access_logs_s3_bucket_name must already exist, and have a bucket policy that grants Elastic Load Balancing permission to write the access logs to your bucket."
+  type        = bool
+  default     = true
+}
+
 variable "create_route53_entry" {
   description = "Set to true to create a Route 53 DNS A record for this ALB?"
   type        = bool
