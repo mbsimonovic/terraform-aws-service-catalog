@@ -60,7 +60,7 @@ module "config" {
   opt_in_regions = var.config_opt_in_regions
 
   aggregate_config_data_in_external_account = local.has_logs_account ? true : var.config_aggregate_config_data_in_external_account
-  central_account_id                        = null_resource.wait_for_account_creation.triggers.logs_account_id
+  central_account_id                        = local.has_logs_account ? null_resource.wait_for_account_creation.triggers.logs_account_id : var.config_central_account_id
 
   tags = var.config_tags
 }
