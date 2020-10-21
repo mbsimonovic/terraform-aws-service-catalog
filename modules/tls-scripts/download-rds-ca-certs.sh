@@ -1,8 +1,9 @@
 #!/bin/bash
 # Download the CA certs for RDS so that the applications validate the certs when connecting to RDS over TLS.
 #
-# Script dependencies:
+# Dependencies:
 # - curl
+# Note: This dependency is automatically included in the Dockerfile in this module folder.
 
 set -e
 
