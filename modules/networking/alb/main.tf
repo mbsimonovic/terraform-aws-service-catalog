@@ -73,7 +73,8 @@ module "alb_access_logs_bucket" {
   num_days_after_which_archive_log_data = var.num_days_after_which_archive_log_data
   num_days_after_which_delete_log_data  = var.num_days_after_which_delete_log_data
 
-  force_destroy = var.force_destroy
+  force_destroy    = var.force_destroy
+  create_resources = var.should_create_access_logs_bucket
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
