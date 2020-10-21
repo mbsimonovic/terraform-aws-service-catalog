@@ -133,6 +133,33 @@ resource "aws_security_group_rule" "allow_inbound_ssh_from_cidr_blocks" {
   cidr_blocks       = var.allow_inbound_ssh_from_cidr_blocks
 }
 
+resource "aws_security_group_rule" "allow_private_endpoint_from_security_groups" {
+  for_each = (
+    length(var.allow_private_api_access_from_security_groups) > 0
+    ? { for group_id in var.allow_private_api_access_from_security_groups : group_id => group_id }
+    : {}
+  )
+
+  type                     = "ingress"
+  from_port                = 443
+  to_port                  = 443
+  protocol                 = "tcp"
+  security_group_id        = module.eks_cluster.eks_control_plane_security_group_id
+  source_security_group_id = each.key
+}
+
+resource "aws_security_group_rule" "allow_private_endpoint_from_cidr_blocks" {
+  count = length(var.allow_inbound_ssh_from_cidr_blocks) > 0 ? 1 : 0
+
+  type              = "ingress"
+  from_port         = 443
+  to_port           = 443
+  protocol          = "tcp"
+  security_group_id = module.eks_cluster.eks_control_plane_security_group_id
+  cidr_blocks       = var.allow_inbound_ssh_from_cidr_blocks
+}
+
+
 # ---------------------------------------------------------------------------------------------------------------------
 # CONFIGURE EKS IAM ROLE MAPPINGS
 # We will map AWS IAM roles to RBAC roles in Kubernetes. By doing so, we:
