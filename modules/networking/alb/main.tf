@@ -49,7 +49,7 @@ module "alb" {
   vpc_subnet_ids = var.vpc_subnet_ids
 
   enable_alb_access_logs         = true
-  alb_access_logs_s3_bucket_name = module.alb_access_logs_bucket.s3_bucket_name
+  alb_access_logs_s3_bucket_name = var.should_create_access_logs_bucket ? module.alb_access_logs_bucket.s3_bucket_name : var.access_logs_s3_bucket_name
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -73,7 +73,8 @@ module "alb_access_logs_bucket" {
   num_days_after_which_archive_log_data = var.num_days_after_which_archive_log_data
   num_days_after_which_delete_log_data  = var.num_days_after_which_delete_log_data
 
-  force_destroy = var.force_destroy
+  force_destroy    = var.force_destroy
+  create_resources = var.should_create_access_logs_bucket
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
