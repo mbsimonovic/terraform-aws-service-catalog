@@ -35,6 +35,11 @@ output "public_hosted_zone_map" {
   }
 }
 
+output "acm_tls_certificates" {
+  description = "A list of ARNs of the wildcard and service discovery certificates that were provisioned along with the Route 53 zone."
+  value = module.acm-tls-certificates.certificate_arns
+}
+
 output "service_discovery_public_namespaces" {
   description = "A map of domains to resource arns and hosted zones of the created Service Discovery Public Namespaces."
   value = {
