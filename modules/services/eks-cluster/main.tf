@@ -67,12 +67,12 @@ data "aws_eks_cluster_auth" "kubernetes_token" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "eks_cluster" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.23.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.26.0"
 
   cluster_name = var.cluster_name
 
   vpc_id                       = var.vpc_id
-  vpc_master_subnet_ids        = var.control_plane_vpc_subnet_ids
+  vpc_control_plane_subnet_ids = var.control_plane_vpc_subnet_ids
   endpoint_public_access_cidrs = var.allow_inbound_api_access_from_cidr_blocks
 
   enabled_cluster_log_types              = var.enabled_control_plane_log_types
@@ -86,7 +86,7 @@ module "eks_cluster" {
 }
 
 module "eks_workers" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.23.4"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.26.0"
   create_resources = length(var.autoscaling_group_configurations) > 0
 
   # Use the output from control plane module as the cluster name to ensure the module only looks up the information
@@ -192,7 +192,7 @@ resource "null_resource" "delete_autocreated_aws_auth" {
 }
 
 module "eks_k8s_role_mapping" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.23.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.26.0"
 
   eks_worker_iam_role_arns = (
     length(var.autoscaling_group_configurations) > 0
