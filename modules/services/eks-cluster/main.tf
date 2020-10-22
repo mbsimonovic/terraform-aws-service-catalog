@@ -108,11 +108,7 @@ module "eks_workers" {
 }
 
 resource "aws_security_group_rule" "allow_inbound_ssh_from_security_groups" {
-  for_each = (
-    length(var.allow_inbound_ssh_from_security_groups) > 0
-    ? { for group_id in var.allow_inbound_ssh_from_security_groups : group_id => group_id }
-    : {}
-  )
+  for_each = { for group_id in var.allow_inbound_ssh_from_security_groups : group_id => group_id }
 
   type                     = "ingress"
   from_port                = 22
@@ -134,11 +130,7 @@ resource "aws_security_group_rule" "allow_inbound_ssh_from_cidr_blocks" {
 }
 
 resource "aws_security_group_rule" "allow_private_endpoint_from_security_groups" {
-  for_each = (
-    length(var.allow_private_api_access_from_security_groups) > 0
-    ? { for group_id in var.allow_private_api_access_from_security_groups : group_id => group_id }
-    : {}
-  )
+  for_each = { for group_id in var.allow_private_api_access_from_security_groups : group_id => group_id }
 
   type                     = "ingress"
   from_port                = 443
