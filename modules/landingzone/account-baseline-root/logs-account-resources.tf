@@ -69,7 +69,7 @@ provider "aws" {
 }
 
 module "config_bucket" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-config-bucket?ref=v0.39.0"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-config-bucket?ref=v0.39.2"
 
   providers = {
     aws = aws.logs
@@ -92,7 +92,7 @@ module "config_bucket" {
 }
 
 module "cloudtrail_bucket" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cloudtrail-bucket?ref=v0.39.0"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cloudtrail-bucket?ref=v0.39.2"
 
   providers = {
     aws = aws.logs
