@@ -3,6 +3,11 @@ output "cluster_id" {
   value       = module.database.cluster_id
 }
 
+output "cluster_resource_id" {
+  description = "The unique resource ID assigned to the cluster e.g. cluster-POBCBQUFQC56EBAAWXGFJ77GRU. This is useful for allowing database authentication via IAM."
+  value       = module.database.cluster_resource_id
+}
+
 output "cluster_arn" {
   description = "The ARN of the RDS Aurora cluster."
   value       = module.database.cluster_arn
