@@ -61,41 +61,43 @@ function read_from_secrets_manager {
 }
 
 function store_in_secrets_manager {
-  local -r name="$1"
-  local -r description="$2"
-  local -r value="$3"
-  local -r region="$4"
+  local -r password_name="$1"
+  local -r password_description="$2"
+  local -r password="$3"
+  local -r aws_region="$4"
+  local -r kms_key_id="$5"
 
-  log "Creating secret '$name' in AWS Secrets Manager."
-  aws secretsmanager create-secret \
-    --region "$region" \
-    --name "$name" \
-    --description "$description" \
-    --secret-string "$value" 1>&2
+  local create_secret_response
+
+  log "Creating secret '$password_name' in AWS Secrets Manager."
+  create_secret_response=$(aws secretsmanager create-secret \
+    --region "$aws_region" \
+    --name "$password_name" \
+    --description "$password_description" \
+    --secret-string "$password" \
+    --kms-key-id "$kms_key_id")
+
+  echo -n "$create_secret_response"
+}
+
+function import_certificate_to_acm {
+  local -r cert_public_key_path="$1"
+  local -r cert_private_key_path="$2"
+  local -r ca_public_key_path="$3"
+  local -r aws_region="$4"
+
+  local cert_upload_output
+  local cert_arn
+
+  cert_upload_output=$(AWS_DEFAULT_REGION="$aws_region" aws acm import-certificate --certificate "fileb://$cert_public_key_path" --private-key "fileb://$cert_private_key_path" --certificate-chain "fileb://$ca_public_key_path")
+
+  echo -n "$cert_upload_output"
 }
 
 function generate_password {
   local -r password_length="$1"
   log "Generating password for of length $password_length"
   pwgen -s "$password_length" 1
-}
-
-function generate_and_store_password {
-  local -r password_name="$1"
-  local -r password_length="$2"
-  local -r password_description="$3"
-  local -r aws_region="$4"
-
-  local password
-
-  if password=$(read_from_secrets_manager "$password_name" "$aws_region"); then
-    log "Password '$password_name' already exists in AWS Secrets Manager. Will not create password again."
-  else
-    password=$(generate_password "$password_length")
-    store_in_secrets_manager "$password_name" "$password_description" "$password" "$aws_region"
-  fi
-
-  echo -n "$password"
 }
 
 # Usage: join SEPARATOR ARRAY

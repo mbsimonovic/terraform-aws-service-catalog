@@ -23,7 +23,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "alb" {
-  source = "git::git@github.com:gruntwork-io/module-load-balancer.git//modules/alb?ref=v0.20.4"
+  source = "git::git@github.com:gruntwork-io/module-load-balancer.git//modules/alb?ref=v0.21.0"
 
   # You can find the list of policies here: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html#describe-ssl-policies
   ssl_policy = "ELBSecurityPolicy-2016-08"
@@ -49,7 +49,7 @@ module "alb" {
   vpc_subnet_ids = var.vpc_subnet_ids
 
   enable_alb_access_logs         = true
-  alb_access_logs_s3_bucket_name = module.alb_access_logs_bucket.s3_bucket_name
+  alb_access_logs_s3_bucket_name = var.should_create_access_logs_bucket ? module.alb_access_logs_bucket.s3_bucket_name : var.access_logs_s3_bucket_name
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -58,7 +58,7 @@ module "alb" {
 
 # Create an S3 Bucket to store ALB access logs.
 module "alb_access_logs_bucket" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/logs/load-balancer-access-logs?ref=v0.22.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/logs/load-balancer-access-logs?ref=v0.23.1"
 
   # Try to do some basic cleanup to get a valid S3 bucket name: the name must be lower case and can only contain
   # lowercase letters, numbers, and hyphens. For the full rules, see:
@@ -73,7 +73,8 @@ module "alb_access_logs_bucket" {
   num_days_after_which_archive_log_data = var.num_days_after_which_archive_log_data
   num_days_after_which_delete_log_data  = var.num_days_after_which_delete_log_data
 
-  force_destroy = var.force_destroy
+  force_destroy    = var.force_destroy
+  create_resources = var.should_create_access_logs_bucket
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

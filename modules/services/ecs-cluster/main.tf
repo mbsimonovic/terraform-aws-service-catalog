@@ -20,7 +20,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_cluster" {
-  source = "git::git@github.com:gruntwork-io/module-ecs.git//modules/ecs-cluster?ref=v0.21.4"
+  source = "git::git@github.com:gruntwork-io/module-ecs.git//modules/ecs-cluster?ref=v0.23.0"
 
   cluster_name     = var.cluster_name
   cluster_min_size = var.cluster_min_size
@@ -51,28 +51,40 @@ locals {
   cloud_init = {
     filename     = "ecs-cluster-default-cloud-init"
     content_type = "text/x-shellscript"
-    content      = data.template_file.user_data.rendered
+    content      = local.base_user_data
   }
 
   # Merge in all the cloud init scripts the user has passed in
   cloud_init_parts = merge({ default : local.cloud_init }, var.cloud_init_parts)
-}
 
-data "template_file" "user_data" {
-  template = file("${path.module}/user-data.sh")
+  ip_lockdown_users = compact([
+    var.default_user,
+    # User used to push cloudwatch metrics from the server. This should only be included in the ip-lockdown list if
+    # reporting cloudwatch metrics is enabled.
+    var.enable_cloudwatch_metrics ? "cwmonitoring" : ""
+  ])
+  # We want a space separated list of the users, quoted with ''
+  ip_lockdown_users_bash_array = join(
+    " ",
+    [for user in local.ip_lockdown_users : "'${user}'"],
+  )
 
-  vars = {
-    cluster_name                        = var.cluster_name
-    aws_region                          = data.aws_region.current.name
-    enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
-    enable_ssh_grunt                    = var.enable_ssh_grunt
-    ssh_grunt_iam_group                 = var.ssh_grunt_iam_group
-    ssh_grunt_iam_group_sudo            = var.ssh_grunt_iam_group_sudo
-    log_group_name                      = "${var.cluster_name}-logs"
-    external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
-    enable_fail2ban                     = var.enable_fail2ban
-    enable_ip_lockdown                  = var.enable_ip_lockdown
-  }
+  base_user_data = templatefile(
+    "${path.module}/user-data.sh",
+    {
+      cluster_name                        = var.cluster_name
+      aws_region                          = data.aws_region.current.name
+      enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
+      enable_ssh_grunt                    = var.enable_ssh_grunt
+      ssh_grunt_iam_group                 = var.ssh_grunt_iam_group
+      ssh_grunt_iam_group_sudo            = var.ssh_grunt_iam_group_sudo
+      log_group_name                      = "${var.cluster_name}-logs"
+      external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
+      enable_fail2ban                     = var.enable_fail2ban
+      enable_ip_lockdown                  = var.enable_ip_lockdown
+      ip_lockdown_users                   = local.ip_lockdown_users_bash_array
+    },
+  )
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -80,7 +92,7 @@ data "template_file" "user_data" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "cloudwatch_log_aggregation" {
-  source      = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/logs/cloudwatch-log-aggregation-iam-policy?ref=v0.22.2"
+  source      = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/logs/cloudwatch-log-aggregation-iam-policy?ref=v0.23.1"
   name_prefix = var.cluster_name
 
   # We set this to false so that the cloudwatch-custom-metrics-iam policy generates JSON for the policy, but does not
@@ -102,7 +114,7 @@ resource "aws_iam_role_policy" "custom_cloudwatch_logging" {
 module "ecs_cluster_cpu_memory_alarms" {
   create_resources = var.enable_ecs_cloudwatch_alarms
 
-  source               = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/ecs-cluster-alarms?ref=v0.22.2"
+  source               = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/ecs-cluster-alarms?ref=v0.23.1"
   ecs_cluster_name     = var.cluster_name
   alarm_sns_topic_arns = var.alarms_sns_topic_arn
 
@@ -114,7 +126,7 @@ module "ecs_cluster_cpu_memory_alarms" {
 
 module "metric_widget_ecs_cluster_cpu_usage" {
 
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.22.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.1"
 
   period = 60
   stat   = "Average"
@@ -126,7 +138,7 @@ module "metric_widget_ecs_cluster_cpu_usage" {
 }
 
 module "metric_widget_ecs_cluster_memory_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.22.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.1"
 
   period = 60
   stat   = "Average"

@@ -152,6 +152,18 @@ variable "allow_inbound_ssh_from_cidr_blocks" {
   default     = []
 }
 
+variable "allow_private_api_access_from_cidr_blocks" {
+  description = "The list of CIDR blocks to allow inbound access to the private Kubernetes API endpoint (e.g. the endpoint within the VPC, not the public endpoint)."
+  type        = list(string)
+  default     = []
+}
+
+variable "allow_private_api_access_from_security_groups" {
+  description = "The list of security groups to allow inbound access to the private Kubernetes API endpoint (e.g. the endpoint within the VPC, not the public endpoint)."
+  type        = list(string)
+  default     = []
+}
+
 variable "iam_role_to_rbac_group_mapping" {
   description = "Mapping of IAM role ARNs to Kubernetes RBAC groups that grant permissions to the user."
   type        = map(list(string))

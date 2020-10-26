@@ -53,7 +53,8 @@ module "openvpn" {
   cmk_user_iam_arns          = var.cmk_user_iam_arns
   cmk_external_user_iam_arns = var.cmk_external_user_iam_arns
 
-  vpn_route_cidr_blocks = [data.aws_vpc.default.cidr_block]
+  vpn_route_cidr_blocks = concat([data.aws_vpc.default.cidr_block], var.additional_vpn_route_cidr_blocks)
+  vpn_search_domains    = var.vpn_search_domains
 
   ca_cert_fields = {
     ca_country  = "US"

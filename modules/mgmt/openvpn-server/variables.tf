@@ -179,8 +179,20 @@ variable "ssh_grunt_iam_group_sudo" {
   default     = ""
 }
 
+variable "enable_fail2ban" {
+  description = "Enable fail2ban to block brute force log in attempts. Defaults to true."
+  type        = bool
+  default     = true
+}
+
 variable "vpn_route_cidr_blocks" {
   description = "A list of CIDR ranges to be routed over the VPN."
+  type        = list(string)
+  default     = []
+}
+
+variable "vpn_search_domains" {
+  description = "A list of domains to push down to the client to resolve over VPN. This will configure the OpenVPN server to pass through domains that should be resolved over the VPN connection (as opposed to the locally configured resolver) to the client. Note that for each domain, all subdomains will be resolved as well. E.g., if you pass in 'mydomain.local', subdomains such as 'hello.world.mydomain.local' and 'example.mydomain.local' will also be forwarded to through the VPN server."
   type        = list(string)
   default     = []
 }
@@ -259,4 +271,10 @@ variable "cloud_init_parts" {
     content      = string
   }))
   default = {}
+}
+
+variable "default_user" {
+  description = "The default OS user for the OpenVPN AMI. For AWS Ubuntu AMIs, which is what the Packer template in openvpn-server.json uses, the default OS user is 'ubuntu'."
+  type        = string
+  default     = "ubuntu"
 }
