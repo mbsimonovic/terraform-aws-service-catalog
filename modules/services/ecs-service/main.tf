@@ -27,6 +27,9 @@ module "ecs_service" {
   environment_name = var.service_name
   ecs_cluster_arn  = var.ecs_cluster_arn
 
+  launch_type                = var.launch_type
+  capacity_provider_strategy = var.capacity_provider_strategy
+
   ecs_task_container_definitions = local.container_definitions
   desired_number_of_tasks        = var.desired_number_of_tasks
 
@@ -295,4 +298,3 @@ module "route53_health_check" {
     }
   }
 }
-
