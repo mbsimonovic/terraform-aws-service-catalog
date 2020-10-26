@@ -61,7 +61,7 @@ provider "helm" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "fluentd_cloudwatch" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cloudwatch-container-logs?ref=v0.23.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cloudwatch-container-logs?ref=v0.26.0"
 
   aws_region                           = var.aws_region
   eks_cluster_name                     = var.eks_cluster_name
@@ -81,7 +81,7 @@ resource "aws_cloudwatch_log_group" "eks_cluster" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "alb_ingress_controller" {
-  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-alb-ingress-controller?ref=v0.23.4"
+  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-alb-ingress-controller?ref=v0.26.0"
   dependencies = aws_eks_fargate_profile.core_services.*.id
 
   aws_region                           = var.aws_region
@@ -99,7 +99,7 @@ module "alb_ingress_controller" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "k8s_external_dns" {
-  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-external-dns?ref=v0.23.4"
+  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-external-dns?ref=v0.26.0"
   dependencies = aws_eks_fargate_profile.core_services.*.id
 
   aws_region                           = var.aws_region
@@ -123,7 +123,7 @@ module "k8s_external_dns" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "k8s_cluster_autoscaler" {
-  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-cluster-autoscaler?ref=v0.23.4"
+  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-cluster-autoscaler?ref=v0.26.0"
   dependencies = aws_eks_fargate_profile.core_services.*.id
 
   aws_region                           = var.aws_region
