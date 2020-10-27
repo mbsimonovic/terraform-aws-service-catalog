@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gruntwork-io/terratest/modules/aws"
+	dns_helper "github.com/gruntwork-io/terratest/modules/dns-helper"
 	"github.com/gruntwork-io/terratest/modules/git"
 	http_helper "github.com/gruntwork-io/terratest/modules/http-helper"
 	"github.com/gruntwork-io/terratest/modules/k8s"
@@ -22,6 +23,11 @@ import (
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+)
+
+const (
+	// renovate.json auto-update-github-releases: gruntwork-io/terraform-aws-eks
+	terraformAWSEKSVersion = "v0.26.0"
 )
 
 var defaultDomainTagFilterForTest = []map[string]string{
@@ -278,7 +284,22 @@ func validateSampleApp(t *testing.T, eksClusterTestFolder string, k8sServiceTest
 	verifyPodsCreatedSuccessfully(t, options, applicationName)
 	verifyAllPodsAvailable(t, options, applicationName, "/greeting", sampleAppValidationFunction)
 
-	ingressEndpoint := fmt.Sprintf("https://sample-app-%s.%s/greeting", clusterName, baseDomainForTest)
+	// Wait until the DNS entry is resolvable before attempting to get the address. This ensures that we wait for the
+	// hostname to have propagated through DNS, without recording it in the local cache between retries in the http get
+	// call.
+	hostname := fmt.Sprintf("sample-app-%s.%s", clusterName, baseDomainForTest)
+	dns_helper.DNSLookupAuthoritativeWithRetry(
+		t,
+		dns_helper.DNSQuery{
+			Type: "A",
+			Name: hostname,
+		},
+		nil,
+		K8SServiceWaitTimerRetries,
+		K8SIngressWaitTimerSleep,
+	)
+
+	ingressEndpoint := fmt.Sprintf("https://%s/greeting", hostname)
 	http_helper.HttpGetWithRetryWithCustomValidation(
 		t,
 		ingressEndpoint,
