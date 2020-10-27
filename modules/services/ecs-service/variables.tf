@@ -29,7 +29,7 @@ variable "container_definitions" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "capacity_provider_strategy" {
-  description = "The capacity provider strategy to use for the service. Note that the capacity providers have to be present on ECS cluster before deploying ECS service. When provided, var.launch_type is ignored."
+  description = "The capacity provider strategy to use for the service. Note that the capacity providers have to be present on the ECS cluster before deploying the ECS service. When provided, var.launch_type is ignored."
   type = list(object({
     capacity_provider = string
     weight            = number
@@ -53,7 +53,7 @@ variable "capacity_provider_strategy" {
 }
 
 variable "launch_type" {
-  description = "The launch type of the ECS service. Must be one of EC2 or FARGATE. When using FARGATE, you must set the network mode to awsvpc and configure it. When using EC2, you can configure the placement strategy using the variables placement_strategy_type, placement_strategy_field, placement_constraint_type, placement_constraint_expression. This variable is ignored if var.capacity_provider_strategy is provided."
+  description = "The launch type of the ECS service. Must be one of EC2 or FARGATE. When using FARGATE, you must set the network mode to awsvpc and configure it. When using EC2, you can configure the placement strategy using the variables var.placement_strategy_type, var.placement_strategy_field, var.placement_constraint_type, var.placement_constraint_expression. This variable is ignored if var.capacity_provider_strategy is provided."
   type        = string
   default     = "EC2"
 }
