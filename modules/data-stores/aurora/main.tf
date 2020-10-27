@@ -49,9 +49,10 @@ module "database" {
   allow_connections_from_cidr_blocks     = var.allow_connections_from_cidr_blocks
   allow_connections_from_security_groups = var.allow_connections_from_security_groups
 
-  backup_retention_period = var.backup_retention_period
-  kms_key_arn             = var.kms_key_arn
-  apply_immediately       = var.apply_immediately
+  backup_retention_period             = var.backup_retention_period
+  kms_key_arn                         = var.kms_key_arn
+  iam_database_authentication_enabled = var.iam_database_authentication_enabled
+  apply_immediately                   = var.apply_immediately
 
   # These values have the same defaults in the module, but we hard code the configuration here for documentation purposes.
   storage_encrypted = true
