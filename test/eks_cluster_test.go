@@ -25,11 +25,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const (
-	// renovate.json auto-update-github-releases: gruntwork-io/terraform-aws-eks
-	terraformAWSEKSVersion = "v0.26.0"
-)
-
 var defaultDomainTagFilterForTest = []map[string]string{
 	map[string]string{
 		"key":   "shared-management-with-kubernetes",
@@ -285,7 +280,9 @@ func validateSampleApp(t *testing.T, eksClusterTestFolder string, k8sServiceTest
 	verifyAllPodsAvailable(t, options, applicationName, "/greeting", sampleAppValidationFunction)
 
 	// Wait until the DNS entry is resolvable before attempting to get the address. This ensures that we wait for the
-	// hostname to have propagated through DNS before making requests to it. Otherwise, if we make requests too early, before DNS has propagated, the missing DNS entry gets recorded in the local cache, and the test will keep failing, despite retries.
+	// hostname to have propagated through DNS before making requests to it. Otherwise, if we make requests too early,
+	// before DNS has propagated, the missing DNS entry gets recorded in the local cache, and the test will keep
+	// failing, despite retries.
 	hostname := fmt.Sprintf("sample-app-%s.%s", clusterName, baseDomainForTest)
 	dns_helper.DNSLookupAuthoritativeWithRetry(
 		t,
