@@ -84,7 +84,7 @@ run_pre_commit: &run_pre_commit
   name: run pre-commit hooks
   command: |
     pyenv global 3.5.2
-    pip install pre-commit==1.21.0 cfgv==2.0.1
+    pip install pre-commit==1.21.0 cfgv==2.0.1 importlib-resources==3.2.0
     pre-commit install
     pre-commit run --all-files
 
