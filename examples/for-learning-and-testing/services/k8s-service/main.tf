@@ -65,8 +65,7 @@ module "application" {
   expose_type            = var.expose_type
   desired_number_of_pods = 1
 
-  create_route53_entry = var.domain_name != null
-  domain_name          = var.domain_name != null ? var.domain_name : ""
+  domain_name = var.domain_name
 
   # This is an example of how to configure hard coded environment variables that are necessary for running your app.
   # Here we configure all the necessary settings for running the Gruntwork AWS Sample App
