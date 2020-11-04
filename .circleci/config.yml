@@ -26,7 +26,7 @@ defaults: &defaults
     # terraform-aws-eks, both of which lag behind open source K8S
     K8S_VERSION: v1.15.0
     # renovate.json auto-update-github-releases: hashicorp/packer
-    PACKER_VERSION: v1.6.5
+    PACKER_VERSION: 1.6.5
     # TODO: how to get renovate.json to auto-update the Go version? They publish tags, but they are of a strange format
     # like "go1.15": https://github.com/golang/go/releases
     GOLANG_VERSION: 1.14.9
@@ -34,7 +34,7 @@ defaults: &defaults
     HUB_VERSION: 2.14.2
     MINIKUBE_VERSION: v1.11.0
     KUBECONFIG: /home/circleci/.kube/config
-    # The GOPRIVATE environment variable controls which modules the go command considers to be private 
+    # The GOPRIVATE environment variable controls which modules the go command considers to be private
     # (not available publicly) and should therefore not use the proxy or checksum database.
     # Without this, tests fail with a "410 Gone" error
     GOPRIVATE: github.com/gruntwork-io
