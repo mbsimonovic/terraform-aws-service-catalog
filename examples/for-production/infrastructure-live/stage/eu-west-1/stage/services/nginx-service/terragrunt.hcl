@@ -66,7 +66,6 @@ inputs = {
   container_port         = 80
   namespace              = dependency.eks_applications_namespace.outputs.namespace_name
   expose_type            = "external"
-  create_route53_entry   = true
   domain_name            = "nginx.gruntwork.in"
   desired_number_of_pods = 1
 }
