@@ -45,7 +45,7 @@ variable:
 
 For `internal` and `external` modes, you can additionally bind a hostname to the endpoint that is automatically
 translated to a Route53 record if you have the [external-dns](https://github.com/kubernetes-sigs/external-dns)
-application deployed. This is configured through the `create_route53_entry` and `domain_name` variables.
+application deployed. This is configured through the `domain_name` variable.
 
 Note that you will need to query the `Ingress` resource to find the assigned endpoint if you are not associating a
 domain with it. You can see the ALB domain when you run the following `kubectl` command:
@@ -96,9 +96,9 @@ helm template $APPLICATION_NAME gruntwork/k8s-service --debug -f $VALUES_FILE_PA
 
 ## How do I assign IAM permissions to a service?
 
-This module supports the [IAM roles for service accounts](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) feature. You can use this feature to create an IAM role with a policy and map it to a service account, or map an existing role. 
+This module supports the [IAM roles for service accounts](https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) feature. You can use this feature to create an IAM role with a policy and map it to a service account, or map an existing role.
 
-To create a new role: 
+To create a new role:
 
 * Set `iam_role_exists=false`
 * Provide an `iam_role_name` that conforms to the [IAM Name Requirements](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_iam-quotas.html)
