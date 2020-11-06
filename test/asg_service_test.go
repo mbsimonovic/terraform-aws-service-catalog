@@ -97,4 +97,3 @@ func validateASG(t *testing.T, testFolder string) {
 	forwardRoot := fmt.Sprintf("%s", lbUrl)
 	http_helper.HttpGetWithRetry(t, forwardRoot, nil, 200, "Hello, World", 20, 5*time.Second)
 }
-
