@@ -58,6 +58,30 @@ variable "launch_type" {
   default     = "EC2"
 }
 
+variable "placement_strategy_type" {
+  description = "The strategy to use when placing ECS tasks on EC2 instances. Can be binpack (default), random, or spread."
+  type        = string
+  default     = "binpack"
+}
+
+variable "placement_strategy_field" {
+  description = "The field to apply the placement strategy against. For the spread placement strategy, valid values are instanceId (or host, which has the same effect), or any platform or custom attribute that is applied to a container instance, such as attribute:ecs.availability-zone. For the binpack placement strategy, valid values are cpu and memory. For the random placement strategy, this field is not used."
+  type        = string
+  default     = "cpu"
+}
+
+variable "placement_constraint_type" {
+  description = "The type of constraint to apply for container instance placement. The only valid values at this time are memberOf and distinctInstance."
+  type        = string
+  default     = "memberOf"
+}
+
+variable "placement_constraint_expression" {
+  description = "Cluster Query Language expression to apply to the constraint for matching. Does not need to be specified for the distinctInstance constraint type."
+  type        = string
+  default     = "attribute:ecs.ami-id != 'ami-fake'"
+}
+
 variable "secrets_manager_arns" {
   description = "A list of ARNs for Secrets Manager secrets that the ECS execution IAM policy should be granted access to read. Note that this is different from the ECS task IAM policy. The execution policy is concerned with permissions required to run the ECS task."
   type        = list(string)
