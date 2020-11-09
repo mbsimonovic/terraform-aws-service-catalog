@@ -46,7 +46,7 @@ module "sns_topic" {
 
 module "sns_to_slack" {
   # TODO: Update to released version
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/sns-to-slack?ref=v0.23.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/sns-to-slack?ref=v0.23.3"
 
   create_resources = var.create_resources && var.slack_webhook_url != null
 
