@@ -26,7 +26,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "database" {
-  source = "git::git@github.com:gruntwork-io/module-data-storage.git//modules/aurora?ref=v0.16.2"
+  source = "git::git@github.com:gruntwork-io/module-data-storage.git//modules/aurora?ref=v0.16.3"
 
   name        = var.name
   port        = var.port
@@ -50,9 +50,10 @@ module "database" {
   allow_connections_from_cidr_blocks     = var.allow_connections_from_cidr_blocks
   allow_connections_from_security_groups = var.allow_connections_from_security_groups
 
-  backup_retention_period = var.backup_retention_period
-  kms_key_arn             = var.kms_key_arn
-  apply_immediately       = var.apply_immediately
+  backup_retention_period             = var.backup_retention_period
+  kms_key_arn                         = var.kms_key_arn
+  iam_database_authentication_enabled = var.iam_database_authentication_enabled
+  apply_immediately                   = var.apply_immediately
 
   # These values have the same defaults in the module, but we hard code the configuration here for documentation purposes.
   storage_encrypted = true
@@ -68,7 +69,7 @@ module "database" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "rds_alarms" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/rds-alarms?ref=v0.23.1"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/rds-alarms?ref=v0.23.3"
   create_resources = var.enable_cloudwatch_alarms && var.engine_mode == "provisioned"
 
   rds_instance_ids     = module.database.instance_ids
@@ -100,7 +101,7 @@ module "rds_alarms" {
 
 # Lambda function that runs on a specified schedule to manually create the DB snapshot.
 module "create_snapshot" {
-  source           = "git::git@github.com:gruntwork-io/module-data-storage.git//modules/lambda-create-snapshot?ref=v0.16.2"
+  source           = "git::git@github.com:gruntwork-io/module-data-storage.git//modules/lambda-create-snapshot?ref=v0.16.3"
   create_resources = var.share_snapshot_with_another_account
 
   rds_db_identifier        = module.database.cluster_id
@@ -123,7 +124,7 @@ module "create_snapshot" {
 
 # Lambda function that will share the snapshots made using `create_snapshot`.
 module "share_snapshot" {
-  source           = "git::git@github.com:gruntwork-io/module-data-storage.git//modules/lambda-share-snapshot?ref=v0.16.2"
+  source           = "git::git@github.com:gruntwork-io/module-data-storage.git//modules/lambda-share-snapshot?ref=v0.16.3"
   create_resources = var.share_snapshot_with_another_account
 
   rds_db_arn = module.database.cluster_arn
@@ -132,7 +133,7 @@ module "share_snapshot" {
 
 # Lambda function that periodically culls old snapshots.
 module "cleanup_snapshots" {
-  source           = "git::git@github.com:gruntwork-io/module-data-storage.git//modules/lambda-cleanup-snapshots?ref=v0.16.2"
+  source           = "git::git@github.com:gruntwork-io/module-data-storage.git//modules/lambda-cleanup-snapshots?ref=v0.16.3"
   create_resources = var.share_snapshot_with_another_account
 
   rds_db_identifier        = module.database.cluster_id
@@ -145,7 +146,7 @@ module "cleanup_snapshots" {
 
 # CloudWatch alarm that goes off if the backup job fails to create a new snapshot.
 module "backup_job_alarm" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/scheduled-job-alarm?ref=v0.23.1"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/scheduled-job-alarm?ref=v0.23.3"
   create_resources = var.share_snapshot_with_another_account && var.enable_cloudwatch_alarms
 
   name                 = "${var.name}-create-snapshot-failed"
@@ -165,7 +166,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "metric_widget_aurora_cpu_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.3"
 
   title = "${var.name} Aurora CPUUtilization"
   stat  = "Average"
@@ -180,7 +181,7 @@ module "metric_widget_aurora_cpu_usage" {
 }
 
 module "metric_widget_aurora_memory" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.3"
 
   title = "${var.name} Aurora FreeableMemory"
   stat  = "Minimum"
@@ -195,7 +196,7 @@ module "metric_widget_aurora_memory" {
 }
 
 module "metric_widget_aurora_disk_space" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.3"
 
   title = "${var.name} Aurora Volume Bytes Available"
   stat  = "Minimum"
@@ -210,7 +211,7 @@ module "metric_widget_aurora_disk_space" {
 }
 
 module "metric_widget_aurora_db_connections" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.3"
 
   title = "${var.name} Aurora DatabaseConnections"
   stat  = "Maximum"
@@ -225,7 +226,7 @@ module "metric_widget_aurora_db_connections" {
 }
 
 module "metric_widget_aurora_read_latency" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.3"
 
   title = "${var.name} Aurora ReadLatency"
   stat  = "Average"
@@ -240,7 +241,7 @@ module "metric_widget_aurora_read_latency" {
 }
 
 module "metric_widget_aurora_write_latency" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.3"
 
   title = "${var.name} Aurora WriteLatency"
   stat  = "Average"

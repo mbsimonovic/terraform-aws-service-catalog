@@ -22,3 +22,8 @@ output "kibana_endpoint" {
   description = "Domain-specific endpoint for Kibana without https scheme."
   value       = aws_elasticsearch_domain.cluster.kibana_endpoint
 }
+
+output "cluster_domain_name" {
+  description = "The name of the Elasticsearch domain."
+  value       = aws_elasticsearch_domain.cluster.domain_name
+}
