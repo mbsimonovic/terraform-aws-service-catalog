@@ -50,7 +50,7 @@ function include_ec2_baseline {
     --repo https://github.com/gruntwork-io/aws-service-catalog \
     ${ec2_baseline_version_branch} \
     ${ec2_baseline_version_tag}
-    
+
   # Include common defaults and functions from the ec2-baseline install script
   # See: https://github.com/gruntwork-io/aws-service-catalog/blob/master/modules/base/ec2-baseline
   readonly EC2_BASELINE_RELATIVE_PATH="../../base/ec2-baseline"
@@ -161,7 +161,7 @@ function install_helm {
   sudo chmod a+x /usr/local/bin/helm
 
   echo "Initialize stable repository"
-  helm repo add stable https://kubernetes-charts.storage.googleapis.com/
+  helm repo add stable https://charts.helm.sh/stable
 
   echo "Cleaning up temporary files"
   rm -rf linux-amd64
