@@ -69,7 +69,7 @@ module "database" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "rds_alarms" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/rds-alarms?ref=v0.23.1"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/rds-alarms?ref=v0.23.3"
   create_resources = var.enable_cloudwatch_alarms && var.engine_mode == "provisioned"
 
   rds_instance_ids     = module.database.instance_ids
@@ -146,7 +146,7 @@ module "cleanup_snapshots" {
 
 # CloudWatch alarm that goes off if the backup job fails to create a new snapshot.
 module "backup_job_alarm" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/scheduled-job-alarm?ref=v0.23.1"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/scheduled-job-alarm?ref=v0.23.3"
   create_resources = var.share_snapshot_with_another_account && var.enable_cloudwatch_alarms
 
   name                 = "${var.name}-create-snapshot-failed"
@@ -166,7 +166,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "metric_widget_aurora_cpu_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.3"
 
   title = "${var.name} Aurora CPUUtilization"
   stat  = "Average"
@@ -181,7 +181,7 @@ module "metric_widget_aurora_cpu_usage" {
 }
 
 module "metric_widget_aurora_memory" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.3"
 
   title = "${var.name} Aurora FreeableMemory"
   stat  = "Minimum"
@@ -196,7 +196,7 @@ module "metric_widget_aurora_memory" {
 }
 
 module "metric_widget_aurora_disk_space" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.3"
 
   title = "${var.name} Aurora Volume Bytes Available"
   stat  = "Minimum"
@@ -211,7 +211,7 @@ module "metric_widget_aurora_disk_space" {
 }
 
 module "metric_widget_aurora_db_connections" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.3"
 
   title = "${var.name} Aurora DatabaseConnections"
   stat  = "Maximum"
@@ -226,7 +226,7 @@ module "metric_widget_aurora_db_connections" {
 }
 
 module "metric_widget_aurora_read_latency" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.3"
 
   title = "${var.name} Aurora ReadLatency"
   stat  = "Average"
@@ -241,7 +241,7 @@ module "metric_widget_aurora_read_latency" {
 }
 
 module "metric_widget_aurora_write_latency" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.3"
 
   title = "${var.name} Aurora WriteLatency"
   stat  = "Average"
