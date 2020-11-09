@@ -12,7 +12,7 @@ readonly DEFAULT_MODULE_CI_VERSION="v0.29.0"
 
 # Build tooling
 # renovate.json auto-update: kubergrunt
-readonly DEFAULT_KUBERGRUNT_VERSION="v0.6.3"
+readonly DEFAULT_KUBERGRUNT_VERSION="v0.6.4"
 # renovate.json auto-update: terragrunt
 readonly DEFAULT_TERRAGRUNT_VERSION="v0.25.5"
 

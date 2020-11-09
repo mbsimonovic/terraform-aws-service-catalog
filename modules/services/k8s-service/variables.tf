@@ -155,18 +155,12 @@ variable "ingress_annotations" {
   # }
 }
 
-# Route 53 / DNS Info
-
-variable "create_route53_entry" {
-  description = "Set to true to create a Route 53 entry for this service"
-  type        = bool
-  default     = false
-}
+# DNS Info
 
 variable "domain_name" {
-  description = "The domain name for the DNS A record to add for this service (e.g. service.foo.com). Only used if var.create_route53_entry is true."
+  description = "The domain name for the DNS A record to bind to the Ingress resource for this service (e.g. service.foo.com). Depending on your external-dns configuration, this will also create the DNS record in the configured DNS service (e.g., Route53)."
   type        = string
-  default     = ""
+  default     = null
 }
 
 # Healthcheck options

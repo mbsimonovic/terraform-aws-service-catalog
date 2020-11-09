@@ -1,7 +1,7 @@
 :type: service
 :name: Public Static Website
 :description: Deploy your static content and static websites on S3, using a CloudFront CDN. Supports bucket versioning, redirects, and access logging.
-:icon: /_docs/s3.png
+:icon: /_docs/s3-icon.png
 :category: static-website
 :cloud: aws
 :tags: cloudfront, s3, website, static website

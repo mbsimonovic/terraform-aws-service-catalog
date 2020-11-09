@@ -231,7 +231,7 @@ locals {
     ingress = {
       enabled     = var.expose_type != "cluster-internal"
       path        = "'${var.ingress_path}'"
-      hosts       = var.create_route53_entry ? [var.domain_name] : []
+      hosts       = var.domain_name != null ? [var.domain_name] : []
       servicePort = "app"
       annotations = local.ingress_annotations
       # Only configure the redirect path if using ssl redirect
