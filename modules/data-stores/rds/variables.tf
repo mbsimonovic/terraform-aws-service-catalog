@@ -220,6 +220,12 @@ variable "backup_job_alarm_period" {
   default = 3600
 }
 
+variable "iam_database_authentication_enabled" {
+  description = "Specifies whether mappings of AWS Identity and Access Management (IAM) accounts to database accounts is enabled. Disabled by default."
+  type        = bool
+  default     = false
+}
+
 variable "backup_retention_period" {
   description = "How many days to keep backup snapshots around before cleaning them up. Must be 1 or greater to support read replicas."
   type        = number

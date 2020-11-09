@@ -50,8 +50,9 @@ module "database" {
 
   enabled_cloudwatch_logs_exports = var.enabled_cloudwatch_logs_exports
 
-  storage_encrypted = var.storage_encrypted
-  kms_key_arn       = var.kms_key_arn
+  storage_encrypted                   = var.storage_encrypted
+  iam_database_authentication_enabled = var.iam_database_authentication_enabled
+  kms_key_arn                         = var.kms_key_arn
 
   multi_az                = var.multi_az
   backup_retention_period = var.backup_retention_period

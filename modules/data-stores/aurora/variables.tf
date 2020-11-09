@@ -133,6 +133,12 @@ variable "kms_key_arn" {
   default     = null
 }
 
+variable "iam_database_authentication_enabled" {
+  description = "Specifies whether mappings of AWS Identity and Access Management (IAM) accounts to database accounts is enabled. Disabled by default."
+  type        = bool
+  default     = false
+}
+
 variable "backup_retention_period" {
   description = "How many days to keep backup snapshots around before cleaning them up. Max: 35"
   type        = number
