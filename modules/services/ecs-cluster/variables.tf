@@ -188,6 +188,30 @@ variable "docker_repo_email" {
   default     = null
 }
 
+variable "capacity_provider_enabled" {
+  description = "Enable a capacity provider to autoscale the EC2 ASG created for this ECS cluster"
+  type        = bool
+  default     = false
+}
+
+variable "capacity_provider_target" {
+  description = "Target cluster utilization for the capacity provider; a number from 1 to 100."
+  type        = number
+  default     = null
+}
+
+variable "capacity_provider_max_scale_step" {
+  description = "Maximum step adjustment size to the ASG's desired instance count"
+  type        = number
+  default     = null
+}
+
+variable "capacity_provider_min_scale_step" {
+  description = "Minimum step adjustment size to the ASG's desired instance count"
+  type        = number
+  default     = null
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # SSH GRUNT VARIABLES
 # These variables optionally enable and configure access via ssh-grunt. See: https://github.com/gruntwork-io/module-security/tree/master/modules/ssh-grunt for more info.

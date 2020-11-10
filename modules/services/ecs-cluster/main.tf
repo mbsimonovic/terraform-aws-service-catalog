@@ -39,6 +39,10 @@ module "ecs_cluster" {
 
   alb_security_group_ids = compact(concat(var.internal_alb_sg_ids, var.public_alb_sg_ids))
 
+  capacity_provider_enabled        = var.capacity_provider_enabled
+  capacity_provider_target         = var.capacity_provider_target
+  capacity_provider_max_scale_step = var.capacity_provider_max_scale_step
+  capacity_provider_min_scale_step = var.capacity_provider_max_scale_step
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
