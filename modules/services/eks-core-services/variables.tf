@@ -43,10 +43,10 @@ variable "pod_execution_iam_role_arn" {
 # These variables have defaults and may be overwritten
 # ---------------------------------------------------------------------------------------------------------------------
 
-# Fluentd DaemonSet options
+# Fluent-bit DaemonSet options
 
-variable "fluentd_cloudwatch_pod_tolerations" {
-  description = "Configure tolerations rules to allow the fluentd-cloudwatch Pods to schedule on nodes that have been tainted. Each item in the list specifies a toleration rule."
+variable "fluent_bit_pod_tolerations" {
+  description = "Configure tolerations rules to allow the fluent-bit Pods to schedule on nodes that have been tainted. Each item in the list specifies a toleration rule."
   type        = list(map(any))
   default     = []
 
@@ -65,8 +65,8 @@ variable "fluentd_cloudwatch_pod_tolerations" {
   # ]
 }
 
-variable "fluentd_cloudwatch_pod_node_affinity" {
-  description = "Configure affinity rules for the fluentd-cloudwatch Pods to control which nodes to schedule on. Each item in the list should be a map with the keys `key`, `values`, and `operator`, corresponding to the 3 properties of matchExpressions. Note that all expressions must be satisfied to schedule on the node."
+variable "fluent_bit_pod_node_affinity" {
+  description = "Configure affinity rules for the fluent-bit Pods to control which nodes to schedule on. Each item in the list should be a map with the keys `key`, `values`, and `operator`, corresponding to the 3 properties of matchExpressions. Note that all expressions must be satisfied to schedule on the node."
   type = list(object({
     key      = string
     values   = list(string)
