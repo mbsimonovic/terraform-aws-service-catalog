@@ -26,7 +26,7 @@ terraform {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "organization" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-organizations?ref=v0.40.1"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-organizations?ref=v0.41.1"
 
   child_accounts                              = var.child_accounts
   create_organization                         = var.create_organization
@@ -39,13 +39,13 @@ module "organization" {
   default_tags = var.organizations_default_tags
 }
 
-
 # ----------------------------------------------------------------------------------------------------------------------
-# AWS CONFIG AND ORGANIZATION LEVEL CONFIG RULES
+# AWS CONFIG AND CONFIG RULES
+# We send AWS Config data to the S3 bucket in the logs account
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "config" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-config-multi-region?ref=v0.40.1"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-config-multi-region?ref=v0.41.1"
 
   create_resources       = var.enable_config
   aws_account_id         = var.aws_account_id
@@ -63,53 +63,43 @@ module "config" {
   central_account_id                        = local.has_logs_account ? null_resource.wait_for_account_creation.triggers.logs_account_id : var.config_central_account_id
 
   tags = var.config_tags
-}
 
-module "organizations_config_rules" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-config-rules?ref=v0.40.1"
+  #### Parameters for AWS Config Rules ####
+  enable_config_rules                           = true
+  additional_config_rules                       = var.additional_config_rules
+  enable_iam_password_policy_rule               = var.enable_iam_password_policy
+  enable_encrypted_volumes_rule                 = var.enable_encrypted_volumes
+  enable_insecure_sg_rules                      = var.enable_insecure_sg_rules
+  enable_rds_storage_encrypted_rule             = var.enable_rds_storage_encrypted
+  enable_root_account_mfa_rule                  = var.enable_root_account_mfa
+  enable_s3_bucket_public_read_prohibited_rule  = var.enable_s3_bucket_public_read_prohibited
+  enable_s3_bucket_public_write_prohibited_rule = var.enable_s3_bucket_public_write_prohibited
 
-  create_resources = var.enable_config
-
-  // Make sure AWS Config has been applied first
-  // Because `aws-config-multi-region` doesn't have a string or list of strings output, we'll construct one dynamically
-  dependencies = concat([
-    for k, v in module.config.config_sns_topic_arns :
-    v
-  ], values(module.config.config_recorder_names))
-
-  additional_rules                         = var.additional_config_rules
-  enable_encrypted_volumes                 = var.enable_encrypted_volumes
-  enable_iam_password_policy               = var.enable_iam_password_policy
-  enable_insecure_sg_rules                 = var.enable_insecure_sg_rules
-  enable_rds_storage_encrypted             = var.enable_rds_storage_encrypted
-  enable_root_account_mfa                  = var.enable_root_account_mfa
-  enable_s3_bucket_public_read_prohibited  = var.enable_s3_bucket_public_read_prohibited
-  enable_s3_bucket_public_write_prohibited = var.enable_s3_bucket_public_write_prohibited
-
-  iam_password_policy_max_password_age             = var.iam_password_policy_max_password_age
-  iam_password_policy_minimum_password_length      = var.iam_password_policy_minimum_password_length
-  iam_password_policy_password_reuse_prevention    = var.iam_password_policy_password_reuse_prevention
-  iam_password_policy_require_lowercase_characters = var.iam_password_policy_require_lowercase_characters
-  iam_password_policy_require_numbers              = var.iam_password_policy_require_numbers
-  iam_password_policy_require_symbols              = var.iam_password_policy_require_symbols
-  iam_password_policy_require_uppercase_characters = var.iam_password_policy_require_uppercase_characters
-  insecure_sg_rules_authorized_udp_ports           = var.insecure_sg_rules_authorized_udp_ports
-  insecure_sg_rules_authorized_tcp_ports           = var.insecure_sg_rules_authorized_tcp_ports
-  maximum_execution_frequency                      = var.configrules_maximum_execution_frequency
+  iam_password_policy_rule_max_password_age             = var.iam_password_policy_max_password_age
+  iam_password_policy_rule_minimum_password_length      = var.iam_password_policy_minimum_password_length
+  iam_password_policy_rule_password_reuse_prevention    = var.iam_password_policy_password_reuse_prevention
+  iam_password_policy_rule_require_lowercase_characters = var.iam_password_policy_require_lowercase_characters
+  iam_password_policy_rule_require_numbers              = var.iam_password_policy_require_numbers
+  iam_password_policy_rule_require_symbols              = var.iam_password_policy_require_symbols
+  iam_password_policy_rule_require_uppercase_characters = var.iam_password_policy_require_uppercase_characters
+  insecure_sg_rules_authorized_udp_ports                = var.insecure_sg_rules_authorized_udp_ports
+  insecure_sg_rules_authorized_tcp_ports                = var.insecure_sg_rules_authorized_tcp_ports
+  config_rule_maximum_execution_frequency               = var.configrules_maximum_execution_frequency
+  encrypted_volumes_kms_id                              = var.encrypted_volumes_kms_id
+  rds_storage_encrypted_kms_id                          = var.rds_storage_encrypted_kms_id
 
   # We used to do org-level rules, but those have a dependency / ordering problem: if you enable org-level rules, they
   # immediately apply to ALL child accounts... But if a child account doesn't have a Config Recorder, it fails. So when
   # adding new child accounts, the deployment always fails, because of course brand new accounts don't have Config
-  # Recorders. So we now default to account-level rules, whch means we have to apply the same rules in each and every
-  # account, but we can ensure that the rules are only enforced after the Config Recorder is in place, so there's no
-  # chicken-and-egg problem.
+  # Recorders. So by switching to account-level rules, we now have to apply the same rules in each and every account,
+  # but we can ensure that the rules are only enforced after the Config Recorder is in place.
   create_account_rules = var.config_create_account_rules
 
   # If the user chooses to go with org-level Config rules after all, we make a best-effort attempt here to exclude new
   # child accounts by default (as they don't have a Config Recorder yet) and only include them if the user explicitly
   # tells us too (e.g., after having deployed a Config Recorder and come back to root to re-run apply). This is a
   # brittle, error-prone, multi-step deploy process, which is why we recommend account-level rules instead.
-  excluded_accounts = local.all_excluded_child_accounts_ids
+  config_rule_excluded_accounts = local.all_excluded_child_accounts_ids
 }
 
 locals {
@@ -125,10 +115,11 @@ locals {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "cloudtrail" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cloudtrail?ref=v0.40.1"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cloudtrail?ref=v0.41.1"
 
   create_resources      = var.enable_cloudtrail
   cloudtrail_trail_name = var.name_prefix
+  tags                  = var.cloudtrail_tags
 
   # Set to true here because we create the bucket using the cloudtrail-bucket module in the logs account
   s3_bucket_already_exists = true
@@ -150,7 +141,7 @@ module "cloudtrail" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "iam_groups" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-groups?ref=v0.40.1"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-groups?ref=v0.41.1"
 
   aws_account_id     = var.aws_account_id
   should_require_mfa = var.should_require_mfa
@@ -177,7 +168,7 @@ module "iam_groups" {
 }
 
 module "iam_users" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-users?ref=v0.40.1"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-users?ref=v0.41.1"
 
   users                   = var.users
   password_length         = var.iam_password_policy_minimum_password_length
@@ -187,9 +178,10 @@ module "iam_users" {
 }
 
 module "iam_cross_account_roles" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cross-account-iam-roles?ref=v0.40.1"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cross-account-iam-roles?ref=v0.41.1"
 
   aws_account_id = var.aws_account_id
+  tags           = var.iam_role_tags
 
   should_require_mfa     = var.should_require_mfa
   dev_permitted_services = var.dev_permitted_services
@@ -209,7 +201,7 @@ module "iam_cross_account_roles" {
 }
 
 module "iam_user_password_policy" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-user-password-policy?ref=v0.40.1"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-user-password-policy?ref=v0.41.1"
 
   # Adjust these settings as appropriate for your company
   minimum_password_length        = var.iam_password_policy_minimum_password_length
@@ -217,10 +209,11 @@ module "iam_user_password_policy" {
   require_symbols                = var.iam_password_policy_require_symbols
   require_lowercase_characters   = var.iam_password_policy_require_lowercase_characters
   require_uppercase_characters   = var.iam_password_policy_require_uppercase_characters
-  allow_users_to_change_password = true
-  hard_expiry                    = true
+  allow_users_to_change_password = var.iam_password_policy_allow_users_to_change_password
+  hard_expiry                    = var.iam_password_policy_hard_expiry
   max_password_age               = var.iam_password_policy_max_password_age
   password_reuse_prevention      = var.iam_password_policy_password_reuse_prevention
+
 }
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -228,7 +221,7 @@ module "iam_user_password_policy" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "guardduty" {
-  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/guardduty-multi-region?ref=v0.40.1"
+  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/guardduty-multi-region?ref=v0.41.1"
   aws_account_id = var.aws_account_id
   seed_region    = var.aws_region
 
@@ -237,4 +230,22 @@ module "guardduty" {
   findings_sns_topic_name      = var.guardduty_findings_sns_topic_name
   opt_in_regions               = var.guardduty_opt_in_regions
   publish_findings_to_sns      = var.guardduty_publish_findings_to_sns
+}
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ELASTIC BLOCK STORAGE (EBS) ENCRYPTION DEFAULTS
+# ----------------------------------------------------------------------------------------------------------------------
+
+module "ebs_encryption" {
+  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/ebs-encryption-multi-region?ref=v0.41.1"
+  aws_account_id = var.aws_account_id
+  seed_region    = var.aws_region
+  opt_in_regions = var.ebs_opt_in_regions
+
+  enable_encryption = var.ebs_enable_encryption
+
+  # For the root account we do not create keys by default. However, through these variables we expose
+  # the configuration to permit custom keys if desired.
+  use_existing_kms_keys = var.ebs_use_existing_kms_keys
+  kms_key_arns          = var.ebs_kms_key_arns
 }

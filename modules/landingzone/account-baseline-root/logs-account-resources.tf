@@ -69,7 +69,7 @@ provider "aws" {
 }
 
 module "config_bucket" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-config-bucket?ref=v0.40.1"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-config-bucket?ref=v0.41.1"
 
   providers = {
     aws = aws.logs
@@ -92,7 +92,7 @@ module "config_bucket" {
 }
 
 module "cloudtrail_bucket" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cloudtrail-bucket?ref=v0.40.1"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cloudtrail-bucket?ref=v0.41.1"
 
   providers = {
     aws = aws.logs
@@ -119,6 +119,7 @@ module "cloudtrail_bucket" {
   force_destroy                         = var.cloudtrail_force_destroy
   num_days_after_which_archive_log_data = var.cloudtrail_num_days_after_which_archive_log_data
   num_days_after_which_delete_log_data  = var.cloudtrail_num_days_after_which_delete_log_data
+  tags                                  = var.cloudtrail_tags
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
