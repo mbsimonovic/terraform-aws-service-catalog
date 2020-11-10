@@ -119,6 +119,7 @@ module "cloudtrail_bucket" {
   force_destroy                         = var.cloudtrail_force_destroy
   num_days_after_which_archive_log_data = var.cloudtrail_num_days_after_which_archive_log_data
   num_days_after_which_delete_log_data  = var.cloudtrail_num_days_after_which_delete_log_data
+  tags                                  = var.cloudtrail_tags
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

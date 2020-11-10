@@ -41,6 +41,11 @@ output "organization_id" {
   value       = module.organization.organization_id
 }
 
+output "organization_root_id" {
+  description = "Identifier of the root of this organization."
+  value       = module.organization.organization_root_id
+}
+
 output "master_account_arn" {
   description = "ARN of the master account."
   value       = module.organization.master_account_arn
@@ -59,15 +64,6 @@ output "master_account_email" {
 output "child_accounts" {
   description = "A map of all accounts created by this module (NOT including the root account). The keys are the names of the accounts and the values are the attributes for the account as defined in the aws_organizations_account resource."
   value       = module.organization.child_accounts
-}
-
-# ---------------------------------------------------------------------------------------------------------------------
-# ORGANIZATIONS CONFIG RULES OUTPUTS
-# ---------------------------------------------------------------------------------------------------------------------
-
-output "config_rule_arns" {
-  description = "Map of config rule ARNs. Key is rule ID, value is rule ARN"
-  value       = module.organizations_config_rules.config_rule_arns
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -432,4 +428,18 @@ output "user_passwords" {
 output "user_access_keys" {
   description = "A map of user name to that user's access keys (a map with keys access_key_id and secret_access_key), with the secret_access_key encrypted with that user's PGP key (only shows up for users with create_access_keys = true). You can decrypt the secret_access_key on the CLI: echo <secret_access_key> | base64 --decode | keybase pgp decrypt"
   value       = module.iam_users.user_access_keys
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# EBS DEFAULT ENCRYPTION OUTPUTS
+# ---------------------------------------------------------------------------------------------------------------------
+
+output "aws_ebs_encryption_by_default_enabled" {
+  description = "A map from region to a boolean indicating whether or not EBS encryption is enabled by default for each region."
+  value       = module.ebs_encryption.aws_ebs_encryption_by_default_enabled
+}
+
+output "aws_ebs_encryption_default_kms_key" {
+  description = "A map from region to the ARN of the KMS key used for default EBS encryption for each region."
+  value       = module.ebs_encryption.aws_ebs_encryption_default_kms_key
 }
