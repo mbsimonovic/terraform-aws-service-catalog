@@ -44,6 +44,41 @@ module "config" {
   central_account_id                        = var.config_central_account_id
 
   tags = var.config_tags
+
+  #### Parameters for AWS Config Rules ####
+  # If config_create_account_rules is true, we create account-level Config rules directly in this account.
+  # If config_create_account_rules is false, we can only create org-level rules in the root account, so in this account,
+  # we create nothing.
+  enable_config_rules = var.config_create_account_rules
+
+  additional_config_rules                       = var.additional_config_rules
+  enable_iam_password_policy_rule               = var.enable_iam_password_policy
+  enable_encrypted_volumes_rule                 = var.enable_encrypted_volumes
+  enable_insecure_sg_rules                      = var.enable_insecure_sg_rules
+  enable_rds_storage_encrypted_rule             = var.enable_rds_storage_encrypted
+  enable_root_account_mfa_rule                  = var.enable_root_account_mfa
+  enable_s3_bucket_public_read_prohibited_rule  = var.enable_s3_bucket_public_read_prohibited
+  enable_s3_bucket_public_write_prohibited_rule = var.enable_s3_bucket_public_write_prohibited
+
+  iam_password_policy_rule_max_password_age             = var.iam_password_policy_max_password_age
+  iam_password_policy_rule_minimum_password_length      = var.iam_password_policy_minimum_password_length
+  iam_password_policy_rule_password_reuse_prevention    = var.iam_password_policy_password_reuse_prevention
+  iam_password_policy_rule_require_lowercase_characters = var.iam_password_policy_require_lowercase_characters
+  iam_password_policy_rule_require_numbers              = var.iam_password_policy_require_numbers
+  iam_password_policy_rule_require_symbols              = var.iam_password_policy_require_symbols
+  iam_password_policy_rule_require_uppercase_characters = var.iam_password_policy_require_uppercase_characters
+  insecure_sg_rules_authorized_udp_ports                = var.insecure_sg_rules_authorized_udp_ports
+  insecure_sg_rules_authorized_tcp_ports                = var.insecure_sg_rules_authorized_tcp_ports
+  config_rule_maximum_execution_frequency               = var.configrules_maximum_execution_frequency
+  encrypted_volumes_kms_id                              = var.encrypted_volumes_kms_id
+  rds_storage_encrypted_kms_id                          = var.rds_storage_encrypted_kms_id
+
+  # We used to do org-level rules, but those have a dependency / ordering problem: if you enable org-level rules, they
+  # immediately apply to ALL child accounts... But if a child account doesn't have a Config Recorder, it fails. So when
+  # adding new child accounts, the deployment always fails, because of course brand new accounts don't have Config
+  # Recorders. So by switching to account-level rules, we now have to apply the same rules in each and every account,
+  # but we can ensure that the rules are only enforced after the Config Recorder is in place.
+  create_account_rules = true
 }
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -63,11 +98,12 @@ module "iam_groups" {
 
   should_create_iam_group_full_access              = var.should_create_iam_group_full_access
   should_create_iam_group_billing                  = var.should_create_iam_group_billing
+  should_create_iam_group_support                  = var.should_create_iam_group_support
   should_create_iam_group_logs                     = var.should_create_iam_group_logs
   should_create_iam_group_developers               = var.should_create_iam_group_developers
   should_create_iam_group_read_only                = var.should_create_iam_group_read_only
-  should_create_iam_group_support                  = var.should_create_iam_group_support
   should_create_iam_group_user_self_mgmt           = var.should_create_iam_group_user_self_mgmt
+  should_create_iam_group_iam_admin                = var.should_create_iam_group_iam_admin
   should_create_iam_group_use_existing_iam_roles   = var.should_create_iam_group_use_existing_iam_roles
   should_create_iam_group_auto_deploy              = var.should_create_iam_group_auto_deploy
   should_create_iam_group_houston_cli_users        = var.should_create_iam_group_houston_cli_users
@@ -75,6 +111,7 @@ module "iam_groups" {
 
   iam_group_name_full_access            = var.iam_group_name_full_access
   iam_group_name_billing                = var.iam_group_name_billing
+  iam_group_name_support                = var.iam_group_name_support
   iam_group_name_logs                   = var.iam_group_name_logs
   iam_group_name_developers             = var.iam_group_name_developers
   iam_group_name_read_only              = var.iam_group_name_read_only
@@ -83,13 +120,12 @@ module "iam_groups" {
   iam_group_name_use_existing_iam_roles = var.iam_group_name_use_existing_iam_roles
   iam_group_name_auto_deploy            = var.iam_group_name_auto_deploy
   iam_group_name_houston_cli            = var.iam_group_name_houston_cli
-  iam_group_name_support                = var.iam_group_name_support
   iam_group_name_iam_user_self_mgmt     = var.iam_group_name_iam_user_self_mgmt
   iam_policy_iam_user_self_mgmt         = var.iam_policy_iam_user_self_mgmt
   iam_group_name_iam_admin              = var.iam_group_name_iam_admin
   auto_deploy_permissions               = var.auto_deploy_permissions
 
-  cloudtrail_kms_key_arn = local.cloudtrail_kms_key_arn
+  cloudtrail_kms_key_arn = module.cloudtrail.kms_key_arn
 }
 
 module "iam_users" {
@@ -111,12 +147,14 @@ module "iam_cross_account_roles" {
   source = "git::git@github.com:gruntwork-io/module-security.git//modules/cross-account-iam-roles?ref=v0.41.1"
 
   aws_account_id = var.aws_account_id
+  tags           = var.iam_role_tags
 
   should_require_mfa     = var.should_require_mfa
   dev_permitted_services = var.dev_permitted_services
 
   allow_read_only_access_from_other_account_arns = var.allow_read_only_access_from_other_account_arns
   allow_billing_access_from_other_account_arns   = var.allow_billing_access_from_other_account_arns
+  allow_support_access_from_other_account_arns   = var.allow_support_access_from_other_account_arns
   allow_logs_access_from_other_account_arns      = var.allow_logs_access_from_other_account_arns
   allow_ssh_grunt_access_from_other_account_arns = var.allow_ssh_grunt_access_from_other_account_arns
   allow_dev_access_from_other_account_arns       = var.allow_dev_access_from_other_account_arns
@@ -125,7 +163,7 @@ module "iam_cross_account_roles" {
   auto_deploy_permissions                   = var.auto_deploy_permissions
   allow_auto_deploy_from_other_account_arns = var.allow_auto_deploy_from_other_account_arns
 
-  cloudtrail_kms_key_arn = local.cloudtrail_kms_key_arn
+  cloudtrail_kms_key_arn = module.cloudtrail.kms_key_arn
 
   max_session_duration_human_users   = var.max_session_duration_human_users
   max_session_duration_machine_users = var.max_session_duration_machine_users
@@ -140,8 +178,8 @@ module "iam_user_password_policy" {
   require_symbols                = var.iam_password_policy_require_symbols
   require_lowercase_characters   = var.iam_password_policy_require_lowercase_characters
   require_uppercase_characters   = var.iam_password_policy_require_uppercase_characters
-  allow_users_to_change_password = true
-  hard_expiry                    = true
+  allow_users_to_change_password = var.iam_password_policy_allow_users_to_change_password
+  hard_expiry                    = var.iam_password_policy_hard_expiry
   max_password_age               = var.iam_password_policy_max_password_age
   password_reuse_prevention      = var.iam_password_policy_password_reuse_prevention
 }
@@ -151,8 +189,7 @@ module "iam_user_password_policy" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "guardduty" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/guardduty-multi-region?ref=v0.41.1"
-
+  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/guardduty-multi-region?ref=v0.41.1"
   aws_account_id = var.aws_account_id
   seed_region    = var.aws_region
 
@@ -173,18 +210,17 @@ module "cloudtrail" {
   is_multi_region_trail = true
   cloudtrail_trail_name = var.name_prefix
   s3_bucket_name        = var.cloudtrail_s3_bucket_name != null ? var.cloudtrail_s3_bucket_name : "${var.name_prefix}-cloudtrail"
+  tags                  = var.cloudtrail_tags
 
   num_days_after_which_archive_log_data = var.cloudtrail_num_days_after_which_archive_log_data
   num_days_after_which_delete_log_data  = var.cloudtrail_num_days_after_which_delete_log_data
 
   # Set our kms key arn to the one created outside the module. Since we are bringing our own KMS key, we set the kms
   # user vars to empty list.
-  kms_key_already_exists         = true
-  kms_key_arn                    = local.cloudtrail_kms_key_arn
-  kms_key_administrator_iam_arns = []
-  kms_key_user_iam_arns          = []
-
-  # Note that users with IAM permissions to CloudTrail can still view the last 7 days of data in the AWS Web Console
+  kms_key_already_exists           = var.cloudtrail_kms_key_arn != null
+  kms_key_arn                      = var.cloudtrail_kms_key_arn
+  kms_key_administrator_iam_arns   = var.cloudtrail_kms_key_administrator_iam_arns
+  kms_key_user_iam_arns            = var.cloudtrail_kms_key_user_iam_arns
   allow_cloudtrail_access_with_iam = var.allow_cloudtrail_access_with_iam
 
   # If you're writing CloudTrail logs to an existing S3 bucket in another AWS account, set this to true
@@ -200,59 +236,12 @@ module "cloudtrail" {
   force_destroy = var.cloudtrail_force_destroy
 }
 
-# If the user did not pass in a custom KMS key ARN create a dedicated one for use with CloudTrail,
-# with explicit permissions to allow encrypting the logs for external accounts.
-module "cloudtrail_cmk" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-master-key?ref=v0.41.1"
-
-  customer_master_keys = local.maybe_cloudtrail_key
-}
-
-locals {
-  cloudtrail_cmk_name = "cmk-${var.name_prefix}-cloudtrail"
-  dedicated_cloudtrail_key = {
-    (local.cloudtrail_cmk_name) = {
-      cmk_administrator_iam_arns = var.cloudtrail_kms_key_administrator_iam_arns
-      cmk_user_iam_arns = [
-        {
-          name = var.cloudtrail_kms_key_user_iam_arns
-        }
-      ]
-      cmk_service_principals = [
-        {
-          name    = "cloudtrail.amazonaws.com"
-          actions = ["kms:GenerateDataKey*"]
-          conditions = [{
-            test     = "StringLike"
-            variable = "kms:EncryptionContext:aws:cloudtrail:arn"
-            values = concat([
-              "arn:aws:cloudtrail:*:${var.aws_account_id}:trail/${var.name_prefix}"
-              ],
-              [
-                for account_id in var.cloudtrail_external_aws_account_ids_with_write_access :
-                "arn:aws:cloudtrail:*:${account_id}:trail/*"
-              ],
-            )
-          }]
-        },
-        {
-          name    = "cloudtrail.amazonaws.com"
-          actions = ["kms:DescribeKey"]
-        },
-      ]
-    }
-  }
-  maybe_cloudtrail_key   = var.cloudtrail_kms_key_arn == null ? local.dedicated_cloudtrail_key : {}
-  cloudtrail_kms_key_arn = var.cloudtrail_kms_key_arn == null ? module.cloudtrail_cmk.key_arn[local.cloudtrail_cmk_name] : var.cloudtrail_kms_key_arn
-}
-
 # ----------------------------------------------------------------------------------------------------------------------
 # ACCOUNT LEVEL KMS CMKS
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "customer_master_keys" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-master-key-multi-region?ref=v0.41.1"
-
+  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-master-key-multi-region?ref=v0.41.1"
   aws_account_id = var.aws_account_id
   seed_region    = var.aws_region
 
@@ -268,4 +257,25 @@ module "kms_grants" {
   opt_in_regions    = var.kms_cmk_opt_in_regions
   kms_grant_regions = var.kms_grant_regions
   kms_grants        = var.kms_grants
+}
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ELASTIC BLOCK STORAGE (EBS) ENCRYPTION DEFAULTS
+# ----------------------------------------------------------------------------------------------------------------------
+
+module "ebs_encryption" {
+  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/ebs-encryption-multi-region?ref=v0.41.1"
+  aws_account_id = var.aws_account_id
+  seed_region    = var.aws_region
+  opt_in_regions = var.ebs_opt_in_regions
+
+  enable_encryption     = var.ebs_enable_encryption
+  use_existing_kms_keys = var.ebs_use_existing_kms_keys
+
+  # The KMS key name is supplied which will be in the output of CMKs created earlier, so use this
+  # to create a map of region names against CMK ARNs for the EBS encryption key
+  kms_key_arns = {
+    for k, v in module.customer_master_keys.key_arns :
+    k => lookup(v, var.ebs_kms_key_name, null)
+  }
 }

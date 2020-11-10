@@ -154,11 +154,23 @@ variable "enable_encrypted_volumes" {
   default     = true
 }
 
+variable "encrypted_volumes_kms_id" {
+  description = "ID or ARN of the KMS key that is used to encrypt the volume. Used for configuring the encrypted volumes config rule."
+  type        = string
+  default     = null
+}
+
 # RDS encryption
 variable "enable_rds_storage_encrypted" {
   description = "Checks whether storage encryption is enabled for your RDS DB instances."
   type        = bool
   default     = true
+}
+
+variable "rds_storage_encrypted_kms_id" {
+  description = "KMS key ID or ARN used to encrypt the storage. Used for configuring the RDS storage encryption config rule."
+  type        = string
+  default     = null
 }
 
 variable "additional_config_rules" {
@@ -172,18 +184,22 @@ variable "additional_config_rules" {
     trigger_type : string
     # A map of input parameters for the rule. If you don't have parameters, pass in an empty map ´{}´.
     input_parameters : map(string)
+    # Whether or not this applies to global (non-regional) resources like IAM roles. When true, these rules are disabled
+    # if var.enable_global_resource_rules is false.
+    applies_to_global_resources = bool
   }))
 
   default = {}
 
   # Example:
   #
-  # additional_rules = {
+  # additional_config_rules = {
   #   acm-certificate-expiration-check = {
-  #     description      = "Checks whether ACM Certificates in your account are marked for expiration within the specified number of days.",
-  #     identifier       = "ACM_CERTIFICATE_EXPIRATION_CHECK",
-  #     trigger_type     = "PERIODIC",
-  #     input_parameters = { "daysToExpiration": "14"},
+  #     description                 = "Checks whether ACM Certificates in your account are marked for expiration within the specified number of days.",
+  #     identifier                  = "ACM_CERTIFICATE_EXPIRATION_CHECK",
+  #     trigger_type                = "PERIODIC",
+  #     input_parameters            = { "daysToExpiration": "14"},
+  #     applies_to_global_resources = false
   #   }
   # }
 
@@ -198,6 +214,12 @@ variable "should_require_mfa" {
   description = "Should we require that all IAM Users use Multi-Factor Authentication for both AWS API calls and the AWS Web Console? (true or false)"
   type        = bool
   default     = true
+}
+
+variable "iam_role_tags" {
+  description = "The tags to apply to all the IAM role resources."
+  type        = map(string)
+  default     = {}
 }
 
 variable "iam_group_developers_permitted_services" {
@@ -459,6 +481,24 @@ variable "iam_password_policy_max_password_age" {
   default     = 30
 }
 
+variable "iam_password_policy_allow_users_to_change_password" {
+  description = "Allow users to change their own password."
+  type        = bool
+  default     = true
+}
+
+#
+# WARNING: Setting the below value to "true" with the following conditions can lead to administrative account lockout:
+#
+# 1) You have only a single administrative IAM user
+# 2) You do not have access to the root account
+#
+variable "iam_password_policy_hard_expiry" {
+  description = "Password expiration requires administrator reset."
+  type        = bool
+  default     = true
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL USERS MODULE PARAMETERS
 # These variables have defaults, but may be overridden by the operator.
@@ -693,6 +733,12 @@ variable "cloudtrail_external_aws_account_ids_with_write_access" {
   default     = []
 }
 
+variable "cloudtrail_tags" {
+  description = "Tags to apply to the CloudTrail resources."
+  type        = map(string)
+  default     = {}
+}
+
 variable "cloudtrail_force_destroy" {
   description = "If set to true, when you run 'terraform destroy', delete all objects from the bucket so that the bucket can be destroyed without error. Warning: these objects are not recoverable so only use this if you're absolutely sure you want to permanently delete everything!"
   type        = bool
@@ -866,4 +912,33 @@ variable "kms_grants" {
     granted_operations = list(string)
   }))
   default = {}
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# OPTIONAL EBS ENCRYPTION PARAMETERS
+# These variables have defaults, but may be overridden by the operator.
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "ebs_enable_encryption" {
+  description = "If set to true (default), all new EBS volumes will have encryption enabled by default"
+  type        = bool
+  default     = true
+}
+
+variable "ebs_use_existing_kms_keys" {
+  description = "If set to true, the KMS Customer Managed Keys (CMK) with the name in var.ebs_kms_key_name will be set as the default for EBS encryption. When false (default), the AWS-managed aws/ebs key will be used."
+  type        = bool
+  default     = false
+}
+
+variable "ebs_kms_key_name" {
+  description = "The name of the KMS CMK to use by default for encrypting EBS volumes, if var.ebs_enable_encryption and var.ebs_use_existing_kms_keys are enabled. The name must match a name given the var.kms_customer_master_keys variable."
+  type        = string
+  default     = ""
+}
+
+variable "ebs_opt_in_regions" {
+  description = "Configures EBS encryption defaults in the specified regions. Note that the region must be enabled on your AWS account. Regions that are not enabled are automatically filtered from this list. When null (default), EBS encryption will be enabled on all regions enabled on the account. Use this list to provide an alternate region list for testing purposes."
+  type        = list(string)
+  default     = null
 }
