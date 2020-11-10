@@ -253,6 +253,20 @@ output "invalid_cmk_inputs" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
+# EBS DEFAULT ENCRYPTION OUTPUTS
+# ---------------------------------------------------------------------------------------------------------------------
+
+output "aws_ebs_encryption_by_default_enabled" {
+  description = "A map from region to a boolean indicating whether or not EBS encryption is enabled by default for each region."
+  value       = module.ebs_encryption.aws_ebs_encryption_by_default_enabled
+}
+
+output "aws_ebs_encryption_default_kms_key" {
+  description = "A map from region to the ARN of the KMS key used for default EBS encryption for each region."
+  value       = module.ebs_encryption.aws_ebs_encryption_default_kms_key
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
 # SERVICE LINKED ROLE OUTPUTS
 # ---------------------------------------------------------------------------------------------------------------------
 
