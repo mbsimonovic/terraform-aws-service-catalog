@@ -197,19 +197,19 @@ variable "capacity_provider_enabled" {
 variable "capacity_provider_target" {
   description = "Target cluster utilization for the capacity provider; a number from 1 to 100."
   type        = number
-  default     = 75
+  default     = null
 }
 
 variable "capacity_provider_max_scale_step" {
   description = "Maximum step adjustment size to the ASG's desired instance count"
   type        = number
-  default     = 10
+  default     = null
 }
 
 variable "capacity_provider_min_scale_step" {
   description = "Minimum step adjustment size to the ASG's desired instance count"
   type        = number
-  default     = 1
+  default     = null
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
