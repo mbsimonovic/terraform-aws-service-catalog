@@ -24,9 +24,9 @@ readonly DEFAULT_TERRAFORM_VERSION="0.12.21"
 # terraform-aws-eks, both of which lag behind open source K8S
 readonly DEFAULT_KUBECTL_VERSION="v1.17.3"
 # renovate.json auto-update-github-releases: helm/helm
-readonly DEFAULT_HELM_VERSION="v3.3.4"
+readonly DEFAULT_HELM_VERSION="v3.4.0"
 # renovate.json auto-update-github-releases: hashicorp/packer
-readonly DEFAULT_PACKER_VERSION="1.6.4"
+readonly DEFAULT_PACKER_VERSION="1.6.5"
 # renovate.json auto-update-docker-ubuntu
 readonly DEFAULT_DOCKER_VERSION="18.06.1~ce~3-0~ubuntu"
 
@@ -50,7 +50,7 @@ function include_ec2_baseline {
     --repo https://github.com/gruntwork-io/aws-service-catalog \
     ${ec2_baseline_version_branch} \
     ${ec2_baseline_version_tag}
-    
+
   # Include common defaults and functions from the ec2-baseline install script
   # See: https://github.com/gruntwork-io/aws-service-catalog/blob/master/modules/base/ec2-baseline
   readonly EC2_BASELINE_RELATIVE_PATH="../../base/ec2-baseline"
@@ -161,7 +161,7 @@ function install_helm {
   sudo chmod a+x /usr/local/bin/helm
 
   echo "Initialize stable repository"
-  helm repo add stable https://kubernetes-charts.storage.googleapis.com/
+  helm repo add stable https://charts.helm.sh/stable
 
   echo "Cleaning up temporary files"
   rm -rf linux-amd64
