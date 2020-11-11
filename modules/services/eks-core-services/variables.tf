@@ -45,6 +45,24 @@ variable "pod_execution_iam_role_arn" {
 
 # Fluent-bit DaemonSet options
 
+variable "fluent_bit_log_group_name" {
+  description = "Name of the CloudWatch Log Group fluent-bit should use to stream logs to. When null (default), uses the eks_cluster_name as the Log Group name."
+  type        = string
+  default     = null
+}
+
+variable "fluent_bit_log_group_already_exists" {
+  description = "If set to true, that means that the CloudWatch Log Group fluent-bit should use for streaming logs already exists and does not need to be created."
+  type        = bool
+  default     = false
+}
+
+variable "fluent_bit_log_stream_prefix" {
+  description = "Prefix string to use for the CloudWatch Log Stream that gets created for each pod. When null (default), the prefix is set to 'fluentbit'."
+  type        = string
+  default     = null
+}
+
 variable "fluent_bit_pod_tolerations" {
   description = "Configure tolerations rules to allow the fluent-bit Pods to schedule on nodes that have been tainted. Each item in the list specifies a toleration rule."
   type        = list(map(any))

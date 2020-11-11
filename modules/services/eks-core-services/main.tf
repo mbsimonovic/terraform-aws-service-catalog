@@ -67,15 +67,25 @@ module "aws_for_fluent_bit" {
   iam_role_name_prefix                 = var.eks_cluster_name
   cloudwatch_configuration = {
     region            = var.aws_region
-    log_group_name    = aws_cloudwatch_log_group.eks_cluster.name
-    log_stream_prefix = null
+    log_group_name    = local.maybe_log_group
+    log_stream_prefix = var.fluent_bit_log_stream_prefix
   }
   pod_tolerations   = var.fluent_bit_pod_tolerations
   pod_node_affinity = var.fluent_bit_pod_node_affinity
 }
 
 resource "aws_cloudwatch_log_group" "eks_cluster" {
-  name = var.eks_cluster_name
+  count = var.fluent_bit_log_group_already_exists == false ? 1 : 0
+  name  = local.log_group_name
+}
+
+locals {
+  log_group_name = (
+    var.fluent_bit_log_group_name != null ? var.fluent_bit_log_group_name : var.eks_cluster_name
+  )
+  maybe_log_group = (
+    var.fluent_bit_log_group_already_exists ? local.log_group_name : aws_cloudwatch_log_group.eks_cluster[0].name
+  )
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
