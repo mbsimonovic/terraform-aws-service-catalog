@@ -43,10 +43,28 @@ variable "pod_execution_iam_role_arn" {
 # These variables have defaults and may be overwritten
 # ---------------------------------------------------------------------------------------------------------------------
 
-# Fluentd DaemonSet options
+# Fluent-bit DaemonSet options
 
-variable "fluentd_cloudwatch_pod_tolerations" {
-  description = "Configure tolerations rules to allow the fluentd-cloudwatch Pods to schedule on nodes that have been tainted. Each item in the list specifies a toleration rule."
+variable "fluent_bit_log_group_name" {
+  description = "Name of the CloudWatch Log Group fluent-bit should use to stream logs to. When null (default), uses the eks_cluster_name as the Log Group name."
+  type        = string
+  default     = null
+}
+
+variable "fluent_bit_log_group_already_exists" {
+  description = "If set to true, that means that the CloudWatch Log Group fluent-bit should use for streaming logs already exists and does not need to be created."
+  type        = bool
+  default     = false
+}
+
+variable "fluent_bit_log_stream_prefix" {
+  description = "Prefix string to use for the CloudWatch Log Stream that gets created for each pod. When null (default), the prefix is set to 'fluentbit'."
+  type        = string
+  default     = null
+}
+
+variable "fluent_bit_pod_tolerations" {
+  description = "Configure tolerations rules to allow the fluent-bit Pods to schedule on nodes that have been tainted. Each item in the list specifies a toleration rule."
   type        = list(map(any))
   default     = []
 
@@ -65,8 +83,8 @@ variable "fluentd_cloudwatch_pod_tolerations" {
   # ]
 }
 
-variable "fluentd_cloudwatch_pod_node_affinity" {
-  description = "Configure affinity rules for the fluentd-cloudwatch Pods to control which nodes to schedule on. Each item in the list should be a map with the keys `key`, `values`, and `operator`, corresponding to the 3 properties of matchExpressions. Note that all expressions must be satisfied to schedule on the node."
+variable "fluent_bit_pod_node_affinity" {
+  description = "Configure affinity rules for the fluent-bit Pods to control which nodes to schedule on. Each item in the list should be a map with the keys `key`, `values`, and `operator`, corresponding to the 3 properties of matchExpressions. Note that all expressions must be satisfied to schedule on the node."
   type = list(object({
     key      = string
     values   = list(string)

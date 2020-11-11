@@ -76,11 +76,11 @@ func TestEksCluster(t *testing.T) {
 	})
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
-		kubectlOptions := test_structure.LoadKubectlOptions(t, testFolder)
-		os.Remove(kubectlOptions.ConfigPath)
-
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
 		terraform.Destroy(t, terraformOptions)
+
+		kubectlOptions := test_structure.LoadKubectlOptions(t, testFolder)
+		os.Remove(kubectlOptions.ConfigPath)
 	})
 
 	test_structure.RunTestStage(t, "build_ami", func() {
