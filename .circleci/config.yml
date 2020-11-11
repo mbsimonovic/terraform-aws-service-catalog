@@ -13,7 +13,7 @@ defaults: &defaults
     # renovate.json auto-update: gruntwork-installer
     GRUNTWORK_INSTALLER_VERSION: v0.0.29
     # renovate.json auto-update: terratest
-    TERRATEST_LOG_PARSER_VERSION: v0.30.22
+    TERRATEST_LOG_PARSER_VERSION: v0.30.23
     # renovate.json auto-update: kubergrunt
     KUBERGRUNT_VERSION: v0.6.4
     # renovate.json auto-update: module-ci
