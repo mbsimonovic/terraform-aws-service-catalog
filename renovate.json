@@ -13,7 +13,7 @@
       "datasourceTemplate": "terraform-module"
     },
     {
-      "fileMatch": ["\\.tf$", "\\.hcl$"],
+      "fileMatch": ["\\.tf$", "\\.hcl$", "\\.go"],
       "matchStrings": ["renovate.json auto-update-github-releases: (?<org>.+?)/(?<repo>.+?)\n.+=\"(?<currentValue>.+?)\""],
       "depNameTemplate": "{{org}}/{{repo}}",
       "lookupNameTemplate": "{{org}}/{{repo}}",
