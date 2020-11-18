@@ -96,6 +96,7 @@ func TestEcsDeployRunner(t *testing.T) {
 				"aws_region":          awsRegion,
 				"service_catalog_ref": branchName,
 				"version_tag":         branchName,
+				"instance_type":       "t3.micro",
 			},
 			MaxRetries:         3,
 			TimeBetweenRetries: 5 * time.Second,

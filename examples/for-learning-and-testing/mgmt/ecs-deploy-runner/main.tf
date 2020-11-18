@@ -17,6 +17,9 @@ module "ecs_deploy_runner" {
   vpc_id             = module.vpc.vpc_id
   private_subnet_ids = module.vpc.private_app_subnet_ids
 
+  shared_secrets_enabled     = true
+  shared_secrets_kms_cmk_arn = aws_kms_key.shared_secret_grants.arn
+
   docker_image_builder_config = var.docker_image_builder_config
   ami_builder_config          = var.ami_builder_config
   terraform_planner_config    = var.terraform_planner_config
@@ -46,6 +49,13 @@ module "ecs_deploy_runner" {
   iam_users  = var.iam_users
   iam_groups = var.iam_groups
   iam_roles  = var.iam_roles
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# CREATE A KMS KEY FOR TESTING GRANTS
+# ---------------------------------------------------------------------------------------------------------------------
+resource "aws_kms_key" "shared_secret_grants" {
+  deletion_window_in_days = 7
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

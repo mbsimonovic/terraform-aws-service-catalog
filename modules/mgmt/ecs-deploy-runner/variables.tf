@@ -333,6 +333,18 @@ variable "snapshot_encryption_kms_cmk_arns" {
   default     = {}
 }
 
+variable "shared_secrets_enabled" {
+  description = "If true, this module will create grants for a given shared secrets KMS key. You must pass a value for shared_secrets_kms_cmk_arn if this is set to true. Defaults to false."
+  type        = bool
+  default     = false
+}
+
+variable "shared_secrets_kms_cmk_arn" {
+  description = "The ARN of the KMS CMK used for sharing AWS Secrets Manager secrets between accounts."
+  type        = string
+  default     = null
+}
+
 variable "container_cpu" {
   description = "The default CPU units for the instances that Fargate will spin up. The invoker allows users to override the CPU at run time, but this value will be used if the user provides no value for the CPU. Options here: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate.html#fargate-tasks-size."
   type        = number
