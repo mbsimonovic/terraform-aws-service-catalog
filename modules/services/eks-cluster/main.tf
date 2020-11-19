@@ -97,8 +97,12 @@ module "eks_workers" {
   autoscaling_group_configurations  = var.autoscaling_group_configurations
   include_autoscaler_discovery_tags = var.autoscaling_group_include_autoscaler_discovery_tags
 
+  asg_default_min_size      = var.asg_default_min_size
+  asg_default_max_size      = var.asg_default_max_size
+  asg_default_instance_type = var.asg_default_instance_type
+  asg_default_tags          = var.asg_default_tags
+
   cluster_instance_ami              = module.ec2_baseline.existing_ami
-  cluster_instance_type             = var.cluster_instance_type
   cluster_instance_keypair_name     = var.cluster_instance_keypair_name
   cluster_instance_user_data_base64 = module.ec2_baseline.cloud_init_rendered
 
