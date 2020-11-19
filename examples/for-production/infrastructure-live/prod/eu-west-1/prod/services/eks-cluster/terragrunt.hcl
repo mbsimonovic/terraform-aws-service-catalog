@@ -59,9 +59,8 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 inputs = {
-  cluster_name          = "ref-arch-lite-${local.account_vars.locals.account_name}"
-  cluster_instance_type = "t3.small"
-  cluster_instance_ami  = null
+  cluster_name         = "ref-arch-lite-${local.account_vars.locals.account_name}"
+  cluster_instance_ami = null
   cluster_instance_ami_filters = {
     owners = ["self"]
     filters = [
@@ -85,10 +84,11 @@ inputs = {
   autoscaling_group_configurations = {
     for subnet_id in dependency.vpc.outputs.private_app_subnet_ids :
     subnet_id => {
-      min_size   = 1
-      max_size   = 2
-      subnet_ids = [subnet_id]
-      tags       = []
+      min_size          = 1
+      max_size          = 2
+      subnet_ids        = [subnet_id]
+      asg_instance_type = "t3.small"
+      tags              = []
     }
   }
 
