@@ -27,6 +27,61 @@ variable "container_definitions" {
 # OPTIONAL PARAMETERS
 # These values may optionally be overwritten by the calling Terraform code.
 # ---------------------------------------------------------------------------------------------------------------------
+
+variable "capacity_provider_strategy" {
+  description = "The capacity provider strategy to use for the service. Note that the capacity providers have to be present on the ECS cluster before deploying the ECS service. When provided, var.launch_type is ignored."
+  type = list(object({
+    capacity_provider = string
+    weight            = number
+    base              = number
+  }))
+  default = []
+
+  # Example:
+  # capacity_provider_strategy = [
+  #    {
+  #      capacity_provider = "FARGATE"
+  #      weight            = 1
+  #      base              = 2
+  #    },
+  #    {
+  #      capacity_provider = "FARGATE_SPOT"
+  #      weight            = 2
+  #      base              = null
+  #    },
+  # ]
+}
+
+variable "launch_type" {
+  description = "The launch type of the ECS service. Must be one of EC2 or FARGATE. When using FARGATE, you must set the network mode to awsvpc and configure it. When using EC2, you can configure the placement strategy using the variables var.placement_strategy_type, var.placement_strategy_field, var.placement_constraint_type, var.placement_constraint_expression. This variable is ignored if var.capacity_provider_strategy is provided."
+  type        = string
+  default     = "EC2"
+}
+
+variable "placement_strategy_type" {
+  description = "The strategy to use when placing ECS tasks on EC2 instances. Can be binpack (default), random, or spread."
+  type        = string
+  default     = "binpack"
+}
+
+variable "placement_strategy_field" {
+  description = "The field to apply the placement strategy against. For the spread placement strategy, valid values are instanceId (or host, which has the same effect), or any platform or custom attribute that is applied to a container instance, such as attribute:ecs.availability-zone. For the binpack placement strategy, valid values are cpu and memory. For the random placement strategy, this field is not used."
+  type        = string
+  default     = "cpu"
+}
+
+variable "placement_constraint_type" {
+  description = "The type of constraint to apply for container instance placement. The only valid values at this time are memberOf and distinctInstance."
+  type        = string
+  default     = "memberOf"
+}
+
+variable "placement_constraint_expression" {
+  description = "Cluster Query Language expression to apply to the constraint for matching. Does not need to be specified for the distinctInstance constraint type."
+  type        = string
+  default     = "attribute:ecs.ami-id != 'ami-fake'"
+}
+
 variable "secrets_manager_arns" {
   description = "A list of ARNs for Secrets Manager secrets that the ECS execution IAM policy should be granted access to read. Note that this is different from the ECS task IAM policy. The execution policy is concerned with permissions required to run the ECS task."
   type        = list(string)
@@ -544,7 +599,7 @@ variable "deployment_check_loglevel" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# IAM ROLES AND POLICIES 
+# IAM ROLES AND POLICIES
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "iam_role_name" {

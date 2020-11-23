@@ -8,7 +8,8 @@
 
 terraform {
   # Require at least 0.12.26, which knows what to do with the source syntax of required_providers.
-  # Make sure we don't accidentally pull in 0.13.x, as that may have backwards incompatible changes when it comes out.
+  # Make sure we don't accidentally pull in 0.13.x, as that has backwards incompatible changes that are known to NOT
+  # work with the terraform-aws-eks repo. We are working on a fix, but until that's ready, we need to avoid 0.13.x.
   required_version = "~> 0.12.26"
 
   required_providers {
@@ -59,19 +60,32 @@ provider "helm" {
 # forward container logs from a Kubernetes deployment.
 # ---------------------------------------------------------------------------------------------------------------------
 
-module "fluentd_cloudwatch" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cloudwatch-container-logs?ref=v0.23.4"
+module "aws_for_fluent_bit" {
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-container-logs?ref=v0.28.0"
 
-  aws_region                           = var.aws_region
-  eks_cluster_name                     = var.eks_cluster_name
-  log_group_name                       = aws_cloudwatch_log_group.eks_cluster.name
   iam_role_for_service_accounts_config = var.eks_iam_role_for_service_accounts_config
-  pod_tolerations                      = var.fluentd_cloudwatch_pod_tolerations
-  pod_node_affinity                    = var.fluentd_cloudwatch_pod_node_affinity
+  iam_role_name_prefix                 = var.eks_cluster_name
+  cloudwatch_configuration = {
+    region            = var.aws_region
+    log_group_name    = local.maybe_log_group
+    log_stream_prefix = var.fluent_bit_log_stream_prefix
+  }
+  pod_tolerations   = var.fluent_bit_pod_tolerations
+  pod_node_affinity = var.fluent_bit_pod_node_affinity
 }
 
 resource "aws_cloudwatch_log_group" "eks_cluster" {
-  name = var.eks_cluster_name
+  count = var.fluent_bit_log_group_already_exists == false ? 1 : 0
+  name  = local.log_group_name
+}
+
+locals {
+  log_group_name = (
+    var.fluent_bit_log_group_name != null ? var.fluent_bit_log_group_name : var.eks_cluster_name
+  )
+  maybe_log_group = (
+    var.fluent_bit_log_group_already_exists ? local.log_group_name : aws_cloudwatch_log_group.eks_cluster[0].name
+  )
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -80,7 +94,7 @@ resource "aws_cloudwatch_log_group" "eks_cluster" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "alb_ingress_controller" {
-  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-alb-ingress-controller?ref=v0.23.4"
+  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-alb-ingress-controller?ref=v0.28.0"
   dependencies = aws_eks_fargate_profile.core_services.*.id
 
   aws_region                           = var.aws_region
@@ -98,7 +112,7 @@ module "alb_ingress_controller" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "k8s_external_dns" {
-  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-external-dns?ref=v0.23.4"
+  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-external-dns?ref=v0.28.0"
   dependencies = aws_eks_fargate_profile.core_services.*.id
 
   aws_region                           = var.aws_region
@@ -122,7 +136,7 @@ module "k8s_external_dns" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "k8s_cluster_autoscaler" {
-  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-cluster-autoscaler?ref=v0.23.4"
+  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-cluster-autoscaler?ref=v0.28.0"
   dependencies = aws_eks_fargate_profile.core_services.*.id
 
   aws_region                           = var.aws_region

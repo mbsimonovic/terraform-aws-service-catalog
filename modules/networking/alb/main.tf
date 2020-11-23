@@ -5,9 +5,10 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # Require at least 0.12.26, which knows what to do with the source syntax of required_providers.
-  # Make sure we don't accidentally pull in 0.13.x, as that may have backwards incompatible changes when it comes out.
-  required_version = "~> 0.12.26"
+  # This module is now only being tested with Terraform 0.13.x. However, to make upgrading easier, we are setting
+  # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
+  # forwards compatible with 0.13.x code.
+  required_version = ">= 0.12.26"
 
   required_providers {
     aws = {
@@ -49,7 +50,7 @@ module "alb" {
   vpc_subnet_ids = var.vpc_subnet_ids
 
   enable_alb_access_logs         = true
-  alb_access_logs_s3_bucket_name = module.alb_access_logs_bucket.s3_bucket_name
+  alb_access_logs_s3_bucket_name = var.should_create_access_logs_bucket ? module.alb_access_logs_bucket.s3_bucket_name : var.access_logs_s3_bucket_name
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -58,7 +59,7 @@ module "alb" {
 
 # Create an S3 Bucket to store ALB access logs.
 module "alb_access_logs_bucket" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/logs/load-balancer-access-logs?ref=v0.23.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/logs/load-balancer-access-logs?ref=v0.23.4"
 
   # Try to do some basic cleanup to get a valid S3 bucket name: the name must be lower case and can only contain
   # lowercase letters, numbers, and hyphens. For the full rules, see:
@@ -73,7 +74,8 @@ module "alb_access_logs_bucket" {
   num_days_after_which_archive_log_data = var.num_days_after_which_archive_log_data
   num_days_after_which_delete_log_data  = var.num_days_after_which_delete_log_data
 
-  force_destroy = var.force_destroy
+  force_destroy    = var.force_destroy
+  create_resources = var.should_create_access_logs_bucket
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

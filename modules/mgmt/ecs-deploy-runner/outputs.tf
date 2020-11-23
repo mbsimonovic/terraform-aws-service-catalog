@@ -47,3 +47,8 @@ output "invoke_policy_arn" {
   description = "The ARN of the IAM policy that allows access to the invoke the deploy runner."
   value       = module.invoke_policy.arn
 }
+
+output "ecs_task_execution_role_arn" {
+  description = "ECS Task execution role ARN"
+  value       = module.ecs_deploy_runner.ecs_task_execution_role_arn
+}

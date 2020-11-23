@@ -9,8 +9,10 @@
 # ---------------------------------------------------------------------------------------------------------------------
 
 terraform {
-  # Require at least 0.12.26, which knows what to do with the source syntax of required_providers.
-  required_version = "~> 0.12.26"
+  # This module is now only being tested with Terraform 0.13.x. However, to make upgrading easier, we are setting
+  # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
+  # forwards compatible with 0.13.x code.
+  required_version = ">= 0.12.26"
 
   required_providers {
     aws = {
@@ -25,7 +27,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "openvpn" {
-  source = "git::git@github.com:gruntwork-io/package-openvpn.git//modules/openvpn-server?ref=v0.12.0"
+  source = "git::git@github.com:gruntwork-io/package-openvpn.git//modules/openvpn-server?ref=v0.12.1"
 
   aws_region     = data.aws_region.current.name
   aws_account_id = data.aws_caller_identity.current.account_id
@@ -149,7 +151,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "kms_cmk" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-master-key?ref=v0.39.0"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-master-key?ref=v0.41.3"
   customer_master_keys = (
     var.kms_key_arn == null
     ? {

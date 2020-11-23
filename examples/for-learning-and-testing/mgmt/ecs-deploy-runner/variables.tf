@@ -52,7 +52,7 @@ variable "docker_image_builder_config" {
     #
     # Github:
     # - `username_secrets_manager_arn` should contain a valid Personal Access Token for the corresponding machine user.
-    # - `password_secrets_manager_arn` should be set to null. 
+    # - `password_secrets_manager_arn` should be set to null.
     #
     # BitBucket:
     # - `username_secrets_manager_arn` should contain the bitbucket username for the corresponding machine user.

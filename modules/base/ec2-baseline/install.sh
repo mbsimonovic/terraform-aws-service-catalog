@@ -5,11 +5,11 @@
 # renovate.json auto-update: bash-commons
 readonly DEFAULT_BASH_COMMONS_VERSION="v0.1.3"
 # renovate.json auto-update: module-security
-readonly DEFAULT_MODULE_SECURITY_VERSION="v0.39.0"
+readonly DEFAULT_MODULE_SECURITY_VERSION="v0.41.3"
 # renovate.json auto-update: terraform-aws-monitoring
-readonly DEFAULT_MODULE_AWS_MONITORING_VERSION="v0.23.1"
+readonly DEFAULT_MODULE_AWS_MONITORING_VERSION="v0.23.4"
 # renovate.json auto-update: module-server
-readonly DEFAULT_MODULE_STATEFUL_SERVER_VERSION="v0.9.1"
+readonly DEFAULT_MODULE_STATEFUL_SERVER_VERSION="v0.9.3"
 
 # Enable / disable features
 readonly DEFAULT_ENABLE_SSH_GRUNT="true"

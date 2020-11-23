@@ -4,7 +4,6 @@
     "version_tag": null,
     "aws_region": "us-east-1",
     "ami_name": "ecs-deploy-runner-worker",
-    "copy_to_regions": "",
     "github_auth_token": "{{env `GITHUB_OAUTH_TOKEN`}}",
     "encrypt_boot": "false",
     "encrypt_kms_key_id": "",

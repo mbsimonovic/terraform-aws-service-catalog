@@ -168,15 +168,15 @@ variable "enable_ssh_grunt" {
 }
 
 variable "ssh_grunt_iam_group" {
-  description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to this OpenVPN server. To omit this variable, set it to an empty string (do NOT use null, or Terraform will complain)."
+  description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to this OpenVPN server. This value is only used if enable_ssh_grunt=true."
   type        = string
-  default     = ""
+  default     = "ssh-grunt-users"
 }
 
 variable "ssh_grunt_iam_group_sudo" {
-  description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to this OpenVPN server with sudo permissions. To omit this variable, set it to an empty string (do NOT use null, or Terraform will complain)."
+  description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to this OpenVPN server with sudo permissions. This value is only used if enable_ssh_grunt=true."
   type        = string
-  default     = ""
+  default     = "ssh-grunt-sudo-users"
 }
 
 variable "enable_fail2ban" {

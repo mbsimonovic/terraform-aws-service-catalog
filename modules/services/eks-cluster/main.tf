@@ -10,7 +10,8 @@
 
 terraform {
   # Require at least 0.12.26, which knows what to do with the source syntax of required_providers.
-  # Make sure we don't accidentally pull in 0.13.x, as that may have backwards incompatible changes when it comes out.
+  # Make sure we don't accidentally pull in 0.13.x, as that has backwards incompatible changes that are known to NOT
+  # work with the terraform-aws-eks repo. We are working on a fix, but until that's ready, we need to avoid 0.13.x.
   required_version = "~> 0.12.26"
 
   required_providers {
@@ -67,12 +68,12 @@ data "aws_eks_cluster_auth" "kubernetes_token" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "eks_cluster" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.23.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.28.0"
 
   cluster_name = var.cluster_name
 
   vpc_id                       = var.vpc_id
-  vpc_master_subnet_ids        = var.control_plane_vpc_subnet_ids
+  vpc_control_plane_subnet_ids = var.control_plane_vpc_subnet_ids
   endpoint_public_access_cidrs = var.allow_inbound_api_access_from_cidr_blocks
 
   enabled_cluster_log_types              = var.enabled_control_plane_log_types
@@ -86,7 +87,7 @@ module "eks_cluster" {
 }
 
 module "eks_workers" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.23.4"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.28.0"
   create_resources = length(var.autoscaling_group_configurations) > 0
 
   # Use the output from control plane module as the cluster name to ensure the module only looks up the information
@@ -108,11 +109,7 @@ module "eks_workers" {
 }
 
 resource "aws_security_group_rule" "allow_inbound_ssh_from_security_groups" {
-  for_each = (
-    length(var.allow_inbound_ssh_from_security_groups) > 0
-    ? { for group_id in var.allow_inbound_ssh_from_security_groups : group_id => group_id }
-    : {}
-  )
+  for_each = { for group_id in var.allow_inbound_ssh_from_security_groups : group_id => group_id }
 
   type                     = "ingress"
   from_port                = 22
@@ -132,6 +129,29 @@ resource "aws_security_group_rule" "allow_inbound_ssh_from_cidr_blocks" {
   security_group_id = module.eks_workers.eks_worker_security_group_id
   cidr_blocks       = var.allow_inbound_ssh_from_cidr_blocks
 }
+
+resource "aws_security_group_rule" "allow_private_endpoint_from_security_groups" {
+  for_each = { for group_id in var.allow_private_api_access_from_security_groups : group_id => group_id }
+
+  type                     = "ingress"
+  from_port                = 443
+  to_port                  = 443
+  protocol                 = "tcp"
+  security_group_id        = module.eks_cluster.eks_control_plane_security_group_id
+  source_security_group_id = each.key
+}
+
+resource "aws_security_group_rule" "allow_private_endpoint_from_cidr_blocks" {
+  count = length(var.allow_inbound_ssh_from_cidr_blocks) > 0 ? 1 : 0
+
+  type              = "ingress"
+  from_port         = 443
+  to_port           = 443
+  protocol          = "tcp"
+  security_group_id = module.eks_cluster.eks_control_plane_security_group_id
+  cidr_blocks       = var.allow_inbound_ssh_from_cidr_blocks
+}
+
 
 # ---------------------------------------------------------------------------------------------------------------------
 # CONFIGURE EKS IAM ROLE MAPPINGS
@@ -173,7 +193,7 @@ resource "null_resource" "delete_autocreated_aws_auth" {
 }
 
 module "eks_k8s_role_mapping" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.23.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.28.0"
 
   eks_worker_iam_role_arns = (
     length(var.autoscaling_group_configurations) > 0
@@ -202,7 +222,7 @@ module "eks_k8s_role_mapping" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "metric_widget_worker_cpu_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.4"
 
   title = "${var.cluster_name} EKSWorker CPUUtilization"
   stat  = "Average"
@@ -217,7 +237,7 @@ module "metric_widget_worker_cpu_usage" {
 }
 
 module "metric_widget_worker_memory_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.4"
 
   title = "${var.cluster_name} EKSWorker MemoryUtilization"
   stat  = "Average"
@@ -232,7 +252,7 @@ module "metric_widget_worker_memory_usage" {
 }
 
 module "metric_widget_worker_disk_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.4"
 
   title = "${var.cluster_name} EKSWorker DiskUtilization"
   stat  = "Average"
