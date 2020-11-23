@@ -19,64 +19,60 @@ variable "control_plane_vpc_subnet_ids" {
 }
 
 variable "autoscaling_group_configurations" {
-  description = "Configure one or more Auto Scaling Groups (ASGs) to manage the EC2 instances in this cluster. If you do not wish to use the default self managed ASG group, you can pass in an empty object (`{}`)."
+  description = "Configure one or more Auto Scaling Groups (ASGs) to manage the EC2 instances in this cluster. If any of the values are not provided, the specified default variable will be used to lookup a default value."
+  # Ideally, we will use a more strict type here but since we want to support required and optional values, and since
+  # Terraform's type system only supports maps that have the same type for all values, we have to use the less useful
+  # `any` type.
+  type = any
 
-  # Each configuration must be keyed by a unique string that will be used as a suffix for the ASG name.
+  # Each configuration must be keyed by a unique string that will be used as a suffix for the ASG name. The values
+  # support the following attributes:
+  #
+  # REQUIRED (must be provided for every entry):
+  # - subnet_ids  list(string)  : A list of the subnets into which the EKS Cluster's worker nodes will be launched.
+  #                               These should usually be all private subnets and include one in each AWS Availability
+  #                               Zone. NOTE: If using a cluster autoscaler, each ASG may only belong to a single
+  #                               availability zone.
+  #
+  # OPTIONAL (defaults to value of corresponding module input):
+  # - min_size            number             : (Defaults to value from var.asg_default_min_size) The minimum number of
+  #                                            EC2 Instances representing workers launchable for this EKS Cluster.
+  #                                            Useful for auto-scaling limits.
+  # - max_size            number             : (Defaults to value from var.asg_default_max_size) The maximum number of
+  #                                            EC2 Instances representing workers that must be running for this EKS
+  #                                            Cluster. We recommend making this at least twice the min_size, even if
+  #                                            you don't plan on scaling the cluster up and down, as the extra capacity
+  #                                            will be used to deploy updates to the cluster.
+  # - asg_instance_type   string             : (Defaults to value from var.asg_default_instance_type) The type of
+  #                                            instances to use for the ASG (e.g., t2.medium).
+  # - tags                list(object[Tag])  : (Defaults to value from var.asg_default_tags) Custom tags to apply to the
+  #                                            EC2 Instances in this ASG. Refer to structure definition below for the
+  #                                            object type of each entry in the list.
+  #
+  # Structure of Tag object:
+  # - key                  string  : The key for the tag to apply to the instance.
+  # - value                string  : The value for the tag to apply to the instance.
+  # - propagate_at_launch  bool    : Whether or not the tags should be propagated to the instance at launch time.
+  #
   #
   # Example:
   # autoscaling_group_configurations = {
   #   "asg1" = {
-  #     min_size   = 1
-  #     max_size   = 3
-  #     subnet_ids = [data.terraform_remote_state.vpc.outputs.private_app_subnet_ids[0]]
-  #     tags       = []
+  #     asg_instance_type = "t2.medium"
+  #     subnet_ids        = [data.terraform_remote_state.vpc.outputs.private_app_subnet_ids[0]]
   #   },
   #   "asg2" = {
-  #     min_size   = 1
-  #     max_size   = 3
-  #     subnet_ids = [data.terraform_remote_state.vpc.outputs.private_app_subnet_ids[1]]
-  #     tags       = []
+  #     max_size          = 3
+  #     asg_instance_type = "t2.large"
+  #     subnet_ids        = [data.terraform_remote_state.vpc.outputs.private_app_subnet_ids[1]]
+  #
+  #     tags = [{
+  #       key                 = "size"
+  #       value               = "large"
+  #       propagate_at_launch = true
+  #     }]
   #   }
   # }
-  type = map(object({
-    # The minimum number of EC2 Instances representing workers launchable for this EKS Cluster. Useful for auto-scaling limits.
-    min_size = number
-    # The maximum number of EC2 Instances representing workers that must be running for this EKS Cluster.
-    # We recommend making this at least twice the min_size, even if you don't plan on scaling the cluster up and down, as the extra capacity will be used to deploy udpates to the cluster.
-    max_size = number
-
-    # A list of the subnets into which the EKS Cluster's worker nodes will be launched.
-    # These should usually be all private subnets and include one in each AWS Availability Zone.
-    # NOTE: If using a cluster autoscaler, each ASG may only belong to a single availability zone.
-    subnet_ids = list(string)
-
-    # Custom tags to apply to the EC2 Instances in this ASG.
-    # Each item in this list should be a map with the parameters key, value, and propagate_at_launch.
-    #
-    # Example:
-    # [
-    #   {
-    #     key = "foo"
-    #     value = "bar"
-    #     propagate_at_launch = true
-    #   },
-    #   {
-    #     key = "baz"
-    #     value = "blah"
-    #     propagate_at_launch = true
-    #   }
-    # ]
-    tags = list(object({
-      key                 = string
-      value               = string
-      propagate_at_launch = bool
-    }))
-  }))
-}
-
-variable "cluster_instance_type" {
-  description = "The type of instances to run in the EKS cluster (e.g. t3.medium)"
-  type        = string
 }
 
 variable "allow_inbound_api_access_from_cidr_blocks" {
@@ -126,18 +122,6 @@ variable "worker_vpc_subnet_ids" {
   description = "A list of the subnets into which the EKS Cluster's administrative pods will be launched. These should usually be all private subnets and include one in each AWS Availability Zone. Required when var.schedule_control_plane_services_on_fargate is true."
   type        = list(string)
   default     = []
-}
-
-variable "cluster_instance_keypair_name" {
-  description = "The name of the Key Pair that can be used to SSH to each instance in the EKS cluster"
-  type        = string
-  default     = null
-}
-
-variable "autoscaling_group_include_autoscaler_discovery_tags" {
-  description = "Adds additional tags to each ASG that allow a cluster autoscaler to auto-discover them."
-  type        = bool
-  default     = true
 }
 
 variable "allow_inbound_ssh_from_security_groups" {
@@ -266,6 +250,48 @@ variable "enabled_control_plane_log_types" {
   description = "A list of the desired control plane logging to enable. See https://docs.aws.amazon.com/eks/latest/userguide/control-plane-logs.html for the list of available logs."
   type        = list(string)
   default     = ["api", "audit", "authenticator"]
+}
+
+# Properties of the EKS Cluster's EC2 Instances
+
+variable "asg_default_min_size" {
+  description = "Default value for the min_size field of autoscaling_group_configurations. Any map entry that does not specify min_size will use this value."
+  type        = number
+  default     = 1
+}
+
+variable "asg_default_max_size" {
+  description = "Default value for the max_size field of autoscaling_group_configurations. Any map entry that does not specify max_size will use this value."
+  type        = number
+  default     = 2
+}
+
+variable "asg_default_instance_type" {
+  description = "Default value for the asg_instance_type field of autoscaling_group_configurations. Any map entry that does not specify asg_instance_type will use this value."
+  type        = string
+  default     = "t3.medium"
+}
+
+variable "asg_default_tags" {
+  description = "Default value for the tags field of autoscaling_group_configurations. Any map entry that does not specify tags will use this value."
+  type = list(object({
+    key                 = string
+    value               = string
+    propagate_at_launch = bool
+  }))
+  default = []
+}
+
+variable "cluster_instance_keypair_name" {
+  description = "The name of the Key Pair that can be used to SSH to each instance in the EKS cluster"
+  type        = string
+  default     = null
+}
+
+variable "autoscaling_group_include_autoscaler_discovery_tags" {
+  description = "Adds additional tags to each ASG that allow a cluster autoscaler to auto-discover them."
+  type        = bool
+  default     = true
 }
 
 # CloudWatch Dashboard Widgets

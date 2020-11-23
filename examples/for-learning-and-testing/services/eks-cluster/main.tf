@@ -13,7 +13,6 @@ module "eks_cluster" {
   source = "../../../../modules/services/eks-cluster"
 
   cluster_name                               = var.cluster_name
-  cluster_instance_type                      = "t3.small"
   schedule_control_plane_services_on_fargate = true
   cluster_instance_ami                       = null
   cluster_instance_ami_filters = {
@@ -45,10 +44,11 @@ module "eks_cluster" {
   # deploy one ASG in one public subnet. We use public subnets so we can SSH into the node for testing.
   autoscaling_group_configurations = {
     asg = {
-      min_size   = 1
-      max_size   = 2
-      subnet_ids = [module.vpc.public_subnet_ids[0]]
-      tags       = []
+      min_size          = 1
+      max_size          = 2
+      subnet_ids        = [module.vpc.public_subnet_ids[0]]
+      asg_instance_type = "t3.small"
+      tags              = []
     }
   }
 
