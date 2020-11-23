@@ -118,7 +118,8 @@ module "dns_mgmt_to_app" {
   destination_vpc_route53_resolver_primary_subnet_id   = var.create_dns_forwarder ? module.vpc.public_subnet_ids[0] : null
   destination_vpc_route53_resolver_secondary_subnet_id = var.create_dns_forwarder ? module.vpc.public_subnet_ids[1] : null
 
-  name_prefix = var.create_dns_forwarder ? "${var.origin_vpc_name}-to-${module.vpc.vpc_name}-" : null
+  destination_vpc_resolver_name = var.destination_vpc_resolver_name
+  origin_vpc_resolver_name      = var.origin_vpc_resolver_name
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
