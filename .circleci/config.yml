@@ -9,6 +9,8 @@ defaults: &defaults
   machine:
     enabled: true
     image: "ubuntu-1604:201903-01"
+
+env: &env
   environment:
     # renovate.json auto-update: gruntwork-installer
     GRUNTWORK_INSTALLER_VERSION: v0.0.29
@@ -83,16 +85,13 @@ run_pre_commit: &run_pre_commit
   # execute automatically every time before you commit, ensuring the build never fails at this step!
   name: run pre-commit hooks
   command: |
-    pyenv global 3.5.2
-    pip install pre-commit==1.21.0 cfgv==2.0.1 importlib-resources==3.2.0
+    pip install pre-commit
     pre-commit install
     pre-commit run --all-files
 
 run_circleci_unit_tests: &run_circleci_unit_tests
   name: run circleci unit tests
-  command: |
-    pyenv global 3.5.2
-    python ./.circleci/run_tests_unit_tests.py
+  command: python ./.circleci/run_tests_unit_tests.py
 
 # CIRCLE_PR_NUMBER is only available on forked repos, so we extract if from the PR URL.
 set_pr_number: &set_pr_number
@@ -105,7 +104,7 @@ set_pr_number: &set_pr_number
 # ---------------------------------------------------------------------------------------------------------------------
 
 commands:
-  prepare_environment_and_run_prechecks:
+  prepare_environment:
     description: "Prepare the environment by installing necessary tools, and run preflight checks before main tests"
     steps:
       - run:
@@ -116,10 +115,6 @@ commands:
           <<: *install_kube_utils
       - run:
           <<: *install_hub_cli
-      - run:
-          <<: *run_pre_commit
-      - run:
-          <<: *run_circleci_unit_tests
       - run: mkdir -p /tmp/logs
   store_results:
     description: "Store test results for easy viewing."
@@ -137,12 +132,25 @@ commands:
 # ---------------------------------------------------------------------------------------------------------------------
 
 jobs:
+  precommit:
+    <<: *env
+    docker:
+      - image: circleci/python:3.8.1
+    steps:
+      - checkout
+      - run:
+          <<: *install_gruntwork_utils
+      - run:
+          <<: *run_pre_commit
+      - run:
+          <<: *run_circleci_unit_tests
+
   test:
     <<: *defaults
     steps:
       - checkout
 
-      - prepare_environment_and_run_prechecks
+      - prepare_environment
 
       - run:
           name: find all tests to run
@@ -178,7 +186,7 @@ jobs:
     steps:
       - checkout
 
-      - prepare_environment_and_run_prechecks
+      - prepare_environment
 
       - run:
           name: run tests
@@ -204,7 +212,13 @@ workflows:
   version: 2
   build-and-test:
     jobs:
+      - precommit:
+          filters:
+            tags:
+              only: /^v.*/
       - test:
+          requires:
+            - precommit
           filters:
             tags:
               only: /^v.*/
@@ -216,13 +230,3 @@ workflows:
               only: /^v.*/
             branches:
               ignore: /.*/
-
-  nightly:
-    triggers:
-      - schedule:
-          cron: "0 3 * * *"
-          filters:
-            branches:
-              only: master
-    jobs:
-      - run_all_tests
