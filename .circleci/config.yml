@@ -4,13 +4,6 @@ version: 2.1
 # REUSABLE ALIASES
 # ---------------------------------------------------------------------------------------------------------------------
 
-defaults: &defaults
-  resource_class: xlarge
-  machine:
-    enabled: true
-    image: "ubuntu-1604:201903-01"
-  <<: *env
-
 env: &env
   environment:
     # renovate.json auto-update: gruntwork-installer
@@ -41,6 +34,13 @@ env: &env
     # (not available publicly) and should therefore not use the proxy or checksum database.
     # Without this, tests fail with a "410 Gone" error
     GOPRIVATE: github.com/gruntwork-io
+
+defaults: &defaults
+  resource_class: xlarge
+  machine:
+    enabled: true
+    image: "ubuntu-1604:201903-01"
+  <<: *env
 
 install_gruntwork_utils: &install_gruntwork_utils
   name: install gruntwork utils
