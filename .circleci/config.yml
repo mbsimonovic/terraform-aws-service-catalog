@@ -218,12 +218,16 @@ workflows:
             tags:
               only: /^v.*/
       - test:
+          context: 
+            - Gruntwork Admin
           requires:
             - precommit
           filters:
             tags:
               only: /^v.*/
       - deploy:
+          context: 
+            - Gruntwork Admin
           requires:
             - test
           filters:
