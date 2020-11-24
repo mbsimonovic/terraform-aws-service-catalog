@@ -68,7 +68,7 @@ data "aws_eks_cluster_auth" "kubernetes_token" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "eks_cluster" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.28.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.29.0"
 
   cluster_name = var.cluster_name
 
@@ -87,7 +87,7 @@ module "eks_cluster" {
 }
 
 module "eks_workers" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.28.0"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.29.0"
   create_resources = length(var.autoscaling_group_configurations) > 0
 
   # Use the output from control plane module as the cluster name to ensure the module only looks up the information
@@ -97,8 +97,12 @@ module "eks_workers" {
   autoscaling_group_configurations  = var.autoscaling_group_configurations
   include_autoscaler_discovery_tags = var.autoscaling_group_include_autoscaler_discovery_tags
 
+  asg_default_min_size      = var.asg_default_min_size
+  asg_default_max_size      = var.asg_default_max_size
+  asg_default_instance_type = var.asg_default_instance_type
+  asg_default_tags          = var.asg_default_tags
+
   cluster_instance_ami              = module.ec2_baseline.existing_ami
-  cluster_instance_type             = var.cluster_instance_type
   cluster_instance_keypair_name     = var.cluster_instance_keypair_name
   cluster_instance_user_data_base64 = module.ec2_baseline.cloud_init_rendered
 
@@ -193,7 +197,7 @@ resource "null_resource" "delete_autocreated_aws_auth" {
 }
 
 module "eks_k8s_role_mapping" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.28.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.29.0"
 
   eks_worker_iam_role_arns = (
     length(var.autoscaling_group_configurations) > 0

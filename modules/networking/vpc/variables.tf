@@ -128,3 +128,15 @@ variable "origin_vpc_public_subnet_ids" {
   type        = list(string)
   default     = null
 }
+
+variable "origin_vpc_resolver_name" {
+  description = "Name to set for the origin VPC resolver (outbound from origin VPC to destination VPC). If null (default), defaults to 'ORIGIN_VPC_NAME-to-DESTINATION_VPC_NAME-out'."
+  type        = string
+  default     = null
+}
+
+variable "destination_vpc_resolver_name" {
+  description = "Name to set for the destination VPC resolver (inbound from origin VPC to destination VPC). If null (default), defaults to 'DESTINATION_VPC_NAME-from-ORIGIN_VPC_NAME-in'."
+  type        = string
+  default     = null
+}
