@@ -52,16 +52,24 @@ func TestAuroraServerless(t *testing.T) {
 		uniqueID := strings.ToLower(random.UniqueId())
 		test_structure.SaveString(t, testFolder, "uniqueID", uniqueID)
 
+		dbName := "rds"
+		dbUsername := "rds"
 		dbPassword := fmt.Sprintf("%s-%s", random.UniqueId(), random.UniqueId())
+
+		dbConfig := getDbConfigJSON(t, dbName, dbUsername, dbPassword, "aurora")
+		secretID := aws.CreateSecretStringWithDefaultKey(t, awsRegion, "Test description", "test-name-"+uniqueID, dbConfig)
+		test_structure.SaveString(t, testFolder, "dbName", dbName)
+		test_structure.SaveString(t, testFolder, "username", dbUsername)
 		test_structure.SaveString(t, testFolder, "password", dbPassword)
+		test_structure.SaveString(t, testFolder, "secretID", secretID)
 	})
 
 	test_structure.RunTestStage(t, "deploy_terraform", func() {
 		awsRegion := test_structure.LoadString(t, testFolder, "region")
 		uniqueID := test_structure.LoadString(t, testFolder, "uniqueID")
-		dbPassword := test_structure.LoadString(t, testFolder, "password")
+		secretID := test_structure.LoadString(t, testFolder, "secretID")
 
-		terraformOptions := createAuroraTerraformOptions(t, testFolder, awsRegion, uniqueID, dbPassword)
+		terraformOptions := createAuroraTerraformOptions(t, testFolder, awsRegion, uniqueID, secretID)
 		terraformOptions.Vars["engine_mode"] = "serverless"
 		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
 
@@ -87,6 +95,10 @@ func TestAurora(t *testing.T) {
 	defer test_structure.RunTestStage(t, "cleanup", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
 		terraform.Destroy(t, terraformOptions)
+
+		awsRegion := test_structure.LoadString(t, testFolder, "region")
+		secretID := test_structure.LoadString(t, testFolder, "secretID")
+		aws.DeleteSecret(t, awsRegion, secretID, true)
 	})
 
 	test_structure.RunTestStage(t, "setup", func() {
@@ -96,16 +108,24 @@ func TestAurora(t *testing.T) {
 		uniqueID := strings.ToLower(random.UniqueId())
 		test_structure.SaveString(t, testFolder, "uniqueID", uniqueID)
 
+		dbName := "rds"
+		dbUsername := "rds"
 		dbPassword := fmt.Sprintf("%s-%s", random.UniqueId(), random.UniqueId())
+
+		dbConfig := getDbConfigJSON(t, dbName, dbUsername, dbPassword, "aurora")
+		secretID := aws.CreateSecretStringWithDefaultKey(t, awsRegion, "Test description", "test-name-"+uniqueID, dbConfig)
+		test_structure.SaveString(t, testFolder, "dbName", dbName)
+		test_structure.SaveString(t, testFolder, "username", dbUsername)
 		test_structure.SaveString(t, testFolder, "password", dbPassword)
+		test_structure.SaveString(t, testFolder, "secretID", secretID)
 	})
 
 	test_structure.RunTestStage(t, "deploy_terraform", func() {
 		awsRegion := test_structure.LoadString(t, testFolder, "region")
 		uniqueID := test_structure.LoadString(t, testFolder, "uniqueID")
-		dbPassword := test_structure.LoadString(t, testFolder, "password")
+		secretID := test_structure.LoadString(t, testFolder, "secretID")
 
-		terraformOptions := createAuroraTerraformOptions(t, testFolder, awsRegion, uniqueID, dbPassword)
+		terraformOptions := createAuroraTerraformOptions(t, testFolder, awsRegion, uniqueID, secretID)
 		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
 
 		terraform.InitAndApply(t, terraformOptions)
@@ -135,14 +155,12 @@ func createAuroraTerraformOptions(
 	terraformDir string,
 	awsRegion string,
 	uniqueID string,
-	password string,
+	dbConfigSecretID string,
 ) *terraform.Options {
 	name := fmt.Sprintf("test-aurora-%s", uniqueID)
 	terraformOptions := createBaseTerraformOptions(t, terraformDir, awsRegion)
 	terraformOptions.Vars["name"] = name
-	terraformOptions.Vars["db_name"] = "aurora"
-	terraformOptions.Vars["master_username"] = "aurora"
-	terraformOptions.Vars["master_password"] = password
+	terraformOptions.Vars["db_config_secrets_manager_id"] = dbConfigSecretID
 	terraformOptions.Vars["share_snapshot_with_account_id"] = getExternalAccountId()
 	return terraformOptions
 }

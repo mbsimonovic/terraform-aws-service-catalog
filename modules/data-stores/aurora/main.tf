@@ -29,8 +29,8 @@ module "database" {
   source = "git::git@github.com:gruntwork-io/module-data-storage.git//modules/aurora?ref=v0.16.3"
 
   name        = var.name
-  port        = var.port
-  engine      = var.engine
+  port        = local.port
+  engine      = local.engine
   engine_mode = var.engine_mode
 
   instance_count = var.instance_count
@@ -41,9 +41,9 @@ module "database" {
   scaling_configuration_min_capacity             = var.scaling_configuration_min_capacity
   scaling_configuration_seconds_until_auto_pause = var.scaling_configuration_seconds_until_auto_pause
 
-  db_name         = var.db_name
-  master_username = var.master_username
-  master_password = var.master_password
+  db_name         = local.db_name
+  master_username = local.master_username
+  master_password = local.master_password
 
   vpc_id                                 = var.vpc_id
   subnet_ids                             = var.aurora_subnet_ids
@@ -55,14 +55,34 @@ module "database" {
   iam_database_authentication_enabled = var.iam_database_authentication_enabled
   apply_immediately                   = var.apply_immediately
 
-  # These values have the same defaults in the module, but we hard code the configuration here for documentation purposes.
-  storage_encrypted = true
+  storage_encrypted = var.storage_encrypted
 
   # These are dangerous variables that exposed to make testing easier, but should be left untouched.
   publicly_accessible = var.publicly_accessible
   skip_final_snapshot = var.skip_final_snapshot
 }
 
+locals {
+
+  # The config data below can be provided in either a variable or from AWS Secrets Manager
+  # The variable value is read first. If null, we will read  the values from the secrets manager
+  # in JSON, as described here:
+  #
+  #   https://docs.aws.amazon.com/secretsmanager/latest/userguide/best-practices.html
+  #
+  #
+  db_config       = var.db_config_secrets_manager_id != null ? jsondecode(data.aws_secretsmanager_secret_version.db_config[0].secret_string) : null
+  engine          = var.engine != null ? var.engine : local.db_config.engine
+  port            = var.port != null ? var.port : local.db_config.port
+  db_name         = var.db_name != null ? var.db_name : local.db_config.dbname
+  master_username = var.master_username != null ? var.master_username : local.db_config.username
+  master_password = var.master_password != null ? var.master_password : local.db_config.password
+}
+
+data "aws_secretsmanager_secret_version" "db_config" {
+  count     = var.db_config_secrets_manager_id != null ? 1 : 0
+  secret_id = var.db_config_secrets_manager_id
+}
 
 # ---------------------------------------------------------------------------------------------------------------------
 # ADD CLOUDWATCH ALARMS FOR THE AURORA CLUSTER

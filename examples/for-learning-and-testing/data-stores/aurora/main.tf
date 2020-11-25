@@ -26,6 +26,8 @@ module "aurora" {
   # - aurora-postgresql => 5432 (default postgres port)
   port = var.engine == "aurora" ? 3306 : 5432
 
+  db_config_secrets_manager_id = var.db_config_secrets_manager_id
+
   # To keep this example simple, we run it in the default VPC, put everything in the same subnets, and allow access from
   # any source. In production, you'll want to use a custom VPC, private subnets, and explicitly close off access to only
   # those applications that need it.

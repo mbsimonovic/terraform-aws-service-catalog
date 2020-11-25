@@ -45,7 +45,7 @@ func TestRds(t *testing.T) {
 		dbUsername := "rds"
 		dbPassword := fmt.Sprintf("%s-%s", random.UniqueId(), random.UniqueId())
 
-		dbConfig := getDbConfigJSON(t, dbName, dbUsername, dbPassword)
+		dbConfig := getDbConfigJSON(t, dbName, dbUsername, dbPassword, "mysql")
 		secretID := aws.CreateSecretStringWithDefaultKey(t, awsRegion, "Test description", "test-name-"+uniqueID, dbConfig)
 		test_structure.SaveString(t, testFolder, "dbName", dbName)
 		test_structure.SaveString(t, testFolder, "username", dbUsername)
@@ -97,7 +97,7 @@ func createRDSTerraformOptions(
 	return terraformOptions
 }
 
-func getDbConfigJSON(t *testing.T, dbName, username, password string) string {
+func getDbConfigJSON(t *testing.T, dbName, username, password, engine string) string {
 	type DbConfig struct {
 		Engine   string `json:"engine"`
 		Username string `json:"username"`
@@ -107,7 +107,7 @@ func getDbConfigJSON(t *testing.T, dbName, username, password string) string {
 	}
 
 	config := DbConfig{
-		Engine:   "mysql",
+		Engine:   engine,
 		Username: username,
 		Password: password,
 		Dbname:   dbName,
