@@ -61,6 +61,9 @@ module "database" {
   # These are dangerous variables that exposed to make testing easier, but should be left untouched.
   publicly_accessible = var.publicly_accessible
   skip_final_snapshot = var.skip_final_snapshot
+
+  # Create DB instance from snapshot backup if var.snapshot_identifier is set
+  snapshot_identifier = var.snapshot_identifier
 }
 
 locals {
