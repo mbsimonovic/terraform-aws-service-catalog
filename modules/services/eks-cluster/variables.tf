@@ -171,6 +171,12 @@ variable "aws_auth_merger_namespace" {
   default     = "aws-auth-merger"
 }
 
+variable "aws_auth_merger_default_configmap_name" {
+  description = "Name of the default aws-auth ConfigMap to use. This will be the name of the ConfigMap that gets created by this module in the aws-auth-merger namespace to seed the initial aws-auth ConfigMap."
+  type        = string
+  default     = "main-aws-auth"
+}
+
 variable "enable_aws_auth_merger_fargate" {
   description = "When true, deploy the aws-auth-merger into Fargate. It is recommended to run the aws-auth-merger on Fargate to avoid chicken and egg issues between the aws-auth-merger and having an authenticated worker pool."
   type        = bool
