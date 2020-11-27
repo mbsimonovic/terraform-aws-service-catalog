@@ -220,7 +220,7 @@ module "create_snapshot" {
 
   schedule_expression = var.share_snapshot_schedule_expression
 
-  # Automatically share the snapshots with the AWS account in var.backup_account_id
+  # Automatically share the snapshots with the AWS account in var.share_snapshot_with_account_id
   share_snapshot_with_another_account = true
   share_snapshot_lambda_arn           = module.share_snapshot.lambda_function_arn
   share_snapshot_with_account_id      = var.share_snapshot_with_account_id
