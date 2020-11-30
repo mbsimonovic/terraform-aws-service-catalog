@@ -61,6 +61,9 @@ module "database" {
   # These are dangerous variables that exposed to make testing easier, but should be left untouched.
   publicly_accessible = var.publicly_accessible
   skip_final_snapshot = var.skip_final_snapshot
+
+  # Create DB instance from snapshot backup if var.snapshot_identifier is set
+  snapshot_identifier = var.snapshot_identifier
 }
 
 locals {
@@ -220,7 +223,7 @@ module "create_snapshot" {
 
   schedule_expression = var.share_snapshot_schedule_expression
 
-  # Automatically share the snapshots with the AWS account in var.backup_account_id
+  # Automatically share the snapshots with the AWS account in var.share_snapshot_with_account_id
   share_snapshot_with_another_account = true
   share_snapshot_lambda_arn           = module.share_snapshot.lambda_function_arn
   share_snapshot_with_account_id      = var.share_snapshot_with_account_id
