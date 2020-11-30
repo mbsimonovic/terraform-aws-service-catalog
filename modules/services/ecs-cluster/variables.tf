@@ -224,15 +224,15 @@ variable "enable_ssh_grunt" {
 }
 
 variable "ssh_grunt_iam_group" {
-  description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to the ECS nodes. To omit this variable, set it to an empty string (do NOT use null, or Terraform will complain)."
+  description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to the nodes in this ECS cluster. This value is only used if enable_ssh_grunt=true."
   type        = string
-  default     = ""
+  default     = "ssh-grunt-users"
 }
 
 variable "ssh_grunt_iam_group_sudo" {
-  description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to the ECS nodes with sudo permissions. To omit this variable, set it to an empty string (do NOT use null, or Terraform will complain)."
+  description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to the nodes in this ECS cluster with sudo permissions. This value is only used if enable_ssh_grunt=true."
   type        = string
-  default     = ""
+  default     = "ssh-grunt-sudo-users"
 }
 
 variable "external_account_ssh_grunt_role_arn" {
