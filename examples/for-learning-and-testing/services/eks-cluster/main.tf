@@ -59,6 +59,10 @@ module "eks_cluster" {
   cluster_instance_associate_public_ip_address = true
   allow_inbound_api_access_from_cidr_blocks    = ["0.0.0.0/0"]
   allow_inbound_ssh_from_cidr_blocks           = ["0.0.0.0/0"]
+
+  # Configuration variables for the aws-auth-merger
+  enable_aws_auth_merger = var.enable_aws_auth_merger
+  aws_auth_merger_image  = var.aws_auth_merger_image
 }
 
 # ----------------------------------------------------------------------------------------------------------------------
