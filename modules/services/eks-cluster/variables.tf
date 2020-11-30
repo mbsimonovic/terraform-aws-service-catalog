@@ -148,6 +148,47 @@ variable "allow_private_api_access_from_security_groups" {
   default     = []
 }
 
+variable "enable_aws_auth_merger" {
+  description = "If set to true, installs the aws-auth-merger to manage the aws-auth configuration. When true, requires setting the var.aws_auth_merger_image variable."
+  type        = bool
+  default     = false
+}
+
+variable "aws_auth_merger_image" {
+  description = "Location of the container image to use for the aws-auth-merger app. You can use the Dockerfile provided in terraform-aws-eks to construct an image. See https://github.com/gruntwork-io/terraform-aws-eks/blob/master/modules/eks-aws-auth-merger/core-concepts.md#how-do-i-use-the-aws-auth-merger for more info."
+  type = object({
+    # Container image repository where the aws-auth-merger app container image lives
+    repo = string
+    # Tag of the aws-auth-merger container to deploy
+    tag = string
+  })
+  default = null
+}
+
+variable "aws_auth_merger_namespace" {
+  description = "Namespace to deploy the aws-auth-merger into. The app will watch for ConfigMaps in this Namespace to merge into the aws-auth ConfigMap."
+  type        = string
+  default     = "aws-auth-merger"
+}
+
+variable "aws_auth_merger_default_configmap_name" {
+  description = "Name of the default aws-auth ConfigMap to use. This will be the name of the ConfigMap that gets created by this module in the aws-auth-merger namespace to seed the initial aws-auth ConfigMap."
+  type        = string
+  default     = "main-aws-auth"
+}
+
+variable "enable_aws_auth_merger_fargate" {
+  description = "When true, deploy the aws-auth-merger into Fargate. It is recommended to run the aws-auth-merger on Fargate to avoid chicken and egg issues between the aws-auth-merger and having an authenticated worker pool."
+  type        = bool
+
+  # Since we will manage the IAM role mapping for the workers using the merger, we need to schedule the deployment onto
+  # Fargate. Otherwise, there is a chicken and egg problem where the workers won't be able to auth until the
+  # aws-auth-merger is deployed, but the aws-auth-merger can't be deployed until the workers are setup. Fargate IAM
+  # auth is automatically configured by AWS when we create the Fargate Profile, so we can break the cycle if we use
+  # Fargate.
+  default = true
+}
+
 variable "iam_role_to_rbac_group_mapping" {
   description = "Mapping of IAM role ARNs to Kubernetes RBAC groups that grant permissions to the user."
   type        = map(list(string))
