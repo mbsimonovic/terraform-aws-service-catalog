@@ -42,6 +42,7 @@ module "redis" {
 
   enable_automatic_failover = var.enable_automatic_failover
 
+  parameter_group_name     = var.parameter_group_name
   snapshot_retention_limit = var.snapshot_retention_limit
   snapshot_window          = var.snapshot_window
   apply_immediately        = var.apply_immediately
