@@ -55,15 +55,16 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 inputs = {
-  name              = "ref-arch-lite-${local.account_vars.locals.account_name}-rds"
-  engine            = "mysql"
-  engine_version    = "8.0.17"
-  port              = 3306
-  instance_type     = "db.t3.small"
-  allocated_storage = 5
-  db_name           = "my_db"
-  multi_az          = true
-  master_username   = "admin"
+  name                       = "ref-arch-lite-${local.account_vars.locals.account_name}-rds"
+  engine                     = "mysql"
+  engine_version             = "8.0.17"
+  port                       = 3306
+  instance_type              = "db.t3.small"
+  allocated_storage          = 5
+  db_name                    = "my_db"
+  multi_az                   = true
+  master_username            = "admin"
+  enable_deletion_protection = true
 
   # To avoid storing the password in configuration, the master_password variable should be passed as an environment
   # variable. For example: export TF_VAR_master_password="<password>"

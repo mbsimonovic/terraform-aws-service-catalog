@@ -35,6 +35,8 @@ module "database" {
   port           = local.port
   license_model  = var.license_model
 
+  deletion_protection = var.enable_deletion_protection
+
   master_username = local.master_username
   master_password = local.master_password
 

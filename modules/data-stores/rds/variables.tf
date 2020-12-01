@@ -77,6 +77,12 @@ variable "instance_type" {
   default     = "db.t3.micro"
 }
 
+variable "enable_deletion_protection" {
+  description = "Enable deletion protection on the RDS instance. If this is enabled, the database cannot be deleted prior to disabling"
+  type        = bool
+  default     = false
+}
+
 variable "allow_connections_from_cidr_blocks" {
   description = "The list of network CIDR blocks to allow network access to RDS from. One of var.allow_connections_from_cidr_blocks or var.allow_connections_from_security_groups must be specified for the database to be reachable."
   type        = list(string)

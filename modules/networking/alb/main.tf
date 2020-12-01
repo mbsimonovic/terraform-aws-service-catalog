@@ -49,6 +49,8 @@ module "alb" {
   #TODO: Add an assertion script to ensure that user doesn't pass in a private subnet for public ALB and vice versa
   vpc_subnet_ids = var.vpc_subnet_ids
 
+  enable_deletion_protection = var.enable_deletion_protection
+
   enable_alb_access_logs         = true
   alb_access_logs_s3_bucket_name = var.should_create_access_logs_bucket ? module.alb_access_logs_bucket.s3_bucket_name : var.access_logs_s3_bucket_name
 }
