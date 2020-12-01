@@ -30,19 +30,19 @@ variable "aurora_subnet_ids" {
 # Database configuration
 
 variable "port" {
-  description = "The port the DB will listen on (e.g. 3306)"
+  description = "The port the DB will listen on (e.g. 3306). This can also be provided via AWS Secrets Manager. See the description of db_config_secrets_manager_id. A value here overrides the value in db_config_secrets_manager_id."
   type        = number
   default     = null
 }
 
 variable "master_username" {
-  description = "The value to use for the master username of the database. This can also be provided via AWS Secrets Manager. See the description of db_config_secrets_manager_id. This can also be provided via AWS Secrets Manager. See the description of db_config_secrets_manager_id."
+  description = "The value to use for the master username of the database. This can also be provided via AWS Secrets Manager. See the description of db_config_secrets_manager_id. A value here overrides the value in db_config_secrets_manager_id."
   type        = string
   default     = null
 }
 
 variable "master_password" {
-  description = "The value to use for the master password of the database. This can also be provided via AWS Secrets Manager. See the description of db_config_secrets_manager_id."
+  description = "The value to use for the master password of the database. This can also be provided via AWS Secrets Manager. See the description of db_config_secrets_manager_id. A value here overrides the value in db_config_secrets_manager_id."
   type        = string
   default     = null
 }
@@ -62,15 +62,21 @@ variable "db_config_secrets_manager_id" {
 }
 
 variable "db_name" {
-  description = "The name for your database of up to 8 alpha-numeric characters. If you do not provide a name, Amazon RDS will not create a database in the DB cluster you are creating. This can also be provided via AWS Secrets Manager. See the description of db_config_secrets_manager_id."
+  description = "The name for your database of up to 8 alpha-numeric characters. If you do not provide a name, Amazon RDS will not create a database in the DB cluster you are creating. This can also be provided via AWS Secrets Manager. See the description of db_config_secrets_manager_id. A value here overrides the value in db_config_secrets_manager_id."
   type        = string
   default     = null
 }
 
 variable "engine" {
-  description = "The name of the database engine to be used for the RDS instance. Must be one of: aurora, aurora-postgresql. This can also be provided via AWS Secrets Manager. See the description of db_config_secrets_manager_id."
+  description = "The name of the database engine to be used for this DB cluster. Valid Values: aurora (for MySQL 5.6-compatible Aurora), aurora-mysql (for MySQL 5.7-compatible Aurora), and aurora-postgresql. This can also be provided via AWS Secrets Manager. See the description of db_config_secrets_manager_id. A value here overrides the value in db_config_secrets_manager_id."
   type        = string
-  default     = "aurora"
+  default     = null
+}
+
+variable "engine_version" {
+  description = "The Amazon Aurora DB engine version for the selected engine and engine_mode. Note: Starting with Aurora MySQL 2.03.2, Aurora engine versions have the following syntax <mysql-major-version>.mysql_aurora.<aurora-mysql-version>. e.g. 5.7.mysql_aurora.2.08.1."
+  type        = string
+  default     = null
 }
 
 variable "engine_mode" {

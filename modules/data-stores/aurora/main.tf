@@ -28,10 +28,11 @@ terraform {
 module "database" {
   source = "git::git@github.com:gruntwork-io/module-data-storage.git//modules/aurora?ref=v0.16.3"
 
-  name        = var.name
-  port        = local.port
-  engine      = local.engine
-  engine_mode = var.engine_mode
+  name           = var.name
+  port           = local.port
+  engine         = local.engine
+  engine_mode    = var.engine_mode
+  engine_version = var.engine_version
 
   instance_count = var.instance_count
   instance_type  = var.instance_type
