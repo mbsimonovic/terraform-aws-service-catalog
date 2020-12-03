@@ -16,6 +16,7 @@ variable "access_logging_bucket" {
 # OPTIONAL PARAMETERS
 # Generally, these values won't need to be changed.
 # ---------------------------------------------------------------------------------------------------------------------
+
 variable "bucket_policy_statements" {
   # The bucket policy statements for this S3 bucket. See the 'statement' block in the aws_iam_policy_document data
   # source for context: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document
@@ -37,6 +38,90 @@ variable "bucket_policy_statements" {
   # - variable                                    string            (required): The name of a Context Variable to apply the condition to. Context variables may either be standard AWS variables starting with aws:, or service-specific variables prefixed with the service name.
   # - values                                      list(string)      (required):  The values to evaluate the condition against. If multiple values are provided, the condition matches if at least one of them applies. (That is, the tests are combined with the "OR" boolean operation.)
   description = "The IAM policy to apply to this S3 bucket. You can use this to grant read/write access. This should be a map, where each key is a unique statement ID (SID), and each value is an object that contains the parameters defined in the comment above."
+
+  # Ideally, this would be a map(object({...})), but the Terraform object type constraint doesn't support optional
+  # parameters, whereas IAM policy statements have many optional params. And we can't even use map(any), as the
+  # Terraform map type constraint requires all values to have the same type ("shape"), but as each object in the map
+  # may specify different optional params, this won't work either. So, sadly, we are forced to fall back to "any."
+  type = any
+
+  # Example:
+  #
+  # {
+  #    AllIamUsersReadAccess = {
+  #      effect     = "Allow"
+  #      actions    = ["s3:GetObject"]
+  #      principals = {
+  #        AWS = ["arn:aws:iam::111111111111:user/ann", "arn:aws:iam::111111111111:user/bob"]
+  #      }
+  #    }
+  # }
+  default = {}
+}
+
+variable "access_logging_bucket_policy_statements" {
+  # The bucket policy statements for this access logging S3 bucket. See the 'statement' block in the aws_iam_policy_document data
+  # source for context: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document
+  #
+  # bucket_policy_statements is a map where the keys are the statement IDs (SIDs) and the values are objects that can
+  # define the following properties:
+  #
+  # - effect                                      string            (optional): Either "Allow" or "Deny", to specify whether this statement allows or denies the given actions.
+  # - actions                                     list(string)      (optional): A list of actions that this statement either allows or denies. For example, ["s3:GetObject", "s3:PutObject"].
+  # - not_actions                                 list(string)      (optional): A list of actions that this statement does NOT apply to. Used to apply a policy statement to all actions except those listed.
+  # - principals                                  map(list(string)) (optional): The principals to which this statement applies. The keys are the principal type ("AWS", "Service", or "Federated") and the value is a list of identifiers.
+  # - not_principals                              map(list(string)) (optional): The principals to which this statement does NOT apply. The keys are the principal type ("AWS", "Service", or "Federated") and the value is a list of identifiers.
+  # - keys                                        list(string)      (optional): A list of keys within the bucket to which this policy applies. For example, ["", "/*"] would apply to (a) the bucket itself and (b) all keys within the bucket. The default is [""].
+  # - condition                                   map(object)       (optional): A nested configuration block (described below) that defines a further, possibly-service-specific condition that constrains whether this statement applies.
+  #
+  # condition is a map from a unique ID for the condition to an object that can define the following properties:
+  #
+  # - test                                        string            (required): The name of the IAM condition operator to evaluate.
+  # - variable                                    string            (required): The name of a Context Variable to apply the condition to. Context variables may either be standard AWS variables starting with aws:, or service-specific variables prefixed with the service name.
+  # - values                                      list(string)      (required):  The values to evaluate the condition against. If multiple values are provided, the condition matches if at least one of them applies. (That is, the tests are combined with the "OR" boolean operation.)
+  description = "The IAM policy to apply to the S3 bucket used to store access logs. You can use this to grant read/write access. This should be a map, where each key is a unique statement ID (SID), and each value is an object that contains the parameters defined in the comment above."
+
+  # Ideally, this would be a map(object({...})), but the Terraform object type constraint doesn't support optional
+  # parameters, whereas IAM policy statements have many optional params. And we can't even use map(any), as the
+  # Terraform map type constraint requires all values to have the same type ("shape"), but as each object in the map
+  # may specify different optional params, this won't work either. So, sadly, we are forced to fall back to "any."
+  type = any
+
+  # Example:
+  #
+  # {
+  #    AllIamUsersReadAccess = {
+  #      effect     = "Allow"
+  #      actions    = ["s3:GetObject"]
+  #      principals = {
+  #        AWS = ["arn:aws:iam::111111111111:user/ann", "arn:aws:iam::111111111111:user/bob"]
+  #      }
+  #    }
+  # }
+  default = {}
+}
+
+variable "replica_bucket_policy_statements" {
+  # The bucket policy statements for this replica S3 bucket. See the 'statement' block in the aws_iam_policy_document data
+  # source for context: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document
+  #
+  # bucket_policy_statements is a map where the keys are the statement IDs (SIDs) and the values are objects that can
+  # define the following properties:
+  #
+  # - effect                                      string            (optional): Either "Allow" or "Deny", to specify whether this statement allows or denies the given actions.
+  # - actions                                     list(string)      (optional): A list of actions that this statement either allows or denies. For example, ["s3:GetObject", "s3:PutObject"].
+  # - not_actions                                 list(string)      (optional): A list of actions that this statement does NOT apply to. Used to apply a policy statement to all actions except those listed.
+  # - principals                                  map(list(string)) (optional): The principals to which this statement applies. The keys are the principal type ("AWS", "Service", or "Federated") and the value is a list of identifiers.
+  # - not_principals                              map(list(string)) (optional): The principals to which this statement does NOT apply. The keys are the principal type ("AWS", "Service", or "Federated") and the value is a list of identifiers.
+  # - keys                                        list(string)      (optional): A list of keys within the bucket to which this policy applies. For example, ["", "/*"] would apply to (a) the bucket itself and (b) all keys within the bucket. The default is [""].
+  # - condition                                   map(object)       (optional): A nested configuration block (described below) that defines a further, possibly-service-specific condition that constrains whether this statement applies.
+  #
+  # condition is a map from a unique ID for the condition to an object that can define the following properties:
+  #
+  # - test                                        string            (required): The name of the IAM condition operator to evaluate.
+  # - variable                                    string            (required): The name of a Context Variable to apply the condition to. Context variables may either be standard AWS variables starting with aws:, or service-specific variables prefixed with the service name.
+  # - values                                      list(string)      (required):  The values to evaluate the condition against. If multiple values are provided, the condition matches if at least one of them applies. (That is, the tests are combined with the "OR" boolean operation.)
+  description = "The IAM policy to apply to the replica S3 bucket. You can use this to grant read/write access. This should be a map, where each key is a unique statement ID (SID), and each value is an object that contains the parameters defined in the comment above."
 
   # Ideally, this would be a map(object({...})), but the Terraform object type constraint doesn't support optional
   # parameters, whereas IAM policy statements have many optional params. And we can't even use map(any), as the
