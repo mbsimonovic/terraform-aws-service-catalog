@@ -2,7 +2,7 @@
   "extends": [
     "config:base"
   ],
-  "registryUrls": ["https://registry.gruntwork-sandbox.com"],
+  "registryUrls": ["https://registry.dogfood-dev.com"],
   "enabledManagers": ["regex"],
   "regexManagers": [
     {
