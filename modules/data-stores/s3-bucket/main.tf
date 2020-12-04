@@ -47,6 +47,7 @@ module "s3_bucket_primary" {
 
   bucket_policy_statements = var.bucket_policy_statements
   bucket_ownership         = var.bucket_ownership
+  sse_algorithm            = var.bucket_sse_algorithm
   force_destroy            = var.force_destroy_primary
 }
 
@@ -82,5 +83,6 @@ module "s3_bucket_replica" {
   mfa_delete               = var.mfa_delete
   bucket_policy_statements = var.replica_bucket_policy_statements
   bucket_ownership         = var.replica_bucket_ownership
+  sse_algorithm            = var.replica_sse_algorithm
   force_destroy            = var.force_destroy_replica
 }
