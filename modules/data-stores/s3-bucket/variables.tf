@@ -246,6 +246,18 @@ variable "replica_bucket_ownership" {
   default     = null
 }
 
+variable "bucket_sse_algorithm" {
+  description = "The server-side encryption algorithm to use on the bucket. Valid values are AES256 and aws:kms."
+  type        = string
+  default     = "aws:kms"
+}
+
+variable "replica_sse_algorithm" {
+  description = "The server-side encryption algorithm to use on the replica bucket. Valid values are AES256 and aws:kms."
+  type        = string
+  default     = "aws:kms"
+}
+
 variable "force_destroy_primary" {
   description = "If set to true, when you run 'terraform destroy', delete all objects from the primary bucket so that the bucket can be destroyed without error. Warning: these objects are not recoverable so only use this if you're absolutely sure you want to permanently delete everything!"
   type        = bool
