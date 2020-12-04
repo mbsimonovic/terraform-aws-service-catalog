@@ -170,7 +170,7 @@ resource "aws_iam_role_policy" "deploy_this_account_permissions" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "auto_deploy_iam_policies" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-policies?ref=v0.42.0"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-policies?ref=v0.44.1"
 
   aws_account_id = data.aws_caller_identity.current.account_id
 

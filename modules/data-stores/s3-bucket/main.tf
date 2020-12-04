@@ -28,7 +28,7 @@ provider "aws" {
 # CREATE THE PRIMARY BUCKET
 # ---------------------------------------------------------------------------------------------------------------------
 module "s3_bucket_primary" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/private-s3-bucket?ref=v0.42.0"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/private-s3-bucket?ref=v0.44.1"
   name   = var.primary_bucket
 
   # Object versioning
@@ -46,6 +46,7 @@ module "s3_bucket_primary" {
   replication_rules   = var.replication_rules
 
   bucket_policy_statements = var.bucket_policy_statements
+  bucket_ownership         = var.bucket_ownership
   force_destroy            = var.force_destroy_primary
 }
 
@@ -53,7 +54,7 @@ module "s3_bucket_primary" {
 # CREATE THE S3 BUCKET TO STORE ACCESS LOGS
 # ---------------------------------------------------------------------------------------------------------------------
 module "s3_bucket_logs" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/private-s3-bucket?ref=v0.42.0"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/private-s3-bucket?ref=v0.44.1"
 
   create_resources = var.access_logging_bucket != null
 
@@ -61,6 +62,7 @@ module "s3_bucket_logs" {
   acl                      = "log-delivery-write"
   bucket_policy_statements = var.access_logging_bucket_policy_statements
   sse_algorithm            = "AES256" # For access logging buckets, only AES256 encryption is supported
+  bucket_ownership         = var.access_logging_bucket_ownership
   force_destroy            = var.force_destroy_logs
 }
 
@@ -68,7 +70,7 @@ module "s3_bucket_logs" {
 # CREATE THE S3 BUCKET FOR REPLICATION
 # ---------------------------------------------------------------------------------------------------------------------
 module "s3_bucket_replica" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/private-s3-bucket?ref=v0.42.0"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/private-s3-bucket?ref=v0.44.1"
 
   providers = {
     aws = aws.replica
@@ -79,5 +81,6 @@ module "s3_bucket_replica" {
   enable_versioning        = var.enable_versioning
   mfa_delete               = var.mfa_delete
   bucket_policy_statements = var.replica_bucket_policy_statements
+  bucket_ownership         = var.replica_bucket_ownership
   force_destroy            = var.force_destroy_replica
 }
