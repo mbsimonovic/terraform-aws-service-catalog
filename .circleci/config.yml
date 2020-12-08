@@ -220,6 +220,7 @@ workflows:
       - test:
           context: 
             - Gruntwork Admin
+            - Gruntwork Org Test
           requires:
             - precommit
           filters:
