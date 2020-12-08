@@ -214,6 +214,8 @@ workflows:
   build-and-test:
     jobs:
       - precommit:
+          context: 
+            - Gruntwork Admin      
           filters:
             tags:
               only: /^v.*/
