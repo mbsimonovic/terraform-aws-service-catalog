@@ -214,12 +214,15 @@ workflows:
   build-and-test:
     jobs:
       - precommit:
+          context: 
+            - Gruntwork Admin      
           filters:
             tags:
               only: /^v.*/
       - test:
           context: 
             - Gruntwork Admin
+            - Gruntwork Org Test
           requires:
             - precommit
           filters:
