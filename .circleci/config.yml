@@ -36,7 +36,7 @@ env: &env
     GOPRIVATE: github.com/gruntwork-io
 
 defaults: &defaults
-  resource_class: xlarge
+  resource_class: large
   machine:
     enabled: true
     image: "ubuntu-1604:201903-01"
@@ -214,13 +214,13 @@ workflows:
   build-and-test:
     jobs:
       - precommit:
-          context: 
-            - Gruntwork Admin      
+          context:
+            - Gruntwork Admin
           filters:
             tags:
               only: /^v.*/
       - test:
-          context: 
+          context:
             - Gruntwork Admin
             - Gruntwork Org Test
           requires:
@@ -229,7 +229,7 @@ workflows:
             tags:
               only: /^v.*/
       - deploy:
-          context: 
+          context:
             - Gruntwork Admin
           requires:
             - test
