@@ -13,7 +13,7 @@ env: &env
     # renovate.json auto-update: kubergrunt
     KUBERGRUNT_VERSION: v0.6.4
     # renovate.json auto-update: module-ci
-    MODULE_CI_VERSION: v0.29.2
+    MODULE_CI_VERSION: v0.29.4
     # renovate.json auto-update: terragrunt
     TERRAGRUNT_VERSION: v0.26.7
     # renovate.json auto-update-github-releases: hashicorp/terraform
