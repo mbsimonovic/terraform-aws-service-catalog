@@ -11,7 +11,7 @@ env: &env
     # renovate.json auto-update: terratest
     TERRATEST_LOG_PARSER_VERSION: v0.31.1
     # renovate.json auto-update: kubergrunt
-    KUBERGRUNT_VERSION: v0.6.4
+    KUBERGRUNT_VERSION: v0.6.7
     # renovate.json auto-update: module-ci
     MODULE_CI_VERSION: v0.29.4
     # renovate.json auto-update: terragrunt
