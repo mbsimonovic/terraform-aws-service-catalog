@@ -24,6 +24,16 @@ output "ecs_cluster_asg_name" {
   value       = module.ecs_cluster.ecs_cluster_asg_name
 }
 
+output "ecs_cluster_asg_names" {
+  description = "For configurations with multiple ASGs, this contains a list of ASG names."
+  value       = module.ecs_cluster.ecs_cluster_asg_name
+}
+
+output "ecs_cluster_capacity_provider_names" {
+  description = "For configurations with multiple capacity providers, this contains a list of all capacity provider names."
+  value       = module.ecs_cluster.ecs_cluster_capacity_provider_names
+}
+
 output "ecs_instance_security_group_id" {
   description = "The ID of the security group applied to ECS instances"
   value       = module.ecs_cluster.ecs_instance_security_group_id

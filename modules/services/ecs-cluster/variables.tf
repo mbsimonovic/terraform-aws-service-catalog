@@ -194,6 +194,12 @@ variable "capacity_provider_enabled" {
   default     = false
 }
 
+variable "multi_az_capacity_provider" {
+  description = "Enable a multi-az capacity provider to autoscale the EC2 ASGs created for this ECS cluster, only if capacity_provider_enabled = true"
+  type        = bool
+  default     = false
+}
+
 variable "capacity_provider_target" {
   description = "Target cluster utilization for the capacity provider; a number from 1 to 100."
   type        = number
@@ -265,7 +271,7 @@ variable "cluster_access_from_sgs" {
 
 # ---------------------------------------------------------------------------------------------------------------------
 # CLOUDWATCH MONITORING VARIABLES
-# These variables optionally configure Cloudwatch alarms to monitor resource usage in the ECS cluster and raise alerts when defined thresholds are exceeded 
+# These variables optionally configure Cloudwatch alarms to monitor resource usage in the ECS cluster and raise alerts when defined thresholds are exceeded
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "enable_ecs_cloudwatch_alarms" {
