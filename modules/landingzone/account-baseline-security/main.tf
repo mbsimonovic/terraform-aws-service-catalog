@@ -26,7 +26,7 @@ terraform {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "config" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-config-multi-region?ref=v0.44.3"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-config-multi-region?ref=v0.44.4"
 
   aws_account_id         = var.aws_account_id
   seed_region            = var.aws_region
@@ -86,7 +86,7 @@ module "config" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "iam_groups" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-groups?ref=v0.44.3"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-groups?ref=v0.44.4"
 
   aws_account_id     = var.aws_account_id
   should_require_mfa = var.should_require_mfa
@@ -129,7 +129,7 @@ module "iam_groups" {
 }
 
 module "iam_users" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-users?ref=v0.44.3"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-users?ref=v0.44.4"
 
   users                   = var.users
   password_length         = var.iam_password_policy_minimum_password_length
@@ -144,7 +144,7 @@ module "iam_users" {
 }
 
 module "iam_cross_account_roles" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cross-account-iam-roles?ref=v0.44.3"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cross-account-iam-roles?ref=v0.44.4"
 
   aws_account_id = var.aws_account_id
   tags           = var.iam_role_tags
@@ -170,7 +170,7 @@ module "iam_cross_account_roles" {
 }
 
 module "iam_user_password_policy" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-user-password-policy?ref=v0.44.3"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-user-password-policy?ref=v0.44.4"
 
   # Adjust these settings as appropriate for your company
   minimum_password_length        = var.iam_password_policy_minimum_password_length
@@ -189,7 +189,7 @@ module "iam_user_password_policy" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "guardduty" {
-  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/guardduty-multi-region?ref=v0.44.3"
+  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/guardduty-multi-region?ref=v0.44.4"
   aws_account_id = var.aws_account_id
   seed_region    = var.aws_region
 
@@ -205,7 +205,7 @@ module "guardduty" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "cloudtrail" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cloudtrail?ref=v0.44.3"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cloudtrail?ref=v0.44.4"
 
   is_multi_region_trail = true
   cloudtrail_trail_name = var.name_prefix
@@ -217,11 +217,13 @@ module "cloudtrail" {
 
   # Set our kms key arn to the one created outside the module. Since we are bringing our own KMS key, we set the kms
   # user vars to empty list.
-  kms_key_already_exists           = var.cloudtrail_kms_key_arn != null
-  kms_key_arn                      = var.cloudtrail_kms_key_arn
-  kms_key_administrator_iam_arns   = var.cloudtrail_kms_key_administrator_iam_arns
-  kms_key_user_iam_arns            = var.cloudtrail_kms_key_user_iam_arns
-  allow_cloudtrail_access_with_iam = var.allow_cloudtrail_access_with_iam
+  kms_key_already_exists                          = var.cloudtrail_kms_key_arn != null
+  kms_key_arn                                     = var.cloudtrail_kms_key_arn
+  kms_key_administrator_iam_arns                  = var.cloudtrail_kms_key_administrator_iam_arns
+  kms_key_user_iam_arns                           = var.cloudtrail_kms_key_user_iam_arns
+  kms_key_arn_is_alias                            = var.cloudtrail_kms_key_arn_is_alias
+  allow_kms_describe_key_to_external_aws_accounts = var.cloudtrail_allow_kms_describe_key_to_external_aws_accounts
+  allow_cloudtrail_access_with_iam                = var.allow_cloudtrail_access_with_iam
 
   # If you're writing CloudTrail logs to an existing S3 bucket in another AWS account, set this to true
   s3_bucket_already_exists = var.cloudtrail_s3_bucket_already_exists
@@ -241,7 +243,7 @@ module "cloudtrail" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "customer_master_keys" {
-  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-master-key-multi-region?ref=v0.44.3"
+  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-master-key-multi-region?ref=v0.44.4"
   aws_account_id = var.aws_account_id
   seed_region    = var.aws_region
 
@@ -251,7 +253,7 @@ module "customer_master_keys" {
 }
 
 module "kms_grants" {
-  source            = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-grant-multi-region?ref=v0.44.3"
+  source            = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-grant-multi-region?ref=v0.44.4"
   aws_account_id    = var.aws_account_id
   seed_region       = var.aws_region
   opt_in_regions    = var.kms_cmk_opt_in_regions
@@ -264,7 +266,7 @@ module "kms_grants" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "ebs_encryption" {
-  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/ebs-encryption-multi-region?ref=v0.44.3"
+  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/ebs-encryption-multi-region?ref=v0.44.4"
   aws_account_id = var.aws_account_id
   seed_region    = var.aws_region
   opt_in_regions = var.ebs_opt_in_regions

@@ -489,6 +489,18 @@ variable "cloudtrail_external_aws_account_ids_with_write_access" {
   default     = []
 }
 
+variable "cloudtrail_allow_kms_describe_key_to_external_aws_accounts" {
+  description = "Whether or not to allow kms:DescribeKey to external AWS accounts with write access to the CloudTrail bucket. This is useful during deployment so that you don't have to pass around the KMS key ARN."
+  type        = bool
+  default     = false
+}
+
+variable "cloudtrail_kms_key_arn_is_alias" {
+  description = "If the kms_key_arn provided is an alias or alias ARN, then this must be set to true so that the module will exchange the alias for a CMK ARN. Setting this to true and using aliases requires var.cloudtrail_allow_kms_describe_key_to_external_aws_accounts to also be true for multi-account scenarios."
+  type        = bool
+  default     = false
+}
+
 variable "cloudtrail_tags" {
   description = "Tags to apply to the CloudTrail resources."
   type        = map(string)

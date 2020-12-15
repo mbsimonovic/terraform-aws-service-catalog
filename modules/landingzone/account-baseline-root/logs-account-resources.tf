@@ -69,7 +69,7 @@ provider "aws" {
 }
 
 module "config_bucket" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-config-bucket?ref=v0.44.3"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-config-bucket?ref=v0.44.4"
 
   providers = {
     aws = aws.logs
@@ -92,7 +92,7 @@ module "config_bucket" {
 }
 
 module "cloudtrail_bucket" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cloudtrail-bucket?ref=v0.44.3"
+  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cloudtrail-bucket?ref=v0.44.4"
 
   providers = {
     aws = aws.logs
@@ -106,11 +106,12 @@ module "cloudtrail_bucket" {
 
   cloudtrail_trail_name = var.name_prefix
 
-  kms_key_already_exists           = var.cloudtrail_kms_key_arn != null
-  kms_key_arn                      = var.cloudtrail_kms_key_arn
-  kms_key_administrator_iam_arns   = local.cloudtrail_kms_key_administrator_iam_arns
-  kms_key_user_iam_arns            = var.cloudtrail_kms_key_user_iam_arns
-  allow_cloudtrail_access_with_iam = var.allow_cloudtrail_access_with_iam
+  kms_key_already_exists                          = var.cloudtrail_kms_key_arn != null
+  kms_key_arn                                     = var.cloudtrail_kms_key_arn
+  kms_key_administrator_iam_arns                  = local.cloudtrail_kms_key_administrator_iam_arns
+  kms_key_user_iam_arns                           = var.cloudtrail_kms_key_user_iam_arns
+  allow_kms_describe_key_to_external_aws_accounts = var.cloudtrail_allow_kms_describe_key_to_external_aws_accounts
+  allow_cloudtrail_access_with_iam                = var.allow_cloudtrail_access_with_iam
 
   # We have to set this to work around an issue where aws_caller_identity returns the wrong account ID. See:
   # https://github.com/gruntwork-io/module-security/pull/308#issuecomment-676561441
