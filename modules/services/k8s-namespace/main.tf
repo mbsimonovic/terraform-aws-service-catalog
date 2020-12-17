@@ -29,7 +29,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "namespace" {
-  source = "git::git@github.com:gruntwork-io/terraform-kubernetes-helm.git//modules/k8s-namespace?ref=v0.6.1"
+  source = "git::git@github.com:gruntwork-io/terraform-kubernetes-namespace.git//modules/namespace?ref=v0.1.0"
 
   name = var.name
 }
