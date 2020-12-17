@@ -9,10 +9,10 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # Require at least 0.12.26, which knows what to do with the source syntax of required_providers.
-  # Make sure we don't accidentally pull in 0.13.x, as that has backwards incompatible changes that are known to NOT
-  # work with the terraform-aws-eks repo. We are working on a fix, but until that's ready, we need to avoid 0.13.x.
-  required_version = "~> 0.12.26"
+  # This module is now only being tested with Terraform 0.13.x. However, to make upgrading easier, we are setting
+  # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
+  # forwards compatible with 0.13.x code.
+  required_version = ">= 0.12.26"
 
   required_providers {
     aws = {
@@ -68,7 +68,7 @@ data "aws_eks_cluster_auth" "kubernetes_token" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "eks_cluster" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.29.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.31.1"
 
   cluster_name = var.cluster_name
 
@@ -87,7 +87,7 @@ module "eks_cluster" {
 }
 
 module "eks_workers" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.29.1"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.31.1"
   create_resources = length(var.autoscaling_group_configurations) > 0
 
   # Use the output from control plane module as the cluster name to ensure the module only looks up the information
@@ -97,14 +97,21 @@ module "eks_workers" {
   autoscaling_group_configurations  = var.autoscaling_group_configurations
   include_autoscaler_discovery_tags = var.autoscaling_group_include_autoscaler_discovery_tags
 
-  asg_default_min_size      = var.asg_default_min_size
-  asg_default_max_size      = var.asg_default_max_size
-  asg_default_instance_type = var.asg_default_instance_type
-  asg_default_tags          = var.asg_default_tags
+  asg_default_min_size                        = var.asg_default_min_size
+  asg_default_max_size                        = var.asg_default_max_size
+  asg_default_instance_type                   = var.asg_default_instance_type
+  asg_default_tags                            = var.asg_default_tags
+  asg_default_instance_spot_price             = var.asg_default_instance_spot_price
+  asg_default_instance_root_volume_size       = var.asg_default_instance_root_volume_size
+  asg_default_instance_root_volume_type       = var.asg_default_instance_root_volume_type
+  asg_default_instance_root_volume_encryption = var.asg_default_instance_root_volume_encryption
 
-  cluster_instance_ami              = module.ec2_baseline.existing_ami
-  cluster_instance_keypair_name     = var.cluster_instance_keypair_name
-  cluster_instance_user_data_base64 = module.ec2_baseline.cloud_init_rendered
+  # The following are not yet supported to accept multiple, but in a future version, we will support extracting
+  # additional user data and AMI configurations from each ASG entry.
+  asg_default_instance_ami              = module.ec2_baseline.existing_ami
+  asg_default_instance_user_data_base64 = module.ec2_baseline.cloud_init_rendered
+
+  cluster_instance_keypair_name = var.cluster_instance_keypair_name
 
   tenancy = var.tenancy
 
@@ -207,7 +214,7 @@ resource "kubernetes_namespace" "aws_auth_merger" {
 }
 
 module "eks_aws_auth_merger" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-aws-auth-merger?ref=v0.29.1"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-aws-auth-merger?ref=v0.31.1"
   create_resources = var.enable_aws_auth_merger
 
   create_namespace = false
@@ -227,7 +234,7 @@ module "eks_aws_auth_merger" {
 }
 
 module "eks_k8s_role_mapping" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.29.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.31.1"
 
   # Configure to create this in the merger namespace if using the aws-auth-merger. Otherwise create it as the main
   # config.

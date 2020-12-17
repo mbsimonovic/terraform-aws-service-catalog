@@ -45,6 +45,14 @@ variable "autoscaling_group_configurations" {
   #                                            will be used to deploy updates to the cluster.
   # - asg_instance_type   string             : (Defaults to value from var.asg_default_instance_type) The type of
   #                                            instances to use for the ASG (e.g., t2.medium).
+  # - asg_instance_spot_price   string       : (Defaults to value from var.asg_default_instance_spot_price) The type of
+  #                                            instances to use for the ASG .
+  # - asg_instance_root_volume_size   number : (Defaults to value from var.asg_default_instance_root_volume_size) The root volume size of
+  #                                            instances to use for the ASG in GB (e.g., 40).
+  # - asg_instance_root_volume_type   string : (Defaults to value from var.asg_default_instance_root_volume_type) The root volume type of
+  #                                            instances to use for the ASG (e.g., "standard").
+  # - asg_instance_root_volume_encryption   bool  : (Defaults to value from var.asg_default_instance_root_volume_encryption) 
+  #                                             Whether or not to enable root volume encryption for instances of the ASG.
   # - tags                list(object[Tag])  : (Defaults to value from var.asg_default_tags) Custom tags to apply to the
   #                                            EC2 Instances in this ASG. Refer to structure definition below for the
   #                                            object type of each entry in the list.
@@ -311,6 +319,30 @@ variable "asg_default_instance_type" {
   description = "Default value for the asg_instance_type field of autoscaling_group_configurations. Any map entry that does not specify asg_instance_type will use this value."
   type        = string
   default     = "t3.medium"
+}
+
+variable "asg_default_instance_spot_price" {
+  description = "Default value for the asg_instance_spot_price field of autoscaling_group_configurations. Any map entry that does not specify asg_instance_spot_price will use this value."
+  type        = string
+  default     = null
+}
+
+variable "asg_default_instance_root_volume_size" {
+  description = "Default value for the asg_instance_root_volume_size field of autoscaling_group_configurations. Any map entry that does not specify asg_instance_root_volume_size will use this value."
+  type        = number
+  default     = 40
+}
+
+variable "asg_default_instance_root_volume_type" {
+  description = "Default value for the asg_instance_root_volume_type field of autoscaling_group_configurations. Any map entry that does not specify asg_instance_root_volume_type will use this value."
+  type        = string
+  default     = "standard"
+}
+
+variable "asg_default_instance_root_volume_encryption" {
+  description = "Default value for the asg_instance_root_volume_encryption field of autoscaling_group_configurations. Any map entry that does not specify asg_instance_root_volume_encryption will use this value."
+  type        = bool
+  default     = true
 }
 
 variable "asg_default_tags" {
