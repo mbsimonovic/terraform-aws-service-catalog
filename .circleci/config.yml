@@ -9,7 +9,7 @@ env: &env
     # renovate.json auto-update: gruntwork-installer
     GRUNTWORK_INSTALLER_VERSION: v0.0.29
     # renovate.json auto-update: terratest
-    TERRATEST_LOG_PARSER_VERSION: v0.31.1
+    TERRATEST_LOG_PARSER_VERSION: v0.31.2
     # renovate.json auto-update: kubergrunt
     KUBERGRUNT_VERSION: v0.6.8
     # renovate.json auto-update: module-ci
