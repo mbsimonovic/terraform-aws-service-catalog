@@ -4,11 +4,11 @@
 set -e
 
 # renovate.json auto-update: module-ecs
-readonly DEFAULT_ECS_CLUSTER_VERSION="v0.23.2"
+readonly DEFAULT_ECS_CLUSTER_VERSION="v0.23.3"
 
 # ECS tooling
 # renovate.json auto-update: module-ecs
-readonly DEFAULT_ECS_SCRIPTS_VERSION="v0.23.2"
+readonly DEFAULT_ECS_SCRIPTS_VERSION="v0.23.3"
 # renovate.json auto-update: gruntkms
 readonly DEFAULT_GRUNT_KMS_VERSION="v0.0.8"
 
