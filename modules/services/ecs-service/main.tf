@@ -111,14 +111,14 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_iam_role_policy" "service_policy" {
-  count  = var.iam_role_name != "" ? 1 : 0
+  count  = var.iam_role_name != "" && var.iam_policy != null ? 1 : 0
   name   = "${var.iam_role_name}Policy"
   role   = module.ecs_service.ecs_task_iam_role_name
   policy = data.aws_iam_policy_document.service_policy[0].json
 }
 
 data "aws_iam_policy_document" "service_policy" {
-  count = var.iam_role_name != "" ? 1 : 0
+  count = var.iam_role_name != "" && var.iam_policy != null ? 1 : 0
 
   dynamic "statement" {
     for_each = var.iam_policy == null ? {} : var.iam_policy
@@ -130,6 +130,31 @@ data "aws_iam_policy_document" "service_policy" {
       resources = statement.value.resources
     }
   }
+}
+
+resource "aws_iam_role_policy" "secrets_access_policy" {
+  count  = var.iam_role_name != "" && var.secrets_access != null ? 1 : 0
+  name   = "${var.iam_role_name}SecretsAccessPolicy"
+  role   = module.ecs_service.ecs_task_iam_role_name
+  policy = data.aws_iam_policy_document.secrets_access_policy_document[0].json
+}
+
+data "aws_iam_policy_document" "secrets_access_policy_document" {
+  count = var.iam_role_name != "" && var.secrets_access != null ? 1 : 0
+
+  statement {
+    sid       = "SecretsAccess"
+    effect    = "Allow"
+    actions   = ["secretsmanager:GetSecretValue"]
+    resources = [for secret in data.aws_secretsmanager_secret.secrets_arn_exchange : secret.arn]
+  }
+}
+
+# This allows the user to pass either the full ARN of a Secrets Manager secret (including the randomly generated
+# suffix) or the ARN without the random suffix. The data source will find the full ARN for use in the IAM policy.
+data "aws_secretsmanager_secret" "secrets_arn_exchange" {
+  for_each = var.iam_role_name != "" ? { for secret in var.secrets_access : secret => secret } : {}
+  arn      = each.value
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

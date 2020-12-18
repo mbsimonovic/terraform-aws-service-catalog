@@ -688,6 +688,17 @@ variable "iam_policy" {
   # }
 }
 
+variable "secrets_access" {
+  description = "A list of ARNs of Secrets Manager secrets that the task should have permissions to read. The IAM role for the task will be granted `secretsmanager:GetSecretValue` for each secret in the list. The ARN can be either the complete ARN, including the randomly generated suffix, or the ARN without the suffix. If the latter, the module will look up the full ARN automatically. This is helpful in cases where you don't yet know the randomly generated suffix because the rest of the ARN is a predictable value."
+  type        = list(string)
+  default     = []
+  # Example:
+  # secrets_access = [
+  #   "arn:aws:secretsmanager:us-east-1:123456789012:secret:example",
+  #    "arn:aws:secretsmanager:us-east-1:123456789012:secret:example-123456",
+  #  ]
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # ROUTE 53 RECORD
 # ---------------------------------------------------------------------------------------------------------------------
