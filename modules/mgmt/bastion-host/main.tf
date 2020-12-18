@@ -23,7 +23,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "bastion" {
-  source = "git::git@github.com:gruntwork-io/module-server.git//modules/single-server?ref=v0.9.3"
+  source = "git::git@github.com:gruntwork-io/module-server.git//modules/single-server?ref=v0.9.4"
 
   name             = var.name
   instance_type    = var.instance_type
