@@ -55,6 +55,16 @@ module "ecs_service" {
   elb_target_groups       = var.elb_target_groups
   elb_target_group_vpc_id = var.elb_target_group_vpc_id
 
+  health_check_grace_period_seconds = var.health_check_grace_period_seconds
+  health_check_enabled              = var.health_check_enabled
+  health_check_interval             = var.health_check_interval
+  health_check_path                 = var.health_check_target_group_path
+  health_check_port                 = var.health_check_port
+  health_check_timeout              = var.health_check_timeout
+  health_check_healthy_threshold    = var.health_check_healthy_threshold
+  health_check_unhealthy_threshold  = var.health_check_unhealthy_threshold
+  health_check_matcher              = var.health_check_matcher
+
   enable_ecs_deployment_check      = var.enable_ecs_deployment_check
   deployment_check_timeout_seconds = var.deployment_check_timeout_seconds
   deployment_check_loglevel        = var.deployment_check_loglevel

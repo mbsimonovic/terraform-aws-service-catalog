@@ -268,6 +268,62 @@ variable "alb_sticky_session_cookie_duration" {
   default     = 86400
 }
 
+### LB Health Check configurations
+
+variable "health_check_grace_period_seconds" {
+  description = "Seconds to ignore failing load balancer health checks on newly instantiated tasks to prevent premature shutdown, up to 2,147,483,647. Only valid for services configured to use load balancers."
+  type        = number
+  default     = 0
+}
+
+variable "health_check_enabled" {
+  description = "If true, enable health checks on the target group. Only applies to ELBv2. For CLBs, health checks are not configurable."
+  type        = bool
+  default     = true
+}
+
+variable "health_check_interval" {
+  description = "The approximate amount of time, in seconds, between health checks of an individual Target. Minimum value 5 seconds, Maximum value 300 seconds."
+  type        = number
+  default     = 30
+}
+
+variable "health_check_target_group_path" {
+  description = "The ping path that is the destination on the Targets for health checks. Required when using ALBs."
+  type        = string
+  default     = "/"
+}
+
+variable "health_check_port" {
+  description = "The port the ELB uses when performing health checks on Targets. The default is to use the port on which each target receives traffic from the load balancer, indicated by the value 'traffic-port'."
+  type        = string
+  default     = "traffic-port"
+}
+
+variable "health_check_timeout" {
+  description = "The amount of time, in seconds, during which no response from a Target means a failed health check. The acceptable range is 2 to 60 seconds."
+  type        = number
+  default     = 5
+}
+
+variable "health_check_healthy_threshold" {
+  description = "The number of consecutive successful health checks required before considering an unhealthy Target healthy. The acceptable range is 2 to 10."
+  type        = number
+  default     = 5
+}
+
+variable "health_check_unhealthy_threshold" {
+  description = "The number of consecutive failed health checks required before considering a target unhealthy. The acceptable range is 2 to 10. For NLBs, this value must be the same as the health_check_healthy_threshold."
+  type        = number
+  default     = 2
+}
+
+variable "health_check_matcher" {
+  description = "The HTTP codes to use when checking for a successful response from a Target. You can specify multiple values (e.g. '200,202') or a range of values (e.g. '200-299'). Required when using ALBs."
+  type        = string
+  default     = "200"
+}
+
 variable "default_listener_arns" {
   description = "A map of all the listeners on the load balancer. The keys should be the port numbers and the values should be the ARN of the listener for that port."
   type        = map(string)
