@@ -18,9 +18,9 @@ variable "acm_certificate_domain_name" {
 # These variables have defaults, but may be overridden by the operator.
 # ---------------------------------------------------------------------------------------------------------------------
 variable "base_domain_name" {
-  description = "The domain name associated with a hosted zone in Route 53. Usually the base domain name of var.website_domain_name (e.g. foo.com). This is used to find the hosted zone that will be used for the CloudFront distribution."
+  description = "The domain name associated with a hosted zone in Route 53. Usually the base domain name of var.website_domain_name (e.g. foo.com). This is used to find the hosted zone that will be used for the CloudFront distribution. If var.create_route53_entry is true, one of base_domain_name or var.hosted_zone_id must be provided."
   type        = string
-  default     = ""
+  default     = null
 }
 
 variable "base_domain_name_tags" {
@@ -30,9 +30,15 @@ variable "base_domain_name_tags" {
 }
 
 variable "create_route53_entry" {
-  description = "If set to true, create a DNS A Record in Route 53 with the domain name in var.website_domain_name."
+  description = "If set to true, create a DNS A Record in Route 53. If var.create_route53_entry is true, one of base_domain_name or var.hosted_zone_id must be provided."
   type        = bool
   default     = true
+}
+
+variable "hosted_zone_id" {
+  description = "The ID of the Route 53 Hosted Zone in which to create the DNS A Records specified in var.website_domain_name. If var.create_route53_entry is true, one of base_domain_name or var.hosted_zone_id must be provided."
+  type        = string
+  default     = null
 }
 
 variable "index_document" {
