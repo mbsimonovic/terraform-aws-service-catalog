@@ -59,6 +59,42 @@ variable "allow_private_persistence_internet_access" {
   default     = false
 }
 
+variable "custom_tags" {
+  description = "A map of tags to apply to the VPC, Subnets, Route Tables, Internet Gateway, default security group, and default NACLs. The key is the tag name and the value is the tag value. Note that the tag 'Name' is automatically added by this module but may be optionally overwritten by this variable."
+  type        = map(string)
+  default     = {}
+}
+
+variable "vpc_custom_tags" {
+  description = "A map of tags to apply just to the VPC itself, but not any of the other resources. The key is the tag name and the value is the tag value. Note that tags defined here will override tags defined as custom_tags in case of conflict."
+  type        = map(string)
+  default     = {}
+}
+
+variable "public_subnet_custom_tags" {
+  description = "A map of tags to apply to the public Subnet, on top of the custom_tags. The key is the tag name and the value is the tag value. Note that tags defined here will override tags defined as custom_tags in case of conflict."
+  type        = map(string)
+  default     = {}
+}
+
+variable "private_app_subnet_custom_tags" {
+  description = "A map of tags to apply to the private-app Subnet, on top of the custom_tags. The key is the tag name and the value is the tag value. Note that tags defined here will override tags defined as custom_tags in case of conflict."
+  type        = map(string)
+  default     = {}
+}
+
+variable "private_persistence_subnet_custom_tags" {
+  description = "A map of tags to apply to the private-persistence Subnet, on top of the custom_tags. The key is the tag name and the value is the tag value. Note that tags defined here will override tags defined as custom_tags in case of conflict."
+  type        = map(string)
+  default     = {}
+}
+
+variable "nat_gateway_custom_tags" {
+  description = "A map of tags to apply to the NAT gateways, on top of the custom_tags. The key is the tag name and the value is the tag value. Note that tags defined here will override tags defined as custom_tags in case of conflict."
+  type        = map(string)
+  default     = {}
+}
+
 variable "tag_for_use_with_eks" {
   description = "The VPC resources need special tags for discoverability by Kubernetes to use with certain features, like deploying ALBs."
   type        = bool
@@ -81,6 +117,101 @@ variable "availability_zone_exclude_names" {
   description = "Specific Availability Zones in which subnets SHOULD NOT be created. Useful for when features / support is missing from a given AZ."
   type        = list(string)
   default     = []
+}
+
+variable "create_public_subnets" {
+  description = "If set to false, this module will NOT create the public subnet tier. This is useful for VPCs that only need private subnets. Note that setting this to false also means the module will NOT create an Internet Gateway or the NAT gateways, so if you want any public Internet access in the VPC (even outbound access—e.g., to run apt get), you'll need to provide it yourself via some other mechanism (e.g., via VPC peering, a Transit Gateway, Direct Connect, etc)."
+  type        = bool
+  default     = true
+}
+
+variable "create_private_app_subnets" {
+  description = "If set to false, this module will NOT create the private app subnet tier."
+  type        = bool
+  default     = true
+}
+
+variable "create_private_persistence_subnets" {
+  description = "If set to false, this module will NOT create the private persistence subnet tier."
+  type        = bool
+  default     = true
+}
+
+# ----------------------------------------------------------------------------------------------------------------------
+# OPTIONAL PARAMETERS FOR DEFAULT SECURITY GROUP AND DEFAULT NACL
+# ----------------------------------------------------------------------------------------------------------------------
+
+variable "default_security_group_ingress_rules" {
+  description = "The ingress rules to apply to the default security group in the VPC. This is the security group that is used by any resource that doesn't have its own security group attached. The value for this variable must be a map where the keys are a unique name for each rule and the values are objects with the same fields as the ingress block in the aws_default_security_group resource: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/default_security_group#ingress-block."
+  # Ideally, we'd have a more specific type here, but neither the 'map' nor 'object' type has support for optional
+  # fields, and we need optional fields when defining security group rules.
+  type = any
+  default = {
+    # The default AWS configures:
+    # https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html#DefaultSecurityGroup
+    AllowAllFromSelf = {
+      from_port = 0
+      to_port   = 0
+      protocol  = "-1"
+      self      = true
+    }
+  }
+}
+
+variable "default_security_group_egress_rules" {
+  description = "The egress rules to apply to the default security group in the VPC. This is the security group that is used by any resource that doesn't have its own security group attached. The value for this variable must be a map where the keys are a unique name for each rule and the values are objects with the same fields as the egress block in the aws_default_security_group resource: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/default_security_group#egress-block."
+  # Ideally, we'd have a more specific type here, but neither the 'map' nor 'object' type has support for optional
+  # fields, and we need optional fields when defining security group rules.
+  type = any
+  default = {
+    # The default AWS configures:
+    # https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html#DefaultSecurityGroup
+    AllowAllOutbound = {
+      from_port        = 0
+      to_port          = 0
+      protocol         = "-1"
+      cidr_blocks      = ["0.0.0.0/0"]
+      ipv6_cidr_blocks = ["::/0"]
+    }
+  }
+}
+
+variable "default_nacl_ingress_rules" {
+  description = "The ingress rules to apply to the default NACL in the VPC. This is the NACL that is used by any subnet that doesn't have its own NACL attached. The value for this variable must be a map where the keys are a unique name for each rule and the values are objects with the same fields as the ingress block in the aws_default_network_acl resource: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/default_network_acl."
+  # Ideally, we'd have a more specific type here, but neither the 'map' nor 'object' type has support for optional
+  # fields, and we need optional fields when defining security group rules.
+  type = any
+  default = {
+    # The default AWS configures:
+    # https://docs.aws.amazon.com/vpc/latest/userguide/vpc-network-acls.html#default-network-acl
+    AllowAll = {
+      from_port  = 0
+      to_port    = 0
+      action     = "allow"
+      protocol   = "-1"
+      cidr_block = "0.0.0.0/0"
+      rule_no    = 100
+    }
+  }
+}
+
+variable "default_nacl_egress_rules" {
+  description = "The egress rules to apply to the default NACL in the VPC. This is the security group that is used by any subnet that doesn't have its own NACL attached. The value for this variable must be a map where the keys are a unique name for each rule and the values are objects with the same fields as the egress block in the aws_default_network_acl resource: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/default_network_acl."
+  # Ideally, we'd have a more specific type here, but neither the 'map' nor 'object' type has support for optional
+  # fields, and we need optional fields when defining security group rules.
+  type = any
+  default = {
+    # The default AWS configures:
+    # https://docs.aws.amazon.com/vpc/latest/userguide/vpc-network-acls.html#default-network-acl
+    AllowAll = {
+      from_port  = 0
+      to_port    = 0
+      action     = "allow"
+      protocol   = "-1"
+      cidr_block = "0.0.0.0/0"
+      rule_no    = 100
+    }
+  }
 }
 
 # ----------------------------------------------------------------------------------------------------------------------
