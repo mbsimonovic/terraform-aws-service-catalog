@@ -63,6 +63,11 @@ module "vpc" {
   # Other tags to apply to some of the VPC resources
   vpc_custom_tags         = var.vpc_custom_tags
   nat_gateway_custom_tags = var.nat_gateway_custom_tags
+
+  default_security_group_ingress_rules = var.default_security_group_ingress_rules
+  default_security_group_egress_rules  = var.default_security_group_egress_rules
+  default_nacl_ingress_rules           = var.default_nacl_ingress_rules
+  default_nacl_egress_rules            = var.default_nacl_egress_rules
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
