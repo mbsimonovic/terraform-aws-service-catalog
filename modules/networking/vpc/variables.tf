@@ -119,6 +119,24 @@ variable "availability_zone_exclude_names" {
   default     = []
 }
 
+variable "create_public_subnets" {
+  description = "If set to false, this module will NOT create the public subnet tier. This is useful for VPCs that only need private subnets. Note that setting this to false also means the module will NOT create an Internet Gateway or the NAT gateways, so if you want any public Internet access in the VPC (even outbound access—e.g., to run apt get), you'll need to provide it yourself via some other mechanism (e.g., via VPC peering, a Transit Gateway, Direct Connect, etc)."
+  type        = bool
+  default     = true
+}
+
+variable "create_private_app_subnets" {
+  description = "If set to false, this module will NOT create the private app subnet tier."
+  type        = bool
+  default     = true
+}
+
+variable "create_private_persistence_subnets" {
+  description = "If set to false, this module will NOT create the private persistence subnet tier."
+  type        = bool
+  default     = true
+}
+
 # ----------------------------------------------------------------------------------------------------------------------
 # OPTIONAL PARAMETERS FOR DEFAULT SECURITY GROUP AND DEFAULT NACL
 # ----------------------------------------------------------------------------------------------------------------------

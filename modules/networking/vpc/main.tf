@@ -64,10 +64,16 @@ module "vpc" {
   vpc_custom_tags         = var.vpc_custom_tags
   nat_gateway_custom_tags = var.nat_gateway_custom_tags
 
+  # Params for the Default Security Group and Default NACL
   default_security_group_ingress_rules = var.default_security_group_ingress_rules
   default_security_group_egress_rules  = var.default_security_group_egress_rules
   default_nacl_ingress_rules           = var.default_nacl_ingress_rules
   default_nacl_egress_rules            = var.default_nacl_egress_rules
+
+  # Params for enabling/disabling subnet tiers
+  create_public_subnets              = var.create_public_subnets
+  create_private_app_subnets         = var.create_private_app_subnets
+  create_private_persistence_subnets = var.create_private_persistence_subnets
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
