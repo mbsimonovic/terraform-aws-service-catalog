@@ -59,6 +59,42 @@ variable "allow_private_persistence_internet_access" {
   default     = false
 }
 
+variable "custom_tags" {
+  description = "A map of tags to apply to the VPC, Subnets, Route Tables, Internet Gateway, default security group, and default NACLs. The key is the tag name and the value is the tag value. Note that the tag 'Name' is automatically added by this module but may be optionally overwritten by this variable."
+  type        = map(string)
+  default     = {}
+}
+
+variable "vpc_custom_tags" {
+  description = "A map of tags to apply just to the VPC itself, but not any of the other resources. The key is the tag name and the value is the tag value. Note that tags defined here will override tags defined as custom_tags in case of conflict."
+  type        = map(string)
+  default     = {}
+}
+
+variable "public_subnet_custom_tags" {
+  description = "A map of tags to apply to the public Subnet, on top of the custom_tags. The key is the tag name and the value is the tag value. Note that tags defined here will override tags defined as custom_tags in case of conflict."
+  type        = map(string)
+  default     = {}
+}
+
+variable "private_app_subnet_custom_tags" {
+  description = "A map of tags to apply to the private-app Subnet, on top of the custom_tags. The key is the tag name and the value is the tag value. Note that tags defined here will override tags defined as custom_tags in case of conflict."
+  type        = map(string)
+  default     = {}
+}
+
+variable "private_persistence_subnet_custom_tags" {
+  description = "A map of tags to apply to the private-persistence Subnet, on top of the custom_tags. The key is the tag name and the value is the tag value. Note that tags defined here will override tags defined as custom_tags in case of conflict."
+  type        = map(string)
+  default     = {}
+}
+
+variable "nat_gateway_custom_tags" {
+  description = "A map of tags to apply to the NAT gateways, on top of the custom_tags. The key is the tag name and the value is the tag value. Note that tags defined here will override tags defined as custom_tags in case of conflict."
+  type        = map(string)
+  default     = {}
+}
+
 variable "tag_for_use_with_eks" {
   description = "The VPC resources need special tags for discoverability by Kubernetes to use with certain features, like deploying ALBs."
   type        = bool

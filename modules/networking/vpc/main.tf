@@ -55,10 +55,14 @@ module "vpc" {
 
   # The VPC resources need special tags for discoverability by Kubernetes to use with certain features, like deploying
   # ALBs.
-  custom_tags                            = local.maybe_vpc_tags[local.maybe_tag_key]
-  public_subnet_custom_tags              = local.maybe_public_subnet_tags[local.maybe_tag_key]
-  private_app_subnet_custom_tags         = local.maybe_private_app_subnet_tags[local.maybe_tag_key]
-  private_persistence_subnet_custom_tags = local.maybe_private_persistence_subnet_tags[local.maybe_tag_key]
+  custom_tags                            = merge(local.maybe_vpc_tags[local.maybe_tag_key], var.custom_tags)
+  public_subnet_custom_tags              = merge(local.maybe_public_subnet_tags[local.maybe_tag_key], var.public_subnet_custom_tags)
+  private_app_subnet_custom_tags         = merge(local.maybe_private_app_subnet_tags[local.maybe_tag_key], var.private_app_subnet_custom_tags)
+  private_persistence_subnet_custom_tags = merge(local.maybe_private_persistence_subnet_tags[local.maybe_tag_key], var.private_persistence_subnet_custom_tags)
+
+  # Other tags to apply to some of the VPC resources
+  vpc_custom_tags         = var.vpc_custom_tags
+  nat_gateway_custom_tags = var.nat_gateway_custom_tags
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
