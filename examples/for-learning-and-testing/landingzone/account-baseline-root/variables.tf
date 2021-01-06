@@ -153,3 +153,38 @@ variable "force_destroy" {
   type        = bool
   default     = false
 }
+
+# ---------------------------------------------------------------------------------------------------------------------
+# IAM ACCESS ANALYZER MODULE EXAMPLE PARAMETERS
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "enable_iam_access_analyzer" {
+  description = "A feature flag to enable or disable this module."
+  type        = bool
+  default     = false
+}
+
+# This variable sets the type of the IAM Access Analyzer. Depending on the trust zone required for the analyzer to cover,
+# the possible values are:
+# - ACCOUNT;
+# - ORGANIZATION.
+# When set to ACCOUNT - the trust zone for the IAM Access Analyzer will be limited to just the account and resources
+# only within this account will be scanned, instead of the organizational boundaries and its policies.
+# When set to ORGANIZATION - the trust zone will be set to the whole organization, which allows the IAM Access Analyzer
+# to scan relevant resources shared and applicable within the bounds of the organization. The AWS account with type of
+# IAM Access Analyzer type set to ORGANIZATION, must
+# - an AWS organization master account;
+# - or be part of an AWS organization & set as a delegated admin for this feature.
+#
+# For more information, please read here: https://docs.aws.amazon.com/IAM/latest/UserGuide/what-is-access-analyzer.html
+variable "iam_access_analyzer_type" {
+  description = "If set to ORGANIZATION, the analyzer will be scanning the current organization and any policies that refer to linked resources and their policies within the organization's boundaries."
+  type        = string
+  default     = "ORGANIZATION"
+}
+
+variable "iam_access_analyzer_name" {
+  description = "The name of the IAM Access Analyzer module"
+  type        = string
+  default     = "baseline_root-iam_access_analyzer"
+}

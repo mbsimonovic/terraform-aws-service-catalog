@@ -250,3 +250,17 @@ module "ebs_encryption" {
   use_existing_kms_keys = var.ebs_use_existing_kms_keys
   kms_key_arns          = var.ebs_kms_key_arns
 }
+
+# ----------------------------------------------------------------------------------------------------------------------
+# IAM ACCESS ANALYZER DEFAULTS
+# ----------------------------------------------------------------------------------------------------------------------
+module "iam_access_analyzer" {
+  source         = "git::git@github.com:gruntwork-io/module-security.git//modules/iam-access-analyzer-multi-region?ref=v0.44.6"
+  aws_account_id = var.aws_account_id
+
+  create_resources         = var.enable_iam_access_analyzer
+  iam_access_analyzer_name = var.iam_access_analyzer_name
+  iam_access_analyzer_type = var.iam_access_analyzer_type
+  seed_region              = var.aws_region
+  opt_in_regions           = var.iam_access_analyzer_opt_in_regions
+}

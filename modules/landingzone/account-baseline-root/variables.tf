@@ -836,3 +836,31 @@ variable "ebs_opt_in_regions" {
   type        = list(string)
   default     = null
 }
+
+# ---------------------------------------------------------------------------------------------------------------------
+# REQUIRED IAM ACCESS ANALYZER PARAMETERS
+# These variables must be passed in by the operator.
+# ---------------------------------------------------------------------------------------------------------------------
+variable "enable_iam_access_analyzer" {
+  description = "A feature flag to enable or disable this module."
+  type        = bool
+  default     = false
+}
+
+variable "iam_access_analyzer_type" {
+  description = "If set to ORGANIZATION, the analyzer will be scanning the current organization and any policies that refer to linked resources such as S3, IAM, Lambda and SQS policies."
+  type        = string
+  default     = "ORGANIZATION"
+}
+
+variable "iam_access_analyzer_name" {
+  description = "The name of the IAM Access Analyzer module"
+  type        = string
+  default     = "baseline_root-iam_access_analyzer"
+}
+
+variable "iam_access_analyzer_opt_in_regions" {
+  description = "Enables IAM Access Analyzer defaults in the specified regions. Note that the region must be enabled on your AWS account. Regions that are not enabled are automatically filtered from this list. When null (default), IAM Access Analyzer will be enabled on all regions enabled on the account. Use this list to provide an alternate region list for testing purposes"
+  type        = list(string)
+  default     = null
+}

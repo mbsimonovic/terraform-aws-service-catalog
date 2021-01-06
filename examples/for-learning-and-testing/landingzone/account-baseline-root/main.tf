@@ -38,6 +38,11 @@ module "root_baseline" {
   force_destroy_users      = var.force_destroy
   cloudtrail_force_destroy = var.force_destroy
   config_force_destroy     = var.force_destroy
+
+  # Enable IAM Access Analyzer
+  iam_access_analyzer_type   = var.iam_access_analyzer_type
+  iam_access_analyzer_name   = var.iam_access_analyzer_name
+  enable_iam_access_analyzer = var.enable_iam_access_analyzer
 }
 
 data "aws_caller_identity" "current" {}
