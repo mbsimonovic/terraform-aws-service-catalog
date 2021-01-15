@@ -67,6 +67,8 @@ module "database" {
 }
 
 locals {
+  # The primary_endpoint is of the format <host>:<port>. This output returns just the host part.
+  primary_host = split(":", module.database.cluster_endpoint)[0]
 
   # The config data below can be provided in either a variable or from AWS Secrets Manager
   # The variable value is read first. If null, we will read  the values from the secrets manager
