@@ -33,6 +33,7 @@ var (
 		".*no provider exists with the given name.*":    "Failed to retrieve plugin due to transient network error.",
 		".*registry service is unreachable.*":           "Failed to retrieve plugin due to transient network error.",
 		".*timeout while waiting for plugin to start.*": "Failed to retrieve plugin due to transient network error.",
+		".*timed out waiting for server handshake.*":    "Failed to retrieve plugin due to transient network error.",
 	}
 )
 
