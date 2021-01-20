@@ -22,7 +22,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_service" {
-  source = "git::git@github.com:gruntwork-io/module-ecs.git//modules/ecs-service?ref=v0.23.3"
+  source = "git::git@github.com:gruntwork-io/module-ecs.git//modules/ecs-service?ref=v0.23.4"
 
   service_name     = var.service_name
   environment_name = var.service_name
