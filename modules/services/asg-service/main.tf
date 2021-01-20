@@ -177,6 +177,57 @@ data "aws_iam_policy_document" "instance_role" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
+# ADD CUSTOM IAM PERMISSIONS
+# ---------------------------------------------------------------------------------------------------------------------
+
+resource "aws_iam_role_policy" "service_policy" {
+  count  = var.iam_policy != null ? 1 : 0
+  name   = "${var.name}Policy"
+  role   = aws_iam_role.instance_role.name
+  policy = data.aws_iam_policy_document.service_policy[0].json
+}
+
+data "aws_iam_policy_document" "service_policy" {
+  count = var.iam_policy != null ? 1 : 0
+
+  dynamic "statement" {
+    for_each = var.iam_policy == null ? {} : var.iam_policy
+
+    content {
+      sid       = statement.key
+      effect    = statement.value.effect
+      actions   = statement.value.actions
+      resources = statement.value.resources
+    }
+  }
+}
+
+resource "aws_iam_role_policy" "secrets_access_policy" {
+  count  = length(var.secrets_access) > 0 ? 1 : 0
+  name   = "${var.name}SecretsAccessPolicy"
+  role   = aws_iam_role.instance_role.name
+  policy = data.aws_iam_policy_document.secrets_access_policy_document[0].json
+}
+
+data "aws_iam_policy_document" "secrets_access_policy_document" {
+  count = length(var.secrets_access) > 0 ? 1 : 0
+
+  statement {
+    sid       = "SecretsAccess"
+    effect    = "Allow"
+    actions   = ["secretsmanager:GetSecretValue"]
+    resources = [for secret in data.aws_secretsmanager_secret.secrets_arn_exchange : secret.arn]
+  }
+}
+
+# This allows the user to pass either the full ARN of a Secrets Manager secret (including the randomly generated
+# suffix) or the ARN without the random suffix. The data source will find the full ARN for use in the IAM policy.
+data "aws_secretsmanager_secret" "secrets_arn_exchange" {
+  for_each = { for secret in var.secrets_access : secret => secret }
+  arn      = each.value
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
 # CREATE AN ALB TARGET GROUP THAT WILL RECEIVE TRAFFIC FROM THE ALB FOR CERTAIN PATHS
 # ---------------------------------------------------------------------------------------------------------------------
 
@@ -277,12 +328,13 @@ locals {
   # Merge in all the cloud init scripts the user has passed in
   cloud_init_parts = merge({ default : local.cloud_init }, var.cloud_init_parts)
 
-  ip_lockdown_users = compact([
+  ip_lockdown_users = compact(flatten([
     var.default_user,
+    var.metadata_users,
     # User used to push cloudwatch metrics from the server. This should only be included in the ip-lockdown list if
     # reporting cloudwatch metrics is enabled.
     var.enable_cloudwatch_metrics ? "cwmonitoring" : ""
-  ])
+  ]))
   # We want a space separated list of the users, quoted with ''
   ip_lockdown_users_bash_array = join(
     " ",

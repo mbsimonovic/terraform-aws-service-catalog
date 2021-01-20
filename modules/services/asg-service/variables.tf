@@ -65,6 +65,10 @@ variable "server_ports" {
   # - tags              [map(string)] : A map of tags to apply to the metric alarm. The key is the tag name
   #                                   and the value is the tag value.
   #
+  # - protocol                           [string] : The protocol to use for health checks. See:
+  #                                                 https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group#protocol
+  # - health_check_path                  [string] : The path that the health check should use for requests (e.g. /health or /status).
+  #
   # - r53_health_check_path              [string] : The path that you want Amazon Route 53 to request when
   #                                                performing health checks (e.g. /status). Defaults to "/".
   # - r53_health_check_type              [string] : The protocol to use when performing health checks. Valid
@@ -91,7 +95,7 @@ variable "server_ports" {
   # server_ports = {
   #   "default-http" = {
   #     server_port            = "8080"
-  #     health_check_protocol  = "HTTP"
+  #     protocol               = "HTTP"
   #     health_check_path      = "/health"
   #     r53_health_check_path  = "/health"
   #     enable_lb_health_check = false
@@ -126,7 +130,7 @@ variable "forward_listener_rules" {
   # - priority          [number]                    : A value between 1 and 50000. Leaving it unset will automatically set
   #                                                  the rule with the next available priority after currently existing highest
   #                                                   rule. This value must be unique for each listener.
-  # - listener_arns     [list(string)]              : A list of listener ARNs to override `var.default_listener_arns`
+  # - listener_arns     [list(string)]              : A list of listener ARNs to override `var.listener_arns`
   # - stickiness        [map(object[Stickiness])]   : Target group stickiness for the rule. Only applies if more than one
   #                                                  target_group_arn is defined.
 
@@ -185,7 +189,7 @@ variable "redirect_listener_rules" {
   # - priority       [number]: A value between 1 and 50000. Leaving it unset will automatically set the rule with the next
   #                         available priority after currently existing highest rule. This value must be unique for each
   #                         listener.
-  # - listener_arns [list(string)]: A list of listener ARNs to override `var.default_listener_arns`
+  # - listener_arns [list(string)]: A list of listener ARNs to override `var.listener_arns`
   # - status_code   [string]: The HTTP redirect code. The redirect is either permanent `HTTP_301` or temporary `HTTP_302`.
   #
   # The URI consists of the following components: `protocol://hostname:port/path?query`. You must modify at least one of
@@ -264,7 +268,7 @@ variable "fixed_response_listener_rules" {
   # - priority      [number]       : A value between 1 and 50000. Leaving it unset will automatically set the rule with the next
   #                                 available priority after currently existing highest rule. This value must be unique for each
   #                                 listener.
-  # - listener_arns [list(string)]: A list of listener ARNs to override `var.default_listener_arns`
+  # - listener_arns [list(string)]: A list of listener ARNs to override `var.listener_arns`
   # - message_body  [string]      : The message body.
   # - status_code   [string]      : The HTTP response code. Valid values are `2XX`, `4XX`, or `5XX`.
   #
@@ -570,4 +574,45 @@ variable "default_user" {
   description = "The default OS user for the service AMI. For example, for AWS Ubuntu AMIs, the default OS user is 'ubuntu'."
   type        = string
   default     = "ubuntu"
+}
+
+variable "metadata_users" {
+  description = "List of users on the ASG EC2 instances that should be permitted access to the EC2 metadata."
+  type        = list(string)
+  default     = []
+}
+
+variable "iam_policy" {
+  description = "An object defining the policy to attach to `iam_role_name` if the IAM role is going to be created. Accepts a map of objects, where the map keys are sids for IAM policy statements, and the object fields are the resources, actions, and the effect (\"Allow\" or \"Deny\") of the statement. Ignored if `iam_role_arn` is provided. Leave as null if you do not wish to use IAM role with Service Accounts."
+  type = map(object({
+    resources = list(string)
+    actions   = list(string)
+    effect    = string
+  }))
+  default = null
+
+  # Example:
+  # iam_policy = {
+  #   S3Access = {
+  #     actions = ["s3:*"]
+  #     resources = ["arn:aws:s3:::mybucket"]
+  #     effect = "Allow"
+  #   },
+  #   SecretsManagerAccess = {
+  #     actions = ["secretsmanager:GetSecretValue"],
+  #     resources = ["arn:aws:secretsmanager:us-east-1:0123456789012:secret:mysecert"]
+  #     effect = "Allow"
+  #   }
+  # }
+}
+
+variable "secrets_access" {
+  description = "A list of ARNs of Secrets Manager secrets that the task should have permissions to read. The IAM role for the task will be granted `secretsmanager:GetSecretValue` for each secret in the list. The ARN can be either the complete ARN, including the randomly generated suffix, or the ARN without the suffix. If the latter, the module will look up the full ARN automatically. This is helpful in cases where you don't yet know the randomly generated suffix because the rest of the ARN is a predictable value."
+  type        = list(string)
+  default     = []
+  # Example:
+  # secrets_access = [
+  #   "arn:aws:secretsmanager:us-east-1:123456789012:secret:example",
+  #    "arn:aws:secretsmanager:us-east-1:123456789012:secret:example-123456",
+  #  ]
 }
