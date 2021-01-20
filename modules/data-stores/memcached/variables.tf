@@ -92,9 +92,3 @@ variable "alarms_sns_topic_arns" {
   type        = list(string)
   default     = []
 }
-
-variable "sns_topic_for_notifications" {
-  description = "The ARN of the SNS Topic to which notifications will be sent when the ElastiCache alarms change to ALARM, OK, or INSUFFICIENT_DATA state (e.g. arn:aws:sns:*:123456789012:my_sns_topic). An empty string is a valid value if you do not wish to receive notifications via SNS."
-  type        = string
-  default     = ""
-}
