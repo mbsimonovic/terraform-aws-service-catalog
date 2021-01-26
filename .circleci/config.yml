@@ -98,7 +98,7 @@ run_circleci_unit_tests: &run_circleci_unit_tests
 run_tests: &run_tests
   name: run tests
   command: |
-    TEST_REGEX=$(cat /home/ubuntu/.terraform-aws-service-catalog/test-regex.txt)
+    TEST_REGEX=$(cat /home/circleci/.terraform-aws-service-catalog/test-regex.txt)
     run-go-tests --path ./test --timeout 2h --packages "./$TEST_PACKAGE -run '$TEST_REGEX'" | tee /tmp/logs/all.log
   no_output_timeout: 3600s
 
@@ -164,8 +164,8 @@ jobs:
             cat debug.log
 
             # Store the tests to run in a folder which we will write to the CircleCi cache
-            mkdir -p /home/ubuntu/.terraform-aws-service-catalog
-            echo "$test_regex" >> /home/ubuntu/.terraform-aws-service-catalog/test-regex.txt
+            mkdir -p /home/circleci/.terraform-aws-service-catalog
+            echo "$test_regex" >> /home/circleci/.terraform-aws-service-catalog/test-regex.txt
 
             # Comment the debug log on GitHub if there is a PR number
             CIRCLE_PR_NUMBER="${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}"
@@ -176,7 +176,7 @@ jobs:
       - save_cache:
           key: tests-to-run
           paths:
-            - /home/ubuntu/.terraform-aws-service-catalog
+            - /home/circleci/.terraform-aws-service-catalog
 
 # ---------------------------------------------------------------------------------------------------------------------
 # TEST BUILD JOBS
