@@ -66,7 +66,7 @@ func TestK8SService(t *testing.T) {
 
 			testFolder := test_structure.CopyTerraformFolderToTemp(
 				t,
-				"..",
+				"../../",
 				"examples/for-learning-and-testing/services/k8s-service",
 			)
 			applicationName := "sampleapp"
