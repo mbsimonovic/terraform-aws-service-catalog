@@ -282,8 +282,8 @@ def main():
     test_file_tests_to_run = get_tests_to_run_from_test_file(updated_test_files)
     tests_to_run = module_tests_to_run.union(test_file_tests_to_run)
     if tests_to_run and '.*' in tests_to_run:
-        logging.warn('A test file triggered ".*" regex.')
-        logging.warn('ALL TESTS WILL BE RUN')
+        logging.warning('A test file triggered ".*" regex.')
+        logging.warning('ALL TESTS WILL BE RUN')
     elif tests_to_run:
         logging.info('The following tests will be run:')
         for test in tests_to_run:
