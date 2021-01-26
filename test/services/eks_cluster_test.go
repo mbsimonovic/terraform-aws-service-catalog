@@ -385,10 +385,10 @@ func validateSampleApp(t *testing.T, workingDir string, k8sServiceModulePath str
 	defer os.Remove(tmpKubeConfigPath)
 	options := k8s.NewKubectlOptions("", tmpKubeConfigPath, "default")
 
-	sampleAppValidationFunction := test.sampleAppValidationWithGreetingFunctionGenerator("Hello from the dev config!")
+	sampleAppValidationFunction := sampleAppValidationWithGreetingFunctionGenerator("Hello from the dev config!")
 
-	test.verifyPodsCreatedSuccessfully(t, options, applicationName)
-	test.verifyAllPodsAvailable(t, options, applicationName, "/greeting", sampleAppValidationFunction)
+	verifyPodsCreatedSuccessfully(t, options, applicationName)
+	verifyAllPodsAvailable(t, options, applicationName, "/greeting", sampleAppValidationFunction)
 
 	// Wait until the DNS entry is resolvable before attempting to get the address. This ensures that we wait for the
 	// hostname to have propagated through DNS before making requests to it. Otherwise, if we make requests too early,
