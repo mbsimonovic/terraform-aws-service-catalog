@@ -144,6 +144,8 @@ jobs:
 
   find_tests_to_run:
     <<: *env
+    docker:
+      - image: circleci/python:3.8.1
     steps:
       - checkout
       - prepare_environment
