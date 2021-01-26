@@ -192,7 +192,7 @@ def get_all_test_functions(project_root):
     "func (Test.*)\\(".
     """
     test_functions = []
-    for test_file in glob.glob(os.path.join(project_root, 'test', '*_test.go')):
+    for test_file in glob.glob(os.path.join(project_root, 'test', '**', '*_test.go')):
         with open(test_file) as f:
             data = f.read()
         test_function_matches = re.finditer(r'func (Test.+)\(', data)
