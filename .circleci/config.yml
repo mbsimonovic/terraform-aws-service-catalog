@@ -100,6 +100,32 @@ set_pr_number: &set_pr_number
   command: |
       echo 'export CIRCLE_PR_NUMBER="${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}"' >> $BASH_ENV
 
+find_tests_to_run: &find_tests_to_run
+  name: find all tests to run
+  command: |
+    pyenv global 3.5.2
+    test_regex=""
+    if [[ "$CIRCLE_BRANCH" == "master" ]]; then
+      # On master, the last commit is the merge commit which contains all the changes
+      test_regex="$(python ./.circleci/run_tests.py --source-ref 'HEAD^' 2> debug.log)"
+    else
+      test_regex="$(python ./.circleci/run_tests.py 2> debug.log)"
+    fi
+    cat debug.log
+    echo "export TEST_REGEX='$test_regex'" >> $BASH_ENV
+
+    # Comment the debug log on GitHub if there is a PR number
+    if [[ -n "$CIRCLE_PR_NUMBER" ]]; then
+      echo -e "Tests run for build [$CIRCLE_BUILD_NUM]($CIRCLE_BUILD_URL)\n\`\`\`\n$(cat debug.log)\n\`\`\`" \
+        | hub api repos/{owner}/{repo}/issues/"$CIRCLE_PR_NUMBER"/comments --field body=@-
+    fi
+
+run_tests: &run_tests
+  name: run tests
+  command: |
+    run-go-tests --path ./test --timeout 2h --packages "./$TEST_PACKAGE -run '$TEST_REGEX'" | tee /tmp/logs/all.log
+  no_output_timeout: 3600s
+
 # ---------------------------------------------------------------------------------------------------------------------
 # REUSABLE STEPS
 # ---------------------------------------------------------------------------------------------------------------------
@@ -146,39 +172,98 @@ jobs:
       - run:
           <<: *run_circleci_unit_tests
 
-  test:
+# ---------------------------------------------------------------------------------------------------------------------
+# TEST BUILD JOBS
+# These jobs run tests in the test folder. The jobs are all identical, except for which package in the test folder they
+# execute; I've tried to keep the copy/paste to a minimum, but there's no easy way to merge arrays in YAML, so a little
+# bit remains. We run in separate jobs so (a) they run faster and (b) they don't overload a single CircleCI server
+# with too much CPU usage and network calls. Note that, based on what find_tests_to_run returns, some of these jobs
+# won't have any tests to run. That's OK; they should just exit gracefully in that case. Unfortunately, CircleCi does
+# not yet have a way to do dynamic jobs / workflows, so this is as close as we can come.
+# ---------------------------------------------------------------------------------------------------------------------
+
+  test_data_stores:
     <<: *defaults
     steps:
       - checkout
-
       - prepare_environment
-
       - run:
-          name: find all tests to run
-          command: |
-            pyenv global 3.5.2
-            test_regex=""
-            if [[ "$CIRCLE_BRANCH" == "master" ]]; then
-              # On master, the last commit is the merge commit which contains all the changes
-              test_regex="$(python ./.circleci/run_tests.py --source-ref 'HEAD^' 2> debug.log)"
-            else
-              test_regex="$(python ./.circleci/run_tests.py 2> debug.log)"
-            fi
-            cat debug.log
-            echo "export TEST_REGEX='$test_regex'" >> $BASH_ENV
-
-            # Comment the debug log on GitHub if there is a PR number
-            if [[ -n "$CIRCLE_PR_NUMBER" ]]; then
-              echo -e "Tests run for build [$CIRCLE_BUILD_NUM]($CIRCLE_BUILD_URL)\n\`\`\`\n$(cat debug.log)\n\`\`\`" \
-                | hub api repos/{owner}/{repo}/issues/"$CIRCLE_PR_NUMBER"/comments --field body=@-
-            fi
-
+          <<: *find_tests_to_run
+      - run: echo "export TEST_NAME='data-stores'" >> $BASH_ENV
       - run:
-          name: run tests
-          command: |
-            run-go-tests --path ./test --timeout 2h --packages "-run '$TEST_REGEX'" | tee /tmp/logs/all.log
-          no_output_timeout: 3600s
+          <<: *run_tests
+      - store_results
 
+  test_landingzone:
+    <<: *defaults
+    steps:
+      - checkout
+      - prepare_environment
+      - run:
+          <<: *find_tests_to_run
+      - run: echo "export TEST_NAME='landingzone'" >> $BASH_ENV
+      - run:
+          <<: *run_tests
+      - store_results
+
+  test_mgmt:
+    <<: *defaults
+    steps:
+      - checkout
+      - prepare_environment
+      - run:
+          <<: *find_tests_to_run
+      - run: echo "export TEST_NAME='mgmt'" >> $BASH_ENV
+      - run:
+          <<: *run_tests
+      - store_results
+
+  test_networking:
+    <<: *defaults
+    steps:
+      - checkout
+      - prepare_environment
+      - run:
+          <<: *find_tests_to_run
+      - run: echo "export TEST_NAME='networking'" >> $BASH_ENV
+      - run:
+          <<: *run_tests
+      - store_results
+
+  test_services:
+    <<: *defaults
+    steps:
+      - checkout
+      - prepare_environment
+      - run:
+          <<: *find_tests_to_run
+      - run: echo "export TEST_NAME='services'" >> $BASH_ENV
+      - run:
+          <<: *run_tests
+      - store_results
+
+  test_smoke:
+    <<: *defaults
+    steps:
+      - checkout
+      - prepare_environment
+      - run:
+          <<: *find_tests_to_run
+      - run: echo "export TEST_NAME='smoke'" >> $BASH_ENV
+      - run:
+          <<: *run_tests
+      - store_results
+
+  test_tls_scripts:
+    <<: *defaults
+    steps:
+      - checkout
+      - prepare_environment
+      - run:
+          <<: *find_tests_to_run
+      - run: echo "export TEST_NAME='tls-scripts'" >> $BASH_ENV
+      - run:
+          <<: *run_tests
       - store_results
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -195,10 +280,58 @@ workflows:
           filters:
             tags:
               only: /^v.*/
-      - test:
+      - test_data_stores:
+          context:
+            - Gruntwork Admin
+          requires:
+            - precommit
+          filters:
+            tags:
+              only: /^v.*/
+      - test_landingzone:
           context:
             - Gruntwork Admin
             - Gruntwork Org Test
+          requires:
+            - precommit
+          filters:
+            tags:
+              only: /^v.*/
+      - test_mgmt:
+          context:
+            - Gruntwork Admin
+          requires:
+            - precommit
+          filters:
+            tags:
+              only: /^v.*/
+      - test_networking:
+          context:
+            - Gruntwork Admin
+          requires:
+            - precommit
+          filters:
+            tags:
+              only: /^v.*/
+      - test_services:
+          context:
+            - Gruntwork Admin
+          requires:
+            - precommit
+          filters:
+            tags:
+              only: /^v.*/
+      - test_smoke:
+          context:
+            - Gruntwork Admin
+          requires:
+            - precommit
+          filters:
+            tags:
+              only: /^v.*/
+      - test_tls_scripts:
+          context:
+            - Gruntwork Admin
           requires:
             - precommit
           filters:
