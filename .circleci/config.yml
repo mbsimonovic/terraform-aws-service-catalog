@@ -203,6 +203,7 @@ jobs:
 
   test_landingzone:
     <<: *defaults
+    resource_class: large
     steps:
       - checkout
       - prepare_environment
