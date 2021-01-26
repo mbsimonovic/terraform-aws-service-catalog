@@ -181,30 +181,6 @@ jobs:
 
       - store_results
 
-
-  run_all_tests:
-    <<: *defaults
-    steps:
-      - checkout
-
-      - prepare_environment
-
-      - run:
-          name: run tests
-          command: |
-            run-go-tests --path ./test --timeout 2h | tee /tmp/logs/all.log
-          no_output_timeout: 3600s
-
-      - store_results
-
-  deploy:
-    <<: *defaults
-    steps:
-      - checkout
-
-      - run:
-          <<: *install_gruntwork_utils
-
 # ---------------------------------------------------------------------------------------------------------------------
 # WORKFLOWS
 # ---------------------------------------------------------------------------------------------------------------------
@@ -228,13 +204,3 @@ workflows:
           filters:
             tags:
               only: /^v.*/
-      - deploy:
-          context:
-            - Gruntwork Admin
-          requires:
-            - test
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
