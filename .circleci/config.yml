@@ -94,12 +94,6 @@ run_circleci_unit_tests: &run_circleci_unit_tests
   name: run circleci unit tests
   command: python ./.circleci/run_tests_unit_tests.py
 
-# CIRCLE_PR_NUMBER is only available on forked repos, so we extract if from the PR URL.
-set_pr_number: &set_pr_number
-  name: Set PR number
-  command: |
-      echo 'export CIRCLE_PR_NUMBER="${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}"' >> $BASH_ENV
-
 run_tests: &run_tests
   name: run tests
   command: |
@@ -115,8 +109,6 @@ commands:
   prepare_environment:
     description: "Prepare the environment by installing necessary tools, and run preflight checks before main tests"
     steps:
-      - run:
-          <<: *set_pr_number
       - run:
           <<: *install_gruntwork_utils
       - run:
@@ -154,7 +146,7 @@ jobs:
           <<: *run_circleci_unit_tests
 
   find_tests_to_run:
-    <<: *defaults
+    <<: *env
     steps:
       - checkout
       - prepare_environment
@@ -176,6 +168,7 @@ jobs:
             echo "$test_regex" >> /home/ubuntu/.terraform-aws-service-catalog/test-regex.txt
 
             # Comment the debug log on GitHub if there is a PR number
+            CIRCLE_PR_NUMBER="${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}"
             if [[ -n "$CIRCLE_PR_NUMBER" ]]; then
               echo -e "Tests run for build [$CIRCLE_BUILD_NUM]($CIRCLE_BUILD_URL)\n\`\`\`\n$(cat debug.log)\n\`\`\`" \
                 | hub api repos/{owner}/{repo}/issues/"$CIRCLE_PR_NUMBER"/comments --field body=@-
