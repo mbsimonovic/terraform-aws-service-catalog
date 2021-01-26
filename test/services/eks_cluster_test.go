@@ -2,7 +2,6 @@ package services
 
 import (
 	"fmt"
-	"github.com/gruntwork-io/aws-service-catalog/test"
 	"io/ioutil"
 	"net"
 	"os"
@@ -10,6 +9,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/gruntwork-io/aws-service-catalog/test"
 
 	awsgo "github.com/aws/aws-sdk-go/aws"
 	"github.com/gruntwork-io/terratest/modules/aws"

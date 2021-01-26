@@ -3,11 +3,12 @@ package data_stores
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gruntwork-io/aws-service-catalog/test"
 	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/gruntwork-io/aws-service-catalog/test"
 
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/docker"

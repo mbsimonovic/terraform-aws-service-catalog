@@ -2,9 +2,10 @@ package mgmt
 
 import (
 	"fmt"
-	"github.com/gruntwork-io/aws-service-catalog/test"
 	"testing"
 	"time"
+
+	"github.com/gruntwork-io/aws-service-catalog/test"
 
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/git"

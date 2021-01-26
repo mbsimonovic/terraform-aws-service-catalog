@@ -2,10 +2,11 @@ package tls_scripts
 
 import (
 	"fmt"
-	"github.com/gruntwork-io/aws-service-catalog/test"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/gruntwork-io/aws-service-catalog/test"
 
 	"github.com/aws/aws-sdk-go/service/acm"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"

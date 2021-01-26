@@ -1,8 +1,9 @@
 package networking
 
 import (
-	"github.com/gruntwork-io/aws-service-catalog/test"
 	"testing"
+
+	"github.com/gruntwork-io/aws-service-catalog/test"
 
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/random"

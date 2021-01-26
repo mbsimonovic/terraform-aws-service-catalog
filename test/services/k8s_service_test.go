@@ -3,10 +3,11 @@ package services
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gruntwork-io/aws-service-catalog/test"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/gruntwork-io/aws-service-catalog/test"
 
 	"github.com/gruntwork-io/terratest/modules/k8s"
 	"github.com/gruntwork-io/terratest/modules/random"

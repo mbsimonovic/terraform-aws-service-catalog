@@ -2,12 +2,13 @@ package mgmt
 
 import (
 	"fmt"
-	"github.com/gruntwork-io/aws-service-catalog/test"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/gruntwork-io/aws-service-catalog/test"
 
 	awsgo "github.com/aws/aws-sdk-go/aws"
 	"github.com/gruntwork-io/module-ci/test/edrhelpers"

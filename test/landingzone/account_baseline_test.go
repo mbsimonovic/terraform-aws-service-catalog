@@ -2,11 +2,12 @@ package landingzone
 
 import (
 	"fmt"
-	"github.com/gruntwork-io/aws-service-catalog/test"
 	"path/filepath"
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/gruntwork-io/aws-service-catalog/test"
 
 	"github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/terraform"

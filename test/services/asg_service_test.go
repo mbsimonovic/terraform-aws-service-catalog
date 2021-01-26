@@ -2,12 +2,13 @@ package services
 
 import (
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/gruntwork-io/aws-service-catalog/test"
 	"github.com/gruntwork-io/terratest/modules/git"
 	http_helper "github.com/gruntwork-io/terratest/modules/http-helper"
 	"github.com/gruntwork-io/terratest/modules/random"
-	"testing"
-	"time"
 
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/packer"

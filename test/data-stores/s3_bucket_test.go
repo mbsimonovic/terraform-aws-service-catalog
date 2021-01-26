@@ -1,10 +1,11 @@
 package data_stores
 
 import (
-	"github.com/gruntwork-io/aws-service-catalog/test"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/gruntwork-io/aws-service-catalog/test"
 
 	awsgo "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"

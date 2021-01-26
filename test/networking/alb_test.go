@@ -2,9 +2,10 @@ package networking
 
 import (
 	"fmt"
-	"github.com/gruntwork-io/aws-service-catalog/test"
 	"testing"
 	"time"
+
+	"github.com/gruntwork-io/aws-service-catalog/test"
 
 	awsgo "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"

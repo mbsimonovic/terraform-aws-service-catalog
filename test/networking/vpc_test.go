@@ -2,9 +2,10 @@ package networking
 
 import (
 	"crypto/tls"
-	"github.com/gruntwork-io/aws-service-catalog/test"
 	"testing"
 	"time"
+
+	"github.com/gruntwork-io/aws-service-catalog/test"
 
 	"github.com/gruntwork-io/terratest/modules/aws"
 	http_helper "github.com/gruntwork-io/terratest/modules/http-helper"
