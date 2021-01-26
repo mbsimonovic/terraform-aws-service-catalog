@@ -154,7 +154,6 @@ jobs:
       - run:
           name: find all tests to run
           command: |
-            pyenv global 3.5.2
             test_regex=""
             if [[ "$CIRCLE_BRANCH" == "master" ]]; then
               # On master, the last commit is the merge commit which contains all the changes
