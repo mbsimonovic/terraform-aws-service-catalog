@@ -189,7 +189,7 @@ jobs:
       - prepare_environment
       - run:
           <<: *find_tests_to_run
-      - run: echo "export TEST_NAME='data-stores'" >> $BASH_ENV
+      - run: echo "export TEST_PACKAGE='data-stores'" >> $BASH_ENV
       - run:
           <<: *run_tests
       - store_results
@@ -201,7 +201,7 @@ jobs:
       - prepare_environment
       - run:
           <<: *find_tests_to_run
-      - run: echo "export TEST_NAME='landingzone'" >> $BASH_ENV
+      - run: echo "export TEST_PACKAGE='landingzone'" >> $BASH_ENV
       - run:
           <<: *run_tests
       - store_results
@@ -213,7 +213,7 @@ jobs:
       - prepare_environment
       - run:
           <<: *find_tests_to_run
-      - run: echo "export TEST_NAME='mgmt'" >> $BASH_ENV
+      - run: echo "export TEST_PACKAGE='mgmt'" >> $BASH_ENV
       - run:
           <<: *run_tests
       - store_results
@@ -225,7 +225,7 @@ jobs:
       - prepare_environment
       - run:
           <<: *find_tests_to_run
-      - run: echo "export TEST_NAME='networking'" >> $BASH_ENV
+      - run: echo "export TEST_PACKAGE='networking'" >> $BASH_ENV
       - run:
           <<: *run_tests
       - store_results
@@ -237,7 +237,7 @@ jobs:
       - prepare_environment
       - run:
           <<: *find_tests_to_run
-      - run: echo "export TEST_NAME='services'" >> $BASH_ENV
+      - run: echo "export TEST_PACKAGE='services'" >> $BASH_ENV
       - run:
           <<: *run_tests
       - store_results
@@ -249,7 +249,7 @@ jobs:
       - prepare_environment
       - run:
           <<: *find_tests_to_run
-      - run: echo "export TEST_NAME='smoke'" >> $BASH_ENV
+      - run: echo "export TEST_PACKAGE='smoke'" >> $BASH_ENV
       - run:
           <<: *run_tests
       - store_results
@@ -261,7 +261,7 @@ jobs:
       - prepare_environment
       - run:
           <<: *find_tests_to_run
-      - run: echo "export TEST_NAME='tls-scripts'" >> $BASH_ENV
+      - run: echo "export TEST_PACKAGE='tls-scripts'" >> $BASH_ENV
       - run:
           <<: *run_tests
       - store_results
