@@ -222,7 +222,11 @@ def get_tests_to_run_regex(tests_to_run):
     """
     Given a collection of test prefixes, construct the regex that matches all the tests.
     """
-    if tests_to_run:
+    # If .* is in the tests_to_run, then that swallows all other tests so simply return '.*' to clean the logs.
+    if tests_to_run and '.*' in tests_to_run:
+        return '.*'
+    # Construct regex that will match all the tests that need to run.
+    elif tests_to_run:
         tests_to_run_regex = '^({})'.format('|'.join(tests_to_run))
         return tests_to_run_regex
     # Regex that will match nothing
@@ -277,7 +281,10 @@ def main():
     module_tests_to_run = get_tests_to_run_from_tfmodule(module_list)
     test_file_tests_to_run = get_tests_to_run_from_test_file(updated_test_files)
     tests_to_run = module_tests_to_run.union(test_file_tests_to_run)
-    if tests_to_run:
+    if tests_to_run and '.*' in tests_to_run:
+        logging.warn('A test file triggered ".*" regex.')
+        logging.warn('ALL TESTS WILL BE RUN')
+    elif tests_to_run:
         logging.info('The following tests will be run:')
         for test in tests_to_run:
             logging.info('\t- {}'.format(test))
