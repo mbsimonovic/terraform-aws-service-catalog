@@ -62,7 +62,7 @@ func TestEcsDeployRunner(t *testing.T) {
 	test.RequireEnvVar(t, "TERRATEST_SSH_PRIVATE_KEY_PATH")
 	edrhelpers.RequireGruntworkInstaller(t)
 
-	modulePath := test_structure.CopyTerraformFolderToTemp(t, "..", "examples/for-learning-and-testing/mgmt/ecs-deploy-runner")
+	modulePath := test_structure.CopyTerraformFolderToTemp(t, "../../", "examples/for-learning-and-testing/mgmt/ecs-deploy-runner")
 	infraDeployerBinPath := filepath.Join(modulePath, "infrastructure-deployer")
 
 	// Create a directory path that won't conflict
