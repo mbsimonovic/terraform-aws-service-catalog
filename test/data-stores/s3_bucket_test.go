@@ -28,7 +28,7 @@ func TestS3Bucket(t *testing.T) {
 	//os.Setenv("SKIP_validate_replication", "true")
 	//os.Setenv("SKIP_cleanup", "true")
 
-	testFolder := "../examples/for-learning-and-testing/data-stores/s3-bucket"
+	testFolder := "../../examples/for-learning-and-testing/data-stores/s3-bucket"
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
@@ -80,7 +80,7 @@ func TestS3Bucket(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "validate_replication", func() {
-		testFilePath := "./fixtures/simple-docker-img/Dockerfile"
+		testFilePath := "../fixtures/simple-docker-img/Dockerfile"
 		testFileKey := "config/Dockerfile"
 
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)

@@ -36,8 +36,8 @@ func TestElasticsearch(t *testing.T) {
 	preferredRegions := []string{"us-east-1", "us-west-1", "eu-west-1"}
 	excludedRegions := []string{"ap-northeast-2"}
 
-	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../", "examples/for-learning-and-testing/data-stores/elasticsearch")
-	testFolderPublic := test_structure.CopyTerraformFolderToTemp(t, "../", "examples/for-learning-and-testing/data-stores/elasticsearch-public")
+	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../../", "examples/for-learning-and-testing/data-stores/elasticsearch")
+	testFolderPublic := test_structure.CopyTerraformFolderToTemp(t, "../../", "examples/for-learning-and-testing/data-stores/elasticsearch-public")
 
 	testCases := []struct {
 		name       string

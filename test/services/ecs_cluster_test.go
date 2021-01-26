@@ -43,8 +43,8 @@ func TestEcsCluster(t *testing.T) {
 	// os.Setenv("SKIP_cleanup_ami", "true")
 	t.Parallel()
 
-	ecsClusterTestFolder := "../examples/for-learning-and-testing/services/ecs-cluster"
-	ecsServiceTestFolder := "../examples/for-learning-and-testing/services/ecs-service"
+	ecsClusterTestFolder := "../../examples/for-learning-and-testing/services/ecs-cluster"
+	ecsServiceTestFolder := "../../examples/for-learning-and-testing/services/ecs-service"
 
 	defer test_structure.RunTestStage(t, "cleanup_ami", func() {
 		amiID := test_structure.LoadArtifactID(t, ecsClusterTestFolder)
@@ -96,7 +96,7 @@ func buildAmi(t *testing.T, testFolder string) {
 
 	branchName := git.GetCurrentBranchName(t)
 	packerOptions := &packer.Options{
-		Template: "../modules/services/ecs-cluster/ecs-node-al2.json",
+		Template: "../../modules/services/ecs-cluster/ecs-node-al2.json",
 		Vars: map[string]string{
 			"aws_region":          awsRegion,
 			"service_catalog_ref": branchName,

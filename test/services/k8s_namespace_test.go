@@ -15,7 +15,7 @@ import (
 func TestK8SNamespace(t *testing.T) {
 	t.Parallel()
 
-	testFolder := "../examples/for-learning-and-testing/services/k8s-namespace"
+	testFolder := "../../examples/for-learning-and-testing/services/k8s-namespace"
 
 	uniqueID := random.UniqueId()
 	namespaceName := fmt.Sprintf("applications-%s", strings.ToLower(uniqueID))

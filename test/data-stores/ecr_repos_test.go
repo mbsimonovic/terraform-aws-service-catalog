@@ -31,7 +31,7 @@ func TestEcrRepos(t *testing.T) {
 	//os.Setenv("SKIP_validate_image", "true")
 	//os.Setenv("SKIP_cleanup", "true")
 
-	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../", "examples/for-learning-and-testing/data-stores/ecr-repos")
+	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../../", "examples/for-learning-and-testing/data-stores/ecr-repos")
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
@@ -90,7 +90,7 @@ func TestEcrRepos(t *testing.T) {
 			Tags:         []string{imgTag},
 			OtherOptions: []string{"--no-cache"},
 		}
-		docker.Build(t, "./fixtures/simple-docker-img", buildOpts)
+		docker.Build(t, "../fixtures/simple-docker-img", buildOpts)
 
 		pushCmd := shell.Command{
 			Command: "bash",
@@ -222,7 +222,7 @@ func TestEcrReposIAMPoliciesLogic(t *testing.T) {
 		t.Run(testCase.name, func(t *testing.T) {
 			t.Parallel()
 
-			testFolder := test_structure.CopyTerraformFolderToTemp(t, "../", "examples/for-learning-and-testing/data-stores/ecr-repos")
+			testFolder := test_structure.CopyTerraformFolderToTemp(t, "../../", "examples/for-learning-and-testing/data-stores/ecr-repos")
 			awsRegion := aws.GetRandomStableRegion(t, nil, nil)
 			uniqueID := strings.ToLower(random.UniqueId())
 

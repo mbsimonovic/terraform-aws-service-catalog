@@ -93,7 +93,7 @@ func TestEcsDeployRunner(t *testing.T) {
 	test_structure.RunTestStage(t, "build_worker_ami", func() {
 		awsRegion := test_structure.LoadString(t, workingDir, "AwsRegion")
 		packerOptions := &packer.Options{
-			Template: "../modules/mgmt/ecs-deploy-runner/ecs-deploy-runner-worker-al2.json",
+			Template: "../../modules/mgmt/ecs-deploy-runner/ecs-deploy-runner-worker-al2.json",
 			Vars: map[string]string{
 				"aws_region":          awsRegion,
 				"service_catalog_ref": branchName,

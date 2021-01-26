@@ -21,7 +21,7 @@ func TestVpcMgmt(t *testing.T) {
 	awsRegion := aws.GetRandomRegion(t, test.RegionsForEc2Tests, nil)
 	port := 80
 
-	testFolder := "../examples/for-learning-and-testing/networking/vpc-mgmt"
+	testFolder := "../../examples/for-learning-and-testing/networking/vpc-mgmt"
 	terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, awsRegion)
 	terraformOptions.Vars["vpc_name"] = "vpc-mgmt-test-" + random.UniqueId()
 	terraformOptions.Vars["sg_ingress_port"] = port

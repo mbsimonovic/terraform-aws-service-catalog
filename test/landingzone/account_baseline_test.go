@@ -89,7 +89,7 @@ func TestAccountBaseline(t *testing.T) {
 			//os.Setenv("SKIP_bootstrap", "true")
 			//os.Setenv("SKIP_plan_and_verify", "true")
 
-			_examplesDir := test_structure.CopyTerraformFolderToTemp(t, "../", "examples/for-learning-and-testing/landingzone")
+			_examplesDir := test_structure.CopyTerraformFolderToTemp(t, "../../", "examples/for-learning-and-testing/landingzone")
 			exampleDir := filepath.Join(_examplesDir, testCase.exampleDir)
 
 			childAccounts := map[string]interface{}{

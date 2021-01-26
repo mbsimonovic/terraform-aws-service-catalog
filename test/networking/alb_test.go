@@ -29,7 +29,7 @@ func TestAlb(t *testing.T) {
 	//os.Setenv("SKIP_validate_access_logs", "true")
 	//os.Setenv("SKIP_cleanup", "true")
 
-	testFolder := "../examples/for-learning-and-testing/networking/alb"
+	testFolder := "../../examples/for-learning-and-testing/networking/alb"
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)

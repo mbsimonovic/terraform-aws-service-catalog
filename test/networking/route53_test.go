@@ -32,7 +32,7 @@ func TestRoute53(t *testing.T) {
 	//os.Setenv("SKIP_cleanup", "true")
 
 	uniqueID := random.UniqueId()
-	testFolder := "../examples/for-learning-and-testing/networking/route53"
+	testFolder := "../../examples/for-learning-and-testing/networking/route53"
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
@@ -123,7 +123,7 @@ func TestRoute53ProvisionWildcardCertPlan(t *testing.T) {
 	//os.Setenv("SKIP_validate", "true")
 
 	uniqueID := random.UniqueId()
-	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../", "examples/for-learning-and-testing/networking/route53")
+	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../../", "examples/for-learning-and-testing/networking/route53")
 
 	test_structure.RunTestStage(t, "setup", func() {
 		awsRegion := aws.GetRandomRegion(t, []string{"us-west-1"}, nil)
@@ -183,7 +183,7 @@ func TestRoute53CloudMap(t *testing.T) {
 	//os.Setenv("SKIP_validate", "true")
 	//os.Setenv("SKIP_cleanup", "true")
 
-	testFolder := "../examples/for-learning-and-testing/networking/cloudmap"
+	testFolder := "../../examples/for-learning-and-testing/networking/cloudmap"
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
 		awsRegion := test_structure.LoadString(t, testFolder, "region")

@@ -16,7 +16,7 @@ func TestSnsTopics(t *testing.T) {
 
 	awsRegion := aws.GetRandomRegion(t, test.RegionsForEc2Tests, nil)
 
-	testFolder := "../examples/for-learning-and-testing/networking/sns-topics"
+	testFolder := "../../examples/for-learning-and-testing/networking/sns-topics"
 	terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, awsRegion)
 	terraformOptions.Vars["name"] = "test-topic-" + random.UniqueId()
 

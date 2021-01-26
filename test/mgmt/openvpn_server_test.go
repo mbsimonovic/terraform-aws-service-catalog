@@ -31,7 +31,7 @@ func TestOpenvpnServer(t *testing.T) {
 	//os.Setenv("SKIP_cleanup_keypair", "true")
 	//os.Setenv("SKIP_cleanup_ami", "true")
 
-	testFolder := "../examples/for-learning-and-testing/mgmt/openvpn-server"
+	testFolder := "../../examples/for-learning-and-testing/mgmt/openvpn-server"
 	branchName := git.GetCurrentBranchName(t)
 
 	defer test_structure.RunTestStage(t, "cleanup_ami", func() {
@@ -58,7 +58,7 @@ func TestOpenvpnServer(t *testing.T) {
 		s3BucketName := "openvpn-test-" + strings.ToLower(uniqueId)
 
 		packerOptions := &packer.Options{
-			Template: "../modules/mgmt/openvpn-server/openvpn-server.json",
+			Template: "../../modules/mgmt/openvpn-server/openvpn-server.json",
 			Vars: map[string]string{
 				"aws_region":          awsRegion,
 				"service_catalog_ref": branchName,

@@ -45,7 +45,7 @@ func TestTlsScripts(t *testing.T) {
 	test.RequireEnvVar(t, "TLS_SCRIPTS_KMS_KEY_ID")
 	test.RequireEnvVar(t, "TLS_SCRIPTS_AWS_REGION")
 
-	scriptsDir := "../modules/tls-scripts"
+	scriptsDir := "../../modules/tls-scripts"
 	tmpBaseDir := "tls"
 
 	// Create TLS Cert vars

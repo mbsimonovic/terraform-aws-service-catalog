@@ -40,7 +40,7 @@ func TestAuroraServerless(t *testing.T) {
 	//os.Setenv("SKIP_validate", "true")
 	//os.Setenv("SKIP_cleanup", "true")
 
-	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../", "examples/for-learning-and-testing/data-stores/aurora")
+	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../../", "examples/for-learning-and-testing/data-stores/aurora")
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
@@ -92,7 +92,7 @@ func TestAurora(t *testing.T) {
 	//os.Setenv("SKIP_validate", "true")
 	//os.Setenv("SKIP_cleanup", "true")
 
-	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../", "examples/for-learning-and-testing/data-stores/aurora")
+	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../../", "examples/for-learning-and-testing/data-stores/aurora")
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)

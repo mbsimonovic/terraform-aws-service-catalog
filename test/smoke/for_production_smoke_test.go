@@ -18,7 +18,7 @@ var notTerragruntExamples = []string{"_docs"}
 func TestSmokeForProductionExamples(t *testing.T) {
 	t.Parallel()
 
-	infraLiveRoot := test_structure.CopyTerraformFolderToTemp(t, "../", filepath.Join("examples", "for-production", "infrastructure-live"))
+	infraLiveRoot := test_structure.CopyTerraformFolderToTemp(t, "../../", filepath.Join("examples", "for-production", "infrastructure-live"))
 
 	// For each directory, run validate-all. Note that we can't run validate-all at the root due to a limitation of
 	// find_in_parent_folders where it will not search the current directory, and thus can't find the common.hcl when it

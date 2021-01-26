@@ -30,7 +30,7 @@ func TestJenkins(t *testing.T) {
 	//os.Setenv("SKIP_cleanup", "true")
 	//os.Setenv("SKIP_cleanup_ami", "true")
 
-	testFolder := "../examples/for-learning-and-testing/mgmt/jenkins"
+	testFolder := "../../examples/for-learning-and-testing/mgmt/jenkins"
 	branchName := git.GetCurrentBranchName(t)
 
 	defer test_structure.RunTestStage(t, "cleanup_ami", func() {
@@ -54,7 +54,7 @@ func TestJenkins(t *testing.T) {
 		test_structure.SaveString(t, testFolder, "region", awsRegion)
 
 		packerOptions := &packer.Options{
-			Template: "../modules/mgmt/jenkins/jenkins-ubuntu.json",
+			Template: "../../modules/mgmt/jenkins/jenkins-ubuntu.json",
 			Vars: map[string]string{
 				"aws_region":          awsRegion,
 				"service_catalog_ref": branchName,

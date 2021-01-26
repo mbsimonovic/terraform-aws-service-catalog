@@ -21,7 +21,7 @@ func TestVpc(t *testing.T) {
 	awsRegion := aws.GetRandomRegion(t, test.RegionsForEc2Tests, nil)
 	port := 80
 
-	testFolder := "../examples/for-learning-and-testing/networking/vpc"
+	testFolder := "../../examples/for-learning-and-testing/networking/vpc"
 	terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, awsRegion)
 	terraformOptions.Vars["vpc_name"] = "vpc-test-" + random.UniqueId()
 	terraformOptions.Vars["cidr_block"] = "10.100.0.0/18"
