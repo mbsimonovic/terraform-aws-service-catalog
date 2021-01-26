@@ -26,10 +26,10 @@ terraform {
       version = "= 1.10.0"
     }
 
-    # This module uses Helm 3, which depends on helm provider version 1.x series.
+    # The underlying modules are only compatible with helm provider 2.x
     helm = {
       source  = "hashicorp/helm"
-      version = "~> 1.0"
+      version = "~> 2.0"
     }
   }
 }
@@ -47,7 +47,6 @@ provider "kubernetes" {
 
 provider "helm" {
   kubernetes {
-    load_config_file       = false
     host                   = data.aws_eks_cluster.cluster.endpoint
     cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
     token                  = data.aws_eks_cluster_auth.kubernetes_token.token
