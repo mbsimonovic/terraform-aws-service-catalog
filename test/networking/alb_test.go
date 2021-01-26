@@ -1,7 +1,8 @@
-package test
+package networking
 
 import (
 	"fmt"
+	"github.com/gruntwork-io/aws-service-catalog/test"
 	"testing"
 	"time"
 
@@ -35,17 +36,17 @@ func TestAlb(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "setup", func() {
-		awsRegion := aws.GetRandomRegion(t, regionsForEc2Tests, nil)
+		awsRegion := aws.GetRandomRegion(t, test.RegionsForEc2Tests, nil)
 
 		test_structure.SaveString(t, testFolder, "region", awsRegion)
 
 		name := fmt.Sprintf("alb-%s", random.UniqueId())
 
-		terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
+		terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, awsRegion)
 		terraformOptions.Vars["alb_name"] = name
-		terraformOptions.Vars["base_domain_name"] = baseDomainForTest
+		terraformOptions.Vars["base_domain_name"] = test.BaseDomainForTest
 		terraformOptions.Vars["alb_subdomain"] = name
-		terraformOptions.Vars["base_domain_name_tags"] = domainNameTagsForTest
+		terraformOptions.Vars["base_domain_name_tags"] = test.DomainNameTagsForTest
 
 		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
 	})

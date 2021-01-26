@@ -1,7 +1,8 @@
-package test
+package services
 
 import (
 	"fmt"
+	"github.com/gruntwork-io/aws-service-catalog/test"
 	"strings"
 	"testing"
 
@@ -17,7 +18,7 @@ func TestK8SNamespace(t *testing.T) {
 
 	uniqueID := random.UniqueId()
 	namespaceName := fmt.Sprintf("applications-%s", strings.ToLower(uniqueID))
-	terraformOptions := createBaseTerraformOptions(t, testFolder, "")
+	terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, "")
 	terraformOptions.Vars["name"] = namespaceName
 
 	defer terraform.Destroy(t, terraformOptions)

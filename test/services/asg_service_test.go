@@ -1,7 +1,8 @@
-package test
+package services
 
 import (
 	"fmt"
+	"github.com/gruntwork-io/aws-service-catalog/test"
 	"github.com/gruntwork-io/terratest/modules/git"
 	http_helper "github.com/gruntwork-io/terratest/modules/http-helper"
 	"github.com/gruntwork-io/terratest/modules/random"
@@ -79,7 +80,7 @@ func deployASG(t *testing.T, testFolder string) {
 	awsRegion := test_structure.LoadString(t, testFolder, "region")
 	name := fmt.Sprintf("asg-%s", random.UniqueId())
 
-	terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
+	terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, awsRegion)
 	terraformOptions.Vars["ami"] = amiId
 	terraformOptions.Vars["name"] = name
 	terraformOptions.Vars["aws_region"] = awsRegion

@@ -1,8 +1,9 @@
-package test
+package data_stores
 
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/gruntwork-io/aws-service-catalog/test"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -51,7 +52,7 @@ func TestEcrRepos(t *testing.T) {
 		name := fmt.Sprintf("sample-app-%s", strings.ToLower(uniqueID))
 		test_structure.SaveString(t, testFolder, "repoName", name)
 
-		terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
+		terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, awsRegion)
 		terraformOptions.Vars["repositories"] = map[string]interface{}{
 			name: map[string]interface{}{
 				"external_account_ids_with_read_access":  []string{},
@@ -266,7 +267,7 @@ func constructTerraformOptionsWithVarFiles(t *testing.T, terraformDir string, va
 		require.NoError(t, writeErr)
 		return f.Name()
 	}()
-	terraformOptions := createBaseTerraformOptions(t, terraformDir, "")
+	terraformOptions := test.CreateBaseTerraformOptions(t, terraformDir, "")
 	delete(terraformOptions.Vars, "aws_region")
 	terraformOptions.VarFiles = []string{fname}
 	return terraformOptions, fname

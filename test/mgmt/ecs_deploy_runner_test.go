@@ -1,7 +1,8 @@
-package test
+package mgmt
 
 import (
 	"fmt"
+	"github.com/gruntwork-io/aws-service-catalog/test"
 	"os"
 	"path/filepath"
 	"strings"
@@ -56,8 +57,8 @@ func TestEcsDeployRunner(t *testing.T) {
 	// - Must have GITHUB_OAUTH_TOKEN defined so that `gruntwork-install` works in packer and docker.
 	// - Must have TERRATEST_SSH_PRIVATE_KEY_PATH defined.
 	// - Make sure infrastructure-deployer CLI is available
-	requireEnvVar(t, "GITHUB_OAUTH_TOKEN")
-	requireEnvVar(t, "TERRATEST_SSH_PRIVATE_KEY_PATH")
+	test.RequireEnvVar(t, "GITHUB_OAUTH_TOKEN")
+	test.RequireEnvVar(t, "TERRATEST_SSH_PRIVATE_KEY_PATH")
 	edrhelpers.RequireGruntworkInstaller(t)
 
 	modulePath := test_structure.CopyTerraformFolderToTemp(t, "..", "examples/for-learning-and-testing/mgmt/ecs-deploy-runner")

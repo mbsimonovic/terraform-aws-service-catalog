@@ -1,7 +1,8 @@
-package test
+package services
 
 import (
 	"fmt"
+	"github.com/gruntwork-io/aws-service-catalog/test"
 	"strings"
 	"testing"
 
@@ -78,13 +79,13 @@ func createStaticWebsiteTerraformOptions(
 	awsRegion string,
 	uniqueID string,
 ) *terraform.Options {
-	terraformOptions := createBaseTerraformOptions(t, terraformDir, awsRegion)
+	terraformOptions := test.CreateBaseTerraformOptions(t, terraformDir, awsRegion)
 	terraformOptions.Vars["aws_region"] = "ap-southeast-1"
 	terraformOptions.Vars["aws_account_id"] = "087285199408"
-	terraformOptions.Vars["website_domain_name"] = fmt.Sprintf("acme-stage-static-%s.%s", uniqueID, baseDomainForTest)
-	terraformOptions.Vars["acm_certificate_domain_name"] = acmDomainForTest
-	terraformOptions.Vars["base_domain_name"] = baseDomainForTest
-	terraformOptions.Vars["base_domain_name_tags"] = domainNameTagsForTest
+	terraformOptions.Vars["website_domain_name"] = fmt.Sprintf("acme-stage-static-%s.%s", uniqueID, test.BaseDomainForTest)
+	terraformOptions.Vars["acm_certificate_domain_name"] = test.AcmDomainForTest
+	terraformOptions.Vars["base_domain_name"] = test.BaseDomainForTest
+	terraformOptions.Vars["base_domain_name_tags"] = test.DomainNameTagsForTest
 	terraformOptions.Vars["force_destroy"] = true
 	return terraformOptions
 }

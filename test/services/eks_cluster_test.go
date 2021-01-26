@@ -1,7 +1,8 @@
-package test
+package services
 
 import (
 	"fmt"
+	"github.com/gruntwork-io/aws-service-catalog/test"
 	"io/ioutil"
 	"net"
 	"os"
@@ -237,7 +238,7 @@ func deployEKSCluster(t *testing.T, parentWorkingDir string, workingDir string, 
 	clusterName := fmt.Sprintf("eks-service-catalog-%s", strings.ToLower(random.UniqueId()))
 	test_structure.SaveString(t, workingDir, "clusterName", clusterName)
 
-	terraformOptions := createBaseTerraformOptions(t, modulePath, awsRegion)
+	terraformOptions := test.CreateBaseTerraformOptions(t, modulePath, awsRegion)
 	terraformOptions.Vars["cluster_name"] = clusterName
 	terraformOptions.Vars["cluster_instance_ami_version_tag"] = branchName
 	terraformOptions.Vars["keypair_name"] = awsKeyPair.Name
@@ -288,7 +289,7 @@ func deployCoreServices(t *testing.T, parentWorkingDir string, workingDir string
 	eksPrivateSubnetIDs := terraform.Output(t, terraformOptions, "private_subnet_ids")
 	eksClusterFargateRole := terraform.Output(t, terraformOptions, "eks_default_fargate_execution_role_arn")
 
-	coreServicesOptions := createBaseTerraformOptions(t, coreServicesModulePath, awsRegion)
+	coreServicesOptions := test.CreateBaseTerraformOptions(t, coreServicesModulePath, awsRegion)
 	coreServicesOptions.Vars["eks_cluster_name"] = clusterName
 	coreServicesOptions.Vars["vpc_id"] = eksClusterVpcID
 	coreServicesOptions.Vars["worker_vpc_subnet_ids"] = eksPrivateSubnetIDs
@@ -358,10 +359,10 @@ func deploySampleApp(t *testing.T, parentWorkingDir string, workingDir string, k
 	applicationName := fmt.Sprintf("sampleapp-%s", strings.ToLower(uniqueID))
 	test_structure.SaveString(t, k8sServiceModulePath, "applicationName", applicationName)
 
-	k8sServiceOptions := createBaseTerraformOptions(t, k8sServiceModulePath, awsRegion)
+	k8sServiceOptions := test.CreateBaseTerraformOptions(t, k8sServiceModulePath, awsRegion)
 	k8sServiceOptions.Vars["application_name"] = applicationName
 	k8sServiceOptions.Vars["expose_type"] = "external"
-	k8sServiceOptions.Vars["domain_name"] = fmt.Sprintf("sample-app-%s.%s", clusterName, baseDomainForTest)
+	k8sServiceOptions.Vars["domain_name"] = fmt.Sprintf("sample-app-%s.%s", clusterName, test.BaseDomainForTest)
 	k8sServiceOptions.Vars["aws_region"] = awsRegion
 	k8sServiceOptions.Vars["kubeconfig_auth_type"] = "eks"
 	k8sServiceOptions.Vars["kubeconfig_eks_cluster_name"] = clusterName
@@ -383,16 +384,16 @@ func validateSampleApp(t *testing.T, workingDir string, k8sServiceModulePath str
 	defer os.Remove(tmpKubeConfigPath)
 	options := k8s.NewKubectlOptions("", tmpKubeConfigPath, "default")
 
-	sampleAppValidationFunction := sampleAppValidationWithGreetingFunctionGenerator("Hello from the dev config!")
+	sampleAppValidationFunction := test.sampleAppValidationWithGreetingFunctionGenerator("Hello from the dev config!")
 
-	verifyPodsCreatedSuccessfully(t, options, applicationName)
-	verifyAllPodsAvailable(t, options, applicationName, "/greeting", sampleAppValidationFunction)
+	test.verifyPodsCreatedSuccessfully(t, options, applicationName)
+	test.verifyAllPodsAvailable(t, options, applicationName, "/greeting", sampleAppValidationFunction)
 
 	// Wait until the DNS entry is resolvable before attempting to get the address. This ensures that we wait for the
 	// hostname to have propagated through DNS before making requests to it. Otherwise, if we make requests too early,
 	// before DNS has propagated, the missing DNS entry gets recorded in the local cache, and the test will keep
 	// failing, despite retries.
-	hostname := fmt.Sprintf("sample-app-%s.%s", clusterName, baseDomainForTest)
+	hostname := fmt.Sprintf("sample-app-%s.%s", clusterName, test.BaseDomainForTest)
 	dns_helper.DNSLookupAuthoritativeWithRetry(
 		t,
 		dns_helper.DNSQuery{

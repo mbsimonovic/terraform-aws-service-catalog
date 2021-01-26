@@ -1,7 +1,8 @@
-package test
+package tls_scripts
 
 import (
 	"fmt"
+	"github.com/gruntwork-io/aws-service-catalog/test"
 	"os"
 	"path/filepath"
 	"testing"
@@ -37,11 +38,11 @@ func TestTlsScripts(t *testing.T) {
 	// os.Setenv("SKIP_validate", "true")
 	// os.Setenv("SKIP_cleanup", "true")
 
-	requireEnvVar(t, "GITHUB_OAUTH_TOKEN")
-	requireEnvVar(t, "AWS_ACCESS_KEY_ID")
-	requireEnvVar(t, "AWS_SECRET_ACCESS_KEY")
-	requireEnvVar(t, "TLS_SCRIPTS_KMS_KEY_ID")
-	requireEnvVar(t, "TLS_SCRIPTS_AWS_REGION")
+	test.RequireEnvVar(t, "GITHUB_OAUTH_TOKEN")
+	test.RequireEnvVar(t, "AWS_ACCESS_KEY_ID")
+	test.RequireEnvVar(t, "AWS_SECRET_ACCESS_KEY")
+	test.RequireEnvVar(t, "TLS_SCRIPTS_KMS_KEY_ID")
+	test.RequireEnvVar(t, "TLS_SCRIPTS_AWS_REGION")
 
 	scriptsDir := "../modules/tls-scripts"
 	tmpBaseDir := "tls"

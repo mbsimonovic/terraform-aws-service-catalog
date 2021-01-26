@@ -1,7 +1,8 @@
-package test
+package mgmt
 
 import (
 	"fmt"
+	"github.com/gruntwork-io/aws-service-catalog/test"
 	"regexp"
 	"strings"
 	"testing"
@@ -48,7 +49,7 @@ func TestJenkins(t *testing.T) {
 		uniqueId := random.UniqueId()
 		test_structure.SaveString(t, testFolder, "uniqueId", uniqueId)
 
-		awsRegion := aws.GetRandomRegion(t, regionsForEc2Tests, nil)
+		awsRegion := aws.GetRandomRegion(t, test.RegionsForEc2Tests, nil)
 		test_structure.SaveString(t, testFolder, "region", awsRegion)
 
 		packerOptions := &packer.Options{
@@ -79,13 +80,13 @@ func TestJenkins(t *testing.T) {
 
 		name := fmt.Sprintf("jenkins-%s", uniqueId)
 
-		terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
+		terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, awsRegion)
 		terraformOptions.Vars["name"] = name
 		terraformOptions.Vars["ami_version_tag"] = branchName
-		terraformOptions.Vars["base_domain_name"] = baseDomainForTest
+		terraformOptions.Vars["base_domain_name"] = test.BaseDomainForTest
 		terraformOptions.Vars["jenkins_subdomain"] = name
-		terraformOptions.Vars["acm_ssl_certificate_domain"] = acmDomainForTest
-		terraformOptions.Vars["base_domain_name_tags"] = domainNameTagsForTest
+		terraformOptions.Vars["acm_ssl_certificate_domain"] = test.AcmDomainForTest
+		terraformOptions.Vars["base_domain_name_tags"] = test.DomainNameTagsForTest
 		terraformOptions.Vars["keypair_name"] = awsKeyPair.Name
 
 		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)

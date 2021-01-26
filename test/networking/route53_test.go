@@ -1,7 +1,8 @@
-package test
+package networking
 
 import (
 	"fmt"
+	"github.com/gruntwork-io/aws-service-catalog/test"
 	"testing"
 	"time"
 
@@ -75,7 +76,7 @@ func TestRoute53(t *testing.T) {
 			},
 		}
 
-		terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
+		terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, awsRegion)
 		terraformOptions.Vars["private_zones"] = privateZones
 		terraformOptions.Vars["public_zones"] = publicZones
 
@@ -148,7 +149,7 @@ func TestRoute53ProvisionWildcardCertPlan(t *testing.T) {
 			},
 		}
 
-		terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
+		terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, awsRegion)
 		terraformOptions.Vars["public_zones"] = publicZones
 		terraformOptions.Vars["private_zones"] = privateZones
 
@@ -232,7 +233,7 @@ func TestRoute53CloudMap(t *testing.T) {
 			},
 		}
 
-		terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
+		terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, awsRegion)
 		terraformOptions.Vars["service_discovery_private_namespaces"] = privateSDNamespaces
 		terraformOptions.Vars["service_discovery_public_namespaces"] = publicSDNamespaces
 

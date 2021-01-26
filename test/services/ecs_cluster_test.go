@@ -1,8 +1,9 @@
-package test
+package services
 
 import (
 	"bytes"
 	"fmt"
+	"github.com/gruntwork-io/aws-service-catalog/test"
 	"strings"
 	"testing"
 	"time"
@@ -123,7 +124,7 @@ func deployECSCluster(t *testing.T, testFolder string) {
 	clusterName := test_structure.LoadString(t, testFolder, "clusterName")
 	awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
 
-	terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
+	terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, awsRegion)
 	terraformOptions.Vars["cluster_name"] = clusterName
 	terraformOptions.Vars["cluster_min_size"] = 2
 	terraformOptions.Vars["cluster_max_size"] = 2
@@ -170,9 +171,9 @@ func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestF
 	ecsServiceTerraformOptions := &terraform.Options{
 		TerraformDir:             ecsServiceTestFolder,
 		Vars:                     map[string]interface{}{},
-		RetryableTerraformErrors: retryableTerraformErrors,
-		MaxRetries:               maxTerraformRetries,
-		TimeBetweenRetries:       sleepBetweenTerraformRetries,
+		RetryableTerraformErrors: test.RetryableTerraformErrors,
+		MaxRetries:               test.MaxTerraformRetries,
+		TimeBetweenRetries:       test.SleepBetweenTerraformRetries,
 	}
 
 	ecsClusterArn := terraform.OutputRequired(t, ecsClusterTerraformOptions, "ecs_cluster_arn")

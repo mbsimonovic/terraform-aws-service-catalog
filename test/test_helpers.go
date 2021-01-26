@@ -19,13 +19,13 @@ import (
 )
 
 const (
-	maxTerraformRetries          = 3
-	sleepBetweenTerraformRetries = 5 * time.Second
+	MaxTerraformRetries          = 3
+	SleepBetweenTerraformRetries = 5 * time.Second
 )
 
 var (
 	// Set up terratest to retry on known failures
-	retryableTerraformErrors = map[string]string{
+	RetryableTerraformErrors = map[string]string{
 		// `terraform init` frequently fails in CI due to network issues accessing plugins. The reason is unknown, but
 		// eventually these succeed after a few retries.
 		".*unable to verify signature.*":                "Failed to retrieve plugin due to transient network error.",
@@ -39,12 +39,12 @@ var (
 
 // Test constants for the Gruntwork Phx DevOps account
 const (
-	baseDomainForTest = "gruntwork.in"
-	acmDomainForTest  = "*.gruntwork.in"
+	BaseDomainForTest = "gruntwork.in"
+	AcmDomainForTest  = "*.gruntwork.in"
 )
 
 // Regions in Gruntwork Phx DevOps account that have ACM certs and t3.micro instances in all AZs
-var regionsForEc2Tests = []string{
+var RegionsForEc2Tests = []string{
 	"us-east-2",
 	"us-west-1",
 	"us-west-2",
@@ -53,8 +53,8 @@ var regionsForEc2Tests = []string{
 	"ap-southeast-2",
 }
 
-// Tags in Gruntwork Phx DevOps account to uniquely find Hosted Zone for baseDomainForTest
-var domainNameTagsForTest = map[string]interface{}{"original": "true"}
+// Tags in Gruntwork Phx DevOps account to uniquely find Hosted Zone for BaseDomainForTest
+var DomainNameTagsForTest = map[string]interface{}{"original": "true"}
 
 type RDSInfo struct {
 	Username   string
@@ -64,8 +64,8 @@ type RDSInfo struct {
 	DBPort     string
 }
 
-// smokeTestMysql makes a "SELECT 1+1" query over the mysql protocol to the provided RDS database.
-func smokeTestMysql(t *testing.T, serverInfo RDSInfo) {
+// SmokeTestMysql makes a "SELECT 1+1" query over the mysql protocol to the provided RDS database.
+func SmokeTestMysql(t *testing.T, serverInfo RDSInfo) {
 	dbConnString := fmt.Sprintf(
 		"%s:%s@tcp(%s:%s)/%s",
 		serverInfo.Username,
@@ -85,7 +85,7 @@ func smokeTestMysql(t *testing.T, serverInfo RDSInfo) {
 	require.Equal(t, result, "2")
 }
 
-func smokeTestMysqlWithKubernetes(t *testing.T, kubectlOptions *k8s.KubectlOptions, serverInfo RDSInfo) {
+func SmokeTestMysqlWithKubernetes(t *testing.T, kubectlOptions *k8s.KubectlOptions, serverInfo RDSInfo) {
 	defer k8s.RunKubectl(t, kubectlOptions, "delete", "pod", "mysql")
 	k8s.RunKubectl(t, kubectlOptions, "run", "--generator=run-pod/v1", "--image", "mysql", "mysql", "--", "sleep", "9999999")
 
@@ -112,7 +112,7 @@ func smokeTestMysqlWithKubernetes(t *testing.T, kubectlOptions *k8s.KubectlOptio
 }
 
 // Some of the tests need to run against Organization root account. This method overrides the default AWS_* environment variables
-func configureTerraformForOrgTestAccount(t *testing.T, terraformOptions *terraform.Options) {
+func ConfigureTerraformForOrgTestAccount(t *testing.T, terraformOptions *terraform.Options) {
 	if terraformOptions.EnvVars == nil {
 		terraformOptions.EnvVars = map[string]string{}
 	}
@@ -120,7 +120,7 @@ func configureTerraformForOrgTestAccount(t *testing.T, terraformOptions *terrafo
 	terraformOptions.EnvVars["AWS_SECRET_ACCESS_KEY"] = os.Getenv("AWS_ORGTEST_SECRET_ACCESS_KEY")
 }
 
-func pickNRegions(t *testing.T, count int) []string {
+func PickNRegions(t *testing.T, count int) []string {
 	regions := []string{}
 	for i := 0; i < count; i++ {
 		region := aws.GetRandomStableRegion(t, nil, regions)
@@ -130,29 +130,29 @@ func pickNRegions(t *testing.T, count int) []string {
 }
 
 // read the externalAccountId to use for saving RDS snapshots from the environment
-func getExternalAccountId() string {
+func GetExternalAccountId() string {
 	return os.Getenv("TEST_EXTERNAL_ACCOUNT_ID")
 }
 
-func pickAwsRegion(t *testing.T) string {
+func PickAwsRegion(t *testing.T) string {
 	// At least one zone in us-west-2, sa-east-1, eu-north-1, ap-northeast-2 do not have t2.micro
 	// ap-south-1 doesn't have ECS optimized Linux
 	return aws.GetRandomStableRegion(t, []string{}, []string{"sa-east-1", "ap-south-1", "ap-northeast-2", "us-west-2", "eu-north-1"})
 }
 
-func createBaseTerraformOptions(t *testing.T, terraformDir string, awsRegion string) *terraform.Options {
+func CreateBaseTerraformOptions(t *testing.T, terraformDir string, awsRegion string) *terraform.Options {
 	return &terraform.Options{
 		TerraformDir: terraformDir,
 		Vars: map[string]interface{}{
 			"aws_region": awsRegion,
 		},
-		RetryableTerraformErrors: retryableTerraformErrors,
-		MaxRetries:               maxTerraformRetries,
-		TimeBetweenRetries:       sleepBetweenTerraformRetries,
+		RetryableTerraformErrors: RetryableTerraformErrors,
+		MaxRetries:               MaxTerraformRetries,
+		TimeBetweenRetries:       SleepBetweenTerraformRetries,
 	}
 }
 
-func testSSH(t *testing.T, ip string, sshUsername string, keyPair *aws.Ec2Keypair) {
+func TestSSH(t *testing.T, ip string, sshUsername string, keyPair *aws.Ec2Keypair) {
 	publicHost := ssh.Host{
 		Hostname:    ip,
 		SshUserName: sshUsername,
@@ -170,7 +170,7 @@ func testSSH(t *testing.T, ip string, sshUsername string, keyPair *aws.Ec2Keypai
 	)
 }
 
-func testSSHCommand(t *testing.T, ip string, sshUsername string, keyPair *aws.Ec2Keypair, command string) string {
+func TestSSHCommand(t *testing.T, ip string, sshUsername string, keyPair *aws.Ec2Keypair, command string) string {
 	publicHost := ssh.Host{
 		Hostname:    ip,
 		SshUserName: sshUsername,
@@ -188,12 +188,12 @@ func testSSHCommand(t *testing.T, ip string, sshUsername string, keyPair *aws.Ec
 	)
 }
 
-func requireEnvVar(t *testing.T, envVarName string) {
+func RequireEnvVar(t *testing.T, envVarName string) {
 	require.NotEmptyf(t, os.Getenv(envVarName), "Environment variable %s must be set for this test.", envVarName)
 }
 
 // PlanWithParallelismE runs terraform plan with the given options including the parallelism flag and returns stdout/stderr.
 // This will fail the test if there is an error in the command.
-func planWithParallelismE(t *testing.T, options *terraform.Options) (string, error) {
+func PlanWithParallelismE(t *testing.T, options *terraform.Options) (string, error) {
 	return terraform.RunTerraformCommandE(t, options, terraform.FormatArgs(options, "plan", "-parallelism=2", "-input=false", "-lock=false")...)
 }

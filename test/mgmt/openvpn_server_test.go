@@ -1,7 +1,8 @@
-package test
+package mgmt
 
 import (
 	"fmt"
+	"github.com/gruntwork-io/aws-service-catalog/test"
 	"strings"
 	"testing"
 	"time"
@@ -49,7 +50,7 @@ func TestOpenvpnServer(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "build_ami", func() {
-		awsRegion := aws.GetRandomStableRegion(t, regionsForEc2Tests, nil)
+		awsRegion := aws.GetRandomStableRegion(t, test.RegionsForEc2Tests, nil)
 		uniqueId := random.UniqueId()
 		name := fmt.Sprintf("openvpn-server-%s", uniqueId)
 		awsKeyPair := aws.CreateAndImportEC2KeyPair(t, awsRegion, uniqueId)
@@ -89,7 +90,7 @@ func TestOpenvpnServer(t *testing.T) {
 				"name":                  name,
 				"ami_version_tag":       branchName,
 				"domain_name":           "gruntwork.in",
-				"base_domain_name_tags": domainNameTagsForTest,
+				"base_domain_name_tags": test.DomainNameTagsForTest,
 				"keypair_name":          awsKeyPair.Name,
 				"backup_bucket_name":    s3BucketName,
 				"instance_type":         "c5.large",

@@ -1,7 +1,8 @@
-package test
+package data_stores
 
 import (
 	"fmt"
+	"github.com/gruntwork-io/aws-service-catalog/test"
 	"strings"
 	"testing"
 
@@ -139,14 +140,14 @@ func TestAurora(t *testing.T) {
 		dbEndpoint := terraform.OutputRequired(t, terraformOptions, "primary_endpoint")
 		dbPort := terraform.OutputRequired(t, terraformOptions, "port")
 
-		info := RDSInfo{
+		info := test.RDSInfo{
 			Username:   dbUsername,
 			Password:   dbPassword,
 			DBName:     dbName,
 			DBEndpoint: dbEndpoint,
 			DBPort:     dbPort,
 		}
-		smokeTestMysql(t, info)
+		test.SmokeTestMysql(t, info)
 	})
 }
 
@@ -158,9 +159,9 @@ func createAuroraTerraformOptions(
 	dbConfigSecretID string,
 ) *terraform.Options {
 	name := fmt.Sprintf("test-aurora-%s", uniqueID)
-	terraformOptions := createBaseTerraformOptions(t, terraformDir, awsRegion)
+	terraformOptions := test.CreateBaseTerraformOptions(t, terraformDir, awsRegion)
 	terraformOptions.Vars["name"] = name
 	terraformOptions.Vars["db_config_secrets_manager_id"] = dbConfigSecretID
-	terraformOptions.Vars["share_snapshot_with_account_id"] = getExternalAccountId()
+	terraformOptions.Vars["share_snapshot_with_account_id"] = test.GetExternalAccountId()
 	return terraformOptions
 }

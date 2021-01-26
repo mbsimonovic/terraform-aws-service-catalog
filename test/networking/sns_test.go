@@ -1,6 +1,7 @@
-package test
+package networking
 
 import (
+	"github.com/gruntwork-io/aws-service-catalog/test"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/aws"
@@ -12,10 +13,10 @@ import (
 func TestSnsTopics(t *testing.T) {
 	t.Parallel()
 
-	awsRegion := aws.GetRandomRegion(t, regionsForEc2Tests, nil)
+	awsRegion := aws.GetRandomRegion(t, test.RegionsForEc2Tests, nil)
 
 	testFolder := "../examples/for-learning-and-testing/networking/sns-topics"
-	terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
+	terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, awsRegion)
 	terraformOptions.Vars["name"] = "test-topic-" + random.UniqueId()
 
 	defer terraform.Destroy(t, terraformOptions)

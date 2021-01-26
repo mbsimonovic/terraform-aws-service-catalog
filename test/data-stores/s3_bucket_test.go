@@ -1,6 +1,7 @@
-package test
+package data_stores
 
 import (
+	"github.com/gruntwork-io/aws-service-catalog/test"
 	"os"
 	"strings"
 	"testing"
@@ -34,9 +35,9 @@ func TestS3Bucket(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "setup", func() {
-		primaryRegion := aws.GetRandomRegion(t, regionsForEc2Tests, nil)
+		primaryRegion := aws.GetRandomRegion(t, test.RegionsForEc2Tests, nil)
 		// Choose a different region for cross-region replication
-		replicaRegion := aws.GetRandomRegion(t, regionsForEc2Tests, []string{primaryRegion})
+		replicaRegion := aws.GetRandomRegion(t, test.RegionsForEc2Tests, []string{primaryRegion})
 		uuid := strings.ToLower(random.UniqueId())
 
 		test_structure.SaveString(t, testFolder, "primaryRegion", primaryRegion)
@@ -49,7 +50,7 @@ func TestS3Bucket(t *testing.T) {
 		replicaRegion := test_structure.LoadString(t, testFolder, "replicaRegion")
 		uuid := test_structure.LoadString(t, testFolder, "uuid")
 
-		terraformOptions := createBaseTerraformOptions(t, testFolder, primaryRegion)
+		terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, primaryRegion)
 		terraformOptions.Vars["primary_bucket"] = "test-bucket-primary-" + uuid
 		terraformOptions.Vars["access_logging_bucket"] = "test-bucket-logs-" + uuid
 		terraformOptions.Vars["replica_bucket"] = "test-bucket-replica-" + uuid

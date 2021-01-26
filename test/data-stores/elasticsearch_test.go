@@ -1,7 +1,8 @@
-package test
+package data_stores
 
 import (
 	"fmt"
+	"github.com/gruntwork-io/aws-service-catalog/test"
 	"net/http"
 	"strings"
 	"testing"
@@ -124,7 +125,7 @@ func validateCluster(t *testing.T, testFolder string) {
 	ip := terraform.OutputRequired(t, terraformOptions, "aws_instance_public_ip")
 
 	awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
-	curlResponse := testSSHCommand(
+	curlResponse := test.TestSSHCommand(
 		t,
 		ip,
 		"ubuntu",
@@ -194,7 +195,7 @@ func createElasticsearchTerraformOptions(
 	uniqueID string,
 	awsKeyPairName string,
 ) *terraform.Options {
-	terraformOptions := createBaseTerraformOptions(t, terraformDir, awsRegion)
+	terraformOptions := test.CreateBaseTerraformOptions(t, terraformDir, awsRegion)
 	terraformOptions.Vars["domain_name"] = fmt.Sprintf("acme-test-aes-%s", uniqueID)
 	if awsKeyPairName != "" {
 		terraformOptions.Vars["keypair_name"] = awsKeyPairName
