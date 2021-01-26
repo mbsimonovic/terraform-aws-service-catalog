@@ -117,7 +117,7 @@ func testEKSClusterWithoutAuthMerger(t *testing.T, parentWorkingDir string) {
 	// workingDir set in TestEksCluster (passed in as parentWorkingDir).
 	workingDir := filepath.Join(".", "stages", t.Name())
 
-	examplesRoot := test_structure.CopyTerraformFolderToTemp(t, "..", "examples")
+	examplesRoot := test_structure.CopyTerraformFolderToTemp(t, "../../", "examples")
 	eksClusterRoot := filepath.Join(examplesRoot, "for-learning-and-testing/services/eks-cluster")
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
@@ -142,7 +142,7 @@ func testEKSClusterWithCoreServicesAndAuthMerger(t *testing.T, parentWorkingDir 
 	// workingDir set in TestEksCluster (passed in as parentWorkingDir).
 	workingDir := filepath.Join(".", "stages", t.Name())
 
-	examplesRoot := test_structure.CopyTerraformFolderToTemp(t, "..", "examples")
+	examplesRoot := test_structure.CopyTerraformFolderToTemp(t, "../../", "examples")
 	eksClusterRoot := filepath.Join(examplesRoot, "for-learning-and-testing/services/eks-cluster")
 	coreServicesRoot := filepath.Join(examplesRoot, "for-learning-and-testing/services/eks-core-services")
 	k8sServiceRoot := filepath.Join(examplesRoot, "for-learning-and-testing/services/k8s-service")
