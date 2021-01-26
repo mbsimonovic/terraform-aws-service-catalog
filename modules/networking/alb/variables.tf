@@ -6,6 +6,11 @@
 variable "alb_name" {
   description = "The name of the ALB."
   type        = string
+
+  validation {
+    condition     = length(var.alb_name) <= 32
+    error_message = "Your alb_name must be 32 characters or less in length."
+  }
 }
 
 variable "is_internal_alb" {
