@@ -49,6 +49,10 @@ install_gruntwork_utils: &install_gruntwork_utils
     gruntwork-install --module-name "gruntwork-module-circleci-helpers" --repo "https://github.com/gruntwork-io/module-ci" --tag "${MODULE_CI_VERSION}"
     gruntwork-install --module-name "terraform-helpers" --repo "https://github.com/gruntwork-io/module-ci" --tag "${MODULE_CI_VERSION}"
     gruntwork-install --binary-name "terratest_log_parser" --repo "https://github.com/gruntwork-io/terratest" --tag "${TERRATEST_LOG_PARSER_VERSION}"
+
+install_kube_utils: &install_kube_utils
+  name: install kubernetes utilities
+  command: |
     gruntwork-install --module-name "kubernetes-circleci-helpers" --repo "https://github.com/gruntwork-io/module-ci" --tag "${MODULE_CI_VERSION}"
     gruntwork-install --binary-name "kubergrunt" --repo "https://github.com/gruntwork-io/kubergrunt" --tag "${KUBERGRUNT_VERSION}"
     configure-environment-for-gruntwork-module \
@@ -57,9 +61,6 @@ install_gruntwork_utils: &install_gruntwork_utils
       --packer-version ${PACKER_VERSION} \
       --go-version ${GOLANG_VERSION}
 
-install_kube_utils: &install_kube_utils
-  name: install kubernetes utilities
-  command: |
     # Install kubectl
     curl -Lo kubectl "https://storage.googleapis.com/kubernetes-release/release/${K8S_VERSION}/bin/linux/amd64/kubectl"
     chmod +x kubectl
@@ -111,10 +112,6 @@ commands:
     steps:
       - run:
           <<: *install_gruntwork_utils
-      - run:
-          <<: *install_kube_utils
-      - run:
-          <<: *install_hub_cli
       - run: mkdir -p /tmp/logs
   store_results:
     description: "Store test results for easy viewing."
@@ -150,6 +147,8 @@ jobs:
     steps:
       - checkout
       - prepare_environment
+      - run:
+          <<: *install_hub_cli
       - run:
           name: find all tests to run
           command: |
@@ -245,6 +244,8 @@ jobs:
     steps:
       - checkout
       - prepare_environment
+      - run:
+          <<: *install_kube_utils
       - restore_cache:
           keys:
             - tests-to-run
