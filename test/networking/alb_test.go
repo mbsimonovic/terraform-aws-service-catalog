@@ -102,9 +102,6 @@ func TestAlbNameLengthValidation(t *testing.T) {
 	//os.Setenv("TERRATEST_REGION", "eu-west-1")
 	//os.Setenv("SKIP_setup", "true")
 	//os.Setenv("SKIP_deploy_terraform", "true")
-	//os.Setenv("SKIP_validate_server", "true")
-	//os.Setenv("SKIP_validate_access_logs", "true")
-	//os.Setenv("SKIP_cleanup", "true")
 
 	testFolder := "../examples/for-learning-and-testing/networking/alb"
 
