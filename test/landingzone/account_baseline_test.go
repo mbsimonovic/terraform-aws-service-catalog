@@ -84,7 +84,10 @@ func TestAccountBaseline(t *testing.T) {
 		testCase := testCase
 
 		t.Run(testCase.testName, func(t *testing.T) {
-			t.Parallel()
+			// The landingzone modules eat up a lot of resources on the machine due to the number of resources it
+			// manages, and the number of provider instances it requires for the multiregion modules. As such, it is not
+			// stable to run multiple instances of the landingzone modules in parallel. Therefore, we deliberately
+			// disable parallel testing and limit the testing to run the landingzone tests in serial.
 
 			//os.Setenv("SKIP_bootstrap", "true")
 			//os.Setenv("SKIP_plan_and_verify", "true")
