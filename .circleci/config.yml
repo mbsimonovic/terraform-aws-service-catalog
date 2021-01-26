@@ -300,11 +300,19 @@ workflows:
           filters:
             tags:
               only: /^v.*/
-      - test_data_stores:
+      - find_tests_to_run:
           context:
             - Gruntwork Admin
           requires:
             - precommit
+          filters:
+            tags:
+              only: /^v.*/
+      - test_data_stores:
+          context:
+            - Gruntwork Admin
+          requires:
+            - find_tests_to_run
           filters:
             tags:
               only: /^v.*/
@@ -313,7 +321,7 @@ workflows:
             - Gruntwork Admin
             - Gruntwork Org Test
           requires:
-            - precommit
+            - find_tests_to_run
           filters:
             tags:
               only: /^v.*/
@@ -321,7 +329,7 @@ workflows:
           context:
             - Gruntwork Admin
           requires:
-            - precommit
+            - find_tests_to_run
           filters:
             tags:
               only: /^v.*/
@@ -329,7 +337,7 @@ workflows:
           context:
             - Gruntwork Admin
           requires:
-            - precommit
+            - find_tests_to_run
           filters:
             tags:
               only: /^v.*/
@@ -337,7 +345,7 @@ workflows:
           context:
             - Gruntwork Admin
           requires:
-            - precommit
+            - find_tests_to_run
           filters:
             tags:
               only: /^v.*/
@@ -345,7 +353,7 @@ workflows:
           context:
             - Gruntwork Admin
           requires:
-            - precommit
+            - find_tests_to_run
           filters:
             tags:
               only: /^v.*/
@@ -353,7 +361,7 @@ workflows:
           context:
             - Gruntwork Admin
           requires:
-            - precommit
+            - find_tests_to_run
           filters:
             tags:
               only: /^v.*/
