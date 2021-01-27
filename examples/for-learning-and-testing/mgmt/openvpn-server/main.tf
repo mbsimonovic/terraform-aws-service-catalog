@@ -9,7 +9,7 @@ provider "aws" {
 module "openvpn" {
   # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
   # to a specific version of the modules, such as the following example:
-  # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/mgmt/openvpn-server?ref=v1.0.8"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/mgmt/openvpn-server?ref=v1.0.8"
   source = "../../../../modules/mgmt/openvpn-server"
 
   name          = var.name
@@ -31,7 +31,7 @@ module "openvpn" {
 
 
   # For this simple example, use a regular key pair instead of ssh-grunt
-  # For details on ssh-grunt, see: https://github.com/gruntwork-io/module-security/blob/master/modules/ssh-grunt/README.adoc
+  # For details on ssh-grunt, see: https://github.com/gruntwork-io/terraform-aws-security/blob/master/modules/ssh-grunt/README.adoc
   keypair_name     = var.keypair_name
   enable_ssh_grunt = false
 

@@ -308,7 +308,7 @@ ingress_listener_ports = [
 ### Deploying your configuration
 
 The above are the minimum set of configurations that you need to deploy the app. You can take a look [`variables.tf` 
-of `k8s-service`](https://github.com/gruntwork-io/aws-service-catalog/tree/master/modules/services/k8s-service)
+of `k8s-service`](https://github.com/gruntwork-io/terraform-aws-service-catalog/tree/master/modules/services/k8s-service)
 for all options.
 
 Once you've verified that everything looks fine, run:

@@ -45,13 +45,13 @@ toc::[]
 
 == Learn
 
-NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog/[Gruntwork Service Catalog], a collection of
+NOTE: This repo is a part of the https://github.com/gruntwork-io/terraform-aws-service-catalog/[Gruntwork Service Catalog], a collection of
 reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
 sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catallog/[How to use the Gruntwork
 Service Catalog]!
 
 Under the hood, this is all implemented using Terraform modules from the Gruntwork
-https://github.com/gruntwork-io/module-asg[module-asg] repo. If you don't have access to this repo, email
+https://github.com/gruntwork-io/terraform-aws-asg[module-asg] repo. If you don't have access to this repo, email
 support@gruntwork.io.
 
 
@@ -82,8 +82,8 @@ If you want to deploy this repo in production, check out the following resources
 
 == Operate
 
-* https://github.com/gruntwork-io/module-load-balancer/tree/master/modules/lb-listener-rules#make-sure-your-listeners-handle-all-possible-request-paths[What routes should I configure for each listener?]
-* https://github.com/gruntwork-io/module-load-balancer/tree/master/modules/lb-listener-rules#make-sure-your-listener-rules-each-have-a-unique-priority[How do I handle overlapping routes?]
+* https://github.com/gruntwork-io/terraform-aws-load-balancer/tree/master/modules/lb-listener-rules#make-sure-your-listeners-handle-all-possible-request-paths[What routes should I configure for each listener?]
+* https://github.com/gruntwork-io/terraform-aws-load-balancer/tree/master/modules/lb-listener-rules#make-sure-your-listener-rules-each-have-a-unique-priority[How do I handle overlapping routes?]
 
 
 == Support

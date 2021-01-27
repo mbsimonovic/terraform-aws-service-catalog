@@ -72,7 +72,7 @@
     "inline": [
       "sudo yum update -y && sudo yum install -y aws-cli unzip perl-Digest-SHA jq curl",
       "curl -Ls https://raw.githubusercontent.com/gruntwork-io/gruntwork-installer/master/bootstrap-gruntwork-installer.sh | bash /dev/stdin --version {{user `gruntwork_installer_version`}}",
-      "gruntwork-install --module-name services/ecs-cluster --repo https://github.com/gruntwork-io/aws-service-catalog --tag {{user `service_catalog_ref`}}"
+      "gruntwork-install --module-name services/ecs-cluster --repo https://github.com/gruntwork-io/terraform-aws-service-catalog --tag {{user `service_catalog_ref`}}"
     ],
     "environment_vars": [
       "GITHUB_OAUTH_TOKEN={{user `github_auth_token`}}",

@@ -69,7 +69,7 @@ provider "aws" {
 }
 
 module "config_bucket" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-config-bucket?ref=v0.44.7"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/aws-config-bucket?ref=v0.44.7"
 
   providers = {
     aws = aws.logs
@@ -82,7 +82,7 @@ module "config_bucket" {
   linked_accounts = local.all_non_logs_account_ids
 
   # We have to set this to work around an issue where aws_caller_identity returns the wrong account ID. See:
-  # https://github.com/gruntwork-io/module-security/pull/308#issuecomment-676561441
+  # https://github.com/gruntwork-io/terraform-aws-security/pull/308#issuecomment-676561441
   current_account_id = local.has_logs_account ? local.logs_account_id : null
 
   force_destroy                         = var.config_force_destroy
@@ -92,7 +92,7 @@ module "config_bucket" {
 }
 
 module "cloudtrail_bucket" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cloudtrail-bucket?ref=v0.44.7"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/cloudtrail-bucket?ref=v0.44.7"
 
   providers = {
     aws = aws.logs
@@ -114,7 +114,7 @@ module "cloudtrail_bucket" {
   allow_cloudtrail_access_with_iam                = var.allow_cloudtrail_access_with_iam
 
   # We have to set this to work around an issue where aws_caller_identity returns the wrong account ID. See:
-  # https://github.com/gruntwork-io/module-security/pull/308#issuecomment-676561441
+  # https://github.com/gruntwork-io/terraform-aws-security/pull/308#issuecomment-676561441
   current_account_id = local.has_logs_account ? local.logs_account_id : null
 
   force_destroy                         = var.cloudtrail_force_destroy

@@ -40,12 +40,12 @@ toc::[]
 * Configure cross-region replication
 
 == Learn
-NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog/[Gruntwork Service Catalog], a collection of
+NOTE: This repo is a part of the https://github.com/gruntwork-io/terraform-aws-service-catalog/[Gruntwork Service Catalog], a collection of
 reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
 sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/[How to use the Gruntwork
 Service Catalog]!
 
-* https://github.com/gruntwork-io/module-security/tree/master/modules/private-s3-bucket[Gruntwork private-s3-bucket module]: The underlying module that implements the private S3 bucket functionality.
+* https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/private-s3-bucket[Gruntwork private-s3-bucket module]: The underlying module that implements the private S3 bucket functionality.
 * https://docs.aws.amazon.com/AmazonS3/latest/gsg/GetStartedWithS3.html[S3 Documentation]: Amazon's docs for S3 that cover core concepts such as creating, accessing, copying and deleting buckets.
 
 == Deploy

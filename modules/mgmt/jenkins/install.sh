@@ -7,7 +7,7 @@ readonly JENKINS_USER="jenkins"
 
 
 # Gruntwork module versions
-# renovate.json auto-update: module-ci
+# renovate.json auto-update: terraform-aws-ci
 readonly DEFAULT_MODULE_CI_VERSION="v0.29.7"
 
 # Build tooling
@@ -47,12 +47,12 @@ function include_ec2_baseline {
 
   gruntwork-install \
     --module-name base/ec2-baseline \
-    --repo https://github.com/gruntwork-io/aws-service-catalog \
+    --repo https://github.com/gruntwork-io/terraform-aws-service-catalog \
     ${ec2_baseline_version_branch} \
     ${ec2_baseline_version_tag}
 
   # Include common defaults and functions from the ec2-baseline install script
-  # See: https://github.com/gruntwork-io/aws-service-catalog/blob/master/modules/base/ec2-baseline
+  # See: https://github.com/gruntwork-io/terraform-aws-service-catalog/blob/master/modules/base/ec2-baseline
   readonly EC2_BASELINE_RELATIVE_PATH="../../base/ec2-baseline"
   readonly EC2_BASELINE_PATH="$(dirname $(realpath $0))/${EC2_BASELINE_RELATIVE_PATH}"
   if [[ ! -f "${EC2_BASELINE_PATH}/install.sh" ]]; then
@@ -69,10 +69,10 @@ function install_ci_packages {
 
   echo "Installing Gruntwork CI Modules"
 
-  gruntwork-install --module-name 'install-jenkins' --repo 'https://github.com/gruntwork-io/module-ci' --tag "$module_ci_version" --module-param "version=$jenkins_version"
-  gruntwork-install --module-name 'build-helpers' --repo 'https://github.com/gruntwork-io/module-ci' --tag "$module_ci_version"
-  gruntwork-install --module-name 'git-helpers' --repo 'https://github.com/gruntwork-io/module-ci' --tag "$module_ci_version"
-  gruntwork-install --module-name 'terraform-helpers' --repo 'https://github.com/gruntwork-io/module-ci' --tag "$module_ci_version"
+  gruntwork-install --module-name 'install-jenkins' --repo 'https://github.com/gruntwork-io/terraform-aws-ci' --tag "$module_ci_version" --module-param "version=$jenkins_version"
+  gruntwork-install --module-name 'build-helpers' --repo 'https://github.com/gruntwork-io/terraform-aws-ci' --tag "$module_ci_version"
+  gruntwork-install --module-name 'git-helpers' --repo 'https://github.com/gruntwork-io/terraform-aws-ci' --tag "$module_ci_version"
+  gruntwork-install --module-name 'terraform-helpers' --repo 'https://github.com/gruntwork-io/terraform-aws-ci' --tag "$module_ci_version"
 }
 
 function install_kubergrunt {

@@ -52,7 +52,7 @@ Terraform) apply the code changes to your infrastructure. This has a number of b
 
 * You can package your infrastructure as reusable, documented, battle-tested modules that make it easier to scale and 
   evolve your infrastructure. In fact, much of the infrastructure code in this architecture is deployed from the 
-  [Gruntwork Service Catalog](https://github.com/gruntwork-io/aws-service-catalog/).
+  [Gruntwork Service Catalog](https://github.com/gruntwork-io/terraform-aws-service-catalog/).
 
 For more info on Infrastructure as Code and Terraform, check out [A Comprehensive Guide to 
 Terraform](https://blog.gruntwork.io/a-comprehensive-guide-to-terraform-b3d32832baca).
@@ -107,7 +107,7 @@ can be useful for monitoring and auditing network traffic across the VPC. Each V
 Logs, under the log group `VPC_NAME-vpc-flow-logs`, where the `VPC_NAME` is an input variable to the `vpc` module.
 
 To learn more about VPCs and subnets, check out the Gruntwork [vpc
-service](https://github.com/gruntwork-io/aws-service-catalog/tree/master/modules/networking/vpc).
+service](https://github.com/gruntwork-io/terraform-aws-service-catalog/tree/master/modules/networking/vpc).
 
 
 
@@ -149,7 +149,7 @@ The infrastructure includes the following data stores:
 
 1. **PostgreSQL**: PostgreSQL is deployed using [Amazon's Relational Database Service 
   (RDS)](https://aws.amazon.com/rds/), including automatic failover, backups, and replicas. Check out the 
-  [rds service](https://github.com/gruntwork-io/aws-service-catalog/tree/master/modules/data-stores/rds) for more info.
+  [rds service](https://github.com/gruntwork-io/terraform-aws-service-catalog/tree/master/modules/data-stores/rds) for more info.
 
 
 
@@ -163,7 +163,7 @@ VPN client, you are "in the network", and will be able to access the private res
 to your EC2 Instances).
 
 For more info, see the [openvpn 
-service](https://github.com/gruntwork-io/aws-service-catalog/tree/master/modules/mgmt/openvpn-server) and the VPN 
+service](https://github.com/gruntwork-io/terraform-aws-service-catalog/tree/master/modules/mgmt/openvpn-server) and the VPN 
 section of the [Authentication docs](02-authenticate.md).
 
 
@@ -195,7 +195,7 @@ We are using [Amazon Route 53](https://aws.amazon.com/route53/) to configure DNS
 have configured SSL/TLS certificates for your domain names using [Amazon's Certificate Manager 
 (ACM)](https://aws.amazon.com/certificate-manager/), which issues certificates that are free and renew automatically.
 
-For more info, see the [route53 service](https://github.com/gruntwork-io/aws-service-catalog/tree/master/modules/networking/route53).
+For more info, see the [route53 service](https://github.com/gruntwork-io/terraform-aws-service-catalog/tree/master/modules/networking/route53).
 
 
 
@@ -212,13 +212,13 @@ We have configured security best practices in every aspect of this infrastructur
 
 * **User accounts**: see the [Authentication docs](02-authenticate.md).
 
-* **Auditing**: see the [CloudTrail](https://github.com/gruntwork-io/module-security/tree/master/modules/cloudtrail) and
-  [AWS Config](https://github.com/gruntwork-io/module-security/tree/master/modules/aws-config) modules.
+* **Auditing**: see the [CloudTrail](https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/cloudtrail) and
+  [AWS Config](https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/aws-config) modules.
 
-* **Intrusion detection**: see the [fail2ban](https://github.com/gruntwork-io/module-security/tree/master/modules/fail2ban)
-  and [GuardDuty](https://github.com/gruntwork-io/module-security/tree/master/modules/guardduty-multi-region) modules.
+* **Intrusion detection**: see the [fail2ban](https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/fail2ban)
+  and [GuardDuty](https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/guardduty-multi-region) modules.
 
-* **Security updates**: see the [auto-update module](https://github.com/gruntwork-io/module-security/tree/master/modules/auto-update).
+* **Security updates**: see the [auto-update module](https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/auto-update).
 
 Check out [Gruntwork Security Best 
 Practices](https://docs.google.com/document/d/e/2PACX-1vTikva7hXPd2h1SSglJWhlW8W6qhMlZUxl0qQ9rUJ0OX22CQNeM-91w4lStRk9u2zQIn6lPejUbe-dl/pub) 

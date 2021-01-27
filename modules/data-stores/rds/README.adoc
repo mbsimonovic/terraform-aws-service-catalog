@@ -51,13 +51,13 @@ toc::[]
 
 == Learn
 
-NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog/[Gruntwork Service Catalog], a collection of
+NOTE: This repo is a part of the https://github.com/gruntwork-io/terraform-aws-service-catalog/[Gruntwork Service Catalog], a collection of
 reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
 sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/[How to use the Gruntwork
 Service Catalog]!
 
-* https://github.com/gruntwork-io/module-data-storage/blob/master/modules/rds/core-concepts.md#what-is-amazon-rds[What is Amazon RDS?]
-* https://github.com/gruntwork-io/module-data-storage/blob/master/modules/rds/core-concepts.md#common-gotchas[Common gotchas with RDS]
+* https://github.com/gruntwork-io/terraform-aws-data-storage/blob/master/modules/rds/core-concepts.md#what-is-amazon-rds[What is Amazon RDS?]
+* https://github.com/gruntwork-io/terraform-aws-data-storage/blob/master/modules/rds/core-concepts.md#common-gotchas[Common gotchas with RDS]
 * https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Welcome.html[RDS documentation]: Amazon's docs for RDS that
   cover core concepts such as the types of databases supported, security, backup & restore, and monitoring.
 * _https://dataintensive.net[Designing Data Intensive Applications]_: the best book we've found for understanding data
@@ -90,11 +90,11 @@ If you want to deploy this repo in production, check out the following resources
 
 === Day-to-day operations
 
-* https://github.com/gruntwork-io/module-data-storage/blob/master/modules/rds/core-concepts.md#how-do-you-connect-to-the-database[How to connect to an RDS instance]
+* https://github.com/gruntwork-io/terraform-aws-data-storage/blob/master/modules/rds/core-concepts.md#how-do-you-connect-to-the-database[How to connect to an RDS instance]
 * https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAM.html[How to authenticate to RDS with IAM]
-* https://github.com/gruntwork-io/module-data-storage/blob/master/modules/rds/core-concepts.md#how-do-you-scale-this-database[How to scale RDS]
-* https://github.com/gruntwork-io/module-data-storage/blob/master/modules/lambda-create-snapshot/core-concepts.md#data-backup-core-concepts[How to back up RDS databases]
-* https://github.com/gruntwork-io/module-data-storage/blob/master/modules/lambda-cleanup-snapshots/README.md[How clean up old database snapshots]
+* https://github.com/gruntwork-io/terraform-aws-data-storage/blob/master/modules/rds/core-concepts.md#how-do-you-scale-this-database[How to scale RDS]
+* https://github.com/gruntwork-io/terraform-aws-data-storage/blob/master/modules/lambda-create-snapshot/core-concepts.md#data-backup-core-concepts[How to back up RDS databases]
+* https://github.com/gruntwork-io/terraform-aws-data-storage/blob/master/modules/lambda-cleanup-snapshots/README.md[How clean up old database snapshots]
 * link:core-concepts.md#how-do-i-use-kubernetes-service-discovery-with-the-rds-database[How do I use Kubernetes Service
   Discovery with the RDS database?]
 

@@ -38,7 +38,7 @@ management, VPN, and much more.
   are designed for specific use cases and meant to be deployed directly. For example, the `eks-cluster` service 
   combines all the modules you need to run an EKS (Kubernetes) cluster in a typical production environment, including 
   modules for the control plane, worker nodes, secrets management, log aggregation, alerting, and so on. The [Gruntwork 
-  Service Catalog](https://github.com/gruntwork-io/aws-service-catalog/) is a collection of battle-tested, commercially 
+  Service Catalog](https://github.com/gruntwork-io/terraform-aws-service-catalog/) is a collection of battle-tested, commercially 
   supported and maintained services that you can use to deploy production-grade infrastructure in minutes.
 
 
@@ -59,7 +59,7 @@ The Gruntwork Service Catalog is designed to be deployed using the following too
 
 ### How to navigate the Service Catalog
 
-The code in the `aws-service-catalog` repo is organized into three primary folders:
+The code in the `terraform-aws-service-catalog` repo is organized into three primary folders:
 
 1. `modules`: The core implementation code of this repo. All the services that you will use and deploy are defined 
    within, such as the EKS cluster service in `modules/services/eks-cluster`.
@@ -88,7 +88,7 @@ The code in the `aws-service-catalog` repo is organized into three primary folde
 
 All of the code in the Gruntwork Service Catalog is _versioned_. The Service Catalog is commercially maintained by 
 Gruntwork, and every time we make a change, we put out a new [versioned 
-release](https://github.com/gruntwork-io/aws-service-catalog/releases), and announce it in the monthly [Gruntwork 
+release](https://github.com/gruntwork-io/terraform-aws-service-catalog/releases), and announce it in the monthly [Gruntwork 
 Newsletter](https://blog.gruntwork.io/tagged/gruntwork-newsletter). 
 
 We use version numbers of the form `MAJOR.MINOR.PATCH` (e.g., `1.2.3`), following the principles of [semantic 
@@ -106,7 +106,7 @@ different, where you increment the:
 1. PATCH version when you add backwards compatible functionality or bug fixes.
 
 We try to minimize backwards incompatible changes, but when we have to make one, we bump the MINOR version number, and
-include migration instructions in the [release notes](https://github.com/gruntwork-io/aws-service-catalog/releases).
+include migration instructions in the [release notes](https://github.com/gruntwork-io/terraform-aws-service-catalog/releases).
 Makes sure to ALWAYS read the release notes and migration instructions (if any) to avoid errors and outages! 
 
 
@@ -172,9 +172,9 @@ deploy Terraform code from the Service Catalog. See
 
     ```hcl
     module "vpc" {
-      # Make sure to replace <VERSION> in this URL with the latest aws-service-catalog release from
-      # https://github.com/gruntwork-io/aws-service-catalog/releases
-      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc?ref=<VERSION>"
+      # Make sure to replace <VERSION> in this URL with the latest terraform-aws-service-catalog release from
+      # https://github.com/gruntwork-io/terraform-aws-service-catalog/releases
+      source = "git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/networking/vpc?ref=<VERSION>"
     
       # Fill in the arguments for this service
       aws_region       = "eu-west-1"
@@ -198,7 +198,7 @@ deploy Terraform code from the Service Catalog. See
     1. **Versioned URL**. Note the `?ref=<VERSION>` at the end of the `source` URL. This parameter allows you to pull 
        in a specific version of each service so that you don’t accidentally pull in potentially backwards incompatible 
        code in the future. You should replace `<VERSION>` with the latest version from the [releases 
-       page](https://github.com/gruntwork-io/aws-service-catalog/releases).       
+       page](https://github.com/gruntwork-io/terraform-aws-service-catalog/releases).       
 
     1. **Arguments**. Below the `source` URL, you’ll need to pass in the arguments specific to that service. You can 
        find all the required and optional variables defined in `variables.tf` of the service (e.g., check out 
@@ -333,9 +333,9 @@ Now you can create child `terragrunt.hcl` files to deploy services as follows:
 
     ```hcl
     terraform {
-      # Make sure to replace <VERSION> in this URL with the latest aws-service-catalog release from
-      # https://github.com/gruntwork-io/aws-service-catalog/releases
-      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc?ref=<VERSION>"
+      # Make sure to replace <VERSION> in this URL with the latest terraform-aws-service-catalog release from
+      # https://github.com/gruntwork-io/terraform-aws-service-catalog/releases
+      source = "git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/networking/vpc?ref=<VERSION>"
     }
  
     # Fill in the arguments for this service
@@ -360,7 +360,7 @@ Now you can create child `terragrunt.hcl` files to deploy services as follows:
     1. **Versioned URL**. Note the `?ref=<VERSION>` at the end of the `source` URL. This parameter allows you to pull 
        in a specific version of each service so that you don’t accidentally pull in potentially backwards incompatible 
        code in the future. You should replace `<VERSION>` with the latest version from the [releases 
-       page](https://github.com/gruntwork-io/aws-service-catalog/releases).       
+       page](https://github.com/gruntwork-io/terraform-aws-service-catalog/releases).       
 
     1. **Arguments**. In the `inputs` block, you’ll need to pass in the arguments specific to that service. You can 
        find all the required and optional variables defined in `variables.tf` of the service (e.g., check out 
@@ -406,7 +406,7 @@ and so on.
 Below are instructions on how to build an AMI using these Packer templates. We'll be using the 
 [eks-node-al2.json](/modules/services/eks-cluster/eks-node-al2.json) Packer template as an example.
 
-1. **Check out the code**. Run `git clone git@github.com:gruntwork-io/aws-service-catalog.git` to check out the code
+1. **Check out the code**. Run `git clone git@github.com:gruntwork-io/terraform-aws-service-catalog.git` to check out the code
    onto your own computer.
    
 1. **(Optional) Make changes to the Packer template**. If you need to install custom software into your AMI—e.g., extra
@@ -452,7 +452,7 @@ Below are instructions on how to build an AMI using these Packer templates. We'l
     This file defines two variables that are required by almost every Packer template in the Gruntwork Service Catalog:    
  
     1. **Service Catalog Version**. You must replace `<VERSION>` with the version of the Service Catalog (from the
-       [releases page](https://github.com/gruntwork-io/aws-service-catalog/releases)) you wish to use for this build.  
+       [releases page](https://github.com/gruntwork-io/terraform-aws-service-catalog/releases)) you wish to use for this build.  
        Specifying a specific version allows you to know exactly what code you're using and ensures you don’t 
        accidentally pull in potentially backwards incompatible code in future builds.       
     
@@ -497,7 +497,7 @@ Now that your infrastructure is deployed, let's discuss how to make changes to i
    
     ```hcl
     module "vpc" {
-      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc?ref=v0.0.1"
+      source = "git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/networking/vpc?ref=v0.0.1"
     
       # ... (other args ommitted for readability) ...
       num_nat_gateways = 1
@@ -508,7 +508,7 @@ Now that your infrastructure is deployed, let's discuss how to make changes to i
 
     ```hcl
     module "vpc" {
-      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc?ref=v0.0.1"
+      source = "git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/networking/vpc?ref=v0.0.1"
     
       # ... (other args ommitted for readability) ...
       num_nat_gateways = 3
@@ -520,7 +520,7 @@ Now that your infrastructure is deployed, let's discuss how to make changes to i
    
     ```hcl
     module "vpc" {
-      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc?ref=v0.0.1"
+      source = "git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/networking/vpc?ref=v0.0.1"
     
       # ... (other args ommitted for readability) ...
     }    
@@ -530,14 +530,14 @@ Now that your infrastructure is deployed, let's discuss how to make changes to i
    
     ```hcl
     module "vpc" {
-      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc?ref=v0.0.2"
+      source = "git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/networking/vpc?ref=v0.0.2"
     
       # ... (other args ommitted for readability) ...
     }    
     ```     
    
     NOTE: Whenever changing version numbers, make sure to read the [release 
-    notes](https://github.com/gruntwork-io/aws-service-catalog/releases), especially if it's a backwards incompatible 
+    notes](https://github.com/gruntwork-io/terraform-aws-service-catalog/releases), especially if it's a backwards incompatible 
     release (e.g., `v0.0.1` -> `v0.1.0`), to avoid errors and outages (see [maintenance and 
     versioning](#maintenance-and-versioning) for details)!   
 
@@ -561,7 +561,7 @@ Now that your infrastructure is deployed, let's discuss how to make changes to i
    
     ```hcl
     terraform {
-      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc?ref=v0.0.1"
+      source = "git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/networking/vpc?ref=v0.0.1"
     }
  
     inputs = {
@@ -574,7 +574,7 @@ Now that your infrastructure is deployed, let's discuss how to make changes to i
 
     ```hcl
     terraform {
-      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc?ref=v0.0.1"
+      source = "git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/networking/vpc?ref=v0.0.1"
     }
  
     inputs = {
@@ -588,7 +588,7 @@ Now that your infrastructure is deployed, let's discuss how to make changes to i
    
     ```hcl
     terraform {
-      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc?ref=v0.0.1"
+      source = "git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/networking/vpc?ref=v0.0.1"
     }
     ```     
    
@@ -596,12 +596,12 @@ Now that your infrastructure is deployed, let's discuss how to make changes to i
    
     ```hcl
     terraform {
-      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc?ref=v0.0.2"
+      source = "git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/networking/vpc?ref=v0.0.2"
     } 
     ```     
    
     NOTE: Whenever changing version numbers, make sure to read the [release 
-    notes](https://github.com/gruntwork-io/aws-service-catalog/releases), especially if it's a backwards incompatible 
+    notes](https://github.com/gruntwork-io/terraform-aws-service-catalog/releases), especially if it's a backwards incompatible 
     release (e.g., `v0.0.1` -> `v0.1.0`), to avoid errors and outages (see [maintenance and 
     versioning](#maintenance-and-versioning) for details)!   
 
@@ -643,7 +643,7 @@ Now that your infrastructure is deployed, let's discuss how to make changes to i
     ``` 
    
     NOTE: Whenever changing version numbers, make sure to read the [release 
-    notes](https://github.com/gruntwork-io/aws-service-catalog/releases), especially if it's a backwards incompatible 
+    notes](https://github.com/gruntwork-io/terraform-aws-service-catalog/releases), especially if it's a backwards incompatible 
     release (e.g., `v0.0.1` -> `v0.1.0`), to avoid errors and outages (see [maintenance and 
     versioning](#maintenance-and-versioning) for details)!   
 
@@ -688,7 +688,7 @@ the Gruntwork Service Catalog? There are two things to check:
 1. **Should the Service Catalog be updated to support it?** If the Service Catalog doesn't already support the 
    functionality you need, the next question to ask is if it should. As a general rule, if your use case is fairly 
    common and likely affects many companies, we should support it! If that's the case, please [file a GitHub issue in 
-   this repo](https://github.com/gruntwork-io/aws-service-catalog/issues/new), and the Gruntwork team may be able to implement it for you. Also, pull requests are VERY welcome! See 
+   this repo](https://github.com/gruntwork-io/terraform-aws-service-catalog/issues/new), and the Gruntwork team may be able to implement it for you. Also, pull requests are VERY welcome! See 
    [Contributing to the Gruntwork Service 
    Catalog](https://gruntwork.io/guides/foundations/how-to-use-gruntwork-infrastructure-as-code-library#_contributing_to_the_gruntwork_infrastructure_as_code_library)
    for instructions.      
@@ -735,9 +735,9 @@ One way to populate your Service Catalog is to extend Gruntwork Services. There 
    
     ```hcl
     module "vpc" {
-      # Make sure to replace <VERSION> in this URL with the latest aws-service-catalog release from
-      # https://github.com/gruntwork-io/aws-service-catalog/releases
-      source = "git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/vpc?ref=<VERSION>"
+      # Make sure to replace <VERSION> in this URL with the latest terraform-aws-service-catalog release from
+      # https://github.com/gruntwork-io/terraform-aws-service-catalog/releases
+      source = "git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/networking/vpc?ref=<VERSION>"
     
       # Fill in the arguments for this service
       aws_region       = "eu-west-1"
@@ -796,14 +796,14 @@ production:
 1. [Modules from the Gruntwork IaC Library](https://gruntwork.io/infrastructure-as-code-library/). We strongly 
    recommend building your own services by combining modules from the Gruntwork IaC Library. For example, if your 
    service runs in an Auto Scaling Group (ASG), you may want to use the modules from 
-   [module-asg](https://github.com/gruntwork-io/module-asg) to create an ASG that can do zero-downtime rolling 
+   [terraform-aws-asg](https://github.com/gruntwork-io/terraform-aws-asg) to create an ASG that can do zero-downtime rolling 
    deployments; if your service needs custom CloudWatch metrics, log aggregation, or alerts, you may want to use
    modules from [terraform-aws-monitoring](https://github.com/gruntwork-io/terraform-aws-monitoring); if your service is 
    doing something related to Kubernetes, you may want to use modules from 
    [terraform-aws-eks](https://github.com/gruntwork-io/terraform-aws-eks) or 
    [helm-kubernetes-services](https://github.com/gruntwork-io/helm-kubernetes-servicesv); and so on.
       
-1. [The Gruntwork Service Catalog](https://github.com/gruntwork-io/aws-service-catalog/). You can of course also use 
+1. [The Gruntwork Service Catalog](https://github.com/gruntwork-io/terraform-aws-service-catalog/). You can of course also use 
    the Gruntwork Service Catalog for inspiration and examples of how to build your own Service Catalog!
 
 
@@ -819,7 +819,7 @@ We strongly recommend writing automated tests for your Service Catalog. Here are
    write for use with tools such as Terraform, Kubernetes, Docker, and Packer. Topics covered include unit tests, 
    integration tests, end-to-end tests, test parallelism, retries, error handling, static analysis, and more.
 
-1. [The Gruntwork Service Catalog](https://github.com/gruntwork-io/aws-service-catalog/). The Gruntwork Service Catalog
+1. [The Gruntwork Service Catalog](https://github.com/gruntwork-io/terraform-aws-service-catalog/). The Gruntwork Service Catalog
    has [thorough automated tests](/test), so you can use it for inspiration and examples of how to test your own 
    Service Catalog!   
 

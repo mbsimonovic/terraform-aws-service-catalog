@@ -4,11 +4,11 @@
 # Gruntwork module versions
 # renovate.json auto-update: bash-commons
 readonly DEFAULT_BASH_COMMONS_VERSION="v0.1.3"
-# renovate.json auto-update: module-security
+# renovate.json auto-update: terraform-aws-security
 readonly DEFAULT_MODULE_SECURITY_VERSION="v0.44.7"
 # renovate.json auto-update: terraform-aws-monitoring
 readonly DEFAULT_MODULE_AWS_MONITORING_VERSION="v0.24.0"
-# renovate.json auto-update: module-server
+# renovate.json auto-update: terraform-aws-server
 readonly DEFAULT_MODULE_STATEFUL_SERVER_VERSION="v0.10.0"
 
 # Enable / disable features
@@ -49,13 +49,13 @@ function install_security_packages {
 
   echo "Installing Gruntwork Security Modules"
 
-  gruntwork-install --module-name 'auto-update' --repo https://github.com/gruntwork-io/module-security --tag "$module_security_version"
-  gruntwork-install --module-name 'fail2ban' --repo https://github.com/gruntwork-io/module-security --tag "$module_security_version"
-  gruntwork-install --module-name 'ntp' --repo https://github.com/gruntwork-io/module-security --tag "$module_security_version"
-  gruntwork-install --module-name 'ip-lockdown' --repo https://github.com/gruntwork-io/module-security --tag "$module_security_version"
+  gruntwork-install --module-name 'auto-update' --repo https://github.com/gruntwork-io/terraform-aws-security --tag "$module_security_version"
+  gruntwork-install --module-name 'fail2ban' --repo https://github.com/gruntwork-io/terraform-aws-security --tag "$module_security_version"
+  gruntwork-install --module-name 'ntp' --repo https://github.com/gruntwork-io/terraform-aws-security --tag "$module_security_version"
+  gruntwork-install --module-name 'ip-lockdown' --repo https://github.com/gruntwork-io/terraform-aws-security --tag "$module_security_version"
 
   if [[ "$enable_ssh_grunt" == "true" ]]; then
-    gruntwork-install --binary-name 'ssh-grunt' --repo https://github.com/gruntwork-io/module-security --tag "$module_security_version"
+    gruntwork-install --binary-name 'ssh-grunt' --repo https://github.com/gruntwork-io/terraform-aws-security --tag "$module_security_version"
   fi
 }
 
@@ -105,7 +105,7 @@ function install_stateful_server_packages {
   sudo apt-get install -y nvme-cli
 
   echo "Installing Gruntwork Stateful Server Modules"
-  gruntwork-install --module-name 'persistent-ebs-volume' --repo 'https://github.com/gruntwork-io/module-server' --tag "$module_server_version"
+  gruntwork-install --module-name 'persistent-ebs-volume' --repo 'https://github.com/gruntwork-io/terraform-aws-server' --tag "$module_server_version"
 }
 
 function install_aws_cli {

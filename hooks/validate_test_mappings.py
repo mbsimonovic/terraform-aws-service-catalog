@@ -34,7 +34,7 @@ IGNORE_PREFIX_LIST = [
     # Ignore pre-commit hooks
     'hooks',
 
-    # Ignore production examples for now until https://github.com/gruntwork-io/aws-service-catalog/issues/28
+    # Ignore production examples for now until https://github.com/gruntwork-io/terraform-aws-service-catalog/issues/28
     'examples/for-production',
 
     # Ignore test fixture changes

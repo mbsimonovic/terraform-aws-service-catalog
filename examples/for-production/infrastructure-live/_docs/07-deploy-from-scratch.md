@@ -40,7 +40,7 @@ All the EC2 Instances in the Reference Architecture (e.g., the EKS Cluster insta
 using [Packer](https://www.packer.io/). To build these AMIs:
 
 1. **Find the Packer templates**. You will find the Packer templates (`.json` files) in the [Gruntwork Service 
-   Catalog](https://github.com/gruntwork-io/aws-service-catalog/), plus any custom Packer templates you
+   Catalog](https://github.com/gruntwork-io/terraform-aws-service-catalog/), plus any custom Packer templates you
    created in your own Service Catalog.
    
 1. **Create a VPC for building AMIs**. All the AMIs are built using an EC2 instance that is temporarily deployed into a 
@@ -51,7 +51,7 @@ using [Packer](https://www.packer.io/). To build these AMIs:
   use with packer.
     
 1. **Run Packer**. Follow the [How to build machine images using Packer templates from the Service 
-   Catalog](https://github.com/gruntwork-io/aws-service-catalog/blob/master/core-concepts.md#deploy-new-infrastructure)
+   Catalog](https://github.com/gruntwork-io/terraform-aws-service-catalog/blob/master/core-concepts.md#deploy-new-infrastructure)
    docs to build AMIs from these Packer templates. Pay special attention to the instructions on filling in variables,
    especially for the following variables:
     
@@ -84,7 +84,7 @@ See the [deploying your apps docs](03-deploy-apps.md) for instructions on buildi
 
 ## Create EC2 Key Pairs
 
-The Reference Architecture installs [ssh-grunt](https://github.com/gruntwork-io/module-security/tree/master/modules/ssh-grunt)
+The Reference Architecture installs [ssh-grunt](https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/ssh-grunt)
 on every EC2 Instance so that each developer can use their own username and key to SSH to servers. However, we still 
 recommend associating an [EC2 Key Pair](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html) with 
 your EC2 Instances as an emergency backup, in case their is some sort of issue with `ssh-grunt`.
@@ -228,7 +228,7 @@ export AWS_SECRET_ACCESS_KEY=(your secret key for this account)
 ```
 
 Once everything is deployed, you can delete this IAM user, and access the account via IAM roles (see the
-[cross-account-iam-access module](https://github.com/gruntwork-io/module-security/tree/master/modules/cross-account-iam-roles)
+[cross-account-iam-access module](https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/cross-account-iam-roles)
 for details).
 
 

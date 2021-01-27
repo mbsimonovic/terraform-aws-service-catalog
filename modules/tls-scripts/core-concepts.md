@@ -444,7 +444,7 @@ First, [use the TLS Scripts module to generate our self-signed certificates loca
 
 Second, if you encrypted your cert on disk, which you should always do for production use cases, you'll need to decrypt it first. We recommend storing the decrypted result in [`tmpfs`](https://man7.org/linux/man-pages/man5/tmpfs.5.html), which is a virtual filesystem that remains in memory and therefore does not carry with it the same risks of writing your secrets to disk.
 
-Now that the private key is unencrypted, either because you decrypted it, or because this is a TLS cert solely-used for local dev and wasn't encrypted in the first place, you should have the following files on disk (run `tree tls` in your working copy of `aws-service-catalog/modules/tls-scripts` to confirm):
+Now that the private key is unencrypted, either because you decrypted it, or because this is a TLS cert solely-used for local dev and wasn't encrypted in the first place, you should have the following files on disk (run `tree tls` in your working copy of `terraform-aws-service-catalog/modules/tls-scripts` to confirm):
 
 ```
 tls

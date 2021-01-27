@@ -220,11 +220,11 @@ variable "capacity_provider_min_scale_step" {
 
 # ---------------------------------------------------------------------------------------------------------------------
 # SSH GRUNT VARIABLES
-# These variables optionally enable and configure access via ssh-grunt. See: https://github.com/gruntwork-io/module-security/tree/master/modules/ssh-grunt for more info.
+# These variables optionally enable and configure access via ssh-grunt. See: https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/ssh-grunt for more info.
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "enable_ssh_grunt" {
-  description = "Set to true to add IAM permissions for ssh-grunt (https://github.com/gruntwork-io/module-security/tree/master/modules/ssh-grunt), which will allow you to manage SSH access via IAM groups."
+  description = "Set to true to add IAM permissions for ssh-grunt (https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/ssh-grunt), which will allow you to manage SSH access via IAM groups."
   type        = bool
   default     = true
 }

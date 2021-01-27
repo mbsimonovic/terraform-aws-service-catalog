@@ -61,7 +61,7 @@ To deploy an OpenVPN server, you need to:
 ## OpenVPN access
 
 Once you have requested and received an OpenVPN Client Configuration (`.ovpn`) file using the
-[openvpn-admin](https://github.com/gruntwork-io/package-openvpn/blob/master/examples/openvpn-host/README.md) tool, you can import that into any supported OpenVPN client.
+[openvpn-admin](https://github.com/gruntwork-io/terraform-aws-openvpn/blob/master/examples/openvpn-host/README.md) tool, you can import that into any supported OpenVPN client.
 
 Once connected to the VPN, your traffic is encrypted and "tunneled" and you are effectively connected to the remote network. You can then connect to any other EC2 instance or service in the account, including those in the private subnets of the VPC. To access other resources on the network, such as RDS database instances, you may need to permit access from the VPN server to the remote security group.
 

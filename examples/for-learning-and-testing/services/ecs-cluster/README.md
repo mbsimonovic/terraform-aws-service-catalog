@@ -39,9 +39,9 @@ the service onto the cluster.
 
 If you want to update the EC2 instances running in the ECS cluster (e.g. roll out a new AMI), you must use the
 `roll-out-ecs-cluster-update.py` script in the Gruntwork
-[ecs-module](https://github.com/gruntwork-io/module-ecs/tree/master/modules/ecs-cluster). Check out the
+[ecs-module](https://github.com/gruntwork-io/terraform-aws-ecs/tree/master/modules/ecs-cluster). Check out the
 [How do you make changes to the EC2 Instances in the
-cluster?](https://github.com/gruntwork-io/module-ecs/tree/master/modules/ecs-cluster#how-do-you-make-changes-to-the-ec2-instances-in-the-cluster)
+cluster?](https://github.com/gruntwork-io/terraform-aws-ecs/tree/master/modules/ecs-cluster#how-do-you-make-changes-to-the-ec2-instances-in-the-cluster)
 documentation for details.
 
 

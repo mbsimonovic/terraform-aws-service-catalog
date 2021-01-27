@@ -54,12 +54,12 @@ toc::[]
 
 
 Under the hood, this is all implemented using Terraform modules from the Gruntwork
-[package-openvpn](https://github.com/gruntwork-io/package-openvpn) repo.
+[terraform-aws-openvpn](https://github.com/gruntwork-io/terraform-aws-openvpn) repo.
 
 
 == Learn
 
-NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog/[Gruntwork Service Catalog], a collection of
+NOTE: This repo is a part of the https://github.com/gruntwork-io/terraform-aws-service-catalog/[Gruntwork Service Catalog], a collection of
 reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
 sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/[How to use the Gruntwork
 Service Catalog]!
@@ -67,8 +67,8 @@ Service Catalog]!
 === Core concepts
 
 To understand core concepts like why you should use an OpenVPN server, how to connect to the vpn, how to use the
-VPN server to connect to other systems on the AWS VPC, see the https://github.com/gruntwork-io/package-openvpn/blob/master/modules/openvpn-server/README.md[openvpn-server
-documentation] documentation in the https://github.com/gruntwork-io/package-openvpn[package-openvpn] repo.
+VPN server to connect to other systems on the AWS VPC, see the https://github.com/gruntwork-io/terraform-aws-openvpn/blob/master/modules/openvpn-server/README.md[openvpn-server
+documentation] documentation in the https://github.com/gruntwork-io/terraform-aws-openvpn[package-openvpn] repo.
 
 == Deploy
 
@@ -95,9 +95,9 @@ If you want to deploy this repo in production, check out the following resources
 
 === Day-to-day operations
 
-* https://github.com/fail2ban/fail2ban[`fail2ban`] bans IP addresses that cause too many failed login attempts. The OpenVPN server is configured with `fail2ban` as a security measure. See the  https://github.com/gruntwork-io/module-security/tree/master/modules/fail2ban[`fail2ban` module] for more information.
-* Use the https://github.com/gruntwork-io/package-openvpn/blob/master/modules/openvpn-admin/README.md[openvpn-admin] utility to requests new certificates and, for administrators, to revoke existing certificates.
-* The https://github.com/gruntwork-io/package-openvpn/blob/master/modules/backup-openvpn-pki/README.md[`backup-openvpn-pki`] module is used to backup the OpenVPN server's PKI to an S3 bucket. See the module documentation for more information.
+* https://github.com/fail2ban/fail2ban[`fail2ban`] bans IP addresses that cause too many failed login attempts. The OpenVPN server is configured with `fail2ban` as a security measure. See the  https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/fail2ban[`fail2ban` module] for more information.
+* Use the https://github.com/gruntwork-io/terraform-aws-openvpn/blob/master/modules/openvpn-admin/README.md[openvpn-admin] utility to requests new certificates and, for administrators, to revoke existing certificates.
+* The https://github.com/gruntwork-io/terraform-aws-openvpn/blob/master/modules/backup-openvpn-pki/README.md[`backup-openvpn-pki`] module is used to backup the OpenVPN server's PKI to an S3 bucket. See the module documentation for more information.
 * We recommend the https://tunnelblick.net/[Tunnelblick] (Mac) or https://www.sparklabs.com/viscosity/[Viscosity] (Mac and Windows) VPN clients
 * For debugging, use the logs found in `/var/log/user-data.log` on the OpenVPN server instance (for problems with initializing new server instances), and examine CloudWatch Logs (for other issues).
 

@@ -27,7 +27,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_deploy_runner" {
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner?ref=v0.29.7"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner?ref=v0.29.7"
 
   name                          = var.name
   container_images              = module.standard_config.container_images
@@ -44,7 +44,7 @@ module "ecs_deploy_runner" {
 }
 
 module "standard_config" {
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner-standard-configuration?ref=v0.29.7"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner-standard-configuration?ref=v0.29.7"
 
   docker_image_builder = (
     var.docker_image_builder_config != null
@@ -344,7 +344,7 @@ data "aws_iam_policy_document" "terraform_applier" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "shared_secrets_kms_grants" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-grant-multi-region?ref=v0.44.7"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-grant-multi-region?ref=v0.44.7"
 
   aws_account_id    = data.aws_caller_identity.current.account_id
   kms_grant_regions = local.shared_secrets_kms_grant_regions
@@ -421,7 +421,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "kms_grants" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-grant-multi-region?ref=v0.44.7"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-grant-multi-region?ref=v0.44.7"
 
   aws_account_id    = data.aws_caller_identity.current.account_id
   kms_grant_regions = local.kms_grant_regions
@@ -491,7 +491,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "invoke_policy" {
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner-invoke-iam-policy?ref=v0.29.7"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner-invoke-iam-policy?ref=v0.29.7"
 
   name                                      = "invoke-${var.name}"
   deploy_runner_invoker_lambda_function_arn = module.ecs_deploy_runner.invoker_function_arn

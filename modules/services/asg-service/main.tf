@@ -22,7 +22,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "asg" {
-  source = "git::git@github.com:gruntwork-io/module-asg.git//modules/asg-rolling-deploy?ref=v0.11.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-asg.git//modules/asg-rolling-deploy?ref=v0.11.1"
 
   launch_configuration_name = aws_launch_configuration.launch_configuration.name
   vpc_subnet_ids            = var.subnet_ids
@@ -262,7 +262,7 @@ resource "aws_alb_target_group" "service" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "listener_rules" {
-  source = "git::git@github.com:gruntwork-io/module-load-balancer.git//modules/lb-listener-rules?ref=v0.21.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/lb-listener-rules?ref=v0.21.0"
 
   default_listener_arns  = var.listener_arns
   default_listener_ports = var.listener_ports

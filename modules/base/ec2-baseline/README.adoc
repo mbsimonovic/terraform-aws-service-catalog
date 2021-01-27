@@ -36,7 +36,7 @@ toc::[]
 
 == Features
 
-* Creates and attaches an IAM policy that sets up permissions for https://github.com/gruntwork-io/module-security/blob/master/modules/ssh-grunt/README.adoc[`ssh-grunt`]
+* Creates and attaches an IAM policy that sets up permissions for https://github.com/gruntwork-io/terraform-aws-security/blob/master/modules/ssh-grunt/README.adoc[`ssh-grunt`]
 * Creates and attaches an IAM policy that allows EC2 instances to publish https://github.com/gruntwork-io/terraform-aws-monitoring/blob/master/modules/metrics/cloudwatch-custom-metrics-iam-policy/README.md[custom cloudwatch metrics]
 * Creates and attaches an IAM policy that allows EC2 instances to publish to https://github.com/gruntwork-io/terraform-aws-monitoring/blob/master/modules/logs/cloudwatch-log-aggregation-iam-policy/README.md[CloudWatch logs]
 * Creates https://github.com/gruntwork-io/terraform-aws-monitoring/blob/master/modules/alarms/ec2-cpu-alarms/README.md[CPU], https://github.com/gruntwork-io/terraform-aws-monitoring/blob/master/modules/alarms/ec2-memory-alarms/README.md[memory], and https://github.com/gruntwork-io/terraform-aws-monitoring/blob/master/modules/alarms/ec2-disk-alarms/README.MD[disk usage] alarms in CloudWatch.
@@ -46,7 +46,7 @@ toc::[]
 
 == Learn
 
-NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog/[Gruntwork Service Catalog], a collection of
+NOTE: This repo is a part of the https://github.com/gruntwork-io/terraform-aws-service-catalog/[Gruntwork Service Catalog], a collection of
 reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
 sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/[How to use the Gruntwork
 Service Catalog]!
