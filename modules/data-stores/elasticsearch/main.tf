@@ -82,6 +82,10 @@ resource "aws_elasticsearch_domain" "cluster" {
     # Valid values are "Policy-Min-TLS-1-0-2019-07" and "Policy-Min-TLS-1-2-2019-07"
     tls_security_policy = var.tls_security_policy
   }
+
+  timeouts {
+    update = var.update_timeout
+  }
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

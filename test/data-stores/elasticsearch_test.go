@@ -1,4 +1,4 @@
-package test
+package data_stores
 
 import (
 	"fmt"
@@ -7,8 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gruntwork-io/aws-service-catalog/test"
+
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/signer/v4"
+	v4 "github.com/aws/aws-sdk-go/aws/signer/v4"
 
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/logger"
@@ -34,8 +36,8 @@ func TestElasticsearch(t *testing.T) {
 	preferredRegions := []string{"us-east-1", "us-west-1", "eu-west-1"}
 	excludedRegions := []string{"ap-northeast-2"}
 
-	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../", "examples/for-learning-and-testing/data-stores/elasticsearch")
-	testFolderPublic := test_structure.CopyTerraformFolderToTemp(t, "../", "examples/for-learning-and-testing/data-stores/elasticsearch-public")
+	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../../", "examples/for-learning-and-testing/data-stores/elasticsearch")
+	testFolderPublic := test_structure.CopyTerraformFolderToTemp(t, "../../", "examples/for-learning-and-testing/data-stores/elasticsearch-public")
 
 	testCases := []struct {
 		name       string
@@ -124,7 +126,7 @@ func validateCluster(t *testing.T, testFolder string) {
 	ip := terraform.OutputRequired(t, terraformOptions, "aws_instance_public_ip")
 
 	awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
-	curlResponse := testSSHCommand(
+	curlResponse := test.TestSSHCommand(
 		t,
 		ip,
 		"ubuntu",
@@ -194,7 +196,7 @@ func createElasticsearchTerraformOptions(
 	uniqueID string,
 	awsKeyPairName string,
 ) *terraform.Options {
-	terraformOptions := createBaseTerraformOptions(t, terraformDir, awsRegion)
+	terraformOptions := test.CreateBaseTerraformOptions(t, terraformDir, awsRegion)
 	terraformOptions.Vars["domain_name"] = fmt.Sprintf("acme-test-aes-%s", uniqueID)
 	if awsKeyPairName != "" {
 		terraformOptions.Vars["keypair_name"] = awsKeyPairName

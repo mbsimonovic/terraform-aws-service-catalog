@@ -1,9 +1,11 @@
-package test
+package data_stores
 
 import (
 	"fmt"
 	"strings"
 	"testing"
+
+	"github.com/gruntwork-io/aws-service-catalog/test"
 
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/random"
@@ -11,7 +13,7 @@ import (
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 )
 
-func TestRedis(t *testing.T) {
+func TestMemcached(t *testing.T) {
 	t.Parallel()
 
 	// Uncomment the items below to skip certain parts of the test
@@ -21,7 +23,7 @@ func TestRedis(t *testing.T) {
 	//os.Setenv("SKIP_validate", "true")
 	//os.Setenv("SKIP_cleanup", "true")
 
-	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../", "examples/for-learning-and-testing/data-stores/redis")
+	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../../", "examples/for-learning-and-testing/data-stores/memcached")
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
@@ -40,7 +42,7 @@ func TestRedis(t *testing.T) {
 		awsRegion := test_structure.LoadString(t, testFolder, "region")
 		uniqueID := test_structure.LoadString(t, testFolder, "uniqueID")
 
-		terraformOptions := createRedisTerraformOptions(t, testFolder, awsRegion, uniqueID)
+		terraformOptions := createMemcachedTerraformOptions(t, testFolder, awsRegion, uniqueID)
 		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
 
 		terraform.InitAndApply(t, terraformOptions)
@@ -48,19 +50,19 @@ func TestRedis(t *testing.T) {
 
 	test_structure.RunTestStage(t, "validate", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
-		terraform.OutputRequired(t, terraformOptions, "primary_endpoint")
+		terraform.OutputRequired(t, terraformOptions, "cache_addresses")
 		terraform.OutputRequired(t, terraformOptions, "cache_port")
 	})
 }
 
-func createRedisTerraformOptions(
+func createMemcachedTerraformOptions(
 	t *testing.T,
 	terraformDir string,
 	awsRegion string,
 	uniqueID string,
 ) *terraform.Options {
-	name := fmt.Sprintf("test-redis-%s", uniqueID)
-	terraformOptions := createBaseTerraformOptions(t, terraformDir, awsRegion)
+	name := fmt.Sprintf("test-memcached-%s", uniqueID)
+	terraformOptions := test.CreateBaseTerraformOptions(t, terraformDir, awsRegion)
 	terraformOptions.Vars["name"] = name
 	return terraformOptions
 }

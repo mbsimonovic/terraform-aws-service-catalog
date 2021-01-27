@@ -49,8 +49,6 @@ install_gruntwork_utils: &install_gruntwork_utils
     gruntwork-install --module-name "gruntwork-module-circleci-helpers" --repo "https://github.com/gruntwork-io/module-ci" --tag "${MODULE_CI_VERSION}"
     gruntwork-install --module-name "terraform-helpers" --repo "https://github.com/gruntwork-io/module-ci" --tag "${MODULE_CI_VERSION}"
     gruntwork-install --binary-name "terratest_log_parser" --repo "https://github.com/gruntwork-io/terratest" --tag "${TERRATEST_LOG_PARSER_VERSION}"
-    gruntwork-install --module-name "kubernetes-circleci-helpers" --repo "https://github.com/gruntwork-io/module-ci" --tag "${MODULE_CI_VERSION}"
-    gruntwork-install --binary-name "kubergrunt" --repo "https://github.com/gruntwork-io/kubergrunt" --tag "${KUBERGRUNT_VERSION}"
     configure-environment-for-gruntwork-module \
       --terraform-version ${TERRAFORM_VERSION} \
       --terragrunt-version ${TERRAGRUNT_VERSION} \
@@ -60,6 +58,9 @@ install_gruntwork_utils: &install_gruntwork_utils
 install_kube_utils: &install_kube_utils
   name: install kubernetes utilities
   command: |
+    gruntwork-install --module-name "kubernetes-circleci-helpers" --repo "https://github.com/gruntwork-io/module-ci" --tag "${MODULE_CI_VERSION}"
+    gruntwork-install --binary-name "kubergrunt" --repo "https://github.com/gruntwork-io/kubergrunt" --tag "${KUBERGRUNT_VERSION}"
+
     # Install kubectl
     curl -Lo kubectl "https://storage.googleapis.com/kubernetes-release/release/${K8S_VERSION}/bin/linux/amd64/kubectl"
     chmod +x kubectl
@@ -94,11 +95,12 @@ run_circleci_unit_tests: &run_circleci_unit_tests
   name: run circleci unit tests
   command: python ./.circleci/run_tests_unit_tests.py
 
-# CIRCLE_PR_NUMBER is only available on forked repos, so we extract if from the PR URL.
-set_pr_number: &set_pr_number
-  name: Set PR number
+run_tests: &run_tests
+  name: run tests
   command: |
-      echo 'export CIRCLE_PR_NUMBER="${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}"' >> $BASH_ENV
+    TEST_REGEX=$(cat /home/circleci/.terraform-aws-service-catalog/test-regex.txt)
+    run-go-tests --path ./test --timeout 2h --packages "./$TEST_PACKAGE -run '$TEST_REGEX'" | tee /tmp/logs/all.log
+  no_output_timeout: 3600s
 
 # ---------------------------------------------------------------------------------------------------------------------
 # REUSABLE STEPS
@@ -109,13 +111,7 @@ commands:
     description: "Prepare the environment by installing necessary tools, and run preflight checks before main tests"
     steps:
       - run:
-          <<: *set_pr_number
-      - run:
           <<: *install_gruntwork_utils
-      - run:
-          <<: *install_kube_utils
-      - run:
-          <<: *install_hub_cli
       - run: mkdir -p /tmp/logs
   store_results:
     description: "Store test results for easy viewing."
@@ -146,17 +142,18 @@ jobs:
       - run:
           <<: *run_circleci_unit_tests
 
-  test:
-    <<: *defaults
+  find_tests_to_run:
+    <<: *env
+    docker:
+      - image: circleci/python:3.8.1
     steps:
       - checkout
-
       - prepare_environment
-
+      - run:
+          <<: *install_hub_cli
       - run:
           name: find all tests to run
           command: |
-            pyenv global 3.5.2
             test_regex=""
             if [[ "$CIRCLE_BRANCH" == "master" ]]; then
               # On master, the last commit is the merge commit which contains all the changes
@@ -165,45 +162,124 @@ jobs:
               test_regex="$(python ./.circleci/run_tests.py 2> debug.log)"
             fi
             cat debug.log
-            echo "export TEST_REGEX='$test_regex'" >> $BASH_ENV
+
+            # Store the tests to run in a folder which we will write to the CircleCi cache
+            mkdir -p /home/circleci/.terraform-aws-service-catalog
+            echo "$test_regex" >> /home/circleci/.terraform-aws-service-catalog/test-regex.txt
 
             # Comment the debug log on GitHub if there is a PR number
+            CIRCLE_PR_NUMBER="${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}"
             if [[ -n "$CIRCLE_PR_NUMBER" ]]; then
               echo -e "Tests run for build [$CIRCLE_BUILD_NUM]($CIRCLE_BUILD_URL)\n\`\`\`\n$(cat debug.log)\n\`\`\`" \
                 | hub api repos/{owner}/{repo}/issues/"$CIRCLE_PR_NUMBER"/comments --field body=@-
             fi
+      - save_cache:
+          key: tests-to-run
+          paths:
+            - /home/circleci/.terraform-aws-service-catalog
 
-      - run:
-          name: run tests
-          command: |
-            run-go-tests --path ./test --timeout 2h --packages "-run '$TEST_REGEX'" | tee /tmp/logs/all.log
-          no_output_timeout: 3600s
+# ---------------------------------------------------------------------------------------------------------------------
+# TEST BUILD JOBS
+# These jobs run tests in the test folder. The jobs are all identical, except for which package in the test folder they
+# execute; I've tried to keep the copy/paste to a minimum, but there's no easy way to merge arrays in YAML, so a little
+# bit remains. We run in separate jobs so (a) they run faster and (b) they don't overload a single CircleCI server
+# with too much CPU usage and network calls. Note that, based on what find_tests_to_run returns, some of these jobs
+# won't have any tests to run. That's OK; they should just exit gracefully in that case. Unfortunately, CircleCi does
+# not yet have a way to do dynamic jobs / workflows, so this is as close as we can come.
+# ---------------------------------------------------------------------------------------------------------------------
 
-      - store_results
-
-
-  run_all_tests:
+  test_data_stores:
     <<: *defaults
     steps:
       - checkout
-
       - prepare_environment
-
+      - restore_cache:
+          keys:
+            - tests-to-run
+      - run: echo "export TEST_PACKAGE='data-stores'" >> $BASH_ENV
       - run:
-          name: run tests
-          command: |
-            run-go-tests --path ./test --timeout 2h | tee /tmp/logs/all.log
-          no_output_timeout: 3600s
-
+          <<: *run_tests
       - store_results
 
-  deploy:
+  test_landingzone:
     <<: *defaults
     steps:
       - checkout
-
+      - prepare_environment
+      - restore_cache:
+          keys:
+            - tests-to-run
+      - run: echo "export TEST_PACKAGE='landingzone'" >> $BASH_ENV
       - run:
-          <<: *install_gruntwork_utils
+          <<: *run_tests
+      - store_results
+
+  test_mgmt:
+    <<: *defaults
+    steps:
+      - checkout
+      - prepare_environment
+      - restore_cache:
+          keys:
+            - tests-to-run
+      - run: echo "export TEST_PACKAGE='mgmt'" >> $BASH_ENV
+      - run:
+          <<: *run_tests
+      - store_results
+
+  test_networking:
+    <<: *defaults
+    steps:
+      - checkout
+      - prepare_environment
+      - restore_cache:
+          keys:
+            - tests-to-run
+      - run: echo "export TEST_PACKAGE='networking'" >> $BASH_ENV
+      - run:
+          <<: *run_tests
+      - store_results
+
+  test_services:
+    <<: *defaults
+    steps:
+      - checkout
+      - prepare_environment
+      - run:
+          <<: *install_kube_utils
+      - restore_cache:
+          keys:
+            - tests-to-run
+      - run: echo "export TEST_PACKAGE='services'" >> $BASH_ENV
+      - run:
+          <<: *run_tests
+      - store_results
+
+  test_smoke:
+    <<: *defaults
+    steps:
+      - checkout
+      - prepare_environment
+      - restore_cache:
+          keys:
+            - tests-to-run
+      - run: echo "export TEST_PACKAGE='smoke'" >> $BASH_ENV
+      - run:
+          <<: *run_tests
+      - store_results
+
+  test_tls_scripts:
+    <<: *defaults
+    steps:
+      - checkout
+      - prepare_environment
+      - restore_cache:
+          keys:
+            - tests-to-run
+      - run: echo "export TEST_PACKAGE='tls-scripts'" >> $BASH_ENV
+      - run:
+          <<: *run_tests
+      - store_results
 
 # ---------------------------------------------------------------------------------------------------------------------
 # WORKFLOWS
@@ -219,22 +295,68 @@ workflows:
           filters:
             tags:
               only: /^v.*/
-      - test:
+      - find_tests_to_run:
           context:
             - Gruntwork Admin
-            - Gruntwork Org Test
           requires:
             - precommit
           filters:
             tags:
               only: /^v.*/
-      - deploy:
+      - test_data_stores:
           context:
             - Gruntwork Admin
           requires:
-            - test
+            - find_tests_to_run
           filters:
             tags:
               only: /^v.*/
-            branches:
-              ignore: /.*/
+      - test_landingzone:
+          context:
+            - Gruntwork Admin
+            - Gruntwork Org Test
+          requires:
+            - find_tests_to_run
+          filters:
+            tags:
+              only: /^v.*/
+      - test_mgmt:
+          context:
+            - Gruntwork Admin
+          requires:
+            - find_tests_to_run
+          filters:
+            tags:
+              only: /^v.*/
+      - test_networking:
+          context:
+            - Gruntwork Admin
+          requires:
+            - find_tests_to_run
+          filters:
+            tags:
+              only: /^v.*/
+      - test_services:
+          context:
+            - Gruntwork Admin
+          requires:
+            - find_tests_to_run
+          filters:
+            tags:
+              only: /^v.*/
+      - test_smoke:
+          context:
+            - Gruntwork Admin
+          requires:
+            - find_tests_to_run
+          filters:
+            tags:
+              only: /^v.*/
+      - test_tls_scripts:
+          context:
+            - Gruntwork Admin
+          requires:
+            - find_tests_to_run
+          filters:
+            tags:
+              only: /^v.*/

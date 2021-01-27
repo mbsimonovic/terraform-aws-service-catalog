@@ -1,4 +1,4 @@
-package test
+package services
 
 import (
 	"bytes"
@@ -6,6 +6,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/gruntwork-io/aws-service-catalog/test"
 
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/git"
@@ -41,8 +43,8 @@ func TestEcsCluster(t *testing.T) {
 	// os.Setenv("SKIP_cleanup_ami", "true")
 	t.Parallel()
 
-	ecsClusterTestFolder := "../examples/for-learning-and-testing/services/ecs-cluster"
-	ecsServiceTestFolder := "../examples/for-learning-and-testing/services/ecs-service"
+	ecsClusterTestFolder := "../../examples/for-learning-and-testing/services/ecs-cluster"
+	ecsServiceTestFolder := "../../examples/for-learning-and-testing/services/ecs-service"
 
 	defer test_structure.RunTestStage(t, "cleanup_ami", func() {
 		amiID := test_structure.LoadArtifactID(t, ecsClusterTestFolder)
@@ -94,7 +96,7 @@ func buildAmi(t *testing.T, testFolder string) {
 
 	branchName := git.GetCurrentBranchName(t)
 	packerOptions := &packer.Options{
-		Template: "../modules/services/ecs-cluster/ecs-node-al2.json",
+		Template: "../../modules/services/ecs-cluster/ecs-node-al2.json",
 		Vars: map[string]string{
 			"aws_region":          awsRegion,
 			"service_catalog_ref": branchName,
@@ -123,7 +125,7 @@ func deployECSCluster(t *testing.T, testFolder string) {
 	clusterName := test_structure.LoadString(t, testFolder, "clusterName")
 	awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
 
-	terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
+	terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, awsRegion)
 	terraformOptions.Vars["cluster_name"] = clusterName
 	terraformOptions.Vars["cluster_min_size"] = 2
 	terraformOptions.Vars["cluster_max_size"] = 2
@@ -170,9 +172,9 @@ func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestF
 	ecsServiceTerraformOptions := &terraform.Options{
 		TerraformDir:             ecsServiceTestFolder,
 		Vars:                     map[string]interface{}{},
-		RetryableTerraformErrors: retryableTerraformErrors,
-		MaxRetries:               maxTerraformRetries,
-		TimeBetweenRetries:       sleepBetweenTerraformRetries,
+		RetryableTerraformErrors: test.RetryableTerraformErrors,
+		MaxRetries:               test.MaxTerraformRetries,
+		TimeBetweenRetries:       test.SleepBetweenTerraformRetries,
 	}
 
 	ecsClusterArn := terraform.OutputRequired(t, ecsClusterTerraformOptions, "ecs_cluster_arn")

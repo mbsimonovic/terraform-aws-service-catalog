@@ -1,4 +1,4 @@
-package test
+package services
 
 import (
 	"encoding/json"
@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/gruntwork-io/aws-service-catalog/test"
 
 	"github.com/gruntwork-io/terratest/modules/k8s"
 	"github.com/gruntwork-io/terratest/modules/random"
@@ -64,7 +66,7 @@ func TestK8SService(t *testing.T) {
 
 			testFolder := test_structure.CopyTerraformFolderToTemp(
 				t,
-				"..",
+				"../../",
 				"examples/for-learning-and-testing/services/k8s-service",
 			)
 			applicationName := "sampleapp"
@@ -88,7 +90,7 @@ func TestK8SService(t *testing.T) {
 			test_structure.RunTestStage(t, "deploy", func() {
 				namespaceOptions := test_structure.LoadKubectlOptions(t, workingDir)
 
-				terraformOptions := createBaseTerraformOptions(t, testFolder, "us-west-2")
+				terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, "us-west-2")
 				terraformOptions.Vars["application_name"] = applicationName
 				terraformOptions.Vars["namespace"] = namespaceOptions.Namespace
 				for key, val := range testCase.extraVarsFunc(t, namespaceOptions) {

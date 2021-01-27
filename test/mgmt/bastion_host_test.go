@@ -1,9 +1,11 @@
-package test
+package mgmt
 
 import (
 	"fmt"
 	"testing"
 	"time"
+
+	"github.com/gruntwork-io/aws-service-catalog/test"
 
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/git"
@@ -24,7 +26,7 @@ func TestBastionHost(t *testing.T) {
 	// os.Setenv("SKIP_cleanup", "true")
 	// os.Setenv("SKIP_cleanup_ami", "true")
 
-	testFolder := "../examples/for-learning-and-testing/mgmt/bastion-host"
+	testFolder := "../../examples/for-learning-and-testing/mgmt/bastion-host"
 	branchName := git.GetCurrentBranchName(t)
 
 	defer test_structure.RunTestStage(t, "cleanup_ami", func() {
@@ -41,10 +43,10 @@ func TestBastionHost(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "build_ami", func() {
-		awsRegion := aws.GetRandomStableRegion(t, regionsForEc2Tests, nil)
+		awsRegion := aws.GetRandomStableRegion(t, test.RegionsForEc2Tests, nil)
 
 		packerOptions := &packer.Options{
-			Template: "../modules/mgmt/bastion-host/bastion-host.json",
+			Template: "../../modules/mgmt/bastion-host/bastion-host.json",
 			Vars: map[string]string{
 				"aws_region":          awsRegion,
 				"service_catalog_ref": branchName,
@@ -66,12 +68,12 @@ func TestBastionHost(t *testing.T) {
 		uniqueId := random.UniqueId()
 		awsKeyPair := aws.CreateAndImportEC2KeyPair(t, awsRegion, uniqueId)
 
-		terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
+		terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, awsRegion)
 		terraformOptions.Vars["aws_region"] = awsRegion
 		terraformOptions.Vars["name"] = name
 		terraformOptions.Vars["ami_version_tag"] = branchName
-		terraformOptions.Vars["domain_name"] = baseDomainForTest
-		terraformOptions.Vars["base_domain_name_tags"] = domainNameTagsForTest
+		terraformOptions.Vars["domain_name"] = test.BaseDomainForTest
+		terraformOptions.Vars["base_domain_name_tags"] = test.DomainNameTagsForTest
 		terraformOptions.Vars["keypair_name"] = awsKeyPair.Name
 
 		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
@@ -83,6 +85,6 @@ func TestBastionHost(t *testing.T) {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
 		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
 		ip := terraform.OutputRequired(t, terraformOptions, "bastion_host_public_ip")
-		testSSH(t, ip, "ubuntu", awsKeyPair)
+		test.TestSSH(t, ip, "ubuntu", awsKeyPair)
 	})
 }

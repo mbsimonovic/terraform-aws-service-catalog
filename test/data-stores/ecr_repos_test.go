@@ -1,4 +1,4 @@
-package test
+package data_stores
 
 import (
 	"encoding/json"
@@ -7,6 +7,8 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/gruntwork-io/aws-service-catalog/test"
 
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/docker"
@@ -29,7 +31,7 @@ func TestEcrRepos(t *testing.T) {
 	//os.Setenv("SKIP_validate_image", "true")
 	//os.Setenv("SKIP_cleanup", "true")
 
-	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../", "examples/for-learning-and-testing/data-stores/ecr-repos")
+	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../../", "examples/for-learning-and-testing/data-stores/ecr-repos")
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
@@ -51,7 +53,7 @@ func TestEcrRepos(t *testing.T) {
 		name := fmt.Sprintf("sample-app-%s", strings.ToLower(uniqueID))
 		test_structure.SaveString(t, testFolder, "repoName", name)
 
-		terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
+		terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, awsRegion)
 		terraformOptions.Vars["repositories"] = map[string]interface{}{
 			name: map[string]interface{}{
 				"external_account_ids_with_read_access":  []string{},
@@ -88,7 +90,7 @@ func TestEcrRepos(t *testing.T) {
 			Tags:         []string{imgTag},
 			OtherOptions: []string{"--no-cache"},
 		}
-		docker.Build(t, "./fixtures/simple-docker-img", buildOpts)
+		docker.Build(t, "../fixtures/simple-docker-img", buildOpts)
 
 		pushCmd := shell.Command{
 			Command: "bash",
@@ -220,7 +222,7 @@ func TestEcrReposIAMPoliciesLogic(t *testing.T) {
 		t.Run(testCase.name, func(t *testing.T) {
 			t.Parallel()
 
-			testFolder := test_structure.CopyTerraformFolderToTemp(t, "../", "examples/for-learning-and-testing/data-stores/ecr-repos")
+			testFolder := test_structure.CopyTerraformFolderToTemp(t, "../../", "examples/for-learning-and-testing/data-stores/ecr-repos")
 			awsRegion := aws.GetRandomStableRegion(t, nil, nil)
 			uniqueID := strings.ToLower(random.UniqueId())
 
@@ -266,7 +268,7 @@ func constructTerraformOptionsWithVarFiles(t *testing.T, terraformDir string, va
 		require.NoError(t, writeErr)
 		return f.Name()
 	}()
-	terraformOptions := createBaseTerraformOptions(t, terraformDir, "")
+	terraformOptions := test.CreateBaseTerraformOptions(t, terraformDir, "")
 	delete(terraformOptions.Vars, "aws_region")
 	terraformOptions.VarFiles = []string{fname}
 	return terraformOptions, fname

@@ -1,4 +1,4 @@
-package test
+package landingzone
 
 import (
 	"fmt"
@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/gruntwork-io/aws-service-catalog/test"
 
 	"github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/terraform"
@@ -17,8 +19,8 @@ import (
 func TestAccountBaseline(t *testing.T) {
 	t.Parallel()
 
-	requireEnvVar(t, "TEST_EXTERNAL_ACCOUNT_ID")
-	awsAccountID := getExternalAccountId()
+	test.RequireEnvVar(t, "TEST_EXTERNAL_ACCOUNT_ID")
+	awsAccountID := test.GetExternalAccountId()
 
 	var testCases = []struct {
 		testName   string
@@ -82,12 +84,15 @@ func TestAccountBaseline(t *testing.T) {
 		testCase := testCase
 
 		t.Run(testCase.testName, func(t *testing.T) {
-			t.Parallel()
+			// The landingzone modules eat up a lot of resources on the machine due to the number of resources it
+			// manages, and the number of provider instances it requires for the multiregion modules. As such, it is not
+			// stable to run multiple instances of the landingzone modules in parallel. Therefore, we deliberately
+			// disable parallel testing and limit the testing to run the landingzone tests in serial.
 
 			//os.Setenv("SKIP_bootstrap", "true")
 			//os.Setenv("SKIP_plan_and_verify", "true")
 
-			_examplesDir := test_structure.CopyTerraformFolderToTemp(t, "../", "examples/for-learning-and-testing/landingzone")
+			_examplesDir := test_structure.CopyTerraformFolderToTemp(t, "../../", "examples/for-learning-and-testing/landingzone")
 			exampleDir := filepath.Join(_examplesDir, testCase.exampleDir)
 
 			childAccounts := map[string]interface{}{
@@ -108,9 +113,9 @@ func TestAccountBaseline(t *testing.T) {
 			test_structure.RunTestStage(t, "bootstrap", func() {
 				logger.Logf(t, "Bootstrapping variables")
 
-				awsRegion := pickAwsRegion(t)
+				awsRegion := test.PickAwsRegion(t)
 
-				terraformOptions := createBaseTerraformOptions(t, exampleDir, awsRegion)
+				terraformOptions := test.CreateBaseTerraformOptions(t, exampleDir, awsRegion)
 
 				if testCase.isOrg {
 					terraformOptions.Vars["create_organization"] = testCase.createOrg
@@ -160,7 +165,7 @@ func TestAccountBaseline(t *testing.T) {
 
 				// We're testing against a separate account and need to connect to root account
 				// Just storing the env vars in the in-memory map
-				configureTerraformForOrgTestAccount(t, terraformOptions)
+				test.ConfigureTerraformForOrgTestAccount(t, terraformOptions)
 
 				// NOTE: Do *NOT* run apply for this test because destroy will not delete the child account,
 				// so eventually we'd be left with hundreds of unusable accounts. We also pass `-parallelism=2`
@@ -169,7 +174,7 @@ func TestAccountBaseline(t *testing.T) {
 				_, err := terraform.InitE(t, terraformOptions)
 				require.NoError(t, err, "Should not get init error")
 
-				result, err := planWithParallelismE(t, terraformOptions)
+				result, err := test.PlanWithParallelismE(t, terraformOptions)
 
 				assert.NoError(t, err, "Should not get plan error")
 

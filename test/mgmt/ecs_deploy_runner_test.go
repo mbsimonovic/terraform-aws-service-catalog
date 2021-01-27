@@ -1,4 +1,4 @@
-package test
+package mgmt
 
 import (
 	"fmt"
@@ -7,6 +7,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/gruntwork-io/aws-service-catalog/test"
 
 	awsgo "github.com/aws/aws-sdk-go/aws"
 	"github.com/gruntwork-io/module-ci/test/edrhelpers"
@@ -56,11 +58,11 @@ func TestEcsDeployRunner(t *testing.T) {
 	// - Must have GITHUB_OAUTH_TOKEN defined so that `gruntwork-install` works in packer and docker.
 	// - Must have TERRATEST_SSH_PRIVATE_KEY_PATH defined.
 	// - Make sure infrastructure-deployer CLI is available
-	requireEnvVar(t, "GITHUB_OAUTH_TOKEN")
-	requireEnvVar(t, "TERRATEST_SSH_PRIVATE_KEY_PATH")
+	test.RequireEnvVar(t, "GITHUB_OAUTH_TOKEN")
+	test.RequireEnvVar(t, "TERRATEST_SSH_PRIVATE_KEY_PATH")
 	edrhelpers.RequireGruntworkInstaller(t)
 
-	modulePath := test_structure.CopyTerraformFolderToTemp(t, "..", "examples/for-learning-and-testing/mgmt/ecs-deploy-runner")
+	modulePath := test_structure.CopyTerraformFolderToTemp(t, "../../", "examples/for-learning-and-testing/mgmt/ecs-deploy-runner")
 	infraDeployerBinPath := filepath.Join(modulePath, "infrastructure-deployer")
 
 	// Create a directory path that won't conflict
@@ -91,7 +93,7 @@ func TestEcsDeployRunner(t *testing.T) {
 	test_structure.RunTestStage(t, "build_worker_ami", func() {
 		awsRegion := test_structure.LoadString(t, workingDir, "AwsRegion")
 		packerOptions := &packer.Options{
-			Template: "../modules/mgmt/ecs-deploy-runner/ecs-deploy-runner-worker-al2.json",
+			Template: "../../modules/mgmt/ecs-deploy-runner/ecs-deploy-runner-worker-al2.json",
 			Vars: map[string]string{
 				"aws_region":          awsRegion,
 				"service_catalog_ref": branchName,

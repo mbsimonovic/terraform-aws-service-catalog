@@ -1,10 +1,12 @@
-package test
+package mgmt
 
 import (
 	"fmt"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/gruntwork-io/aws-service-catalog/test"
 
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/git"
@@ -29,7 +31,7 @@ func TestOpenvpnServer(t *testing.T) {
 	//os.Setenv("SKIP_cleanup_keypair", "true")
 	//os.Setenv("SKIP_cleanup_ami", "true")
 
-	testFolder := "../examples/for-learning-and-testing/mgmt/openvpn-server"
+	testFolder := "../../examples/for-learning-and-testing/mgmt/openvpn-server"
 	branchName := git.GetCurrentBranchName(t)
 
 	defer test_structure.RunTestStage(t, "cleanup_ami", func() {
@@ -49,14 +51,14 @@ func TestOpenvpnServer(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "build_ami", func() {
-		awsRegion := aws.GetRandomStableRegion(t, regionsForEc2Tests, nil)
+		awsRegion := aws.GetRandomStableRegion(t, test.RegionsForEc2Tests, nil)
 		uniqueId := random.UniqueId()
 		name := fmt.Sprintf("openvpn-server-%s", uniqueId)
 		awsKeyPair := aws.CreateAndImportEC2KeyPair(t, awsRegion, uniqueId)
 		s3BucketName := "openvpn-test-" + strings.ToLower(uniqueId)
 
 		packerOptions := &packer.Options{
-			Template: "../modules/mgmt/openvpn-server/openvpn-server.json",
+			Template: "../../modules/mgmt/openvpn-server/openvpn-server.json",
 			Vars: map[string]string{
 				"aws_region":          awsRegion,
 				"service_catalog_ref": branchName,
@@ -89,7 +91,7 @@ func TestOpenvpnServer(t *testing.T) {
 				"name":                  name,
 				"ami_version_tag":       branchName,
 				"domain_name":           "gruntwork.in",
-				"base_domain_name_tags": domainNameTagsForTest,
+				"base_domain_name_tags": test.DomainNameTagsForTest,
 				"keypair_name":          awsKeyPair.Name,
 				"backup_bucket_name":    s3BucketName,
 				"instance_type":         "c5.large",

@@ -1,9 +1,11 @@
-package test
+package data_stores
 
 import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/gruntwork-io/aws-service-catalog/test"
 
 	awsgo "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -26,7 +28,7 @@ func TestS3Bucket(t *testing.T) {
 	//os.Setenv("SKIP_validate_replication", "true")
 	//os.Setenv("SKIP_cleanup", "true")
 
-	testFolder := "../examples/for-learning-and-testing/data-stores/s3-bucket"
+	testFolder := "../../examples/for-learning-and-testing/data-stores/s3-bucket"
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
@@ -34,9 +36,9 @@ func TestS3Bucket(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "setup", func() {
-		primaryRegion := aws.GetRandomRegion(t, regionsForEc2Tests, nil)
+		primaryRegion := aws.GetRandomRegion(t, test.RegionsForEc2Tests, nil)
 		// Choose a different region for cross-region replication
-		replicaRegion := aws.GetRandomRegion(t, regionsForEc2Tests, []string{primaryRegion})
+		replicaRegion := aws.GetRandomRegion(t, test.RegionsForEc2Tests, []string{primaryRegion})
 		uuid := strings.ToLower(random.UniqueId())
 
 		test_structure.SaveString(t, testFolder, "primaryRegion", primaryRegion)
@@ -49,7 +51,7 @@ func TestS3Bucket(t *testing.T) {
 		replicaRegion := test_structure.LoadString(t, testFolder, "replicaRegion")
 		uuid := test_structure.LoadString(t, testFolder, "uuid")
 
-		terraformOptions := createBaseTerraformOptions(t, testFolder, primaryRegion)
+		terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, primaryRegion)
 		terraformOptions.Vars["primary_bucket"] = "test-bucket-primary-" + uuid
 		terraformOptions.Vars["access_logging_bucket"] = "test-bucket-logs-" + uuid
 		terraformOptions.Vars["replica_bucket"] = "test-bucket-replica-" + uuid
@@ -78,7 +80,7 @@ func TestS3Bucket(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "validate_replication", func() {
-		testFilePath := "./fixtures/simple-docker-img/Dockerfile"
+		testFilePath := "../fixtures/simple-docker-img/Dockerfile"
 		testFileKey := "config/Dockerfile"
 
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)

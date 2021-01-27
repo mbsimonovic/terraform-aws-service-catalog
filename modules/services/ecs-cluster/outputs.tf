@@ -1,9 +1,6 @@
 output "ecs_cluster_arn" {
   description = "The ID of the ECS cluster"
   value       = module.ecs_cluster.ecs_cluster_arn
-
-  # Explicitly ties the aws_ecs_cluster to the aws_autoscaling_group, so that the resources are created together
-  depends_on = [module.ecs_cluster.aws_autoscaling_group]
 }
 
 output "ecs_cluster_launch_configuration_id" {
@@ -14,9 +11,6 @@ output "ecs_cluster_launch_configuration_id" {
 output "ecs_cluster_name" {
   description = "The name of the ECS cluster"
   value       = module.ecs_cluster.ecs_cluster_name
-
-  # Explicitly ties the aws_ecs_cluster to the aws_autoscaling_group, so that the resources are created together
-  depends_on = [module.ecs_cluster.aws_autoscaling_group]
 }
 
 output "ecs_cluster_asg_name" {

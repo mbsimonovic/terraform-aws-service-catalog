@@ -1,4 +1,4 @@
-package test
+package services
 
 import (
 	"fmt"
@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/gruntwork-io/aws-service-catalog/test"
 
 	awsgo "github.com/aws/aws-sdk-go/aws"
 	"github.com/gruntwork-io/terratest/modules/aws"
@@ -115,7 +117,7 @@ func testEKSClusterWithoutAuthMerger(t *testing.T, parentWorkingDir string) {
 	// workingDir set in TestEksCluster (passed in as parentWorkingDir).
 	workingDir := filepath.Join(".", "stages", t.Name())
 
-	examplesRoot := test_structure.CopyTerraformFolderToTemp(t, "..", "examples")
+	examplesRoot := test_structure.CopyTerraformFolderToTemp(t, "../../", "examples")
 	eksClusterRoot := filepath.Join(examplesRoot, "for-learning-and-testing/services/eks-cluster")
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
@@ -140,7 +142,7 @@ func testEKSClusterWithCoreServicesAndAuthMerger(t *testing.T, parentWorkingDir 
 	// workingDir set in TestEksCluster (passed in as parentWorkingDir).
 	workingDir := filepath.Join(".", "stages", t.Name())
 
-	examplesRoot := test_structure.CopyTerraformFolderToTemp(t, "..", "examples")
+	examplesRoot := test_structure.CopyTerraformFolderToTemp(t, "../../", "examples")
 	eksClusterRoot := filepath.Join(examplesRoot, "for-learning-and-testing/services/eks-cluster")
 	coreServicesRoot := filepath.Join(examplesRoot, "for-learning-and-testing/services/eks-core-services")
 	k8sServiceRoot := filepath.Join(examplesRoot, "for-learning-and-testing/services/k8s-service")
@@ -204,7 +206,7 @@ func buildWorkerAmi(t *testing.T, testFolder string) {
 
 	branchName := git.GetCurrentBranchName(t)
 	packerOptions := &packer.Options{
-		Template: "../modules/services/eks-cluster/eks-node-al2.json",
+		Template: "../../modules/services/eks-cluster/eks-node-al2.json",
 		Vars: map[string]string{
 			"aws_region":          awsRegion,
 			"service_catalog_ref": branchName,
@@ -237,7 +239,7 @@ func deployEKSCluster(t *testing.T, parentWorkingDir string, workingDir string, 
 	clusterName := fmt.Sprintf("eks-service-catalog-%s", strings.ToLower(random.UniqueId()))
 	test_structure.SaveString(t, workingDir, "clusterName", clusterName)
 
-	terraformOptions := createBaseTerraformOptions(t, modulePath, awsRegion)
+	terraformOptions := test.CreateBaseTerraformOptions(t, modulePath, awsRegion)
 	terraformOptions.Vars["cluster_name"] = clusterName
 	terraformOptions.Vars["cluster_instance_ami_version_tag"] = branchName
 	terraformOptions.Vars["keypair_name"] = awsKeyPair.Name
@@ -288,7 +290,7 @@ func deployCoreServices(t *testing.T, parentWorkingDir string, workingDir string
 	eksPrivateSubnetIDs := terraform.Output(t, terraformOptions, "private_subnet_ids")
 	eksClusterFargateRole := terraform.Output(t, terraformOptions, "eks_default_fargate_execution_role_arn")
 
-	coreServicesOptions := createBaseTerraformOptions(t, coreServicesModulePath, awsRegion)
+	coreServicesOptions := test.CreateBaseTerraformOptions(t, coreServicesModulePath, awsRegion)
 	coreServicesOptions.Vars["eks_cluster_name"] = clusterName
 	coreServicesOptions.Vars["vpc_id"] = eksClusterVpcID
 	coreServicesOptions.Vars["worker_vpc_subnet_ids"] = eksPrivateSubnetIDs
@@ -358,10 +360,10 @@ func deploySampleApp(t *testing.T, parentWorkingDir string, workingDir string, k
 	applicationName := fmt.Sprintf("sampleapp-%s", strings.ToLower(uniqueID))
 	test_structure.SaveString(t, k8sServiceModulePath, "applicationName", applicationName)
 
-	k8sServiceOptions := createBaseTerraformOptions(t, k8sServiceModulePath, awsRegion)
+	k8sServiceOptions := test.CreateBaseTerraformOptions(t, k8sServiceModulePath, awsRegion)
 	k8sServiceOptions.Vars["application_name"] = applicationName
 	k8sServiceOptions.Vars["expose_type"] = "external"
-	k8sServiceOptions.Vars["domain_name"] = fmt.Sprintf("sample-app-%s.%s", clusterName, baseDomainForTest)
+	k8sServiceOptions.Vars["domain_name"] = fmt.Sprintf("sample-app-%s.%s", clusterName, test.BaseDomainForTest)
 	k8sServiceOptions.Vars["aws_region"] = awsRegion
 	k8sServiceOptions.Vars["kubeconfig_auth_type"] = "eks"
 	k8sServiceOptions.Vars["kubeconfig_eks_cluster_name"] = clusterName
@@ -392,7 +394,7 @@ func validateSampleApp(t *testing.T, workingDir string, k8sServiceModulePath str
 	// hostname to have propagated through DNS before making requests to it. Otherwise, if we make requests too early,
 	// before DNS has propagated, the missing DNS entry gets recorded in the local cache, and the test will keep
 	// failing, despite retries.
-	hostname := fmt.Sprintf("sample-app-%s.%s", clusterName, baseDomainForTest)
+	hostname := fmt.Sprintf("sample-app-%s.%s", clusterName, test.BaseDomainForTest)
 	dns_helper.DNSLookupAuthoritativeWithRetry(
 		t,
 		dns_helper.DNSQuery{

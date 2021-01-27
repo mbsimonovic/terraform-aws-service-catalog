@@ -1,12 +1,14 @@
-package test
+package services
 
 import (
 	"fmt"
+	"testing"
+	"time"
+
+	"github.com/gruntwork-io/aws-service-catalog/test"
 	"github.com/gruntwork-io/terratest/modules/git"
 	http_helper "github.com/gruntwork-io/terratest/modules/http-helper"
 	"github.com/gruntwork-io/terratest/modules/random"
-	"testing"
-	"time"
 
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/packer"
@@ -25,7 +27,7 @@ func TestAsgService(t *testing.T) {
 	//os.Setenv("SKIP_cleanup", "true")
 	//os.Setenv("SKIP_cleanup_ami", "true")
 
-	testFolder := "../examples/for-learning-and-testing/services/asg-service"
+	testFolder := "../../examples/for-learning-and-testing/services/asg-service"
 
 	defer test_structure.RunTestStage(t, "cleanup_ami", func() {
 		amiId := test_structure.LoadArtifactID(t, testFolder)
@@ -57,7 +59,7 @@ func buildASGAmi(t *testing.T, testFolder string) {
 
 	branchName := git.GetCurrentBranchName(t)
 	packerOptions := &packer.Options{
-		Template: "../examples/for-learning-and-testing/services/asg-service/ami-example.json",
+		Template: "../../examples/for-learning-and-testing/services/asg-service/ami-example.json",
 		Vars: map[string]string{
 			"aws_region":                    awsRegion,
 			"version_tag":                   branchName,
@@ -79,7 +81,7 @@ func deployASG(t *testing.T, testFolder string) {
 	awsRegion := test_structure.LoadString(t, testFolder, "region")
 	name := fmt.Sprintf("asg-%s", random.UniqueId())
 
-	terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
+	terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, awsRegion)
 	terraformOptions.Vars["ami"] = amiId
 	terraformOptions.Vars["name"] = name
 	terraformOptions.Vars["aws_region"] = awsRegion

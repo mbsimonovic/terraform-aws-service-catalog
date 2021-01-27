@@ -1,10 +1,12 @@
-package test
+package data_stores
 
 import (
 	"encoding/json"
 	"fmt"
 	"strings"
 	"testing"
+
+	"github.com/gruntwork-io/aws-service-catalog/test"
 
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/random"
@@ -23,7 +25,7 @@ func TestRds(t *testing.T) {
 	//os.Setenv("SKIP_validate", "true")
 	//os.Setenv("SKIP_cleanup", "true")
 
-	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../", "examples/for-learning-and-testing/data-stores/rds")
+	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../../", "examples/for-learning-and-testing/data-stores/rds")
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
@@ -72,14 +74,14 @@ func TestRds(t *testing.T) {
 		dbEndpoint := terraform.OutputRequired(t, terraformOptions, "primary_host")
 		dbPort := terraform.OutputRequired(t, terraformOptions, "port")
 
-		info := RDSInfo{
+		info := test.RDSInfo{
 			Username:   dbUsername,
 			Password:   dbPassword,
 			DBName:     dbName,
 			DBEndpoint: dbEndpoint,
 			DBPort:     dbPort,
 		}
-		smokeTestMysql(t, info)
+		test.SmokeTestMysql(t, info)
 	})
 }
 
@@ -91,7 +93,7 @@ func createRDSTerraformOptions(
 	dbConfigSecretID string,
 ) *terraform.Options {
 	name := fmt.Sprintf("test-rds-%s", uniqueID)
-	terraformOptions := createBaseTerraformOptions(t, terraformDir, awsRegion)
+	terraformOptions := test.CreateBaseTerraformOptions(t, terraformDir, awsRegion)
 	terraformOptions.Vars["name"] = name
 	terraformOptions.Vars["db_config_secrets_manager_id"] = dbConfigSecretID
 	return terraformOptions

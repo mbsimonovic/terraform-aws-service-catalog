@@ -1,9 +1,11 @@
-package test
+package networking
 
 import (
 	"fmt"
 	"testing"
 	"time"
+
+	"github.com/gruntwork-io/aws-service-catalog/test"
 
 	awsgo "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/servicediscovery"
@@ -30,7 +32,7 @@ func TestRoute53(t *testing.T) {
 	//os.Setenv("SKIP_cleanup", "true")
 
 	uniqueID := random.UniqueId()
-	testFolder := "../examples/for-learning-and-testing/networking/route53"
+	testFolder := "../../examples/for-learning-and-testing/networking/route53"
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
@@ -75,7 +77,7 @@ func TestRoute53(t *testing.T) {
 			},
 		}
 
-		terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
+		terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, awsRegion)
 		terraformOptions.Vars["private_zones"] = privateZones
 		terraformOptions.Vars["public_zones"] = publicZones
 
@@ -121,7 +123,7 @@ func TestRoute53ProvisionWildcardCertPlan(t *testing.T) {
 	//os.Setenv("SKIP_validate", "true")
 
 	uniqueID := random.UniqueId()
-	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../", "examples/for-learning-and-testing/networking/route53")
+	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../../", "examples/for-learning-and-testing/networking/route53")
 
 	test_structure.RunTestStage(t, "setup", func() {
 		awsRegion := aws.GetRandomRegion(t, []string{"us-west-1"}, nil)
@@ -148,7 +150,7 @@ func TestRoute53ProvisionWildcardCertPlan(t *testing.T) {
 			},
 		}
 
-		terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
+		terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, awsRegion)
 		terraformOptions.Vars["public_zones"] = publicZones
 		terraformOptions.Vars["private_zones"] = privateZones
 
@@ -181,7 +183,7 @@ func TestRoute53CloudMap(t *testing.T) {
 	//os.Setenv("SKIP_validate", "true")
 	//os.Setenv("SKIP_cleanup", "true")
 
-	testFolder := "../examples/for-learning-and-testing/networking/cloudmap"
+	testFolder := "../../examples/for-learning-and-testing/networking/cloudmap"
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
 		awsRegion := test_structure.LoadString(t, testFolder, "region")
@@ -232,7 +234,7 @@ func TestRoute53CloudMap(t *testing.T) {
 			},
 		}
 
-		terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
+		terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, awsRegion)
 		terraformOptions.Vars["service_discovery_private_namespaces"] = privateSDNamespaces
 		terraformOptions.Vars["service_discovery_public_namespaces"] = publicSDNamespaces
 

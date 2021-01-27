@@ -1,9 +1,11 @@
-package test
+package networking
 
 import (
 	"fmt"
 	"testing"
 	"time"
+
+	"github.com/gruntwork-io/aws-service-catalog/test"
 
 	awsgo "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -27,7 +29,7 @@ func TestAlb(t *testing.T) {
 	//os.Setenv("SKIP_validate_access_logs", "true")
 	//os.Setenv("SKIP_cleanup", "true")
 
-	testFolder := "../examples/for-learning-and-testing/networking/alb"
+	testFolder := "../../examples/for-learning-and-testing/networking/alb"
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
@@ -35,17 +37,17 @@ func TestAlb(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "setup", func() {
-		awsRegion := aws.GetRandomRegion(t, regionsForEc2Tests, nil)
+		awsRegion := aws.GetRandomRegion(t, test.RegionsForEc2Tests, nil)
 
 		test_structure.SaveString(t, testFolder, "region", awsRegion)
 
 		name := fmt.Sprintf("alb-%s", random.UniqueId())
 
-		terraformOptions := createBaseTerraformOptions(t, testFolder, awsRegion)
+		terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, awsRegion)
 		terraformOptions.Vars["alb_name"] = name
-		terraformOptions.Vars["base_domain_name"] = baseDomainForTest
+		terraformOptions.Vars["base_domain_name"] = test.BaseDomainForTest
 		terraformOptions.Vars["alb_subdomain"] = name
-		terraformOptions.Vars["base_domain_name_tags"] = domainNameTagsForTest
+		terraformOptions.Vars["base_domain_name_tags"] = test.DomainNameTagsForTest
 
 		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
 	})
