@@ -150,3 +150,11 @@ variable "alarm_sns_topic_arns" {
   type        = list(string)
   default     = []
 }
+
+variable "update_timeout" {
+  description = "How long to wait for updates to the ES cluster before timing out and reporting an error."
+  type        = string
+  # The default for the aws_elasticsearch_domain resource is 60m, but we've seen that timeout on creation, so just in
+  # case, we set 90m to try to reduce spurious errors.
+  default = "90m"
+}
