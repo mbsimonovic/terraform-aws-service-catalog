@@ -103,7 +103,7 @@ func TestAlbNameLengthValidation(t *testing.T) {
 	//os.Setenv("SKIP_setup", "true")
 	//os.Setenv("SKIP_deploy_terraform", "true")
 
-	testFolder := "../../examples/for-learning-and-testing/networking/alb"
+	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../../", "examples/for-learning-and-testing/networking/alb")
 
 	test_structure.RunTestStage(t, "setup", func() {
 		awsRegion := aws.GetRandomRegion(t, test.RegionsForEc2Tests, nil)
@@ -112,12 +112,12 @@ func TestAlbNameLengthValidation(t *testing.T) {
 
 		// AWS imposes a 32 character limit on ALB names, so we'll intentionally exceed it here
 		// to test that our variable validation catches the issue and returns an error
-		name := fmt.Sprintf("alb-name-that-is-intentionally-too-long-%s", random.UniqueId())
+		overlyLongALBName := fmt.Sprintf("alb-name-that-is-intentionally-too-long-%s", random.UniqueId())
 
 		terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, awsRegion)
-		terraformOptions.Vars["alb_name"] = name
+		terraformOptions.Vars["alb_name"] = overlyLongALBName
 		terraformOptions.Vars["base_domain_name"] = test.BaseDomainForTest
-		terraformOptions.Vars["alb_subdomain"] = name
+		terraformOptions.Vars["alb_subdomain"] = overlyLongALBName
 		terraformOptions.Vars["base_domain_name_tags"] = test.DomainNameTagsForTest
 
 		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
