@@ -25,7 +25,7 @@ The infrastructure in these templates has been configured as follows:
 
 ## Where is the Terraform code?
 
-All the Terraform code for this module is defined in [aws-service-catalog/modules/networking/route53](https://github.com/gruntwork-io/aws-service-catalog/tree/master/modules/networking/route53).
+All the Terraform code for this module is defined in [terraform-aws-service-catalog/modules/networking/route53](https://github.com/gruntwork-io/terraform-aws-service-catalog/tree/master/modules/networking/route53).
 When you run Terragrunt, it finds the URL of this module in the `terragrunt.hcl` file, downloads the Terraform code into
 a temporary folder, copies all the files in the current working directory (including `terragrunt.hcl`) into the
 temporary folder, and runs your Terraform command in that temporary folder.
@@ -50,4 +50,4 @@ To apply changes to the templates in this folder, do the following:
 
 ## More info
 
-For more info, check out the Readme for this module in [aws-service-catalog/modules/networking/route53](https://github.com/gruntwork-io/aws-service-catalog/tree/master/modules/networking/route53).
+For more info, check out the Readme for this module in [terraform-aws-service-catalog/modules/networking/route53](https://github.com/gruntwork-io/terraform-aws-service-catalog/tree/master/modules/networking/route53).

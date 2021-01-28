@@ -53,13 +53,13 @@ toc::[]
 
 == Learn
 
-NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog/[Gruntwork Service Catalog], a collection of
+NOTE: This repo is a part of the https://github.com/gruntwork-io/terraform-aws-service-catalog/[Gruntwork Service Catalog], a collection of
 reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
 sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/[How to use the Gruntwork
 Service Catalog]!
 
-* https://github.com/gruntwork-io/module-data-storage/blob/master/modules/aurora/core-concepts.md#what-is-amazon-rds[What is Amazon RDS?]
-* https://github.com/gruntwork-io/module-data-storage/blob/master/modules/aurora/core-concepts.md#common-gotchas[Common gotchas with RDS]
+* https://github.com/gruntwork-io/terraform-aws-data-storage/blob/master/modules/aurora/core-concepts.md#what-is-amazon-rds[What is Amazon RDS?]
+* https://github.com/gruntwork-io/terraform-aws-data-storage/blob/master/modules/aurora/core-concepts.md#common-gotchas[Common gotchas with RDS]
 * https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless.html[Aurora Serverless documentation]: Amazon's docs for Aurora Serverless, including its advantages, limitations, architecture, and scaling configurations.
 * https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Welcome.html[RDS documentation]: Amazon's docs for RDS that
   cover core concepts such as the types of databases supported, security, backup & restore, and monitoring.
@@ -95,9 +95,9 @@ If you want to deploy this repo in production, check out the following resources
 === Day-to-day operations
 
 * link:core-concepts.md#how-do-i-deploy-aurora-serverless[How to deploy Aurora Serverless]
-* https://github.com/gruntwork-io/module-data-storage/blob/master/modules/aurora/core-concepts.md#how-do-you-connect-to-the-database[How to connect to an Aurora instance]
+* https://github.com/gruntwork-io/terraform-aws-data-storage/blob/master/modules/aurora/core-concepts.md#how-do-you-connect-to-the-database[How to connect to an Aurora instance]
 * https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAM.html[How to authenticate to RDS with IAM]
-* https://github.com/gruntwork-io/module-data-storage/blob/master/modules/aurora/core-concepts.md#how-do-you-scale-this-database[How to scale Aurora]
+* https://github.com/gruntwork-io/terraform-aws-data-storage/blob/master/modules/aurora/core-concepts.md#how-do-you-scale-this-database[How to scale Aurora]
 * link:core-concepts.md#how-do-i-scale-the-aurora-serverless-database[How to scale Aurora Serverless]
 * link:core-concepts.md#how-do-you-backup-your-rds-snapshots-to-a-separate-aws-account[How to backup Aurora snapshots to a separate AWS account]
 * link:core-concepts.md#how-do-i-use-kubernetes-service-discovery-with-the-aurora-database[How do I use Kubernetes Service

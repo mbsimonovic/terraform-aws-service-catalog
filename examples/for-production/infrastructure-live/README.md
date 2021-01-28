@@ -18,13 +18,13 @@ stage, prod) in AWS. It is built on top of the Gruntwork
 * [Authenticate](_docs/02-authenticate.md): Authenticate to your resources in AWS—via the web console, CLI, VPN, SSH, 
   Kubernetes, and Helm—so you can make changes to the infrastructure.
 
-* [Make changes to the infrastructure](https://github.com/gruntwork-io/aws-service-catalog/blob/master/core-concepts.md#make-changes-to-your-infrastructure): 
+* [Make changes to the infrastructure](https://github.com/gruntwork-io/terraform-aws-service-catalog/blob/master/core-concepts.md#make-changes-to-your-infrastructure): 
   Update the code and roll out changes to the infrastructure that's already deployed.
 
-* [Deploy new infrastructure](https://github.com/gruntwork-io/aws-service-catalog/blob/master/core-concepts.md#deploy-new-infrastructure): 
+* [Deploy new infrastructure](https://github.com/gruntwork-io/terraform-aws-service-catalog/blob/master/core-concepts.md#deploy-new-infrastructure): 
   Deploy new infrastructure from the Gruntwork Service Catalog.
 
-* [Create your own infrastructure](https://github.com/gruntwork-io/aws-service-catalog/blob/master/core-concepts.md#create-your-own-service-catalog): 
+* [Create your own infrastructure](https://github.com/gruntwork-io/terraform-aws-service-catalog/blob/master/core-concepts.md#create-your-own-service-catalog): 
   Create your own service catalog and use it to deploy new infrastructure.
 
 * [Deploy your apps](_docs/03-deploy-apps.md): Deploy your applications and web services (e.g., Docker images, AMIs) on 

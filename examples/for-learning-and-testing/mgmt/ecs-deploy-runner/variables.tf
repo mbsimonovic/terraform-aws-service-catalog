@@ -7,7 +7,7 @@ variable "docker_image_builder_config" {
   description = "Configuration options for the docker-image-builder container of the ECS deploy runner stack. This container will be used for building docker images in the CI/CD pipeline."
   type = object({
     # Docker repo and image tag to use as the container image for the docker image builder. This should be based on the
-    # Dockerfile in module-ci/modules/ecs-deploy-runner/docker/kaniko.
+    # Dockerfile in terraform-aws-ci/modules/ecs-deploy-runner/docker/kaniko.
     container_image = object({
       docker_image = string
       docker_tag   = string
@@ -37,7 +37,7 @@ variable "docker_image_builder_config" {
     }))
 
     # List of repositories that are allowed to build docker images. These should be the https git URL of the repository
-    # (e.g., https://github.com/gruntwork-io/module-ci.git).
+    # (e.g., https://github.com/gruntwork-io/terraform-aws-ci.git).
     allowed_repos = list(string)
 
     # List of repositories (matching the regex) that are allowed to build AMIs. These should be the https git URL of the repository
@@ -86,7 +86,7 @@ variable "ami_builder_config" {
   description = "Configuration options for the ami-builder container of the ECS deploy runner stack. This container will be used for building AMIs in the CI/CD pipeline using packer."
   type = object({
     # Docker repo and image tag to use as the container image for the ami builder. This should be based on the
-    # Dockerfile in module-ci/modules/ecs-deploy-runner/docker/deploy-runner.
+    # Dockerfile in terraform-aws-ci/modules/ecs-deploy-runner/docker/deploy-runner.
     container_image = object({
       docker_image = string
       docker_tag   = string
@@ -116,7 +116,7 @@ variable "ami_builder_config" {
     }))
 
     # List of repositories that are allowed to build AMIs. These should be the SSH git URL of the repository
-    # (e.g., git@github.com:gruntwork-io/module-ci.git).
+    # (e.g., git@github.com:gruntwork-io/terraform-aws-ci.git).
     allowed_repos = list(string)
 
     # List of repositories (matching the regex) that are allowed to build AMIs. These should be the SSH git URL of the repository
@@ -147,7 +147,7 @@ variable "terraform_planner_config" {
   description = "Configuration options for the terraform-planner container of the ECS deploy runner stack. This container will be used for running infrastructure plan (including validate) actions in the CI/CD pipeline with Terraform / Terragrunt."
   type = object({
     # Docker repo and image tag to use as the container image for the ami builder. This should be based on the
-    # Dockerfile in module-ci/modules/ecs-deploy-runner/docker/deploy-runner.
+    # Dockerfile in terraform-aws-ci/modules/ecs-deploy-runner/docker/deploy-runner.
     container_image = object({
       docker_image = string
       docker_tag   = string
@@ -178,13 +178,13 @@ variable "terraform_planner_config" {
 
     # List of Git repository containing infrastructure live configuration (top level terraform or terragrunt
     # configuration to deploy infrastructure) that the deploy runner is allowed to run plan on. These should be the SSH
-    # git URL of the repository (e.g., git@github.com:gruntwork-io/module-ci.git).
+    # git URL of the repository (e.g., git@github.com:gruntwork-io/terraform-aws-ci.git).
     # NOTE: when only a single repository is provided, this will automatically be included as a hardcoded option.
     infrastructure_live_repositories = list(string)
 
     # List of Git repositories (matching the regex) containing infrastructure live configuration (top level terraform or terragrunt
     # configuration to deploy infrastructure) that the deploy runner is allowed to deploy. These should be the SSH git
-    # URL of the repository (e.g., git@github.com:gruntwork-io/module-ci.git).
+    # URL of the repository (e.g., git@github.com:gruntwork-io/terraform-aws-ci.git).
     # Note that this is a list of individual regex because HCL doesn't allow bitwise operator: https://github.com/hashicorp/terraform/issues/25326
     infrastructure_live_repositories_regex = list(string)
 
@@ -211,7 +211,7 @@ variable "terraform_applier_config" {
   description = "Configuration options for the terraform-applier container of the ECS deploy runner stack. This container will be used for running infrastructure deployment actions (including automated variable updates) in the CI/CD pipeline with Terraform / Terragrunt."
   type = object({
     # Docker repo and image tag to use as the container image for the ami builder. This should be based on the
-    # Dockerfile in module-ci/modules/ecs-deploy-runner/docker/deploy-runner.
+    # Dockerfile in terraform-aws-ci/modules/ecs-deploy-runner/docker/deploy-runner.
     container_image = object({
       docker_image = string
       docker_tag   = string
@@ -242,13 +242,13 @@ variable "terraform_applier_config" {
 
     # List of Git repository containing infrastructure live configuration (top level terraform or terragrunt
     # configuration to deploy infrastructure) that the deploy runner is allowed to deploy. These should be the SSH git
-    # URL of the repository (e.g., git@github.com:gruntwork-io/module-ci.git).
+    # URL of the repository (e.g., git@github.com:gruntwork-io/terraform-aws-ci.git).
     # NOTE: when only a single repository is provided, this will automatically be included as a hardcoded option.
     infrastructure_live_repositories = list(string)
 
     # List of Git repositories (matching the regex) containing infrastructure live configuration (top level terraform or terragrunt
     # configuration to deploy infrastructure) that the deploy runner is allowed to deploy. These should be the SSH git
-    # URL of the repository (e.g., git@github.com:gruntwork-io/module-ci.git).
+    # URL of the repository (e.g., git@github.com:gruntwork-io/terraform-aws-ci.git).
     # Note that this is a list of individual regex because HCL doesn't allow bitwise operator: https://github.com/hashicorp/terraform/issues/25326
     infrastructure_live_repositories_regex = list(string)
 

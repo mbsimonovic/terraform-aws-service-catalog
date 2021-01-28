@@ -52,13 +52,13 @@ toc::[]
 
 == Learn
 
-NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog/[Gruntwork Service Catalog], a collection of
+NOTE: This repo is a part of the https://github.com/gruntwork-io/terraform-aws-service-catalog/[Gruntwork Service Catalog], a collection of
 reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
 sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/[How to use the Gruntwork
 Service Catalog]!
 
 Under the hood, this is all implemented using Terraform modules from the Gruntwork
-https://github.com/gruntwork-io/module-ecs[module-ecs] repo. If you don't have access to this repo, email
+https://github.com/gruntwork-io/terraform-aws-ecs[module-ecs] repo. If you don't have access to this repo, email
 support@gruntwork.io.
 
 
@@ -66,7 +66,7 @@ support@gruntwork.io.
 
 To understand core concepts like what is ECS, the different cluster types, how to authenticate to Kubernetes, and
 more, see the documentation in the
-https://github.com/gruntwork-io/module-ecs[ecs module] repo.
+https://github.com/gruntwork-io/terraform-aws-ecs[ecs module] repo.
 
 === Repo organization
 
@@ -100,7 +100,7 @@ If you want to deploy this repo in production, check out the following resources
 == Manage
 
 For information on how to manage your ECS service, see the documentation in the
-https://github.com/gruntwork-io/module-ecs[module ecs] repo.
+https://github.com/gruntwork-io/terraform-aws-ecs[module ecs] repo.
 
 
 

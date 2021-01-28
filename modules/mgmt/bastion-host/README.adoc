@@ -48,7 +48,7 @@ toc::[]
 
 == Learn
 
-NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog/[Gruntwork Service Catalog], a collection of
+NOTE: This repo is a part of the https://github.com/gruntwork-io/terraform-aws-service-catalog/[Gruntwork Service Catalog], a collection of
 reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
 sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/[How to use the Gruntwork
 Service Catalog]!
@@ -56,8 +56,8 @@ Service Catalog]!
 === Core concepts
 
 To understand core concepts like why you should use a bastion host, how to connect to the bastion host, how to use the
-bastion host as a "jump host" to connect to other instances, port forwarding, and more, see the https://github.com/gruntwork-io/module-server/tree/master/examples/bastion-host[bastion-host
-documentation] documentation in the https://github.com/gruntwork-io/module-server[module-server] repo.
+bastion host as a "jump host" to connect to other instances, port forwarding, and more, see the https://github.com/gruntwork-io/terraform-aws-server/tree/master/examples/bastion-host[bastion-host
+documentation] documentation in the https://github.com/gruntwork-io/terraform-aws-server[module-server] repo.
 
 
 === The bastion host AMI
@@ -65,10 +65,10 @@ documentation] documentation in the https://github.com/gruntwork-io/module-serve
 The bastion host AMI is defined using the https://www.packer.io/[Packer] template at `bastion-host.json`.
 This template configures the AMI to:
 
-1. Run the https://github.com/gruntwork-io/module-security/tree/master/modules/ssh-grunt[ssh-grunt module] so that
+1. Run the https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/ssh-grunt[ssh-grunt module] so that
    developers can upload their public SSH keys to IAM and use those SSH keys, along with their IAM user names, to SSH
    to the bastion host.
-1. Run the https://github.com/gruntwork-io/module-security/tree/master/modules/auto-update[auto-update module] so
+1. Run the https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/auto-update[auto-update module] so
    that the bastion host installs security updates automatically.
 1. Optionally run the https://github.com/gruntwork-io/terraform-aws-monitoring/tree/master/modules/logs/syslog[syslog module] to automatically rotate and rate limit syslog so that the bastion host doesn't run out of disk space from large volumes of logs.
 
@@ -99,7 +99,7 @@ If you want to deploy this repo in production, check out the following resources
 
 === Day-to-day operations
 
-* https://github.com/fail2ban/fail2ban[`fail2ban`] bans IP addresses that cause too many failed login attempts. The bastion host is configured with `fail2ban` as a security measure. See the  https://github.com/gruntwork-io/module-security/tree/master/modules/fail2ban[`fail2ban` module] for more information.
+* https://github.com/fail2ban/fail2ban[`fail2ban`] bans IP addresses that cause too many failed login attempts. The bastion host is configured with `fail2ban` as a security measure. See the  https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/fail2ban[`fail2ban` module] for more information.
 
 
 == Support

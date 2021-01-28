@@ -31,9 +31,9 @@ environment variables to set, and so on. To actually run an ECS Task, you define
    input variables.
 
 For more info on ECS services and clusters, check out the
-[ecs-cluster](https://github.com/gruntwork-io/module-ecs/tree/master/modules/ecs-cluster) and
-[ecs-service](https://github.com/gruntwork-io/module-ecs/tree/master/modules/ecs-service) documentation in the
-[module-ecs repo](https://github.com/gruntwork-io/module-ecs).
+[ecs-cluster](https://github.com/gruntwork-io/terraform-aws-ecs/tree/master/modules/ecs-cluster) and
+[ecs-service](https://github.com/gruntwork-io/terraform-aws-ecs/tree/master/modules/ecs-service) documentation in the
+[terraform-aws-ecs repo](https://github.com/gruntwork-io/terraform-aws-ecs).
 
 ### Deploy the ECS Cluster using Terraform 
 

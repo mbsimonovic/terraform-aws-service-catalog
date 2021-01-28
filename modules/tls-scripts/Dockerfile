@@ -5,7 +5,7 @@ MAINTAINER Gruntwork "gruntwork.io"
 # Build Phase 1: With Secrets
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Install gruntkms and whatever it needs
-# Clone package-kafka
+# Clone terraform-aws-kafka
 
 # github-oauth-token for accessing private repos
 ARG GITHUB_OAUTH_TOKEN
@@ -26,11 +26,11 @@ RUN curl -LsS "https://raw.githubusercontent.com/gruntwork-io/gruntwork-installe
 RUN gruntwork-install --binary-name "gruntkms" --repo "https://github.com/gruntwork-io/gruntkms" --tag 'v0.0.8' --no-sudo true
 RUN gruntkms --version
 
-# install package-kafka script
-RUN git clone "https://${GITHUB_OAUTH_TOKEN}@github.com/gruntwork-io/package-kafka.git" "/tls/package-kafka" && \
-      mv /tls/package-kafka/modules/generate-key-stores/generate-key-stores.sh /usr/local/bin/ && \
+# install terraform-aws-kafka script
+RUN git clone "https://${GITHUB_OAUTH_TOKEN}@github.com/gruntwork-io/terraform-aws-kafka.git" "/tls/terraform-aws-kafka" && \
+      mv /tls/terraform-aws-kafka/modules/generate-key-stores/generate-key-stores.sh /usr/local/bin/ && \
       chmod +x /usr/local/bin/generate-key-stores.sh && \
-      rm -rf /tls/package-kafka/
+      rm -rf /tls/terraform-aws-kafka/
 
 # Build Phase 2: Without Secrets
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

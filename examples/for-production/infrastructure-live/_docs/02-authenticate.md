@@ -163,7 +163,7 @@ A few notes about the code above:
 1. **Groups**. We add each user to a set of IAM groups: for example, we add Alice to IAM groups that give her admin
    access in the dev, stage, and prod accounts, whereas Bob gets read-only access to prod, plus SSH access (with sudo
    permissions) to EC2 instances. For the full list of IAM groups available out of the box, see the 
-   [IAM groups module](https://github.com/gruntwork-io/module-security/tree/master/modules/iam-groups#iam-groups).
+   [IAM groups module](https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/iam-groups#iam-groups).
    
 1. **PGP Keys**. We specify a PGP Key to use to encrypt any secrets for that user. Keys of the form `keybase:<username>` 
    are automatically fetched for user `<username>` on [Keybase](https://keybase.io/).
@@ -217,7 +217,7 @@ To authenticate to any other account (e.g., dev, stage, prod), you need to:
 1. [Switching to an IAM Role in the other AWS account](http://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-console.html).
    To access other accounts, you "switch" to (AKA, "assume") an IAM role defined in that account: e.g., to get 
    read-only access to an account, you could assume the `allow-read-only-access-from-other-accounts` IAM role. See the 
-   [cross-account-iam-roles module](https://github.com/gruntwork-io/module-security/tree/master/modules/cross-account-iam-roles#iam-roles-intended-for-human-users)
+   [cross-account-iam-roles module](https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/cross-account-iam-roles#iam-roles-intended-for-human-users)
    for the default set of IAM roles that exist in each account. Note that to be able to access an IAM role `xxx` in
    some account `yyy`, your IAM user must be in an IAM group that has permissions to assume that IAM role. For example,
    to assume the `allow-read-only-access-from-other-accounts` IAM role in the prod account, you must be in the 
@@ -240,7 +240,7 @@ A few important notes on authenticating via the CLI:
    your access keys and an MFA token. To authenticate to all other accounts (e.g., dev, stage, prod), you will need
    access keys, an MFA token, and the ARN of an IAM role in that account to assume: e.g., to get read-only access to an 
    account, you could assume the `allow-read-only-access-from-other-accounts` IAM role. See the 
-   [cross-account-iam-roles module](https://github.com/gruntwork-io/module-security/tree/master/modules/cross-account-iam-roles#iam-roles-intended-for-human-users)
+   [cross-account-iam-roles module](https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/cross-account-iam-roles#iam-roles-intended-for-human-users)
    for the default set of IAM roles that exist in each account. Note that to be able to access an IAM role `xxx` in
    some account `yyy`, your IAM user must be in an IAM group that has permissions to assume that IAM role. For example,
    to assume the `allow-read-only-access-from-other-accounts` IAM role in the prod account, you must be in the 
@@ -303,7 +303,7 @@ IAM groups.
 To connect to an OpenVPN server, you need an OpenVPN configuration file, which includes a certificate that you can use
 to authenticate. To generate this configuration file, do the following:
 
-1. Install the latest [openvpn-admin binary](https://github.com/gruntwork-io/package-openvpn/releases) for your OS.
+1. Install the latest [openvpn-admin binary](https://github.com/gruntwork-io/terraform-aws-openvpn/releases) for your OS.
 
 1. [Authenticate to AWS via the CLI](#authenticate-to-aws-via-the-cli). You will need to assume an IAM role in the AWS 
    account with the OpenVPN server you're trying to connect to. This IAM role must have access to the SQS queues used 
@@ -336,7 +336,7 @@ You can SSH to any of your EC2 Instances as follows:
 
 ### (Recommended) ssh-grunt
 
-Every EC2 instance has [ssh-grunt](https://github.com/gruntwork-io/module-security/tree/master/modules/ssh-grunt) 
+Every EC2 instance has [ssh-grunt](https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/ssh-grunt) 
 installed, which allows you to manage SSH access using IAM groups. Here's how it works:
 
 1. [Add users to SSH IAM Groups](#add-users-to-ssh-iam-groups)
@@ -365,7 +365,7 @@ IAM users](#configure-other-iam-users) for instructions).
 Your username for SSH is typically the same as your IAM user name. However, if your IAM user name has special 
 characters that are not allowed by operating systems (e.g., most puncuation is not allowed), your SSH username may be a 
 bit different, as specified in the [ssh-grunt 
-documentation](https://github.com/gruntwork-io/module-security/tree/master/modules/ssh-grunt#syncing-users-from-iam). 
+documentation](https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/ssh-grunt#syncing-users-from-iam). 
 For example:
 
 * If your IAM User name is `josh`, your SSH username will also be `josh`.

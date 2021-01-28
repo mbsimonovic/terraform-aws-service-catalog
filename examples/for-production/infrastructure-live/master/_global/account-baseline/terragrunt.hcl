@@ -11,7 +11,7 @@
 terraform {
   # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
   # to a specific version of the modules, such as the following example:
-  # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/landingzone/account-baseline-root?ref=v1.0.8"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/landingzone/account-baseline-root?ref=v1.0.8"
   source = "../../../../../../modules//landingzone/account-baseline-root"
 
   # This module deploys some resources (e.g., AWS Config) across all AWS regions, each of which needs its own provider,

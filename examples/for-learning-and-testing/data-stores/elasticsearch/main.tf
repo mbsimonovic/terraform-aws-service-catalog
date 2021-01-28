@@ -25,7 +25,7 @@ locals {
 module "elasticsearch" {
   # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
   # to a specific version of the modules, such as the following example:
-  # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/data-stores/elasticsearch?ref=v1.2.3"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/data-stores/elasticsearch?ref=v1.2.3"
   source = "../../../../modules/data-stores/elasticsearch"
 
   # Cluster Configurations
@@ -106,7 +106,7 @@ resource "aws_security_group_rule" "allow_all_inbound_ssh" {
 # Use this utility to find an instance type for the bastion host
 # that exists in all availability zones for the AWS region in use.
 module "lookup_instance_type" {
-  source         = "git::git@github.com:gruntwork-io/package-terraform-utilities.git//modules/instance-type?ref=v0.2.1"
+  source         = "git::git@github.com:gruntwork-io/terraform-aws-utilities.git//modules/instance-type?ref=v0.2.1"
   instance_types = ["t2.micro", "t3.micro"]
 }
 

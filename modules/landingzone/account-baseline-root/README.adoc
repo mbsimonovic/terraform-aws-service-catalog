@@ -37,20 +37,20 @@ toc::[]
 
 Get a secure baseline for the root account of your AWS Organization that includes:
 
-* https://github.com/gruntwork-io/module-security/tree/master/modules/aws-config-multi-region[aws-config-multi-region]
-* https://github.com/gruntwork-io/module-security/tree/master/modules/aws-organizations[aws-organizations]
-* https://github.com/gruntwork-io/module-security/tree/master/modules/aws-organizations-config-rules[aws-organizations-config-rules]
-* https://github.com/gruntwork-io/module-security/tree/master/modules/cloudtrail[cloudtrail]
-* https://github.com/gruntwork-io/module-security/tree/master/modules/cross-account-iam-roles[cross-account-iam-roles]
-* https://github.com/gruntwork-io/module-security/tree/master/modules/guardduty-multi-region[guardduty-multi-region]
-* https://github.com/gruntwork-io/module-security/tree/master/modules/iam-groups[iam-groups]
-* https://github.com/gruntwork-io/module-security/tree/master/modules/iam-users[iam-users]
-* https://github.com/gruntwork-io/module-security/tree/master/modules/iam-user-password-policy[iam-user-password-policy]
+* https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/aws-config-multi-region[aws-config-multi-region]
+* https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/aws-organizations[aws-organizations]
+* https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/aws-organizations-config-rules[aws-organizations-config-rules]
+* https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/cloudtrail[cloudtrail]
+* https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/cross-account-iam-roles[cross-account-iam-roles]
+* https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/guardduty-multi-region[guardduty-multi-region]
+* https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/iam-groups[iam-groups]
+* https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/iam-users[iam-users]
+* https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/iam-user-password-policy[iam-user-password-policy]
 
 
 == Learn
 
-NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog//[Gruntwork Service Catalog], a collection of
+NOTE: This repo is a part of the https://github.com/gruntwork-io/terraform-aws-service-catalog//[Gruntwork Service Catalog], a collection of
 reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
 sure to read link:/core-concepts.md[How to use the Gruntwork Service Catalog]!
 
