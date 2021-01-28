@@ -25,7 +25,7 @@ module "alb" {
   num_days_after_which_delete_log_data  = 30
 
   is_internal_alb                = false
-  http_listener_ports            = ["${local.default_http_port}"]
+  http_listener_ports            = [local.default_http_port]
   allow_inbound_from_cidr_blocks = ["0.0.0.0/0"]
 
   # Configure a domain name for the ALB
@@ -72,7 +72,7 @@ resource "aws_lb_target_group_attachment" "webserver" {
 }
 
 resource "aws_lb_listener_rule" "host_based_routing" {
-  listener_arn = module.alb.listener_arns["${local.default_http_port}"]
+  listener_arn = module.alb.listener_arns[local.default_http_port]
   priority     = 99
 
   action {
