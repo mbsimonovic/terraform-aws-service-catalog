@@ -126,9 +126,8 @@ func TestAlbNameLengthValidation(t *testing.T) {
 	test_structure.RunTestStage(t, "deploy_terraform", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
 
-		if _, err := terraform.InitAndApplyE(t, terraformOptions); err != nil {
-			assert.Error(t, err)
-			assert.Contains(t, err.Error(), validationErrorMsg)
-		}
+		_, err := terraform.InitAndApplyE(t, terraformOptions)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), validationErrorMsg)
 	})
 }
