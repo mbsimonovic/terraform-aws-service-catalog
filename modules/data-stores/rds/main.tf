@@ -280,7 +280,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "kms_cmk" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-master-key?ref=v0.44.7"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-master-key?ref=v0.44.10"
   customer_master_keys = (
     var.kms_key_arn == null
     ? {
