@@ -60,7 +60,7 @@ module "redis" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "redis_alarms" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/elasticache-redis-alarms?ref=v0.24.0"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/elasticache-redis-alarms?ref=v0.24.1"
   create_resources = var.enable_cloudwatch_alarms
 
   cache_cluster_ids    = module.redis.cache_cluster_ids
