@@ -9,7 +9,7 @@ readonly DEFAULT_MODULE_SECURITY_VERSION="v0.44.7"
 # renovate.json auto-update: terraform-aws-monitoring
 readonly DEFAULT_MODULE_AWS_MONITORING_VERSION="v0.24.1"
 # renovate.json auto-update: terraform-aws-server
-readonly DEFAULT_MODULE_STATEFUL_SERVER_VERSION="v0.10.0"
+readonly DEFAULT_MODULE_STATEFUL_SERVER_VERSION="v0.10.1"
 
 # Enable / disable features
 readonly DEFAULT_ENABLE_SSH_GRUNT="true"
