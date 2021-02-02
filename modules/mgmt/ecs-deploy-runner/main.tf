@@ -27,7 +27,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_deploy_runner" {
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner?ref=v0.29.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner?ref=v0.29.8"
 
   name                          = var.name
   container_images              = module.standard_config.container_images
@@ -44,7 +44,7 @@ module "ecs_deploy_runner" {
 }
 
 module "standard_config" {
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner-standard-configuration?ref=v0.29.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner-standard-configuration?ref=v0.29.8"
 
   docker_image_builder = (
     var.docker_image_builder_config != null
@@ -337,6 +337,74 @@ data "aws_iam_policy_document" "terraform_applier" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
+# CREATE KMS GRANTS TO ALLOW ACCESS TO SHARED SECRETS KMS KEY
+# Creates the following grants to allow the deploy runner to decrypt the shared machine user secrets.
+# - Decrypt
+# - DescribeKey
+# ---------------------------------------------------------------------------------------------------------------------
+
+module "shared_secrets_kms_grants" {
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-grant-multi-region?ref=v0.44.10"
+
+  aws_account_id    = data.aws_caller_identity.current.account_id
+  kms_grant_regions = local.shared_secrets_kms_grant_regions
+  kms_grants        = local.shared_secrets_kms_grants
+}
+
+locals {
+  shared_secret_cmk_read_actions = [
+    "Decrypt",
+    "DescribeKey",
+  ]
+
+  # This regex can be used to extract the region from an ARN string. It works by parsing the first 4 parts of the arn,
+  # matching words that don't have : in them, and assigning a group to the 4th part (the region).
+  extract_region_regex = "arn:[^:]*:[^:]*:([^:]+):.+"
+
+  task_role_kms_grant_regions = (
+    var.shared_secrets_enabled
+    ? {
+      for name, image in module.standard_config.container_images :
+      name => data.aws_region.current.name
+    }
+    : {}
+  )
+  task_role_kms_grants = (
+    var.shared_secrets_enabled
+    ? {
+      for name, task_role in module.ecs_deploy_runner.ecs_task_iam_roles :
+      name => {
+        kms_cmk_arn        = var.shared_secrets_kms_cmk_arn
+        grantee_principal  = task_role.arn
+        granted_operations = local.shared_secret_cmk_read_actions
+      }
+    }
+    : {}
+  )
+  task_execution_role_kms_grant_regions = (
+    var.shared_secrets_enabled
+    ? {
+      "ecs-task-execution-role" = data.aws_region.current.name
+    }
+    : {}
+  )
+  task_execution_role_kms_grants = (
+    var.shared_secrets_enabled
+    ? {
+      ecs-task-execution-role = {
+        kms_cmk_arn        = var.shared_secrets_kms_cmk_arn
+        grantee_principal  = module.ecs_deploy_runner.ecs_task_execution_role_arn
+        granted_operations = local.shared_secret_cmk_read_actions
+      },
+    }
+    : {}
+  )
+
+  shared_secrets_kms_grant_regions = merge(local.task_role_kms_grant_regions, local.task_execution_role_kms_grant_regions)
+  shared_secrets_kms_grants        = merge(local.task_role_kms_grants, local.task_execution_role_kms_grants)
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
 # CREATE KMS GRANTS TO ALLOW RESPECTIVE CONTAINERS FOR SNAPSHOTS
 # Creates the following grants to ami-builder and terraform-applier for each snapshot encryption key:
 # - Encrypt
@@ -353,7 +421,7 @@ data "aws_iam_policy_document" "terraform_applier" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "kms_grants" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/kms-grant-multi-region?ref=v0.39.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-grant-multi-region?ref=v0.44.10"
 
   aws_account_id    = data.aws_caller_identity.current.account_id
   kms_grant_regions = local.kms_grant_regions
@@ -371,10 +439,6 @@ locals {
     "DescribeKey",
     "CreateGrant",
   ]
-
-  # This regex can be used to extract the region from an ARN string. It works by parsing the first 4 parts of the arn,
-  # matching words that don't have : in them, and assigning a group to the 4th part (the region).
-  extract_region_regex = "arn:[^:]*:[^:]*:([^:]+):.+"
 
   ami_builder_kms_grant_regions = (
     var.ami_builder_config != null
@@ -427,7 +491,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "invoke_policy" {
-  source = "git::git@github.com:gruntwork-io/module-ci.git//modules/ecs-deploy-runner-invoke-iam-policy?ref=v0.29.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner-invoke-iam-policy?ref=v0.29.8"
 
   name                                      = "invoke-${var.name}"
   deploy_runner_invoker_lambda_function_arn = module.ecs_deploy_runner.invoker_function_arn

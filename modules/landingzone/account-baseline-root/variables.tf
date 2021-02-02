@@ -299,6 +299,24 @@ variable "iam_password_policy_max_password_age" {
   default     = 30
 }
 
+variable "iam_password_policy_allow_users_to_change_password" {
+  description = "Allow users to change their own password."
+  type        = bool
+  default     = true
+}
+
+#
+# WARNING: Setting the below value to "true" with the following conditions can lead to administrative account lockout:
+#
+# 1) You have only a single administrative IAM user
+# 2) You do not have access to the root account
+#
+variable "iam_password_policy_hard_expiry" {
+  description = "Password expiration requires administrator reset."
+  type        = bool
+  default     = true
+}
+
 variable "enable_insecure_sg_rules" {
   description = "Checks whether the security group with 0.0.0.0/0 of any Amazon Virtual Private Cloud (Amazon VPC) allows only specific inbound TCP or UDP traffic."
   type        = bool
@@ -345,11 +363,23 @@ variable "enable_encrypted_volumes" {
   default     = true
 }
 
+variable "encrypted_volumes_kms_id" {
+  description = "ID or ARN of the KMS key that is used to encrypt the volume. Used for configuring the encrypted volumes config rule."
+  type        = string
+  default     = null
+}
+
 # RDS encryption
 variable "enable_rds_storage_encrypted" {
   description = "Checks whether storage encryption is enabled for your RDS DB instances."
   type        = bool
   default     = true
+}
+
+variable "rds_storage_encrypted_kms_id" {
+  description = "KMS key ID or ARN used to encrypt the storage. Used for configuring the RDS storage encryption config rule."
+  type        = string
+  default     = null
 }
 
 variable "additional_config_rules" {
@@ -363,18 +393,22 @@ variable "additional_config_rules" {
     trigger_type : string
     # A map of input parameters for the rule. If you don't have parameters, pass in an empty map ´{}´.
     input_parameters : map(string)
+    # Whether or not this applies to global (non-regional) resources like IAM roles. When true, these rules are disabled
+    # if var.enable_global_resource_rules is false.
+    applies_to_global_resources = bool
   }))
 
   default = {}
 
   # Example:
   #
-  # additional_rules = {
+  # additional_config_rules = {
   #   acm-certificate-expiration-check = {
-  #     description      = "Checks whether ACM Certificates in your account are marked for expiration within the specified number of days.",
-  #     identifier       = "ACM_CERTIFICATE_EXPIRATION_CHECK",
-  #     trigger_type     = "PERIODIC",
-  #     input_parameters = { "daysToExpiration": "14"},
+  #     description                 = "Checks whether ACM Certificates in your account are marked for expiration within the specified number of days.",
+  #     identifier                  = "ACM_CERTIFICATE_EXPIRATION_CHECK",
+  #     trigger_type                = "PERIODIC",
+  #     input_parameters            = { "daysToExpiration": "14"},
+  #     applies_to_global_resources = false
   #   }
   # }
 
@@ -389,6 +423,12 @@ variable "should_require_mfa" {
   description = "Should we require that all IAM Users use Multi-Factor Authentication for both AWS API calls and the AWS Web Console? (true or false)"
   type        = bool
   default     = true
+}
+
+variable "iam_role_tags" {
+  description = "The tags to apply to all the IAM role resources."
+  type        = map(string)
+  default     = {}
 }
 
 variable "iam_group_developers_permitted_services" {
@@ -727,10 +767,10 @@ variable "cloudtrail_s3_bucket_already_exists" {
   default     = false
 }
 
-variable "cloudtrail_external_aws_account_ids_with_write_access" {
-  description = "A list of external AWS accounts that should be given write access for CloudTrail logs to this S3 bucket. This is useful when aggregating CloudTrail logs for multiple AWS accounts in one common S3 bucket."
-  type        = list(string)
-  default     = []
+variable "cloudtrail_tags" {
+  description = "Tags to apply to the CloudTrail resources."
+  type        = map(string)
+  default     = {}
 }
 
 variable "cloudtrail_force_destroy" {
@@ -745,8 +785,82 @@ variable "cloudtrail_kms_key_arn" {
   default     = null
 }
 
+variable "cloudtrail_allow_kms_describe_key_to_external_aws_accounts" {
+  description = "Whether or not to allow kms:DescribeKey to external AWS accounts with write access to the CloudTrail bucket. This is useful during deployment so that you don't have to pass around the KMS key ARN."
+  type        = bool
+  default     = false
+}
+
+variable "cloudtrail_kms_key_arn_is_alias" {
+  description = "If the kms_key_arn provided is an alias or alias ARN, then this must be set to true so that the module will exchange the alias for a CMK ARN. Setting this to true and using aliases requires var.cloudtrail_allow_kms_describe_key_to_external_aws_accounts to also be true for multi-account scenarios."
+  type        = bool
+  default     = false
+}
+
 variable "cloudtrail_cloudwatch_logs_group_name" {
   description = "Specify the name of the CloudWatch Logs group to publish the CloudTrail logs to. This log group exists in the current account. Set this value to `null` to avoid publishing the trail logs to the logs group. The recommended configuration for CloudTrail is (a) for each child account to aggregate its logs in an S3 bucket in a single central account, such as a logs account and (b) to also store 14 days work of logs in CloudWatch in the child account itself for local debugging."
   type        = string
   default     = "cloudtrail-logs"
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# OPTIONAL EBS ENCRYPTION PARAMETERS
+# These variables have defaults, but may be overridden by the operator.
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "ebs_enable_encryption" {
+  description = "If set to true (default), all new EBS volumes will have encryption enabled by default"
+  type        = bool
+  default     = true
+}
+
+variable "ebs_use_existing_kms_keys" {
+  description = "If set to true, the KMS Customer Managed Keys (CMK) specified in var.ebs_kms_key_arns will be set as the default for EBS encryption. When false (default), the AWS-managed aws/ebs key will be used."
+  type        = bool
+  default     = false
+}
+
+variable "ebs_kms_key_arns" {
+  description = "Optional map of region names to KMS keys to use for EBS volume encryption when var.ebs_use_existing_kms_keys is enabled."
+  type        = map(string)
+  default     = {}
+  # Example:
+  # kms_key_arns = {
+  #   "af-south-1": "arn:arn:aws:kms:af-south-1:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab"
+  #   "ap-southeast-1": "arn:arn:aws:kms:ap-southeast-1:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab"
+  # }
+}
+
+variable "ebs_opt_in_regions" {
+  description = "Configures EBS encryption defaults in the specified regions. Note that the region must be enabled on your AWS account. Regions that are not enabled are automatically filtered from this list. When null (default), EBS encryption will be enabled on all regions enabled on the account. Use this list to provide an alternate region list for testing purposes."
+  type        = list(string)
+  default     = null
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# REQUIRED IAM ACCESS ANALYZER PARAMETERS
+# These variables must be passed in by the operator.
+# ---------------------------------------------------------------------------------------------------------------------
+variable "enable_iam_access_analyzer" {
+  description = "A feature flag to enable or disable this module."
+  type        = bool
+  default     = false
+}
+
+variable "iam_access_analyzer_type" {
+  description = "If set to ORGANIZATION, the analyzer will be scanning the current organization and any policies that refer to linked resources such as S3, IAM, Lambda and SQS policies."
+  type        = string
+  default     = "ORGANIZATION"
+}
+
+variable "iam_access_analyzer_name" {
+  description = "The name of the IAM Access Analyzer module"
+  type        = string
+  default     = "baseline_root-iam_access_analyzer"
+}
+
+variable "iam_access_analyzer_opt_in_regions" {
+  description = "Enables IAM Access Analyzer defaults in the specified regions. Note that the region must be enabled on your AWS account. Regions that are not enabled are automatically filtered from this list. When null (default), IAM Access Analyzer will be enabled on all regions enabled on the account. Use this list to provide an alternate region list for testing purposes"
+  type        = list(string)
+  default     = null
 }

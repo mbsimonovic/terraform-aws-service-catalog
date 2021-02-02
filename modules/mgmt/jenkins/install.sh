@@ -7,14 +7,14 @@ readonly JENKINS_USER="jenkins"
 
 
 # Gruntwork module versions
-# renovate.json auto-update: module-ci
-readonly DEFAULT_MODULE_CI_VERSION="v0.29.0"
+# renovate.json auto-update: terraform-aws-ci
+readonly DEFAULT_MODULE_CI_VERSION="v0.29.8"
 
 # Build tooling
 # renovate.json auto-update: kubergrunt
-readonly DEFAULT_KUBERGRUNT_VERSION="v0.6.3"
+readonly DEFAULT_KUBERGRUNT_VERSION="v0.6.9"
 # renovate.json auto-update: terragrunt
-readonly DEFAULT_TERRAGRUNT_VERSION="v0.25.5"
+readonly DEFAULT_TERRAGRUNT_VERSION="v0.27.4"
 
 # renovate.json auto-update-github-releases: jenkinsci/jenkins
 readonly DEFAULT_JENKINS_VERSION="2.235.5"
@@ -24,9 +24,9 @@ readonly DEFAULT_TERRAFORM_VERSION="0.12.21"
 # terraform-aws-eks, both of which lag behind open source K8S
 readonly DEFAULT_KUBECTL_VERSION="v1.17.3"
 # renovate.json auto-update-github-releases: helm/helm
-readonly DEFAULT_HELM_VERSION="v3.3.4"
+readonly DEFAULT_HELM_VERSION="v3.4.1"
 # renovate.json auto-update-github-releases: hashicorp/packer
-readonly DEFAULT_PACKER_VERSION="1.6.4"
+readonly DEFAULT_PACKER_VERSION="1.6.5"
 # renovate.json auto-update-docker-ubuntu
 readonly DEFAULT_DOCKER_VERSION="18.06.1~ce~3-0~ubuntu"
 
@@ -47,12 +47,12 @@ function include_ec2_baseline {
 
   gruntwork-install \
     --module-name base/ec2-baseline \
-    --repo https://github.com/gruntwork-io/aws-service-catalog \
+    --repo https://github.com/gruntwork-io/terraform-aws-service-catalog \
     ${ec2_baseline_version_branch} \
     ${ec2_baseline_version_tag}
-    
+
   # Include common defaults and functions from the ec2-baseline install script
-  # See: https://github.com/gruntwork-io/aws-service-catalog/blob/master/modules/base/ec2-baseline
+  # See: https://github.com/gruntwork-io/terraform-aws-service-catalog/blob/master/modules/base/ec2-baseline
   readonly EC2_BASELINE_RELATIVE_PATH="../../base/ec2-baseline"
   readonly EC2_BASELINE_PATH="$(dirname $(realpath $0))/${EC2_BASELINE_RELATIVE_PATH}"
   if [[ ! -f "${EC2_BASELINE_PATH}/install.sh" ]]; then
@@ -69,10 +69,10 @@ function install_ci_packages {
 
   echo "Installing Gruntwork CI Modules"
 
-  gruntwork-install --module-name 'install-jenkins' --repo 'https://github.com/gruntwork-io/module-ci' --tag "$module_ci_version" --module-param "version=$jenkins_version"
-  gruntwork-install --module-name 'build-helpers' --repo 'https://github.com/gruntwork-io/module-ci' --tag "$module_ci_version"
-  gruntwork-install --module-name 'git-helpers' --repo 'https://github.com/gruntwork-io/module-ci' --tag "$module_ci_version"
-  gruntwork-install --module-name 'terraform-helpers' --repo 'https://github.com/gruntwork-io/module-ci' --tag "$module_ci_version"
+  gruntwork-install --module-name 'install-jenkins' --repo 'https://github.com/gruntwork-io/terraform-aws-ci' --tag "$module_ci_version" --module-param "version=$jenkins_version"
+  gruntwork-install --module-name 'build-helpers' --repo 'https://github.com/gruntwork-io/terraform-aws-ci' --tag "$module_ci_version"
+  gruntwork-install --module-name 'git-helpers' --repo 'https://github.com/gruntwork-io/terraform-aws-ci' --tag "$module_ci_version"
+  gruntwork-install --module-name 'terraform-helpers' --repo 'https://github.com/gruntwork-io/terraform-aws-ci' --tag "$module_ci_version"
 }
 
 function install_kubergrunt {
@@ -161,7 +161,7 @@ function install_helm {
   sudo chmod a+x /usr/local/bin/helm
 
   echo "Initialize stable repository"
-  helm repo add stable https://kubernetes-charts.storage.googleapis.com/
+  helm repo add stable https://charts.helm.sh/stable
 
   echo "Cleaning up temporary files"
   rm -rf linux-amd64

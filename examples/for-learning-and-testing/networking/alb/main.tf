@@ -9,7 +9,7 @@ provider "aws" {
 module "alb" {
   # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
   # to a specific version of the modules, such as the following example:
-  # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/networking/alb?ref=v1.0.8"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/networking/alb?ref=v1.0.8"
   source = "../../../../modules/networking/alb"
 
   alb_name = var.alb_name
@@ -25,7 +25,7 @@ module "alb" {
   num_days_after_which_delete_log_data  = 30
 
   is_internal_alb                = false
-  http_listener_ports            = ["${local.default_http_port}"]
+  http_listener_ports            = [local.default_http_port]
   allow_inbound_from_cidr_blocks = ["0.0.0.0/0"]
 
   # Configure a domain name for the ALB
@@ -72,7 +72,7 @@ resource "aws_lb_target_group_attachment" "webserver" {
 }
 
 resource "aws_lb_listener_rule" "host_based_routing" {
-  listener_arn = module.alb.listener_arns["${local.default_http_port}"]
+  listener_arn = module.alb.listener_arns[local.default_http_port]
   priority     = 99
 
   action {

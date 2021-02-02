@@ -13,7 +13,7 @@
 # - aws cli
 # - keytool
 # - openssl
-# - github.com/gruntwork-io/package-kafka/modules/generate-key-stores/generate-key-stores.sh must be installed and its path added to the PATH environment variable
+# - github.com/gruntwork-io/terraform-aws-kafka/modules/generate-key-stores/generate-key-stores.sh must be installed and its path added to the PATH environment variable
 # Note: These dependencies are automatically included in the Dockerfile in this module folder.
 
 set -e
@@ -256,7 +256,7 @@ function generate_trust_stores {
       fi
   fi
 
-  # package-kafka requires this structure with the keystore and truststore in separate folders
+  # terraform-aws-kafka requires this structure with the keystore and truststore in separate folders
   # Preserve this as the default
   local key_store_path="$store_path/keystore/$keystore_name.server.keystore.$vpc_name.jks"
   local trust_store_path="$store_path/truststore/$keystore_name.server.truststore.$vpc_name.jks"

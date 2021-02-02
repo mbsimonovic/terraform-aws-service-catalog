@@ -3,10 +3,10 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # Require at least 0.12.26, which knows what to do with the source syntax of required_providers.
-  # Make sure we don't accidentally pull in 0.13.x, as that has backwards incompatible changes that are known to NOT
-  # work with the terraform-aws-eks repo. We are working on a fix, but until that's ready, we need to avoid 0.13.x.
-  required_version = "~> 0.12.26"
+  # This module is now only being tested with Terraform 0.13.x. However, to make upgrading easier, we are setting
+  # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
+  # forwards compatible with 0.13.x code.
+  required_version = ">= 0.12.26"
 
   required_providers {
     aws = {
@@ -231,7 +231,7 @@ locals {
     ingress = {
       enabled     = var.expose_type != "cluster-internal"
       path        = "'${var.ingress_path}'"
-      hosts       = var.create_route53_entry ? [var.domain_name] : []
+      hosts       = var.domain_name != null ? [var.domain_name] : []
       servicePort = "app"
       annotations = local.ingress_annotations
       # Only configure the redirect path if using ssl redirect
@@ -298,7 +298,7 @@ data "template_file" "ingress_listener_protocol_ports" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "alb_access_logs_bucket" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/logs/load-balancer-access-logs?ref=v0.23.1"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/logs/load-balancer-access-logs?ref=v0.24.1"
   create_resources = var.expose_type != "cluster-internal"
 
   s3_bucket_name    = local.access_logs_s3_bucket_name
@@ -332,7 +332,7 @@ resource "aws_iam_role" "new_role" {
 }
 
 module "service_account_assume_role_policy" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-iam-role-assume-role-policy-for-service-account?ref=v0.26.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-iam-role-assume-role-policy-for-service-account?ref=v0.32.2"
 
   eks_openid_connect_provider_arn = var.eks_iam_role_for_service_accounts_config.openid_connect_provider_arn
   eks_openid_connect_provider_url = var.eks_iam_role_for_service_accounts_config.openid_connect_provider_url

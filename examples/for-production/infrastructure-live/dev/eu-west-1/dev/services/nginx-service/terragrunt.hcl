@@ -11,7 +11,7 @@
 terraform {
   # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
   # to a specific version of the modules, such as the following example:
-  # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/services/k8s-service?ref=v1.0.8"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/services/k8s-service?ref=v1.0.8"
   source = "../../../../../../../../modules//services/k8s-service"
 }
 
@@ -66,7 +66,6 @@ inputs = {
   container_port         = 80
   namespace              = dependency.eks_applications_namespace.outputs.namespace_name
   expose_type            = "external"
-  create_route53_entry   = true
   domain_name            = "nginx.gruntwork.in"
   desired_number_of_pods = 1
 }

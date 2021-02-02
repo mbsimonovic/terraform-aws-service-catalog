@@ -25,7 +25,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "vpc" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-app?ref=v0.10.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-app?ref=v0.13.0"
 
   vpc_name               = var.vpc_name
   aws_region             = var.aws_region
@@ -55,10 +55,25 @@ module "vpc" {
 
   # The VPC resources need special tags for discoverability by Kubernetes to use with certain features, like deploying
   # ALBs.
-  custom_tags                            = local.maybe_vpc_tags[local.maybe_tag_key]
-  public_subnet_custom_tags              = local.maybe_public_subnet_tags[local.maybe_tag_key]
-  private_app_subnet_custom_tags         = local.maybe_private_app_subnet_tags[local.maybe_tag_key]
-  private_persistence_subnet_custom_tags = local.maybe_private_persistence_subnet_tags[local.maybe_tag_key]
+  custom_tags                            = merge(local.maybe_vpc_tags[local.maybe_tag_key], var.custom_tags)
+  public_subnet_custom_tags              = merge(local.maybe_public_subnet_tags[local.maybe_tag_key], var.public_subnet_custom_tags)
+  private_app_subnet_custom_tags         = merge(local.maybe_private_app_subnet_tags[local.maybe_tag_key], var.private_app_subnet_custom_tags)
+  private_persistence_subnet_custom_tags = merge(local.maybe_private_persistence_subnet_tags[local.maybe_tag_key], var.private_persistence_subnet_custom_tags)
+
+  # Other tags to apply to some of the VPC resources
+  vpc_custom_tags         = var.vpc_custom_tags
+  nat_gateway_custom_tags = var.nat_gateway_custom_tags
+
+  # Params for the Default Security Group and Default NACL
+  default_security_group_ingress_rules = var.default_security_group_ingress_rules
+  default_security_group_egress_rules  = var.default_security_group_egress_rules
+  default_nacl_ingress_rules           = var.default_nacl_ingress_rules
+  default_nacl_egress_rules            = var.default_nacl_egress_rules
+
+  # Params for enabling/disabling subnet tiers
+  create_public_subnets              = var.create_public_subnets
+  create_private_app_subnets         = var.create_private_app_subnets
+  create_private_persistence_subnets = var.create_private_persistence_subnets
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -76,7 +91,7 @@ locals {
 }
 
 module "vpc_peering_connection" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-peering?ref=v0.10.2"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-peering?ref=v0.13.0"
   create_resources = var.create_peering_connection
 
   aws_account_id = data.aws_caller_identity.current.account_id
@@ -105,7 +120,7 @@ data "aws_caller_identity" "current" {}
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "dns_mgmt_to_app" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-dns-forwarder?ref=v0.10.2"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-dns-forwarder?ref=v0.13.0"
   create_resources = var.create_dns_forwarder
 
   origin_vpc_id                                   = var.origin_vpc_id
@@ -118,7 +133,8 @@ module "dns_mgmt_to_app" {
   destination_vpc_route53_resolver_primary_subnet_id   = var.create_dns_forwarder ? module.vpc.public_subnet_ids[0] : null
   destination_vpc_route53_resolver_secondary_subnet_id = var.create_dns_forwarder ? module.vpc.public_subnet_ids[1] : null
 
-  name_prefix = var.create_dns_forwarder ? "${var.origin_vpc_name}-to-${module.vpc.vpc_name}-" : null
+  destination_vpc_resolver_name = var.destination_vpc_resolver_name
+  origin_vpc_resolver_name      = var.origin_vpc_resolver_name
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -126,7 +142,7 @@ module "dns_mgmt_to_app" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "vpc_tags" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-vpc-tags?ref=v0.26.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-vpc-tags?ref=v0.32.2"
 
   eks_cluster_names = var.eks_cluster_names
 }
@@ -163,7 +179,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "vpc_network_acls" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-app-network-acls?ref=v0.10.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-app-network-acls?ref=v0.13.0"
 
   vpc_id      = module.vpc.vpc_id
   vpc_name    = module.vpc.vpc_name
@@ -189,7 +205,7 @@ module "vpc_network_acls" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "vpc_flow_logs" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-flow-logs?ref=v0.10.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-flow-logs?ref=v0.13.0"
 
   vpc_id                    = module.vpc.vpc_id
   cloudwatch_log_group_name = "${module.vpc.vpc_name}-vpc-flow-logs"

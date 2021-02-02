@@ -38,6 +38,12 @@ variable "num_days_after_which_delete_log_data" {
 # Generally, these values won't need to be changed.
 # ---------------------------------------------------------------------------------------------------------------------
 
+variable "enable_deletion_protection" {
+  description = "Enable deletion protection on the ALB instance. If this is enabled, the load balancer cannot be deleted prior to disabling"
+  type        = bool
+  default     = false
+}
+
 variable "http_listener_ports" {
   description = "A list of ports for which an HTTP Listener should be created on the ALB. Tip: When you define Listener Rules for these Listeners, be sure that, for each Listener, at least one Listener Rule  uses the '*' path to ensure that every possible request path for that Listener is handled by a Listener Rule. Otherwise some requests won't route to any Target Group."
   type        = list(string)

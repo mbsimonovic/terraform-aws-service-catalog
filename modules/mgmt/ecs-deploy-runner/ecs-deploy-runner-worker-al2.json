@@ -4,7 +4,6 @@
     "version_tag": null,
     "aws_region": "us-east-1",
     "ami_name": "ecs-deploy-runner-worker",
-    "copy_to_regions": "",
     "github_auth_token": "{{env `GITHUB_OAUTH_TOKEN`}}",
     "encrypt_boot": "false",
     "encrypt_kms_key_id": "",
@@ -12,7 +11,7 @@
     "vpc_filter_value": "true",
     "vpc_subnet_filter_key": "default-for-az",
     "vpc_subnet_filter_value": "true",
-    "gruntwork_installer_version": "v0.0.30",
+    "gruntwork_installer_version": "v0.0.32",
     "ami_users": "",
     "bash_commons_version": "",
     "module_ecs_version": "",
@@ -68,7 +67,7 @@
     "inline": [
       "sudo yum update -y && sudo yum install -y unzip jq",
       "curl -Ls https://raw.githubusercontent.com/gruntwork-io/gruntwork-installer/master/bootstrap-gruntwork-installer.sh | bash /dev/stdin --version {{user `gruntwork_installer_version`}}",
-      "gruntwork-install --module-name mgmt/ecs-deploy-runner --repo https://github.com/gruntwork-io/aws-service-catalog --tag {{user `service_catalog_ref`}}"
+      "gruntwork-install --module-name mgmt/ecs-deploy-runner --repo https://github.com/gruntwork-io/terraform-aws-service-catalog --tag {{user `service_catalog_ref`}}"
     ],
     "environment_vars": [
       "GITHUB_OAUTH_TOKEN={{user `github_auth_token`}}",

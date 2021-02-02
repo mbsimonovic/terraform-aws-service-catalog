@@ -17,7 +17,7 @@ provider "aws" {
 module "security_baseline" {
   # When using these modules in your own templates, you will need to use a Git URL with a ref attribute that pins you
   # to a specific version of the modules, such as the following example:
-  # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/landingzone/account-baseline-security?ref=v1.0.0"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/landingzone/account-baseline-security?ref=v1.0.0"
   source = "../../../../modules/landingzone/account-baseline-security"
 
   aws_account_id = data.aws_caller_identity.current.account_id
@@ -53,6 +53,11 @@ module "security_baseline" {
   force_destroy_users      = var.force_destroy
   cloudtrail_force_destroy = var.force_destroy
   config_force_destroy     = var.force_destroy
+
+  # Enable IAM Access Analyzer
+  iam_access_analyzer_type   = var.iam_access_analyzer_type
+  iam_access_analyzer_name   = var.iam_access_analyzer_name
+  enable_iam_access_analyzer = var.enable_iam_access_analyzer
 }
 
 data "aws_caller_identity" "current" {}

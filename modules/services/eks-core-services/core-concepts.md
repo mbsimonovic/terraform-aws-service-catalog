@@ -34,13 +34,13 @@ endpoint, you can do the following:
 
 ```hcl
 module "mysql_rds" {
-  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/data-stores/rds?ref=v1.0.8"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/data-stores/rds?ref=v1.0.8"
 
   # ... other attributes omitted for brevity ...
 }
 
 module "eks_core_services" {
-  source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/services/eks-core-services?ref=v1.0.8"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/services/eks-core-services?ref=v1.0.8"
 
   service_dns_mappings = {
     main = {

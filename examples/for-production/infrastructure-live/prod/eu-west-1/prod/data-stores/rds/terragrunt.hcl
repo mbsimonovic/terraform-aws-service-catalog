@@ -11,7 +11,7 @@
 terraform {
   # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
   # to a specific version of the modules, such as the following example:
-  # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/data-stores/rds?ref=v1.0.8"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/data-stores/rds?ref=v1.0.8"
   source = "../../../../../../../../modules//data-stores/rds"
 }
 
@@ -55,15 +55,16 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 inputs = {
-  name              = "ref-arch-lite-${local.account_vars.locals.account_name}-rds"
-  engine            = "mysql"
-  engine_version    = "8.0.17"
-  port              = 3306
-  instance_type     = "db.t3.small"
-  allocated_storage = 5
-  db_name           = "my_db"
-  multi_az          = true
-  master_username   = "admin"
+  name                       = "ref-arch-lite-${local.account_vars.locals.account_name}-rds"
+  engine                     = "mysql"
+  engine_version             = "8.0.17"
+  port                       = 3306
+  instance_type              = "db.t3.small"
+  allocated_storage          = 5
+  db_name                    = "my_db"
+  multi_az                   = true
+  master_username            = "admin"
+  enable_deletion_protection = true
 
   # To avoid storing the password in configuration, the master_password variable should be passed as an environment
   # variable. For example: export TF_VAR_master_password="<password>"

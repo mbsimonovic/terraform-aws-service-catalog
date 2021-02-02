@@ -20,7 +20,7 @@ variable "external_account_ssh_grunt_role_arn" {
 }
 
 variable "enable_ssh_grunt" {
-  description = "Set to true to add IAM permissions for ssh-grunt (https://github.com/gruntwork-io/module-security/tree/master/modules/ssh-grunt), which will allow you to manage SSH access via IAM groups."
+  description = "Set to true to add IAM permissions for ssh-grunt (https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/ssh-grunt), which will allow you to manage SSH access via IAM groups."
   type        = bool
   default     = true
 }

@@ -9,11 +9,10 @@ provider "aws" {
 module "eks_cluster" {
   # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
   # to a specific version of the modules, such as the following example:
-  # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/services/eks-cluster?ref=v1.0.8"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/services/eks-cluster?ref=v1.0.8"
   source = "../../../../modules/services/eks-cluster"
 
   cluster_name                               = var.cluster_name
-  cluster_instance_type                      = "t3.small"
   schedule_control_plane_services_on_fargate = true
   cluster_instance_ami                       = null
   cluster_instance_ami_filters = {
@@ -45,10 +44,11 @@ module "eks_cluster" {
   # deploy one ASG in one public subnet. We use public subnets so we can SSH into the node for testing.
   autoscaling_group_configurations = {
     asg = {
-      min_size   = 1
-      max_size   = 2
-      subnet_ids = [module.vpc.public_subnet_ids[0]]
-      tags       = []
+      min_size          = 1
+      max_size          = 2
+      subnet_ids        = [module.vpc.public_subnet_ids[0]]
+      asg_instance_type = "t3.small"
+      tags              = []
     }
   }
 
@@ -59,6 +59,10 @@ module "eks_cluster" {
   cluster_instance_associate_public_ip_address = true
   allow_inbound_api_access_from_cidr_blocks    = ["0.0.0.0/0"]
   allow_inbound_ssh_from_cidr_blocks           = ["0.0.0.0/0"]
+
+  # Configuration variables for the aws-auth-merger
+  enable_aws_auth_merger = var.enable_aws_auth_merger
+  aws_auth_merger_image  = var.aws_auth_merger_image
 }
 
 # ----------------------------------------------------------------------------------------------------------------------

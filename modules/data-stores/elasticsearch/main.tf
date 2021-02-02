@@ -82,6 +82,10 @@ resource "aws_elasticsearch_domain" "cluster" {
     # Valid values are "Policy-Min-TLS-1-0-2019-07" and "Policy-Min-TLS-1-2-2019-07"
     tls_security_policy = var.tls_security_policy
   }
+
+  timeouts {
+    update = var.update_timeout
+  }
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -154,7 +158,7 @@ resource "aws_security_group_rule" "allow_inbound_https_from_security_group" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "elasticsearch_alarms" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/elasticsearch-alarms?ref=v0.23.1"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/elasticsearch-alarms?ref=v0.24.1"
   create_resources = var.enable_cloudwatch_alarms
 
   cluster_name   = var.domain_name

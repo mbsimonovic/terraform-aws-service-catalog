@@ -89,6 +89,12 @@ variable "maintenance_window" {
   default     = "sat:07:00-sat:08:00"
 }
 
+variable "parameter_group_name" {
+  description = "Name of the parameter group to associate with this cache cluster. This can be used to configure custom settings for the cluster."
+  type        = string
+  default     = null
+}
+
 variable "apply_immediately" {
   description = "Specifies whether any modifications are applied immediately, or during the next maintenance window."
   type        = bool

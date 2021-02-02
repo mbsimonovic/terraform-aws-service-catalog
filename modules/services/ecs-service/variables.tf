@@ -27,6 +27,61 @@ variable "container_definitions" {
 # OPTIONAL PARAMETERS
 # These values may optionally be overwritten by the calling Terraform code.
 # ---------------------------------------------------------------------------------------------------------------------
+
+variable "capacity_provider_strategy" {
+  description = "The capacity provider strategy to use for the service. Note that the capacity providers have to be present on the ECS cluster before deploying the ECS service. When provided, var.launch_type is ignored."
+  type = list(object({
+    capacity_provider = string
+    weight            = number
+    base              = number
+  }))
+  default = []
+
+  # Example:
+  # capacity_provider_strategy = [
+  #    {
+  #      capacity_provider = "FARGATE"
+  #      weight            = 1
+  #      base              = 2
+  #    },
+  #    {
+  #      capacity_provider = "FARGATE_SPOT"
+  #      weight            = 2
+  #      base              = null
+  #    },
+  # ]
+}
+
+variable "launch_type" {
+  description = "The launch type of the ECS service. Must be one of EC2 or FARGATE. When using FARGATE, you must set the network mode to awsvpc and configure it. When using EC2, you can configure the placement strategy using the variables var.placement_strategy_type, var.placement_strategy_field, var.placement_constraint_type, var.placement_constraint_expression. This variable is ignored if var.capacity_provider_strategy is provided."
+  type        = string
+  default     = "EC2"
+}
+
+variable "placement_strategy_type" {
+  description = "The strategy to use when placing ECS tasks on EC2 instances. Can be binpack (default), random, or spread."
+  type        = string
+  default     = "binpack"
+}
+
+variable "placement_strategy_field" {
+  description = "The field to apply the placement strategy against. For the spread placement strategy, valid values are instanceId (or host, which has the same effect), or any platform or custom attribute that is applied to a container instance, such as attribute:ecs.availability-zone. For the binpack placement strategy, valid values are cpu and memory. For the random placement strategy, this field is not used."
+  type        = string
+  default     = "cpu"
+}
+
+variable "placement_constraint_type" {
+  description = "The type of constraint to apply for container instance placement. The only valid values at this time are memberOf and distinctInstance."
+  type        = string
+  default     = "memberOf"
+}
+
+variable "placement_constraint_expression" {
+  description = "Cluster Query Language expression to apply to the constraint for matching. Does not need to be specified for the distinctInstance constraint type."
+  type        = string
+  default     = "attribute:ecs.ami-id != 'ami-fake'"
+}
+
 variable "secrets_manager_arns" {
   description = "A list of ARNs for Secrets Manager secrets that the ECS execution IAM policy should be granted access to read. Note that this is different from the ECS task IAM policy. The execution policy is concerned with permissions required to run the ECS task."
   type        = list(string)
@@ -211,6 +266,62 @@ variable "alb_sticky_session_cookie_duration" {
   description = "The time period, in seconds, during which requests from a client should be routed to the same Target. After this time period expires, the load balancer-generated cookie is considered stale. The acceptable range is 1 second to 1 week (604800 seconds). The default value is 1 day (86400 seconds). Only used if var.elb_target_groups is set."
   type        = number
   default     = 86400
+}
+
+### LB Health Check configurations
+
+variable "health_check_grace_period_seconds" {
+  description = "Seconds to ignore failing load balancer health checks on newly instantiated tasks to prevent premature shutdown, up to 2,147,483,647. Only valid for services configured to use load balancers."
+  type        = number
+  default     = 0
+}
+
+variable "health_check_enabled" {
+  description = "If true, enable health checks on the target group. Only applies to ELBv2. For CLBs, health checks are not configurable."
+  type        = bool
+  default     = true
+}
+
+variable "health_check_interval" {
+  description = "The approximate amount of time, in seconds, between health checks of an individual Target. Minimum value 5 seconds, Maximum value 300 seconds."
+  type        = number
+  default     = 30
+}
+
+variable "health_check_target_group_path" {
+  description = "The ping path that is the destination on the Targets for health checks. Required when using ALBs."
+  type        = string
+  default     = "/"
+}
+
+variable "health_check_port" {
+  description = "The port the ELB uses when performing health checks on Targets. The default is to use the port on which each target receives traffic from the load balancer, indicated by the value 'traffic-port'."
+  type        = string
+  default     = "traffic-port"
+}
+
+variable "health_check_timeout" {
+  description = "The amount of time, in seconds, during which no response from a Target means a failed health check. The acceptable range is 2 to 60 seconds."
+  type        = number
+  default     = 5
+}
+
+variable "health_check_healthy_threshold" {
+  description = "The number of consecutive successful health checks required before considering an unhealthy Target healthy. The acceptable range is 2 to 10."
+  type        = number
+  default     = 5
+}
+
+variable "health_check_unhealthy_threshold" {
+  description = "The number of consecutive failed health checks required before considering a target unhealthy. The acceptable range is 2 to 10. For NLBs, this value must be the same as the health_check_healthy_threshold."
+  type        = number
+  default     = 2
+}
+
+variable "health_check_matcher" {
+  description = "The HTTP codes to use when checking for a successful response from a Target. You can specify multiple values (e.g. '200,202') or a range of values (e.g. '200-299'). Required when using ALBs."
+  type        = string
+  default     = "200"
 }
 
 variable "default_listener_arns" {
@@ -544,7 +655,7 @@ variable "deployment_check_loglevel" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# IAM ROLES AND POLICIES 
+# IAM ROLES AND POLICIES
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "iam_role_name" {
@@ -575,6 +686,17 @@ variable "iam_policy" {
   #     effect = "Allow"
   #   }
   # }
+}
+
+variable "secrets_access" {
+  description = "A list of ARNs of Secrets Manager secrets that the task should have permissions to read. The IAM role for the task will be granted `secretsmanager:GetSecretValue` for each secret in the list. The ARN can be either the complete ARN, including the randomly generated suffix, or the ARN without the suffix. If the latter, the module will look up the full ARN automatically. This is helpful in cases where you don't yet know the randomly generated suffix because the rest of the ARN is a predictable value."
+  type        = list(string)
+  default     = []
+  # Example:
+  # secrets_access = [
+  #   "arn:aws:secretsmanager:us-east-1:123456789012:secret:example",
+  #    "arn:aws:secretsmanager:us-east-1:123456789012:secret:example-123456",
+  #  ]
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

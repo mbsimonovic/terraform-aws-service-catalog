@@ -154,11 +154,23 @@ variable "enable_encrypted_volumes" {
   default     = true
 }
 
+variable "encrypted_volumes_kms_id" {
+  description = "ID or ARN of the KMS key that is used to encrypt the volume. Used for configuring the encrypted volumes config rule."
+  type        = string
+  default     = null
+}
+
 # RDS encryption
 variable "enable_rds_storage_encrypted" {
   description = "Checks whether storage encryption is enabled for your RDS DB instances."
   type        = bool
   default     = true
+}
+
+variable "rds_storage_encrypted_kms_id" {
+  description = "KMS key ID or ARN used to encrypt the storage. Used for configuring the RDS storage encryption config rule."
+  type        = string
+  default     = null
 }
 
 variable "additional_config_rules" {
@@ -172,18 +184,22 @@ variable "additional_config_rules" {
     trigger_type : string
     # A map of input parameters for the rule. If you don't have parameters, pass in an empty map ´{}´.
     input_parameters : map(string)
+    # Whether or not this applies to global (non-regional) resources like IAM roles. When true, these rules are disabled
+    # if var.enable_global_resource_rules is false.
+    applies_to_global_resources = bool
   }))
 
   default = {}
 
   # Example:
   #
-  # additional_rules = {
+  # additional_config_rules = {
   #   acm-certificate-expiration-check = {
-  #     description      = "Checks whether ACM Certificates in your account are marked for expiration within the specified number of days.",
-  #     identifier       = "ACM_CERTIFICATE_EXPIRATION_CHECK",
-  #     trigger_type     = "PERIODIC",
-  #     input_parameters = { "daysToExpiration": "14"},
+  #     description                 = "Checks whether ACM Certificates in your account are marked for expiration within the specified number of days.",
+  #     identifier                  = "ACM_CERTIFICATE_EXPIRATION_CHECK",
+  #     trigger_type                = "PERIODIC",
+  #     input_parameters            = { "daysToExpiration": "14"},
+  #     applies_to_global_resources = false
   #   }
   # }
 
@@ -236,6 +252,24 @@ variable "iam_password_policy_max_password_age" {
   default     = 30
 }
 
+variable "iam_password_policy_allow_users_to_change_password" {
+  description = "Allow users to change their own password."
+  type        = bool
+  default     = true
+}
+
+#
+# WARNING: Setting the below value to "true" with the following conditions can lead to administrative account lockout:
+#
+# 1) You have only a single administrative IAM user
+# 2) You do not have access to the root account
+#
+variable "iam_password_policy_hard_expiry" {
+  description = "Password expiration requires administrator reset."
+  type        = bool
+  default     = true
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL CROSS ACCOUNT IAM ROLES PARAMETERS
 # These variables have defaults, but may be overridden by the operator.
@@ -245,6 +279,12 @@ variable "should_require_mfa" {
   description = "Should we require that all IAM Users use Multi-Factor Authentication for both AWS API calls and the AWS Web Console? (true or false)"
   type        = bool
   default     = true
+}
+
+variable "iam_role_tags" {
+  description = "The tags to apply to all the IAM role resources."
+  type        = map(string)
+  default     = {}
 }
 
 variable "dev_permitted_services" {
@@ -449,6 +489,24 @@ variable "cloudtrail_external_aws_account_ids_with_write_access" {
   default     = []
 }
 
+variable "cloudtrail_allow_kms_describe_key_to_external_aws_accounts" {
+  description = "Whether or not to allow kms:DescribeKey to external AWS accounts with write access to the CloudTrail bucket. This is useful during deployment so that you don't have to pass around the KMS key ARN."
+  type        = bool
+  default     = false
+}
+
+variable "cloudtrail_kms_key_arn_is_alias" {
+  description = "If the kms_key_arn provided is an alias or alias ARN, then this must be set to true so that the module will exchange the alias for a CMK ARN. Setting this to true and using aliases requires var.cloudtrail_allow_kms_describe_key_to_external_aws_accounts to also be true for multi-account scenarios."
+  type        = bool
+  default     = false
+}
+
+variable "cloudtrail_tags" {
+  description = "Tags to apply to the CloudTrail resources."
+  type        = map(string)
+  default     = {}
+}
+
 variable "cloudtrail_force_destroy" {
   description = "If set to true, when you run 'terraform destroy', delete all objects from the bucket so that the bucket can be destroyed without error. Warning: these objects are not recoverable so only use this if you're absolutely sure you want to permanently delete everything!"
   type        = bool
@@ -593,17 +651,6 @@ variable "kms_cmk_opt_in_regions" {
   default     = null
 }
 
-# ---------------------------------------------------------------------------------------------------------------------
-# OPTIONAL PARAMETERS
-# These variables must be passed in by the operator.
-# ---------------------------------------------------------------------------------------------------------------------
-
-variable "service_linked_roles" {
-  description = "Create service-linked roles for this set of services. You should pass in the URLs of the services, but without the protocol (e.g., http://) in front: e.g., use elasticbeanstalk.amazonaws.com for Elastic Beanstalk or es.amazonaws.com for Amazon Elasticsearch. Service-linked roles are predefined by the service, can typically only be assumed by that service, and include all the permissions that the service requires to call other AWS services on your behalf. You can typically only create one such role per AWS account, which is why this parameter exists in the account baseline. See https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_aws-services-that-work-with-iam.html for the list of services that support service-linked roles."
-  type        = set(string)
-  default     = []
-}
-
 variable "kms_grant_regions" {
   description = "The map of names of KMS grants to the region where the key resides in. There should be a one to one mapping between entries in this map and the entries of the kms_grants map. This is used to workaround a terraform limitation where the for_each value can not depend on resources."
   type        = map(string)
@@ -627,4 +674,44 @@ variable "kms_grants" {
     granted_operations = list(string)
   }))
   default = {}
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# OPTIONAL EBS ENCRYPTION PARAMETERS
+# These variables have defaults, but may be overridden by the operator.
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "ebs_enable_encryption" {
+  description = "If set to true (default), all new EBS volumes will have encryption enabled by default"
+  type        = bool
+  default     = true
+}
+
+variable "ebs_use_existing_kms_keys" {
+  description = "If set to true, the KMS Customer Managed Keys (CMK) with the name in var.ebs_kms_key_name will be set as the default for EBS encryption. When false (default), the AWS-managed aws/ebs key will be used."
+  type        = bool
+  default     = false
+}
+
+variable "ebs_kms_key_name" {
+  description = "The name of the KMS CMK to use by default for encrypting EBS volumes, if var.enable_encryption and var.use_existing_kms_keys are enabled. The name must match the name given the var.kms_customer_master_keys variable."
+  type        = string
+  default     = ""
+}
+
+variable "ebs_opt_in_regions" {
+  description = "Configures EBS encryption defaults in the specified regions. Note that the region must be enabled on your AWS account. Regions that are not enabled are automatically filtered from this list. When null (default), EBS encryption will be enabled on all regions enabled on the account. Use this list to provide an alternate region list for testing purposes."
+  type        = list(string)
+  default     = null
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# OPTIONAL SERVICE LINKED ROLES PARAMETERS
+# These variables have defaults, but may be overridden by the operator.
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "service_linked_roles" {
+  description = "Create service-linked roles for this set of services. You should pass in the URLs of the services, but without the protocol (e.g., http://) in front: e.g., use elasticbeanstalk.amazonaws.com for Elastic Beanstalk or es.amazonaws.com for Amazon Elasticsearch. Service-linked roles are predefined by the service, can typically only be assumed by that service, and include all the permissions that the service requires to call other AWS services on your behalf. You can typically only create one such role per AWS account, which is why this parameter exists in the account baseline. See https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_aws-services-that-work-with-iam.html for the list of services that support service-linked roles."
+  type        = set(string)
+  default     = []
 }

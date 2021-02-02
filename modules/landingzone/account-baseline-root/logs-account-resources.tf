@@ -69,7 +69,7 @@ provider "aws" {
 }
 
 module "config_bucket" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/aws-config-bucket?ref=v0.39.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/aws-config-bucket?ref=v0.44.10"
 
   providers = {
     aws = aws.logs
@@ -82,7 +82,7 @@ module "config_bucket" {
   linked_accounts = local.all_non_logs_account_ids
 
   # We have to set this to work around an issue where aws_caller_identity returns the wrong account ID. See:
-  # https://github.com/gruntwork-io/module-security/pull/308#issuecomment-676561441
+  # https://github.com/gruntwork-io/terraform-aws-security/pull/308#issuecomment-676561441
   current_account_id = local.has_logs_account ? local.logs_account_id : null
 
   force_destroy                         = var.config_force_destroy
@@ -92,7 +92,7 @@ module "config_bucket" {
 }
 
 module "cloudtrail_bucket" {
-  source = "git::git@github.com:gruntwork-io/module-security.git//modules/cloudtrail-bucket?ref=v0.39.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/cloudtrail-bucket?ref=v0.44.10"
 
   providers = {
     aws = aws.logs
@@ -106,19 +106,21 @@ module "cloudtrail_bucket" {
 
   cloudtrail_trail_name = var.name_prefix
 
-  kms_key_already_exists           = var.cloudtrail_kms_key_arn != null
-  kms_key_arn                      = var.cloudtrail_kms_key_arn
-  kms_key_administrator_iam_arns   = local.cloudtrail_kms_key_administrator_iam_arns
-  kms_key_user_iam_arns            = var.cloudtrail_kms_key_user_iam_arns
-  allow_cloudtrail_access_with_iam = var.allow_cloudtrail_access_with_iam
+  kms_key_already_exists                          = var.cloudtrail_kms_key_arn != null
+  kms_key_arn                                     = var.cloudtrail_kms_key_arn
+  kms_key_administrator_iam_arns                  = local.cloudtrail_kms_key_administrator_iam_arns
+  kms_key_user_iam_arns                           = var.cloudtrail_kms_key_user_iam_arns
+  allow_kms_describe_key_to_external_aws_accounts = var.cloudtrail_allow_kms_describe_key_to_external_aws_accounts
+  allow_cloudtrail_access_with_iam                = var.allow_cloudtrail_access_with_iam
 
   # We have to set this to work around an issue where aws_caller_identity returns the wrong account ID. See:
-  # https://github.com/gruntwork-io/module-security/pull/308#issuecomment-676561441
+  # https://github.com/gruntwork-io/terraform-aws-security/pull/308#issuecomment-676561441
   current_account_id = local.has_logs_account ? local.logs_account_id : null
 
   force_destroy                         = var.cloudtrail_force_destroy
   num_days_after_which_archive_log_data = var.cloudtrail_num_days_after_which_archive_log_data
   num_days_after_which_delete_log_data  = var.cloudtrail_num_days_after_which_delete_log_data
+  tags                                  = var.cloudtrail_tags
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

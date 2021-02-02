@@ -44,7 +44,7 @@ toc::[]
 
 == Learn
 
-NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog/[Gruntwork Service Catalog], a collection of
+NOTE: This repo is a part of the https://github.com/gruntwork-io/terraform-aws-service-catalog/[Gruntwork Service Catalog], a collection of
 reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
 sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/[How to use the Gruntwork
 Service Catalog]!
@@ -77,8 +77,8 @@ If you want to deploy this repo in production, check out the following resources
 
 === Day-to-day operations
 
-* https://github.com/gruntwork-io/module-cache/tree/master/modules/memcached#how-do-you-connect-to-the-memcached-cluster[How do you connect to the Memcached cluster?]
-* https://github.com/gruntwork-io/module-cache/tree/master/modules/memcached#how-do-you-scale-this-memcached-cluster[How do you scale the Memcached cluster?]
+* https://github.com/gruntwork-io/terraform-aws-cache/tree/master/modules/memcached#how-do-you-connect-to-the-memcached-cluster[How do you connect to the Memcached cluster?]
+* https://github.com/gruntwork-io/terraform-aws-cache/tree/master/modules/memcached#how-do-you-scale-this-memcached-cluster[How do you scale the Memcached cluster?]
 * link:core-concepts.md#how-do-i-use-kubernetes-service-discovery-with-the-elasticache-memcached-cluster[How do I use Kubernetes Service
   Discovery with the ElastiCache Memcached Cluster?]
 

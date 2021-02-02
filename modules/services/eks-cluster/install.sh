@@ -4,7 +4,7 @@
 set -e
 
 # renovate.json auto-update: terraform-aws-eks
-readonly DEFAULT_TERRAFORM_AWS_EKS_VERSION="v0.26.0"
+readonly DEFAULT_TERRAFORM_AWS_EKS_VERSION="v0.32.2"
 
 # NOTE: A few variables will be imported from ec2-baseline
 # - DEFAULT_MODULE_SECURITY_VERSION
@@ -28,12 +28,12 @@ function include_ec2_baseline {
 
   gruntwork-install \
     --module-name base/ec2-baseline \
-    --repo https://github.com/gruntwork-io/aws-service-catalog \
+    --repo https://github.com/gruntwork-io/terraform-aws-service-catalog \
     ${ec2_baseline_version_branch} \
     ${ec2_baseline_version_tag}
 
   # Include common defaults and functions from the ec2-baseline install script
-  # See: https://github.com/gruntwork-io/aws-service-catalog/blob/master/modules/base/ec2-baseline
+  # See: https://github.com/gruntwork-io/terraform-aws-service-catalog/blob/master/modules/base/ec2-baseline
   readonly EC2_BASELINE_RELATIVE_PATH="../../base/ec2-baseline"
   readonly EC2_BASELINE_PATH="$(dirname "$(realpath "$0")")/${EC2_BASELINE_RELATIVE_PATH}"
   if [[ ! -f "${EC2_BASELINE_PATH}/install.sh" ]]; then

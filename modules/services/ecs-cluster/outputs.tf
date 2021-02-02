@@ -1,9 +1,6 @@
 output "ecs_cluster_arn" {
   description = "The ID of the ECS cluster"
   value       = module.ecs_cluster.ecs_cluster_arn
-
-  # Explicitly ties the aws_ecs_cluster to the aws_autoscaling_group, so that the resources are created together
-  depends_on = [module.ecs_cluster.aws_autoscaling_group.ecs]
 }
 
 output "ecs_cluster_launch_configuration_id" {
@@ -14,14 +11,21 @@ output "ecs_cluster_launch_configuration_id" {
 output "ecs_cluster_name" {
   description = "The name of the ECS cluster"
   value       = module.ecs_cluster.ecs_cluster_name
-
-  # Explicitly ties the aws_ecs_cluster to the aws_autoscaling_group, so that the resources are created together
-  depends_on = [module.ecs_cluster.aws_autoscaling_group.ecs]
 }
 
 output "ecs_cluster_asg_name" {
   description = "The name of the ECS cluster's autoscaling group (ASG)"
   value       = module.ecs_cluster.ecs_cluster_asg_name
+}
+
+output "ecs_cluster_asg_names" {
+  description = "For configurations with multiple ASGs, this contains a list of ASG names."
+  value       = module.ecs_cluster.ecs_cluster_asg_name
+}
+
+output "ecs_cluster_capacity_provider_names" {
+  description = "For configurations with multiple capacity providers, this contains a list of all capacity provider names."
+  value       = module.ecs_cluster.ecs_cluster_capacity_provider_names
 }
 
 output "ecs_instance_security_group_id" {

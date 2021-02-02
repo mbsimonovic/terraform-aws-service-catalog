@@ -1,24 +1,30 @@
 # ---------------------------------------------------------------------------------------------------------------------
-# REQUIRED SENSITIVE PARAMETERS
-# These variables are expected to be passed in via environment variables by the operator when calling this terraform
-# module.
-# Set using the env var TF_VAR_varname.
-# ---------------------------------------------------------------------------------------------------------------------
-
-# TF_VAR_master_password
-variable "master_password" {
-  description = "The password for the master user."
-  type        = string
-}
-
-# ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL PARAMETERS
 # ---------------------------------------------------------------------------------------------------------------------
 
+variable "db_config_secrets_manager_id" {
+  description = "The friendly name or ARN of an AWS Secrets Manager secret that contains database configuration information in the format outlined by this document: https://docs.aws.amazon.com/secretsmanager/latest/userguide/best-practices.html. If you do not wish to use Secrets Manager, leave this as null, and use the master_username, master_password, db_name, engine, and port variables. Note that even with this precaution, this information will be stored in plaintext in the Terraform state file! See the following blog post for more details: https://blog.gruntwork.io/a-comprehensive-guide-to-managing-secrets-in-your-terraform-code-1d586955ace1."
+  type        = string
+  default     = null
+  # Use this variable to specify the ID of a Secrets Manager Secret. The value of the secret must be JSON of the format:
+  # {
+  #   "engine": "mysql",
+  #   "username": "example-user",
+  #   "password": "example-password",
+  #   "dbname": "myDatabase",
+  #   "port": "3306"
+  # }
+}
 variable "name" {
   description = "The name used to namespace all the Aurora resources created by these templates, including the cluster and cluster instances (e.g. drupaldb). Must be unique in this region. Must be a lowercase string."
   type        = string
   default     = "aurora"
+}
+
+variable "master_password" {
+  description = "The password for the master user."
+  type        = string
+  default     = null
 }
 
 variable "master_username" {

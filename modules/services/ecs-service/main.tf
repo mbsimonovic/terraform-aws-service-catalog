@@ -22,11 +22,18 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_service" {
-  source = "git::git@github.com:gruntwork-io/module-ecs.git//modules/ecs-service?ref=v0.23.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ecs.git//modules/ecs-service?ref=v0.24.1"
 
   service_name     = var.service_name
   environment_name = var.service_name
   ecs_cluster_arn  = var.ecs_cluster_arn
+
+  launch_type                     = var.launch_type
+  capacity_provider_strategy      = var.capacity_provider_strategy
+  placement_strategy_type         = var.placement_strategy_type
+  placement_strategy_field        = var.placement_strategy_field
+  placement_constraint_type       = var.placement_constraint_type
+  placement_constraint_expression = var.placement_constraint_expression
 
   ecs_task_container_definitions = local.container_definitions
   desired_number_of_tasks        = var.desired_number_of_tasks
@@ -47,6 +54,16 @@ module "ecs_service" {
 
   elb_target_groups       = var.elb_target_groups
   elb_target_group_vpc_id = var.elb_target_group_vpc_id
+
+  health_check_grace_period_seconds = var.health_check_grace_period_seconds
+  health_check_enabled              = var.health_check_enabled
+  health_check_interval             = var.health_check_interval
+  health_check_path                 = var.health_check_target_group_path
+  health_check_port                 = var.health_check_port
+  health_check_timeout              = var.health_check_timeout
+  health_check_healthy_threshold    = var.health_check_healthy_threshold
+  health_check_unhealthy_threshold  = var.health_check_unhealthy_threshold
+  health_check_matcher              = var.health_check_matcher
 
   enable_ecs_deployment_check      = var.enable_ecs_deployment_check
   deployment_check_timeout_seconds = var.deployment_check_timeout_seconds
@@ -94,14 +111,14 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_iam_role_policy" "service_policy" {
-  count  = var.iam_role_name != "" ? 1 : 0
+  count  = var.iam_role_name != "" && var.iam_policy != null ? 1 : 0
   name   = "${var.iam_role_name}Policy"
   role   = module.ecs_service.ecs_task_iam_role_name
   policy = data.aws_iam_policy_document.service_policy[0].json
 }
 
 data "aws_iam_policy_document" "service_policy" {
-  count = var.iam_role_name != "" ? 1 : 0
+  count = var.iam_role_name != "" && var.iam_policy != null ? 1 : 0
 
   dynamic "statement" {
     for_each = var.iam_policy == null ? {} : var.iam_policy
@@ -113,6 +130,31 @@ data "aws_iam_policy_document" "service_policy" {
       resources = statement.value.resources
     }
   }
+}
+
+resource "aws_iam_role_policy" "secrets_access_policy" {
+  count  = var.iam_role_name != "" && var.secrets_access != null ? 1 : 0
+  name   = "${var.iam_role_name}SecretsAccessPolicy"
+  role   = module.ecs_service.ecs_task_iam_role_name
+  policy = data.aws_iam_policy_document.secrets_access_policy_document[0].json
+}
+
+data "aws_iam_policy_document" "secrets_access_policy_document" {
+  count = var.iam_role_name != "" && var.secrets_access != null ? 1 : 0
+
+  statement {
+    sid       = "SecretsAccess"
+    effect    = "Allow"
+    actions   = ["secretsmanager:GetSecretValue"]
+    resources = [for secret in data.aws_secretsmanager_secret.secrets_arn_exchange : secret.arn]
+  }
+}
+
+# This allows the user to pass either the full ARN of a Secrets Manager secret (including the randomly generated
+# suffix) or the ARN without the random suffix. The data source will find the full ARN for use in the IAM policy.
+data "aws_secretsmanager_secret" "secrets_arn_exchange" {
+  for_each = var.iam_role_name != "" ? { for secret in var.secrets_access : secret => secret } : {}
+  arn      = each.value
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -196,7 +238,7 @@ data "aws_iam_policy_document" "ecs_task" {
 # domain names (the condition block) to the Target Group that contains this ASG service.
 # ---------------------------------------------------------------------------------------------------------------------
 module "listener_rules" {
-  source                 = "git::git@github.com:gruntwork-io/module-load-balancer.git//modules/lb-listener-rules?ref=v0.21.0"
+  source                 = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/lb-listener-rules?ref=v0.21.0"
   default_listener_arns  = var.default_listener_arns
   default_listener_ports = var.default_listener_ports
 
@@ -217,7 +259,7 @@ module "listener_rules" {
 
 # Add CloudWatch Alarms that go off if the ECS Service's CPU or Memory usage gets too high.
 module "ecs_service_cpu_memory_alarms" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/ecs-service-alarms?ref=v0.23.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/ecs-service-alarms?ref=v0.24.1"
 
   ecs_service_name     = var.service_name
   ecs_cluster_name     = var.ecs_cluster_name
@@ -230,7 +272,7 @@ module "ecs_service_cpu_memory_alarms" {
 }
 
 module "metric_widget_ecs_service_cpu_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.24.1"
 
   period = 60
   stat   = "Average"
@@ -242,7 +284,7 @@ module "metric_widget_ecs_service_cpu_usage" {
 }
 
 module "metric_widget_ecs_service_memory_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.24.1"
 
   period = 60
   stat   = "Average"
@@ -279,7 +321,7 @@ resource "aws_route53_record" "service" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "route53_health_check" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/route53-health-check-alarms?ref=v0.23.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/route53-health-check-alarms?ref=v0.24.1"
 
   create_resources               = var.enable_route53_health_check
   alarm_sns_topic_arns_us_east_1 = var.alarm_sns_topic_arns_us_east_1
@@ -296,4 +338,3 @@ module "route53_health_check" {
     }
   }
 }
-

@@ -46,13 +46,13 @@ toc::[]
 
 == Learn
 
-NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog/[Gruntwork Service Catalog], a collection of
+NOTE: This repo is a part of the https://github.com/gruntwork-io/terraform-aws-service-catalog/[Gruntwork Service Catalog], a collection of
 reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
 sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/[How to use the Gruntwork
 Service Catalog]!
 
-* https://github.com/gruntwork-io/module-cache/tree/master/modules/redis#what-is-amazon-elasticache[What is Amazon ElastiCache?]
-* https://github.com/gruntwork-io/module-cache/tree/master/modules/redis#common-gotchas[Common gotchas with ElastiCache]
+* https://github.com/gruntwork-io/terraform-aws-cache/tree/master/modules/redis#what-is-amazon-elasticache[What is Amazon ElastiCache?]
+* https://github.com/gruntwork-io/terraform-aws-cache/tree/master/modules/redis#common-gotchas[Common gotchas with ElastiCache]
 * https://docs.aws.amazon.com/AmazonElastiCache/latest/red-ug/WhatIs.html[Amazon ElastiCache for Redis documentation]: Amazon's ElastiCache for Redis docs that
   cover core concepts such as the options and versions supported, security, backup & restore, and monitoring.
 * _https://dataintensive.net[Designing Data Intensive Applications]_: the best book we've found for understanding data
@@ -81,9 +81,9 @@ If you want to deploy this repo in production, check out the following resources
 
 === Day-to-day operations
 
-* https://github.com/gruntwork-io/module-cache/tree/master/modules/redis#how-do-you-connect-to-the-redis-cluster[How to connect to a Redis cluster]
-* https://github.com/gruntwork-io/module-cache/tree/master/modules/redis#structure-of-an-elasticache-redis-deployment[Structure of an ElastiCache Redis deployment]
-* https://github.com/gruntwork-io/module-cache/tree/master/modules/redis#how-do-you-scale-the-redis-cluster[How to scale the Redis cluster]
+* https://github.com/gruntwork-io/terraform-aws-cache/tree/master/modules/redis#how-do-you-connect-to-the-redis-cluster[How to connect to a Redis cluster]
+* https://github.com/gruntwork-io/terraform-aws-cache/tree/master/modules/redis#structure-of-an-elasticache-redis-deployment[Structure of an ElastiCache Redis deployment]
+* https://github.com/gruntwork-io/terraform-aws-cache/tree/master/modules/redis#how-do-you-scale-the-redis-cluster[How to scale the Redis cluster]
 * link:core-concepts.md#how-do-i-use-kubernetes-service-discovery-with-the-elasticache-redis-cluster[How do I use Kubernetes Service
   Discovery with the ElastiCache Redis Cluster?]
 

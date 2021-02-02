@@ -19,64 +19,68 @@ variable "control_plane_vpc_subnet_ids" {
 }
 
 variable "autoscaling_group_configurations" {
-  description = "Configure one or more Auto Scaling Groups (ASGs) to manage the EC2 instances in this cluster. If you do not wish to use the default self managed ASG group, you can pass in an empty object (`{}`)."
+  description = "Configure one or more Auto Scaling Groups (ASGs) to manage the EC2 instances in this cluster. If any of the values are not provided, the specified default variable will be used to lookup a default value."
+  # Ideally, we will use a more strict type here but since we want to support required and optional values, and since
+  # Terraform's type system only supports maps that have the same type for all values, we have to use the less useful
+  # `any` type.
+  type = any
 
-  # Each configuration must be keyed by a unique string that will be used as a suffix for the ASG name.
+  # Each configuration must be keyed by a unique string that will be used as a suffix for the ASG name. The values
+  # support the following attributes:
+  #
+  # REQUIRED (must be provided for every entry):
+  # - subnet_ids  list(string)  : A list of the subnets into which the EKS Cluster's worker nodes will be launched.
+  #                               These should usually be all private subnets and include one in each AWS Availability
+  #                               Zone. NOTE: If using a cluster autoscaler, each ASG may only belong to a single
+  #                               availability zone.
+  #
+  # OPTIONAL (defaults to value of corresponding module input):
+  # - min_size            number             : (Defaults to value from var.asg_default_min_size) The minimum number of
+  #                                            EC2 Instances representing workers launchable for this EKS Cluster.
+  #                                            Useful for auto-scaling limits.
+  # - max_size            number             : (Defaults to value from var.asg_default_max_size) The maximum number of
+  #                                            EC2 Instances representing workers that must be running for this EKS
+  #                                            Cluster. We recommend making this at least twice the min_size, even if
+  #                                            you don't plan on scaling the cluster up and down, as the extra capacity
+  #                                            will be used to deploy updates to the cluster.
+  # - asg_instance_type   string             : (Defaults to value from var.asg_default_instance_type) The type of
+  #                                            instances to use for the ASG (e.g., t2.medium).
+  # - asg_instance_spot_price   string       : (Defaults to value from var.asg_default_instance_spot_price) The type of
+  #                                            instances to use for the ASG .
+  # - asg_instance_root_volume_size   number : (Defaults to value from var.asg_default_instance_root_volume_size) The root volume size of
+  #                                            instances to use for the ASG in GB (e.g., 40).
+  # - asg_instance_root_volume_type   string : (Defaults to value from var.asg_default_instance_root_volume_type) The root volume type of
+  #                                            instances to use for the ASG (e.g., "standard").
+  # - asg_instance_root_volume_encryption   bool  : (Defaults to value from var.asg_default_instance_root_volume_encryption) 
+  #                                             Whether or not to enable root volume encryption for instances of the ASG.
+  # - tags                list(object[Tag])  : (Defaults to value from var.asg_default_tags) Custom tags to apply to the
+  #                                            EC2 Instances in this ASG. Refer to structure definition below for the
+  #                                            object type of each entry in the list.
+  #
+  # Structure of Tag object:
+  # - key                  string  : The key for the tag to apply to the instance.
+  # - value                string  : The value for the tag to apply to the instance.
+  # - propagate_at_launch  bool    : Whether or not the tags should be propagated to the instance at launch time.
+  #
   #
   # Example:
   # autoscaling_group_configurations = {
   #   "asg1" = {
-  #     min_size   = 1
-  #     max_size   = 3
-  #     subnet_ids = [data.terraform_remote_state.vpc.outputs.private_app_subnet_ids[0]]
-  #     tags       = []
+  #     asg_instance_type = "t2.medium"
+  #     subnet_ids        = [data.terraform_remote_state.vpc.outputs.private_app_subnet_ids[0]]
   #   },
   #   "asg2" = {
-  #     min_size   = 1
-  #     max_size   = 3
-  #     subnet_ids = [data.terraform_remote_state.vpc.outputs.private_app_subnet_ids[1]]
-  #     tags       = []
+  #     max_size          = 3
+  #     asg_instance_type = "t2.large"
+  #     subnet_ids        = [data.terraform_remote_state.vpc.outputs.private_app_subnet_ids[1]]
+  #
+  #     tags = [{
+  #       key                 = "size"
+  #       value               = "large"
+  #       propagate_at_launch = true
+  #     }]
   #   }
   # }
-  type = map(object({
-    # The minimum number of EC2 Instances representing workers launchable for this EKS Cluster. Useful for auto-scaling limits.
-    min_size = number
-    # The maximum number of EC2 Instances representing workers that must be running for this EKS Cluster.
-    # We recommend making this at least twice the min_size, even if you don't plan on scaling the cluster up and down, as the extra capacity will be used to deploy udpates to the cluster.
-    max_size = number
-
-    # A list of the subnets into which the EKS Cluster's worker nodes will be launched.
-    # These should usually be all private subnets and include one in each AWS Availability Zone.
-    # NOTE: If using a cluster autoscaler, each ASG may only belong to a single availability zone.
-    subnet_ids = list(string)
-
-    # Custom tags to apply to the EC2 Instances in this ASG.
-    # Each item in this list should be a map with the parameters key, value, and propagate_at_launch.
-    #
-    # Example:
-    # [
-    #   {
-    #     key = "foo"
-    #     value = "bar"
-    #     propagate_at_launch = true
-    #   },
-    #   {
-    #     key = "baz"
-    #     value = "blah"
-    #     propagate_at_launch = true
-    #   }
-    # ]
-    tags = list(object({
-      key                 = string
-      value               = string
-      propagate_at_launch = bool
-    }))
-  }))
-}
-
-variable "cluster_instance_type" {
-  description = "The type of instances to run in the EKS cluster (e.g. t3.medium)"
-  type        = string
 }
 
 variable "allow_inbound_api_access_from_cidr_blocks" {
@@ -128,18 +132,6 @@ variable "worker_vpc_subnet_ids" {
   default     = []
 }
 
-variable "cluster_instance_keypair_name" {
-  description = "The name of the Key Pair that can be used to SSH to each instance in the EKS cluster"
-  type        = string
-  default     = null
-}
-
-variable "autoscaling_group_include_autoscaler_discovery_tags" {
-  description = "Adds additional tags to each ASG that allow a cluster autoscaler to auto-discover them."
-  type        = bool
-  default     = true
-}
-
 variable "allow_inbound_ssh_from_security_groups" {
   description = "The list of security group IDs to allow inbound SSH access to the worker groups."
   type        = list(string)
@@ -162,6 +154,47 @@ variable "allow_private_api_access_from_security_groups" {
   description = "The list of security groups to allow inbound access to the private Kubernetes API endpoint (e.g. the endpoint within the VPC, not the public endpoint)."
   type        = list(string)
   default     = []
+}
+
+variable "enable_aws_auth_merger" {
+  description = "If set to true, installs the aws-auth-merger to manage the aws-auth configuration. When true, requires setting the var.aws_auth_merger_image variable."
+  type        = bool
+  default     = false
+}
+
+variable "aws_auth_merger_image" {
+  description = "Location of the container image to use for the aws-auth-merger app. You can use the Dockerfile provided in terraform-aws-eks to construct an image. See https://github.com/gruntwork-io/terraform-aws-eks/blob/master/modules/eks-aws-auth-merger/core-concepts.md#how-do-i-use-the-aws-auth-merger for more info."
+  type = object({
+    # Container image repository where the aws-auth-merger app container image lives
+    repo = string
+    # Tag of the aws-auth-merger container to deploy
+    tag = string
+  })
+  default = null
+}
+
+variable "aws_auth_merger_namespace" {
+  description = "Namespace to deploy the aws-auth-merger into. The app will watch for ConfigMaps in this Namespace to merge into the aws-auth ConfigMap."
+  type        = string
+  default     = "aws-auth-merger"
+}
+
+variable "aws_auth_merger_default_configmap_name" {
+  description = "Name of the default aws-auth ConfigMap to use. This will be the name of the ConfigMap that gets created by this module in the aws-auth-merger namespace to seed the initial aws-auth ConfigMap."
+  type        = string
+  default     = "main-aws-auth"
+}
+
+variable "enable_aws_auth_merger_fargate" {
+  description = "When true, deploy the aws-auth-merger into Fargate. It is recommended to run the aws-auth-merger on Fargate to avoid chicken and egg issues between the aws-auth-merger and having an authenticated worker pool."
+  type        = bool
+
+  # Since we will manage the IAM role mapping for the workers using the merger, we need to schedule the deployment onto
+  # Fargate. Otherwise, there is a chicken and egg problem where the workers won't be able to auth until the
+  # aws-auth-merger is deployed, but the aws-auth-merger can't be deployed until the workers are setup. Fargate IAM
+  # auth is automatically configured by AWS when we create the Fargate Profile, so we can break the cycle if we use
+  # Fargate.
+  default = true
 }
 
 variable "iam_role_to_rbac_group_mapping" {
@@ -266,6 +299,72 @@ variable "enabled_control_plane_log_types" {
   description = "A list of the desired control plane logging to enable. See https://docs.aws.amazon.com/eks/latest/userguide/control-plane-logs.html for the list of available logs."
   type        = list(string)
   default     = ["api", "audit", "authenticator"]
+}
+
+# Properties of the EKS Cluster's EC2 Instances
+
+variable "asg_default_min_size" {
+  description = "Default value for the min_size field of autoscaling_group_configurations. Any map entry that does not specify min_size will use this value."
+  type        = number
+  default     = 1
+}
+
+variable "asg_default_max_size" {
+  description = "Default value for the max_size field of autoscaling_group_configurations. Any map entry that does not specify max_size will use this value."
+  type        = number
+  default     = 2
+}
+
+variable "asg_default_instance_type" {
+  description = "Default value for the asg_instance_type field of autoscaling_group_configurations. Any map entry that does not specify asg_instance_type will use this value."
+  type        = string
+  default     = "t3.medium"
+}
+
+variable "asg_default_instance_spot_price" {
+  description = "Default value for the asg_instance_spot_price field of autoscaling_group_configurations. Any map entry that does not specify asg_instance_spot_price will use this value."
+  type        = string
+  default     = null
+}
+
+variable "asg_default_instance_root_volume_size" {
+  description = "Default value for the asg_instance_root_volume_size field of autoscaling_group_configurations. Any map entry that does not specify asg_instance_root_volume_size will use this value."
+  type        = number
+  default     = 40
+}
+
+variable "asg_default_instance_root_volume_type" {
+  description = "Default value for the asg_instance_root_volume_type field of autoscaling_group_configurations. Any map entry that does not specify asg_instance_root_volume_type will use this value."
+  type        = string
+  default     = "standard"
+}
+
+variable "asg_default_instance_root_volume_encryption" {
+  description = "Default value for the asg_instance_root_volume_encryption field of autoscaling_group_configurations. Any map entry that does not specify asg_instance_root_volume_encryption will use this value."
+  type        = bool
+  default     = true
+}
+
+variable "asg_default_tags" {
+  description = "Default value for the tags field of autoscaling_group_configurations. Any map entry that does not specify tags will use this value."
+  type = list(object({
+    key                 = string
+    value               = string
+    propagate_at_launch = bool
+  }))
+  default = []
+}
+
+variable "cluster_instance_keypair_name" {
+  description = "The name of the Key Pair that can be used to SSH to each instance in the EKS cluster"
+  type        = string
+  default     = null
+}
+
+variable "autoscaling_group_include_autoscaler_discovery_tags" {
+  description = "Adds additional tags to each ASG that allow a cluster autoscaler to auto-discover them."
+  type        = bool
+  default     = true
 }
 
 # CloudWatch Dashboard Widgets

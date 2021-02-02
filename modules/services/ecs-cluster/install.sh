@@ -3,14 +3,14 @@
 
 set -e
 
-# renovate.json auto-update: module-ecs
-readonly DEFAULT_ECS_CLUSTER_VERSION="v0.23.0"
+# renovate.json auto-update: terraform-aws-ecs
+readonly DEFAULT_ECS_CLUSTER_VERSION="v0.24.1"
 
 # ECS tooling
-# renovate.json auto-update: module-ecs
-readonly DEFAULT_ECS_SCRIPTS_VERSION="v0.23.0"
+# renovate.json auto-update: terraform-aws-ecs
+readonly DEFAULT_ECS_SCRIPTS_VERSION="v0.24.1"
 # renovate.json auto-update: gruntkms
-readonly DEFAULT_GRUNT_KMS_VERSION="v0.0.8"
+readonly DEFAULT_GRUNT_KMS_VERSION="v0.0.9"
 
 # You can set the version of the build tooling to this value to skip installing it
 readonly SKIP_INSTALL_VERSION="NONE"
@@ -37,12 +37,12 @@ function include_ec2_baseline {
 
   gruntwork-install \
     --module-name base/ec2-baseline \
-    --repo https://github.com/gruntwork-io/aws-service-catalog \
+    --repo https://github.com/gruntwork-io/terraform-aws-service-catalog \
     ${ec2_baseline_version_branch} \
     ${ec2_baseline_version_tag}
 
   # Include common defaults and functions from the ec2-baseline install script
-  # See: https://github.com/gruntwork-io/aws-service-catalog/blob/master/modules/base/ec2-baseline
+  # See: https://github.com/gruntwork-io/terraform-aws-service-catalog/blob/master/modules/base/ec2-baseline
   readonly EC2_BASELINE_RELATIVE_PATH="../../base/ec2-baseline"
   readonly EC2_BASELINE_PATH="$(dirname "$(realpath "$0")")/${EC2_BASELINE_RELATIVE_PATH}"
   if [[ ! -f "${EC2_BASELINE_PATH}/install.sh" ]]; then
@@ -126,7 +126,7 @@ function install_ecs_cluster {
 
   # install ecs-scripts module which allows for configuring an EC2 instance to join an existing ECS cluster
   # See: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/bootstrap_container_instance.html for more information
-  gruntwork-install --module-name 'ecs-scripts' --repo https://github.com/gruntwork-io/module-ecs --tag "$ecs_cluster_version"
+  gruntwork-install --module-name 'ecs-scripts' --repo https://github.com/gruntwork-io/terraform-aws-ecs --tag "$ecs_cluster_version"
 
   install_user_data \
     "${EC2_BASELINE_PATH}/user-data-common.sh"

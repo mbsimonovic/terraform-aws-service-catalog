@@ -28,3 +28,20 @@ variable "keypair_name" {
   type        = string
   default     = null
 }
+
+variable "enable_aws_auth_merger" {
+  description = "If set to true, installs the aws-auth-merger to manage the aws-auth configuration. When true, requires setting the var.aws_auth_merger_image variable."
+  type        = bool
+  default     = false
+}
+
+variable "aws_auth_merger_image" {
+  description = "Location of the container image to use for the aws-auth-merger app. You can use the Dockerfile provided in terraform-aws-eks to construct an image. See https://github.com/gruntwork-io/terraform-aws-eks/blob/master/modules/eks-aws-auth-merger/core-concepts.md#how-do-i-use-the-aws-auth-merger for more info."
+  type = object({
+    # Container image repository where the aws-auth-merger app container image lives
+    repo = string
+    # Tag of the aws-auth-merger container to deploy
+    tag = string
+  })
+  default = null
+}

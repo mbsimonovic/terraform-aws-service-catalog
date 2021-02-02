@@ -16,7 +16,7 @@ provider "aws" {
 module "static_website" {
   # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
   # to a specific version of the modules, such as the following example:
-  # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/services/public-static-website?ref=v1.2.3"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/services/public-static-website?ref=v1.2.3"
   source = "../../../../modules/services/public-static-website"
 
   website_domain_name         = var.website_domain_name

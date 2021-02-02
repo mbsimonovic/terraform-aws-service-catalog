@@ -11,7 +11,7 @@
 terraform {
   # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
   # to a specific version of the modules, such as the following example:
-  # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/landingzone/account-baseline-security?ref=v1.0.8"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/landingzone/account-baseline-security?ref=v1.0.8"
   source = "../../../../../../modules//landingzone/account-baseline-security"
 
   # This module deploys some resources (e.g., AWS Config) across all AWS regions, each of which needs its own provider,
@@ -33,13 +33,15 @@ locals {
   # Automatically load common variables shared across all accounts
   common_vars = read_terragrunt_config(find_in_parent_folders("common.hcl"))
 
-  security_full_access_group_name = "full-access"
-  access_all_accounts_group_name  = "access-all-external-accounts"
-  stage_full_access_group_name    = "_account.stage-full-access"
-  stage_read_only_group_name      = "_account.stage-read-only"
-  prod_full_access_group_name     = "_account.prod-full-access"
-  prod_read_only_group_name       = "_account.prod-read-only"
-  ssh_grunt_sudo_group_name       = "ssh-grunt-sudo-users"
+  security_full_access_group_name        = "full-access"
+  access_all_accounts_group_name         = "access-all-external-accounts"
+  stage_full_access_group_name           = "_account.stage-full-access"
+  stage_read_only_group_name             = "_account.stage-read-only"
+  prod_full_access_group_name            = "_account.prod-full-access"
+  prod_read_only_group_name              = "_account.prod-read-only"
+  ssh_grunt_sudo_group_name              = "ssh-grunt-sudo-users"
+  ssh_grunt_user_group_name              = "ssh-grunt-users"
+  bastion_only_ssh_grunt_user_group_name = "bastion-only-ssh-grunt-users"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -57,21 +59,27 @@ inputs = {
   # This IAM group gives access to other AWS accounts
   iam_groups_for_cross_account_access = [
     {
-      group_name   = local.stage_full_access_group_name
-      iam_role_arn = "arn:aws:iam::${local.common_vars.locals.account_ids["stage"]}:role/allow-full-access-from-other-accounts"
+      group_name    = local.stage_full_access_group_name
+      iam_role_arns = ["arn:aws:iam::${local.common_vars.locals.account_ids["stage"]}:role/allow-full-access-from-other-accounts"]
     },
     {
-      group_name   = local.stage_read_only_group_name
-      iam_role_arn = "arn:aws:iam::${local.common_vars.locals.account_ids["stage"]}:role/allow-read-only-access-from-other-accounts"
+      group_name    = local.stage_read_only_group_name
+      iam_role_arns = ["arn:aws:iam::${local.common_vars.locals.account_ids["stage"]}:role/allow-read-only-access-from-other-accounts"]
     },
     {
-      group_name   = local.prod_full_access_group_name
-      iam_role_arn = "arn:aws:iam::${local.common_vars.locals.account_ids["prod"]}:role/allow-full-access-from-other-accounts"
+      group_name    = local.prod_full_access_group_name
+      iam_role_arns = ["arn:aws:iam::${local.common_vars.locals.account_ids["prod"]}:role/allow-full-access-from-other-accounts"]
     },
     {
-      group_name   = local.prod_read_only_group_name
-      iam_role_arn = "arn:aws:iam::${local.common_vars.locals.account_ids["prod"]}:role/allow-read-only-access-from-other-accounts"
+      group_name    = local.prod_read_only_group_name
+      iam_role_arns = ["arn:aws:iam::${local.common_vars.locals.account_ids["prod"]}:role/allow-read-only-access-from-other-accounts"]
     },
+  ]
+  cross_account_access_all_group_name  = local.access_all_accounts_group_name
+  iam_group_names_ssh_grunt_sudo_users = [local.ssh_grunt_sudo_group_name]
+  iam_group_names_ssh_grunt_users = [
+    local.ssh_grunt_user_group_name,
+    local.bastion_only_ssh_grunt_user_group_name,
   ]
 
   # The IAM users to create in this account. Since this is the security account, this is where we create all of our

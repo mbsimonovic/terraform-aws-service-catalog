@@ -9,10 +9,10 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # Require at least 0.12.26, which knows what to do with the source syntax of required_providers.
-  # Make sure we don't accidentally pull in 0.13.x, as that has backwards incompatible changes that are known to NOT
-  # work with the terraform-aws-eks repo. We are working on a fix, but until that's ready, we need to avoid 0.13.x.
-  required_version = "~> 0.12.26"
+  # This module is now only being tested with Terraform 0.13.x. However, to make upgrading easier, we are setting
+  # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
+  # forwards compatible with 0.13.x code.
+  required_version = ">= 0.12.26"
 
   required_providers {
     aws = {
@@ -68,7 +68,7 @@ data "aws_eks_cluster_auth" "kubernetes_token" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "eks_cluster" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.26.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.32.2"
 
   cluster_name = var.cluster_name
 
@@ -87,7 +87,7 @@ module "eks_cluster" {
 }
 
 module "eks_workers" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.26.0"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.32.2"
   create_resources = length(var.autoscaling_group_configurations) > 0
 
   # Use the output from control plane module as the cluster name to ensure the module only looks up the information
@@ -97,10 +97,21 @@ module "eks_workers" {
   autoscaling_group_configurations  = var.autoscaling_group_configurations
   include_autoscaler_discovery_tags = var.autoscaling_group_include_autoscaler_discovery_tags
 
-  cluster_instance_ami              = module.ec2_baseline.existing_ami
-  cluster_instance_type             = var.cluster_instance_type
-  cluster_instance_keypair_name     = var.cluster_instance_keypair_name
-  cluster_instance_user_data_base64 = module.ec2_baseline.cloud_init_rendered
+  asg_default_min_size                        = var.asg_default_min_size
+  asg_default_max_size                        = var.asg_default_max_size
+  asg_default_instance_type                   = var.asg_default_instance_type
+  asg_default_tags                            = var.asg_default_tags
+  asg_default_instance_spot_price             = var.asg_default_instance_spot_price
+  asg_default_instance_root_volume_size       = var.asg_default_instance_root_volume_size
+  asg_default_instance_root_volume_type       = var.asg_default_instance_root_volume_type
+  asg_default_instance_root_volume_encryption = var.asg_default_instance_root_volume_encryption
+
+  # The following are not yet supported to accept multiple, but in a future version, we will support extracting
+  # additional user data and AMI configurations from each ASG entry.
+  asg_default_instance_ami              = module.ec2_baseline.existing_ami
+  asg_default_instance_user_data_base64 = module.ec2_baseline.cloud_init_rendered
+
+  cluster_instance_keypair_name = var.cluster_instance_keypair_name
 
   tenancy = var.tenancy
 
@@ -166,8 +177,9 @@ resource "aws_security_group_rule" "allow_private_endpoint_from_cidr_blocks" {
 # EKS will automatically create the `aws-auth` config map when a Fargate profile is created before the configmap exists.
 # This conflicts with the `eks-k8s-role-mapping` module, as terraform can only create the config map if it doesn't exist.
 # Here, we use a null resource to delete the config map when the EKS cluster is first created.
+# NOTE: If we are using the aws-auth-merger, it is not necessary to remove this.
 resource "null_resource" "delete_autocreated_aws_auth" {
-  count = var.schedule_control_plane_services_on_fargate ? 1 : 0
+  count = var.schedule_control_plane_services_on_fargate && var.enable_aws_auth_merger == false ? 1 : 0
 
   triggers = {
     # We only want to run this on initial EKS cluster deployment.
@@ -192,8 +204,42 @@ resource "null_resource" "delete_autocreated_aws_auth" {
   depends_on = [module.eks_cluster]
 }
 
+# We create the namespace outside of the eks-aws-auth-merger module so that we can bind a dependency on the module.
+resource "kubernetes_namespace" "aws_auth_merger" {
+  count = var.enable_aws_auth_merger ? 1 : 0
+  metadata {
+    name = var.aws_auth_merger_namespace
+  }
+  depends_on = [module.eks_cluster]
+}
+
+module "eks_aws_auth_merger" {
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-aws-auth-merger?ref=v0.32.2"
+  create_resources = var.enable_aws_auth_merger
+
+  create_namespace = false
+  namespace = (
+    length(kubernetes_namespace.aws_auth_merger) > 0
+    ? kubernetes_namespace.aws_auth_merger[0].metadata[0].name
+    : null
+  )
+  aws_auth_merger_image  = var.aws_auth_merger_image
+  create_fargate_profile = var.enable_aws_auth_merger_fargate
+  fargate_profile = {
+    name                   = var.aws_auth_merger_namespace
+    eks_cluster_name       = module.eks_cluster.eks_cluster_name
+    worker_subnet_ids      = var.worker_vpc_subnet_ids
+    pod_execution_role_arn = module.eks_cluster.eks_default_fargate_execution_role_arn
+  }
+}
+
 module "eks_k8s_role_mapping" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.26.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.32.2"
+
+  # Configure to create this in the merger namespace if using the aws-auth-merger. Otherwise create it as the main
+  # config.
+  name      = var.enable_aws_auth_merger ? var.aws_auth_merger_default_configmap_name : "aws-auth"
+  namespace = var.enable_aws_auth_merger ? var.aws_auth_merger_namespace : "kube-system"
 
   eks_worker_iam_role_arns = (
     length(var.autoscaling_group_configurations) > 0
@@ -201,8 +247,20 @@ module "eks_k8s_role_mapping" {
     : []
   )
 
+  # Include the fargate executor IAM roles if we aren't using the aws-auth-merger.
+  # AWS will automatically create an aws-auth ConfigMap that allows the Fargate nodes, so we won't configure it here.
+  # The aws-auth-merger will automatically include that configuration if it sees the ConfigMap as it is booting up.
+  # This works because we are creating a Fargate Profile BEFORE the aws-auth-merger is deployed
+  # (`create_fargate_profile = true` in the `eks-aws-auth-merger` module call), which will cause EKS to create the
+  # aws-auth ConfigMap to allow the Fargate workers to access the control plane. So the flow is:
+  # 1. AWS creates central ConfigMap with the Fargate execution role.
+  # 2. aws-auth-merger is deployed and starts up.
+  # 3. aws-auth-merger sees the automatically created ConfigMap, detects that it is not managed by itself, and snapshots
+  #    the ConfigMap to preserve the Fargate role mappings during future merges.
+  # 4. aws-auth-merger looks up the other ConfigMaps in the namespace and merges them together to replace the existing
+  #    central ConfigMap.
   eks_fargate_profile_executor_iam_role_arns = (
-    var.schedule_control_plane_services_on_fargate
+    var.schedule_control_plane_services_on_fargate && var.enable_aws_auth_merger == false
     ? [module.eks_cluster.eks_default_fargate_execution_role_arn]
     : []
   )
@@ -211,8 +269,15 @@ module "eks_k8s_role_mapping" {
   iam_user_to_rbac_group_mappings = var.iam_user_to_rbac_group_mapping
 
   config_map_labels = {
-    eks-cluster                        = module.eks_cluster.eks_cluster_name
-    delete-original-aws-auth-action-id = var.schedule_control_plane_services_on_fargate ? null_resource.delete_autocreated_aws_auth[0].id : ""
+    eks-cluster = module.eks_cluster.eks_cluster_name
+
+    # Hook into the aws-auth deleter so that we only create this after it has been deleted. This is only necessary if we
+    # aren't using the aws-auth-merger.
+    delete-original-aws-auth-action-id = (
+      var.schedule_control_plane_services_on_fargate && var.enable_aws_auth_merger == false
+      ? null_resource.delete_autocreated_aws_auth[0].id
+      : ""
+    )
   }
 }
 
@@ -222,7 +287,7 @@ module "eks_k8s_role_mapping" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "metric_widget_worker_cpu_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.24.1"
 
   title = "${var.cluster_name} EKSWorker CPUUtilization"
   stat  = "Average"
@@ -237,7 +302,7 @@ module "metric_widget_worker_cpu_usage" {
 }
 
 module "metric_widget_worker_memory_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.24.1"
 
   title = "${var.cluster_name} EKSWorker MemoryUtilization"
   stat  = "Average"
@@ -252,7 +317,7 @@ module "metric_widget_worker_memory_usage" {
 }
 
 module "metric_widget_worker_disk_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.23.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.24.1"
 
   title = "${var.cluster_name} EKSWorker DiskUtilization"
   stat  = "Average"

@@ -12,7 +12,7 @@
     "vpc_filter_value": "true",
     "vpc_subnet_filter_key": "default-for-az",
     "vpc_subnet_filter_value": "true",
-    "gruntwork_installer_version": "v0.0.30",
+    "gruntwork_installer_version": "v0.0.32",
     "ami_users": "",
     "bash_commons_version": "",
     "module_security_version": "",
@@ -68,7 +68,7 @@
     "inline": [
       "sudo DEBIAN_FRONTEND=noninteractive apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get -y upgrade && sudo DEBIAN_FRONTEND=noninteractive apt-get -y install jq curl",
       "curl -Ls https://raw.githubusercontent.com/gruntwork-io/gruntwork-installer/master/bootstrap-gruntwork-installer.sh | bash /dev/stdin --version {{user `gruntwork_installer_version`}}",
-      "gruntwork-install --module-name mgmt/bastion-host --repo https://github.com/gruntwork-io/aws-service-catalog --tag {{user `service_catalog_ref`}}"
+      "gruntwork-install --module-name mgmt/bastion-host --repo https://github.com/gruntwork-io/terraform-aws-service-catalog --tag {{user `service_catalog_ref`}}"
     ],
     "environment_vars": [
       "GITHUB_OAUTH_TOKEN={{user `github_auth_token`}}",

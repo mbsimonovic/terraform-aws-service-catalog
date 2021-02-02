@@ -1,7 +1,7 @@
 :type: service
 :name: Public Static Website
 :description: Deploy your static content and static websites on S3, using a CloudFront CDN. Supports bucket versioning, redirects, and access logging.
-:icon: /_docs/s3.png
+:icon: /_docs/s3-icon.png
 :category: static-website
 :cloud: aws
 :tags: cloudfront, s3, website, static website
@@ -51,7 +51,7 @@ toc::[]
 
 Serving static content from S3 rather than from your own app server can significantly reduce the load on your server, allowing it to  focus on serving dynamic data. This saves money and makes your website run faster. For even bigger improvements in performance, deploy a CloudFront Content Distribution Network (CDN) in front of the S3 bucket.
 
-NOTE: This repo is a part of the https://github.com/gruntwork-io/aws-service-catalog/[Gruntwork Service Catalog], a collection of
+NOTE: This repo is a part of the https://github.com/gruntwork-io/terraform-aws-service-catalog/[Gruntwork Service Catalog], a collection of
 reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
 sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/[How to use the Gruntwork
 Service Catalog]!
@@ -64,8 +64,8 @@ This module deploys a public website, so the S3 bucket and objects with it are r
 
 For more info on why you would use S3 to store static content, why you may want a CDN in front of it, how to access the
 website, and how to configure SSL, check out the documentation for the
-[s3-static-website](https://github.com/gruntwork-io/package-static-assets/tree/master/modules/s3-static-website) and
-[s3-cloudfront](https://github.com/gruntwork-io/package-static-assets/tree/master/modules/s3-cloudfront) modules.
+[s3-static-website](https://github.com/gruntwork-io/terraform-aws-static-assets/tree/master/modules/s3-static-website) and
+[s3-cloudfront](https://github.com/gruntwork-io/terraform-aws-static-assets/tree/master/modules/s3-cloudfront) modules.
 
 * link:/modules/s3-static-website/core-concepts.md#quick-start[Quick Start]
 * link:/modules/s3-static-website/core-concepts.md#how-to-test-the-website[How to test the website]

@@ -48,7 +48,7 @@ provider "helm" {
 module "application" {
   # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
   # to a specific version of the modules, such as the following example:
-  # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/services/k8s-service?ref=v1.0.8"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/services/k8s-service?ref=v1.0.8"
   source = "../../../../modules/services/k8s-service"
 
   application_name = var.application_name
@@ -65,8 +65,7 @@ module "application" {
   expose_type            = var.expose_type
   desired_number_of_pods = 1
 
-  create_route53_entry = var.domain_name != null
-  domain_name          = var.domain_name != null ? var.domain_name : ""
+  domain_name = var.domain_name
 
   # This is an example of how to configure hard coded environment variables that are necessary for running your app.
   # Here we configure all the necessary settings for running the Gruntwork AWS Sample App

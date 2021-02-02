@@ -18,6 +18,11 @@ output "primary_endpoint" {
   value       = module.database.cluster_endpoint
 }
 
+output "primary_host" {
+  description = "The host portion of the Aurora endpoint. primary_endpoint is in the form '<host>:<port>', and this output returns just the host part."
+  value       = local.primary_host
+}
+
 output "instance_endpoints" {
   description = "A list of endpoints of the RDS instances that you can use to make requests to."
   value       = module.database.instance_endpoints

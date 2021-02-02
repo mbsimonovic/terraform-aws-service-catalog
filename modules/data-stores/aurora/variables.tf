@@ -10,23 +10,6 @@ variable "name" {
   type        = string
 }
 
-# Database configuration
-
-variable "master_username" {
-  description = "The username for the master user."
-  type        = string
-}
-
-variable "master_password" {
-  description = "The password for the master user."
-  type        = string
-}
-
-variable "port" {
-  description = "The port the DB will listen on (e.g. 3306)"
-  type        = number
-}
-
 # Network configuration
 
 variable "vpc_id" {
@@ -44,16 +27,56 @@ variable "aurora_subnet_ids" {
 # Generally, these values won't need to be changed.
 # ---------------------------------------------------------------------------------------------------------------------
 
+# Database configuration
+
+variable "port" {
+  description = "The port the DB will listen on (e.g. 3306). This can also be provided via AWS Secrets Manager. See the description of db_config_secrets_manager_id. A value here overrides the value in db_config_secrets_manager_id."
+  type        = number
+  default     = null
+}
+
+variable "master_username" {
+  description = "The value to use for the master username of the database. This can also be provided via AWS Secrets Manager. See the description of db_config_secrets_manager_id. A value here overrides the value in db_config_secrets_manager_id."
+  type        = string
+  default     = null
+}
+
+variable "master_password" {
+  description = "The value to use for the master password of the database. This can also be provided via AWS Secrets Manager. See the description of db_config_secrets_manager_id. A value here overrides the value in db_config_secrets_manager_id."
+  type        = string
+  default     = null
+}
+
+variable "db_config_secrets_manager_id" {
+  description = "The friendly name or ARN of an AWS Secrets Manager secret that contains database configuration information in the format outlined by this document: https://docs.aws.amazon.com/secretsmanager/latest/userguide/best-practices.html. The engine, username, password, dbname, and port fields must be included in the JSON. Note that even with this precaution, this information will be stored in plaintext in the Terraform state file! See the following blog post for more details: https://blog.gruntwork.io/a-comprehensive-guide-to-managing-secrets-in-your-terraform-code-1d586955ace1. If you do not wish to use Secrets Manager, leave this as null, and use the master_username, master_password, db_name, engine, and port variables."
+  type        = string
+  default     = null
+  # Example JSON value for the Secrets Manager secret:
+  # {
+  #   "engine": "aurora",
+  #   "username": "example-user",
+  #   "password": "example-password",
+  #   "dbname": "myDatabase",
+  #   "port": "3306"
+  # }
+}
+
 variable "db_name" {
-  description = "The name for your database of up to 8 alpha-numeric characters. If you do not provide a name, Amazon RDS will not create a database in the DB cluster you are creating."
+  description = "The name for your database of up to 8 alpha-numeric characters. If you do not provide a name, Amazon RDS will not create a database in the DB cluster you are creating. This can also be provided via AWS Secrets Manager. See the description of db_config_secrets_manager_id. A value here overrides the value in db_config_secrets_manager_id."
   type        = string
   default     = null
 }
 
 variable "engine" {
-  description = "The name of the database engine to be used for the RDS instance. Must be one of: aurora, aurora-postgresql."
+  description = "The name of the database engine to be used for this DB cluster. Valid Values: aurora (for MySQL 5.6-compatible Aurora), aurora-mysql (for MySQL 5.7-compatible Aurora), and aurora-postgresql. This can also be provided via AWS Secrets Manager. See the description of db_config_secrets_manager_id. A value here overrides the value in db_config_secrets_manager_id."
   type        = string
-  default     = "aurora"
+  default     = null
+}
+
+variable "engine_version" {
+  description = "The Amazon Aurora DB engine version for the selected engine and engine_mode. Note: Starting with Aurora MySQL 2.03.2, Aurora engine versions have the following syntax <mysql-major-version>.mysql_aurora.<aurora-mysql-version>. e.g. 5.7.mysql_aurora.2.08.1."
+  type        = string
+  default     = null
 }
 
 variable "engine_mode" {
@@ -127,6 +150,15 @@ variable "scaling_configuration_seconds_until_auto_pause" {
   default     = 300
 }
 
+# Note: you cannot enable encryption on an existing DB, so you have to enable it for the very first deployment. If you
+# already created the DB unencrypted, you'll have to create a new one with encryption enabled and migrate your data to
+# it. For more info on RDS encryption, see: http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.Encryption.html
+variable "storage_encrypted" {
+  description = "Specifies whether the DB cluster uses encryption for data at rest in the underlying storage for the DB, its automated backups, Read Replicas, and snapshots. Uses the default aws/rds key in KMS."
+  type        = bool
+  default     = true
+}
+
 variable "kms_key_arn" {
   description = "The ARN of a KMS key that should be used to encrypt data on disk. Only used if var.storage_encrypted is true. If you leave this null, the default RDS KMS key for the account will be used."
   type        = string
@@ -143,6 +175,13 @@ variable "backup_retention_period" {
   description = "How many days to keep backup snapshots around before cleaning them up. Max: 35"
   type        = number
   default     = 30
+}
+
+# Create DB instance from a snapshot backup
+variable "snapshot_identifier" {
+  description = "If non-null, the RDS Instance will be restored from the given Snapshot ID. This is the Snapshot ID you'd find in the RDS console, e.g: rds:production-2015-06-26-06-05."
+  type        = string
+  default     = null
 }
 
 # By default, only apply changes during the scheduled maintenance window, as certain DB changes cause degraded

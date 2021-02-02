@@ -3,8 +3,8 @@
 
 set -e
 
-# renovate.json auto-update: module-ecs
-readonly DEFAULT_MODULE_ECS_VERSION="v0.23.0"
+# renovate.json auto-update: terraform-aws-ecs
+readonly DEFAULT_MODULE_ECS_VERSION="v0.24.1"
 
 function include_ec2_baseline {
   if [[ "$1" ]]; then
@@ -20,12 +20,12 @@ function include_ec2_baseline {
 
   gruntwork-install \
     --module-name base/ec2-baseline \
-    --repo https://github.com/gruntwork-io/aws-service-catalog \
+    --repo https://github.com/gruntwork-io/terraform-aws-service-catalog \
     ${ec2_baseline_version_branch} \
     ${ec2_baseline_version_tag}
 
   # Include common defaults and functions from the ec2-baseline install script
-  # See: https://github.com/gruntwork-io/aws-service-catalog/blob/master/modules/base/ec2-baseline
+  # See: https://github.com/gruntwork-io/terraform-aws-service-catalog/blob/master/modules/base/ec2-baseline
   readonly EC2_BASELINE_RELATIVE_PATH="../../base/ec2-baseline"
   readonly EC2_BASELINE_PATH="$(dirname "$(realpath "$0")")/${EC2_BASELINE_RELATIVE_PATH}"
   if [[ ! -f "${EC2_BASELINE_PATH}/install.sh" ]]; then
@@ -40,7 +40,7 @@ function install_ecs_scripts {
   local -r module_ecs_version="$1"
   gruntwork-install \
     --module-name "ecs-scripts" \
-    --repo "https://github.com/gruntwork-io/module-ecs" \
+    --repo "https://github.com/gruntwork-io/terraform-aws-ecs" \
     --tag "$module_ecs_version"
 }
 

@@ -9,7 +9,7 @@ provider "aws" {
 module "aurora" {
   # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
   # to a specific version of the modules, such as the following example:
-  # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/data-stores/aurora?ref=v1.0.8"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/data-stores/aurora?ref=v1.0.8"
   source = "../../../../modules/data-stores/aurora"
 
   name        = var.name
@@ -25,6 +25,8 @@ module "aurora" {
   # - aurora => 3306 (default mysql port)
   # - aurora-postgresql => 5432 (default postgres port)
   port = var.engine == "aurora" ? 3306 : 5432
+
+  db_config_secrets_manager_id = var.db_config_secrets_manager_id
 
   # To keep this example simple, we run it in the default VPC, put everything in the same subnets, and allow access from
   # any source. In production, you'll want to use a custom VPC, private subnets, and explicitly close off access to only

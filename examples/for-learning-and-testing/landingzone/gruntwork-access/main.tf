@@ -13,7 +13,7 @@ provider "aws" {
 module "gruntwork_access" {
   # When using these modules in your own templates, you will need to use a Git URL with a ref attribute that pins you
   # to a specific version of the modules, such as the following example:
-  # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/landingzone/gruntwork-access?ref=v1.0.0"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/landingzone/gruntwork-access?ref=v1.0.0"
   source = "../../../../modules/landingzone/gruntwork-access"
 
   # Grant admin access to the IAM role, and require the Gruntwork team to use MFA to assume the IAM role

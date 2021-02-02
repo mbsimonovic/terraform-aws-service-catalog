@@ -11,7 +11,7 @@
 terraform {
   # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
   # to a specific version of the modules, such as the following example:
-  # source = "git::git@github.com:gruntwork-io/aws-service-catalog.git//modules/services/eks-cluster?ref=v1.0.8"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/services/eks-cluster?ref=v1.0.8"
   source = "../../../../../../../../modules//services/eks-cluster"
 }
 
@@ -59,9 +59,8 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 inputs = {
-  cluster_name          = "ref-arch-lite-${local.account_vars.locals.account_name}"
-  cluster_instance_type = "t3.small"
-  cluster_instance_ami  = null
+  cluster_name         = "ref-arch-lite-${local.account_vars.locals.account_name}"
+  cluster_instance_ami = null
   cluster_instance_ami_filters = {
     owners = ["self"]
     filters = [
@@ -85,10 +84,11 @@ inputs = {
   autoscaling_group_configurations = {
     for subnet_id in dependency.vpc.outputs.private_app_subnet_ids :
     subnet_id => {
-      min_size   = 1
-      max_size   = 2
-      subnet_ids = [subnet_id]
-      tags       = []
+      min_size          = 1
+      max_size          = 2
+      subnet_ids        = [subnet_id]
+      asg_instance_type = "t3.small"
+      tags              = []
     }
   }
 

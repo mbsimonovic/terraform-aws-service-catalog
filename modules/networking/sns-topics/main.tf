@@ -28,7 +28,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "sns_topic" {
-  source = "git::git@github.com:gruntwork-io/package-messaging.git//modules/sns?ref=v0.3.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-messaging.git//modules/sns?ref=v0.3.4"
 
   create_resources = var.create_resources
 
@@ -46,7 +46,7 @@ module "sns_topic" {
 
 module "sns_to_slack" {
   # TODO: Update to released version
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/sns-to-slack?ref=v0.23.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/sns-to-slack?ref=v0.24.1"
 
   create_resources = var.create_resources && var.slack_webhook_url != null
 
