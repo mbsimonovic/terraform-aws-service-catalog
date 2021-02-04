@@ -181,6 +181,7 @@ deploy Terraform code from the Service Catalog. See
       vpc_name         = "example-vpc"
       cidr_block       = "10.0.0.0/16"
       num_nat_gateways = 1
+      create_flow_logs = false
     }
     ```
 
@@ -344,6 +345,7 @@ Now you can create child `terragrunt.hcl` files to deploy services as follows:
       vpc_name         = "example-vpc"
       cidr_block       = "10.0.0.0/16"
       num_nat_gateways = 1
+      create_flow_logs = false
     }
     ```
 
@@ -744,6 +746,7 @@ One way to populate your Service Catalog is to extend Gruntwork Services. There 
       vpc_name         = "example-vpc"
       cidr_block       = "10.0.0.0/16"
       num_nat_gateways = 1
+      create_flow_logs = false
     }
     ```
     
