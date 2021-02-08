@@ -173,10 +173,10 @@ jobs:
               echo -e "Tests run for build [$CIRCLE_BUILD_NUM]($CIRCLE_BUILD_URL)\n\`\`\`\n$(cat debug.log)\n\`\`\`" \
                 | hub api repos/{owner}/{repo}/issues/"$CIRCLE_PR_NUMBER"/comments --field body=@-
             fi
-      - save_cache:
-          key: tests-to-run
+      - persist_to_workspace:
+          root: /home/circleci
           paths:
-            - /home/circleci/.terraform-aws-service-catalog
+            - .terraform-aws-service-catalog
 
 # ---------------------------------------------------------------------------------------------------------------------
 # TEST BUILD JOBS
@@ -191,11 +191,10 @@ jobs:
   test_data_stores:
     <<: *defaults
     steps:
+      - attach_workspace:
+          at: /home/circleci
       - checkout
       - prepare_environment
-      - restore_cache:
-          keys:
-            - tests-to-run
       - run: echo "export TEST_PACKAGE='data-stores'" >> $BASH_ENV
       - run:
           <<: *run_tests
@@ -204,11 +203,10 @@ jobs:
   test_landingzone:
     <<: *defaults
     steps:
+      - attach_workspace:
+          at: /home/circleci
       - checkout
       - prepare_environment
-      - restore_cache:
-          keys:
-            - tests-to-run
       - run: echo "export TEST_PACKAGE='landingzone'" >> $BASH_ENV
       - run:
           <<: *run_tests
@@ -217,11 +215,10 @@ jobs:
   test_mgmt:
     <<: *defaults
     steps:
+      - attach_workspace:
+          at: /home/circleci
       - checkout
       - prepare_environment
-      - restore_cache:
-          keys:
-            - tests-to-run
       - run: echo "export TEST_PACKAGE='mgmt'" >> $BASH_ENV
       - run:
           <<: *run_tests
@@ -230,11 +227,10 @@ jobs:
   test_networking:
     <<: *defaults
     steps:
+      - attach_workspace:
+          at: /home/circleci
       - checkout
       - prepare_environment
-      - restore_cache:
-          keys:
-            - tests-to-run
       - run: echo "export TEST_PACKAGE='networking'" >> $BASH_ENV
       - run:
           <<: *run_tests
@@ -243,13 +239,12 @@ jobs:
   test_services:
     <<: *defaults
     steps:
+      - attach_workspace:
+          at: /home/circleci
       - checkout
       - prepare_environment
       - run:
           <<: *install_kube_utils
-      - restore_cache:
-          keys:
-            - tests-to-run
       - run: echo "export TEST_PACKAGE='services'" >> $BASH_ENV
       - run:
           <<: *run_tests
@@ -258,11 +253,10 @@ jobs:
   test_smoke:
     <<: *defaults
     steps:
+      - attach_workspace:
+          at: /home/circleci
       - checkout
       - prepare_environment
-      - restore_cache:
-          keys:
-            - tests-to-run
       - run: echo "export TEST_PACKAGE='smoke'" >> $BASH_ENV
       - run:
           <<: *run_tests
@@ -271,11 +265,10 @@ jobs:
   test_tls_scripts:
     <<: *defaults
     steps:
+      - attach_workspace:
+          at: /home/circleci
       - checkout
       - prepare_environment
-      - restore_cache:
-          keys:
-            - tests-to-run
       - run: echo "export TEST_PACKAGE='tls-scripts'" >> $BASH_ENV
       - run:
           <<: *run_tests
