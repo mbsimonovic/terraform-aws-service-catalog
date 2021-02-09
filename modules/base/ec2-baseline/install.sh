@@ -55,6 +55,34 @@ function install_security_packages {
   gruntwork-install --module-name 'ip-lockdown' --repo https://github.com/gruntwork-io/terraform-aws-security --tag "$module_security_version"
 
   if [[ "$enable_ssh_grunt" == "true" ]]; then
+    # ssh-grunt is incompatible with EC2 Instance Connect, so if it's installed, we need to remove it.
+    # First, we'll detect if set -e is enabled. We need to temporarily ignore errors so that we can detect if
+    # the ec2-instance-connect package is installed.
+    local reset_e="false"
+    if [[ -o errexit ]]; then
+      reset_e="true"
+    fi
+    set +e
+
+    local -r remove_log_msg="Removing ec2-instance-connect due to incompatibility with ssh-grunt."
+    if command -v "rpm"; then
+      if rpm -q ec2-instance-connect; then
+        echo "$remove_log_msg"
+        sudo yum -y remove ec2-instance-connect
+      fi
+    elif command -f "dpkg"; then
+      if dpkg -l ec2-instance-connect; then
+        echo "$remove_log_msg"
+        sudo apt-get -y purge ec2-instance-connect
+      fi
+    fi
+
+    # Re-enable set -e if it was enabled before.
+    if [[ "$reset_e" == "true" ]]; then
+      set -e
+    fi
+
+    # Finally we can install ssh-grunt
     gruntwork-install --binary-name 'ssh-grunt' --repo https://github.com/gruntwork-io/terraform-aws-security --tag "$module_security_version"
   fi
 }
