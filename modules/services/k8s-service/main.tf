@@ -39,7 +39,7 @@ resource "helm_release" "application" {
   name       = var.application_name
   repository = "https://helmcharts.gruntwork.io"
   chart      = "k8s-service"
-  version    = "v0.1.1"
+  version    = "v0.1.7"
   namespace  = var.namespace
 
   values = [yamlencode(local.helm_chart_input)]
@@ -246,9 +246,10 @@ locals {
       )
     }
 
-    envVars    = var.env_vars
-    configMaps = local.configmaps
-    secrets    = local.secrets
+    envVars      = var.env_vars
+    configMaps   = local.configmaps
+    secrets      = local.secrets
+    scratchPaths = var.scratch_paths
 
     # Workaround for deep type checker. See https://github.com/hashicorp/terraform/issues/22405 for more info.
     livenessProbe = try(
