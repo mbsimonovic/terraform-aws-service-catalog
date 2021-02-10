@@ -86,7 +86,7 @@ If you want to deploy this repo in production, check out the following resources
 
 * link:/examples/for-production[examples/for-production folder]: The `examples/for-production` folder contains sample
   code optimized for direct usage in production. This is code from the
-  https://gruntwork.io/reference-architecture/:[Gruntwork Reference Architecture], and it shows you how we build an
+  https://gruntwork.io/reference-architecture/[Gruntwork Reference Architecture], and it shows you how we build an
   end-to-end, integrated tech stack on top of the Gruntwork Service Catalog.
   configure CI / CD for your apps and infrastructure.
 
