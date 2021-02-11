@@ -194,7 +194,7 @@ locals {
       var.schedule_alb_ingress_controller_on_fargate
       ? {
         aws-alb-ingress-controller = {
-          "app.kubernetes.io/name"     = "aws-alb-ingress-controller"
+          "app.kubernetes.io/name"     = "aws-load-balancer-controller"
           "app.kubernetes.io/instance" = "aws-alb-ingress-controller"
         }
       }
@@ -214,7 +214,7 @@ locals {
       var.schedule_cluster_autoscaler_on_fargate
       ? {
         cluster-autoscaler = {
-          "app.kubernetes.io/name"     = "aws-cluster-autoscaler"
+          "app.kubernetes.io/name"     = "aws-cluster-autoscaler-chart"
           "app.kubernetes.io/instance" = "cluster-autoscaler"
         }
       }

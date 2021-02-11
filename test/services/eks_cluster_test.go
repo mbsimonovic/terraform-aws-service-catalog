@@ -10,8 +10,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gruntwork-io/aws-service-catalog/test"
-
 	awsgo "github.com/aws/aws-sdk-go/aws"
 	"github.com/gruntwork-io/terratest/modules/aws"
 	dns_helper "github.com/gruntwork-io/terratest/modules/dns-helper"
@@ -28,6 +26,9 @@ import (
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/gruntwork-io/aws-service-catalog/test"
 )
 
 const (
@@ -66,6 +67,7 @@ func TestEksCluster(t *testing.T) {
 	//os.Setenv("SKIP_deploy_terraform", "true")
 	//os.Setenv("SKIP_validate_cluster", "true")
 	//os.Setenv("SKIP_deploy_core_services", "true")
+	//os.Setenv("SKIP_validate_core_services_fargate", "true")
 	//os.Setenv("SKIP_validate_external_dns", "true")
 	//os.Setenv("SKIP_deploy_sampleapp", "true")
 	//os.Setenv("SKIP_validate_sampleapp", "true")
@@ -179,6 +181,10 @@ func testEKSClusterWithCoreServicesAndAuthMerger(t *testing.T, parentWorkingDir 
 
 	test_structure.RunTestStage(t, "deploy_core_services", func() {
 		deployCoreServices(t, parentWorkingDir, workingDir, coreServicesRoot)
+	})
+
+	test_structure.RunTestStage(t, "validate_core_services_fargate", func() {
+		validateCoreServicesOnFargate(t, workingDir)
 	})
 
 	test_structure.RunTestStage(t, "validate_external_dns", func() {
@@ -307,6 +313,34 @@ func deployCoreServices(t *testing.T, parentWorkingDir string, workingDir string
 	test_structure.SaveTerraformOptions(t, coreServicesModulePath, coreServicesOptions)
 
 	terraform.InitAndApply(t, coreServicesOptions)
+}
+
+// Validate the core services module is running on Fargate.
+// parentWorkingDir should be the working dir of the overarching test, and is where the global options like region and
+// AMI are stored.
+// workingDir should be the working dir of the subtest, and is where local options like the terraform options are
+// stored.
+func validateCoreServicesOnFargate(t *testing.T, workingDir string) {
+	kubectlOptions := test_structure.LoadKubectlOptions(t, workingDir)
+	kubectlOptions.Namespace = "kube-system"
+
+	ingressControllerLabelSelector := "app.kubernetes.io/instance=aws-alb-ingress-controller,app.kubernetes.io/name=aws-load-balancer-controller"
+	assertFargate(t, kubectlOptions, ingressControllerLabelSelector)
+
+	clusterAutoscalerLabelSelector := "app.kubernetes.io/instance=cluster-autoscaler,app.kubernetes.io/name=aws-cluster-autoscaler-chart"
+	assertFargate(t, kubectlOptions, clusterAutoscalerLabelSelector)
+
+	externalDNSLabelSelector := "app.kubernetes.io/instance=external-dns,app.kubernetes.io/name=external-dns"
+	assertFargate(t, kubectlOptions, externalDNSLabelSelector)
+}
+
+func assertFargate(t *testing.T, kubectlOptions *k8s.KubectlOptions, labelSelectorStr string) {
+	pods := k8s.ListPods(t, kubectlOptions, metav1.ListOptions{LabelSelector: labelSelectorStr})
+	require.Greater(t, len(pods), 0)
+	for _, pod := range pods {
+		_, hasFargateLabel := pod.ObjectMeta.Labels["eks.amazonaws.com/fargate-profile"]
+		assert.Truef(t, hasFargateLabel, "%s pod does not have fargate label", pod.ObjectMeta.Name)
+	}
 }
 
 // Validate the deployed external-dns service is running and healthy by using a investigation pod.
