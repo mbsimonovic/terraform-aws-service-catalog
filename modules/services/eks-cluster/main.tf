@@ -68,12 +68,12 @@ data "aws_eks_cluster_auth" "kubernetes_token" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "eks_cluster" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.32.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.32.3"
 
   cluster_name = var.cluster_name
 
   vpc_id                       = var.vpc_id
-  vpc_control_plane_subnet_ids = var.control_plane_vpc_subnet_ids
+  vpc_control_plane_subnet_ids = local.usable_control_plane_subnet_ids
   endpoint_public_access_cidrs = var.allow_inbound_api_access_from_cidr_blocks
 
   enabled_cluster_log_types              = var.enabled_control_plane_log_types
@@ -83,12 +83,12 @@ module "eks_cluster" {
 
   # Options for configuring control plane services on Fargate
   schedule_control_plane_services_on_fargate = var.schedule_control_plane_services_on_fargate
-  vpc_worker_subnet_ids                      = var.worker_vpc_subnet_ids
+  vpc_worker_subnet_ids                      = local.usable_fargate_subnet_ids
 }
 
 module "eks_workers" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.32.2"
-  create_resources = length(var.autoscaling_group_configurations) > 0
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.32.3"
+  create_resources = local.has_self_managed_workers
 
   # Use the output from control plane module as the cluster name to ensure the module only looks up the information
   # after the cluster is provisioned.
@@ -117,10 +117,18 @@ module "eks_workers" {
 
   # These are dangerous variables that are exposed to make testing easier, but should be left untouched.
   cluster_instance_associate_public_ip_address = var.cluster_instance_associate_public_ip_address
+
+  # Work around bug in module where you must provide var.eks_control_plane_security_group_id if create_resources is
+  # false, regardless of using the cluster security group.
+  eks_control_plane_security_group_id = local.has_self_managed_workers == false ? module.eks_cluster.eks_control_plane_security_group_id : null
 }
 
 resource "aws_security_group_rule" "allow_inbound_ssh_from_security_groups" {
-  for_each = { for group_id in var.allow_inbound_ssh_from_security_groups : group_id => group_id }
+  for_each = (
+    local.has_self_managed_workers
+    ? { for group_id in var.allow_inbound_ssh_from_security_groups : group_id => group_id }
+    : {}
+  )
 
   type                     = "ingress"
   from_port                = 22
@@ -131,7 +139,7 @@ resource "aws_security_group_rule" "allow_inbound_ssh_from_security_groups" {
 }
 
 resource "aws_security_group_rule" "allow_inbound_ssh_from_cidr_blocks" {
-  count = length(var.allow_inbound_ssh_from_cidr_blocks) > 0 ? 1 : 0
+  count = local.has_self_managed_workers && length(var.allow_inbound_ssh_from_cidr_blocks) > 0 ? 1 : 0
 
   type              = "ingress"
   from_port         = 22
@@ -161,6 +169,10 @@ resource "aws_security_group_rule" "allow_private_endpoint_from_cidr_blocks" {
   protocol          = "tcp"
   security_group_id = module.eks_cluster.eks_control_plane_security_group_id
   cidr_blocks       = var.allow_inbound_ssh_from_cidr_blocks
+}
+
+locals {
+  has_self_managed_workers = length(var.autoscaling_group_configurations) > 0
 }
 
 
@@ -214,7 +226,7 @@ resource "kubernetes_namespace" "aws_auth_merger" {
 }
 
 module "eks_aws_auth_merger" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-aws-auth-merger?ref=v0.32.2"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-aws-auth-merger?ref=v0.32.3"
   create_resources = var.enable_aws_auth_merger
 
   create_namespace = false
@@ -234,7 +246,7 @@ module "eks_aws_auth_merger" {
 }
 
 module "eks_k8s_role_mapping" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.32.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.32.3"
 
   # Configure to create this in the merger namespace if using the aws-auth-merger. Otherwise create it as the main
   # config.
@@ -345,8 +357,8 @@ module "ec2_baseline" {
   external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
   enable_ssh_grunt                    = local.enable_ssh_grunt
   iam_role_name                       = module.eks_workers.eks_worker_iam_role_name
-  enable_cloudwatch_metrics           = var.enable_cloudwatch_metrics
-  enable_asg_cloudwatch_alarms        = var.enable_cloudwatch_alarms
+  enable_cloudwatch_metrics           = local.has_self_managed_workers && var.enable_cloudwatch_metrics
+  enable_asg_cloudwatch_alarms        = local.has_self_managed_workers && var.enable_cloudwatch_alarms
   asg_names                           = module.eks_workers.eks_worker_asg_names
   num_asg_names                       = length(var.autoscaling_group_configurations)
   alarms_sns_topic_arn                = var.alarms_sns_topic_arn
@@ -372,7 +384,11 @@ locals {
 
   # Merge in all the cloud init scripts the user has passed in
   cloud_init_parts = merge({ default : local.cloud_init }, var.cloud_init_parts)
-  enable_ssh_grunt = var.ssh_grunt_iam_group == "" && var.ssh_grunt_iam_group_sudo == "" ? false : true
+  enable_ssh_grunt = (
+    var.ssh_grunt_iam_group == "" && var.ssh_grunt_iam_group_sudo == ""
+    ? false
+    : local.has_self_managed_workers
+  )
 
   base_user_data = templatefile(
     "${path.module}/user-data.sh",
@@ -403,3 +419,32 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 data "aws_region" "current" {}
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# COMPUTE THE SUBNETS TO USE
+# Since EKS has restrictions by availability zones, we need to support filtering out the provided subnets that do not
+# support EKS. Which subnets are allowed is based on the disallowed availability zones input.
+# ---------------------------------------------------------------------------------------------------------------------
+
+data "aws_subnet" "provided_for_control_plane" {
+  count = var.num_control_plane_vpc_subnet_ids == null ? length(var.control_plane_vpc_subnet_ids) : var.num_control_plane_vpc_subnet_ids
+  id    = var.control_plane_vpc_subnet_ids[count.index]
+}
+
+data "aws_subnet" "provided_for_fargate_workers" {
+  count = var.num_worker_vpc_subnet_ids == null ? length(var.worker_vpc_subnet_ids) : var.num_worker_vpc_subnet_ids
+  id    = var.worker_vpc_subnet_ids[count.index]
+}
+
+locals {
+  usable_control_plane_subnet_ids = [
+    for subnet in data.aws_subnet.provided_for_control_plane :
+    subnet.id if contains(var.control_plane_disallowed_availability_zones, subnet.availability_zone) == false
+  ]
+
+  usable_fargate_subnet_ids = [
+    for subnet in data.aws_subnet.provided_for_fargate_workers :
+    subnet.id if contains(var.fargate_worker_disallowed_availability_zones, subnet.availability_zone) == false
+  ]
+}

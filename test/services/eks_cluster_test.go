@@ -55,6 +55,8 @@ const (
 	expectedEksNodeCountWithoutAuthMerger = 3
 	// 1 worker + 2 fargate pods for coredns + 1 fargate pod for aws-auth-merger
 	expectedEksNodeCountWithAuthMerger = 4
+	// 2 fargate pods for coredns
+	expectedEksNodeCountFargateOnly = 2
 )
 
 func TestEksCluster(t *testing.T) {
@@ -108,7 +110,58 @@ func TestEksCluster(t *testing.T) {
 			testEKSClusterWithoutAuthMerger(t, workingDir)
 		})
 	})
+}
 
+// Regression test to make sure the subnet filtering works to allow deploying EKS clusters to us-east-1 with Fargate
+// pods.
+func TestEksClusterFargateUsEast1(t *testing.T) {
+	t.Parallel()
+
+	// Uncomment the items below to skip certain parts of the test
+	//os.Setenv("TERRATEST_REGION", "eu-west-1")
+	//os.Setenv("SKIP_deploy_terraform", "true")
+	//os.Setenv("SKIP_validate_cluster", "true")
+	//os.Setenv("SKIP_deploy_core_services", "true")
+	//os.Setenv("SKIP_validate_external_dns", "true")
+	//os.Setenv("SKIP_cleanup_core_services", "true")
+	//os.Setenv("SKIP_cleanup", "true")
+
+	// Create a directory path that won't conflict
+	workingDir := filepath.Join(".", "stages", t.Name())
+
+	examplesRoot := test_structure.CopyTerraformFolderToTemp(t, "../../", "examples")
+	eksClusterRoot := filepath.Join(examplesRoot, "for-learning-and-testing/services/eks-cluster")
+	coreServicesRoot := filepath.Join(examplesRoot, "for-learning-and-testing/services/eks-core-services")
+
+	defer test_structure.RunTestStage(t, "cleanup", func() {
+		terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
+		terraform.Destroy(t, terraformOptions)
+
+		kubectlOptions := test_structure.LoadKubectlOptions(t, workingDir)
+		os.Remove(kubectlOptions.ConfigPath)
+	})
+
+	test_structure.RunTestStage(t, "deploy_terraform", func() {
+		test_structure.SaveString(t, workingDir, "region", "us-east-1")
+		deployEKSCluster(t, workingDir, workingDir, eksClusterRoot, false, true)
+	})
+
+	test_structure.RunTestStage(t, "validate_cluster", func() {
+		validateEKSCluster(t, workingDir, expectedEksNodeCountFargateOnly)
+	})
+
+	defer test_structure.RunTestStage(t, "cleanup_core_services", func() {
+		terraformOptions := test_structure.LoadTerraformOptions(t, coreServicesRoot)
+		terraform.Destroy(t, terraformOptions)
+	})
+
+	test_structure.RunTestStage(t, "deploy_core_services", func() {
+		deployCoreServices(t, workingDir, workingDir, coreServicesRoot)
+	})
+
+	test_structure.RunTestStage(t, "validate_core_services_fargate", func() {
+		validateCoreServicesOnFargate(t, workingDir)
+	})
 }
 
 // Test the eks-cluster module without deploying the aws-auth-merger. This test only checks if the requisite number of
@@ -131,7 +184,7 @@ func testEKSClusterWithoutAuthMerger(t *testing.T, parentWorkingDir string) {
 	})
 
 	test_structure.RunTestStage(t, "deploy_terraform", func() {
-		deployEKSCluster(t, parentWorkingDir, workingDir, eksClusterRoot, false)
+		deployEKSCluster(t, parentWorkingDir, workingDir, eksClusterRoot, false, false)
 	})
 
 	test_structure.RunTestStage(t, "validate_cluster", func() {
@@ -167,7 +220,7 @@ func testEKSClusterWithCoreServicesAndAuthMerger(t *testing.T, parentWorkingDir 
 	})
 
 	test_structure.RunTestStage(t, "deploy_terraform", func() {
-		deployEKSCluster(t, parentWorkingDir, workingDir, eksClusterRoot, true)
+		deployEKSCluster(t, parentWorkingDir, workingDir, eksClusterRoot, true, false)
 	})
 
 	test_structure.RunTestStage(t, "validate_cluster", func() {
@@ -237,10 +290,16 @@ func buildWorkerAmi(t *testing.T, testFolder string) {
 // AMI are stored.
 // workingDir should be the working dir of the subtest, and is where local options like the terraform options are
 // stored.
-func deployEKSCluster(t *testing.T, parentWorkingDir string, workingDir string, modulePath string, enableAWSAuthMerger bool) {
+func deployEKSCluster(
+	t *testing.T,
+	parentWorkingDir string,
+	workingDir string,
+	modulePath string,
+	enableAWSAuthMerger bool,
+	fargateOnly bool,
+) {
 	branchName := git.GetCurrentBranchName(t)
 	awsRegion := test_structure.LoadString(t, parentWorkingDir, "region")
-	awsKeyPair := test_structure.LoadEc2KeyPair(t, parentWorkingDir)
 
 	clusterName := fmt.Sprintf("eks-service-catalog-%s", strings.ToLower(random.UniqueId()))
 	test_structure.SaveString(t, workingDir, "clusterName", clusterName)
@@ -248,7 +307,6 @@ func deployEKSCluster(t *testing.T, parentWorkingDir string, workingDir string, 
 	terraformOptions := test.CreateBaseTerraformOptions(t, modulePath, awsRegion)
 	terraformOptions.Vars["cluster_name"] = clusterName
 	terraformOptions.Vars["cluster_instance_ami_version_tag"] = branchName
-	terraformOptions.Vars["keypair_name"] = awsKeyPair.Name
 
 	// Pull in ECR image info and configure the vars to enable the aws-auth-merger if requested.
 	if enableAWSAuthMerger {
@@ -258,6 +316,13 @@ func deployEKSCluster(t *testing.T, parentWorkingDir string, workingDir string, 
 			"repo": ecrRepoURI,
 			"tag":  "v1",
 		}
+	}
+
+	if fargateOnly {
+		terraformOptions.Vars["fargate_only"] = true
+	} else {
+		awsKeyPair := test_structure.LoadEc2KeyPair(t, parentWorkingDir)
+		terraformOptions.Vars["keypair_name"] = awsKeyPair.Name
 	}
 
 	test_structure.SaveTerraformOptions(t, workingDir, terraformOptions)

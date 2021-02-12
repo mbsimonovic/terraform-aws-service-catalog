@@ -43,6 +43,16 @@ variable "pod_execution_iam_role_arn" {
 # These variables have defaults and may be overwritten
 # ---------------------------------------------------------------------------------------------------------------------
 
+variable "fargate_worker_disallowed_availability_zones" {
+  description = "A list of availability zones in the region that we CANNOT use to deploy the EKS Fargate workers. You can use this to avoid availability zones that may not be able to provision the resources (e.g ran out of capacity). If empty, will allow all availability zones."
+  type        = list(string)
+  default = [
+    # The following zones are known to not support EKS Fargate.
+    "us-east-1d",
+    "us-east-1e",
+  ]
+}
+
 # Fluent-bit DaemonSet options
 
 variable "fluent_bit_log_group_name" {

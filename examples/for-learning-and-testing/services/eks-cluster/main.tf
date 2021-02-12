@@ -14,20 +14,27 @@ module "eks_cluster" {
 
   cluster_name                               = var.cluster_name
   schedule_control_plane_services_on_fargate = true
-  cluster_instance_ami                       = null
-  cluster_instance_ami_filters = {
-    owners = ["self"]
-    filters = [
-      {
-        name   = "tag:service"
-        values = ["eks-workers"]
-      },
-      {
-        name   = "tag:version"
-        values = [var.cluster_instance_ami_version_tag]
-      },
-    ]
-  }
+
+  # If we are using a fargate only cluster, set the AMI ID to a random string that won't be used. The primary purpose of
+  # this is to avoid the AMI filter based lookup that the module performs.
+  cluster_instance_ami = var.fargate_only ? "do-not-use" : null
+  cluster_instance_ami_filters = (
+    var.fargate_only
+    ? null
+    : {
+      owners = ["self"]
+      filters = [
+        {
+          name   = "tag:service"
+          values = ["eks-workers"]
+        },
+        {
+          name   = "tag:version"
+          values = [var.cluster_instance_ami_version_tag]
+        },
+      ]
+    }
+  )
 
   # For this simple example, use a regular key pair instead of ssh-grunt
   cluster_instance_keypair_name = var.keypair_name
@@ -36,21 +43,27 @@ module "eks_cluster" {
   ssh_grunt_iam_group      = ""
   ssh_grunt_iam_group_sudo = ""
 
-  vpc_id                       = module.vpc.vpc_id
-  control_plane_vpc_subnet_ids = module.vpc.private_app_subnet_ids
-  worker_vpc_subnet_ids        = module.vpc.private_app_subnet_ids
+  vpc_id                           = module.vpc.vpc_id
+  control_plane_vpc_subnet_ids     = module.vpc.private_app_subnet_ids
+  num_control_plane_vpc_subnet_ids = module.vpc.num_availability_zones
+  worker_vpc_subnet_ids            = module.vpc.private_app_subnet_ids
+  num_worker_vpc_subnet_ids        = module.vpc.num_availability_zones
 
   # Due to localization limitations for EKS, it is recommended to have separate ASGs per availability zones. Here we
   # deploy one ASG in one public subnet. We use public subnets so we can SSH into the node for testing.
-  autoscaling_group_configurations = {
-    asg = {
-      min_size          = 1
-      max_size          = 2
-      subnet_ids        = [module.vpc.public_subnet_ids[0]]
-      asg_instance_type = "t3.small"
-      tags              = []
+  autoscaling_group_configurations = (
+    var.fargate_only
+    ? {}
+    : {
+      asg = {
+        min_size          = 1
+        max_size          = 2
+        subnet_ids        = [module.vpc.public_subnet_ids[0]]
+        asg_instance_type = "t3.small"
+        tags              = []
+      }
     }
-  }
+  )
 
   # To keep this example simple, we make the Control Plane public and allow incoming API calls and SSH connections from
   # anywhere. In production, you'll want to make the Control Plane private and limit access to trusted servers only

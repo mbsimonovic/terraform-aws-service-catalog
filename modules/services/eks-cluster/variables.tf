@@ -132,6 +132,37 @@ variable "worker_vpc_subnet_ids" {
   default     = []
 }
 
+variable "num_worker_vpc_subnet_ids" {
+  description = "Number of subnets provided in the var.worker_vpc_subnet_ids variable. When null (default), this is computed dynamically from the list. This is used to workaround terraform limitations where resource count and for_each can not depend on dynamic resources (e.g., if you are creating the subnets and the EKS cluster in the same module)."
+  type        = number
+  default     = null
+}
+
+variable "num_control_plane_vpc_subnet_ids" {
+  description = "Number of subnets provided in the var.control_plane_vpc_subnet_ids variable. When null (default), this is computed dynamically from the list. This is used to workaround terraform limitations where resource count and for_each can not depend on dynamic resources (e.g., if you are creating the subnets and the EKS cluster in the same module)."
+  type        = number
+  default     = null
+}
+
+variable "control_plane_disallowed_availability_zones" {
+  description = "A list of availability zones in the region that we CANNOT use to deploy the EKS control plane. You can use this to avoid availability zones that may not be able to provision the resources (e.g ran out of capacity). If empty, will allow all availability zones."
+  type        = list(string)
+  default = [
+    # The following zones are known to not support EKS Control Plane.
+    "us-east-1e",
+  ]
+}
+
+variable "fargate_worker_disallowed_availability_zones" {
+  description = "A list of availability zones in the region that we CANNOT use to deploy the EKS Fargate workers. You can use this to avoid availability zones that may not be able to provision the resources (e.g ran out of capacity). If empty, will allow all availability zones."
+  type        = list(string)
+  default = [
+    # The following zones are known to not support EKS Fargate.
+    "us-east-1d",
+    "us-east-1e",
+  ]
+}
+
 variable "allow_inbound_ssh_from_security_groups" {
   description = "The list of security group IDs to allow inbound SSH access to the worker groups."
   type        = list(string)
