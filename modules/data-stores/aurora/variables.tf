@@ -97,6 +97,12 @@ variable "allow_connections_from_security_groups" {
   default     = []
 }
 
+variable "enable_deletion_protection" {
+  description = "Enable deletion protection on the database instance. If this is enabled, the database cannot be deleted."
+  type        = bool
+  default     = false
+}
+
 # Provisioned RDS cluster setting
 
 variable "instance_count" {

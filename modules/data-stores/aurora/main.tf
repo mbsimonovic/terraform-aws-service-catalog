@@ -34,6 +34,8 @@ module "database" {
   engine_mode    = var.engine_mode
   engine_version = var.engine_version
 
+  deletion_protection = var.enable_deletion_protection
+
   instance_count = var.instance_count
   instance_type  = var.instance_type
 
