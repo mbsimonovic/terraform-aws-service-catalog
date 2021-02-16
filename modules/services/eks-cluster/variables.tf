@@ -187,6 +187,30 @@ variable "allow_private_api_access_from_security_groups" {
   default     = []
 }
 
+variable "eks_cluster_tags" {
+  description = "A map of custom tags to apply to the EKS Cluster Control Plane. The key is the tag name and the value is the tag value."
+  type        = map(string)
+  default     = {}
+
+  # Example:
+  #   {
+  #     key1 = "value1"
+  #     key2 = "value2"
+  #   }
+}
+
+variable "eks_cluster_security_group_tags" {
+  description = "A map of custom tags to apply to the Security Group for the EKS Cluster Control Plane. The key is the tag name and the value is the tag value."
+  type        = map(string)
+  default     = {}
+
+  # Example:
+  #   {
+  #     key1 = "value1"
+  #     key2 = "value2"
+  #   }
+}
+
 variable "enable_aws_auth_merger" {
   description = "If set to true, installs the aws-auth-merger to manage the aws-auth configuration. When true, requires setting the var.aws_auth_merger_image variable."
   type        = bool

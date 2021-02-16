@@ -84,6 +84,9 @@ module "eks_cluster" {
   # Options for configuring control plane services on Fargate
   schedule_control_plane_services_on_fargate = var.schedule_control_plane_services_on_fargate
   vpc_worker_subnet_ids                      = local.usable_fargate_subnet_ids
+
+  custom_tags_eks_cluster    = var.eks_cluster_tags
+  custom_tags_security_group = var.eks_cluster_security_group_tags
 }
 
 module "eks_workers" {
