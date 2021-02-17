@@ -102,7 +102,7 @@ variable "multi_az" {
 }
 
 variable "port" {
-  description = "The port the DB will listen on (e.g. 3306). If not provided, will use the default for the selected engine. This can also be provided via AWS Secrets Manager. See the description of db_config_secrets_manager_id."
+  description = "The port the DB will listen on (e.g. 3306). Alternatively, this can be provided via AWS Secrets Manager. See the description of db_config_secrets_manager_id."
   type        = number
   default     = null
 }
