@@ -34,8 +34,8 @@ module "bastion" {
   vpc_id    = var.vpc_id
   subnet_id = var.subnet_id
 
-  dns_zone_id = join("", data.aws_route53_zone.selected.*.zone_id)
-  # The A record that will be created for the bastion host is the concatenation of the bastion host's name plus the domain name 
+  dns_zone_id = var.create_dns_record ? join("", data.aws_route53_zone.selected.*.zone_id) : ""
+  # The A record that will be created for the bastion host is the concatenation of the bastion host's name plus the domain name
   dns_name = "${var.name}.${var.domain_name}"
   dns_type = "A"
   dns_ttl  = "300"

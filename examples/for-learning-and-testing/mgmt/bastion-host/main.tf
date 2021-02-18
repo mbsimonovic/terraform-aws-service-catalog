@@ -38,7 +38,7 @@ module "bastion" {
   subnet_id = local.bastion_subnet
 
   # Configure a host name for the bastion
-  create_dns_record     = true
+  create_dns_record     = var.create_dns_record
   domain_name           = var.domain_name
   base_domain_name_tags = var.base_domain_name_tags
 
