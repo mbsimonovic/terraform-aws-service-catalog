@@ -2,6 +2,7 @@ package mgmt
 
 import (
 	"fmt"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -27,12 +28,12 @@ func TestBastionHost(t *testing.T) {
 	//os.Setenv("SKIP_cleanup_keypair", "true")
 	//os.Setenv("SKIP_cleanup_ami", "true")
 
-	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../..", "examples/for-learning-and-testing/mgmt/bastion-host")
+	workingDir := filepath.Join(".", "stages", t.Name())
 	branchName := git.GetCurrentBranchName(t)
 
 	defer test_structure.RunTestStage(t, "cleanup_ami", func() {
-		amiId := test_structure.LoadArtifactID(t, testFolder)
-		awsRegion := test_structure.LoadString(t, testFolder, "region")
+		amiId := test_structure.LoadArtifactID(t, workingDir)
+		awsRegion := test_structure.LoadString(t, workingDir, "region")
 		aws.DeleteAmiAndAllSnapshots(t, awsRegion, amiId)
 	})
 
@@ -52,8 +53,8 @@ func TestBastionHost(t *testing.T) {
 
 		amiId := packer.BuildArtifact(t, packerOptions)
 
-		test_structure.SaveString(t, testFolder, "region", awsRegion)
-		test_structure.SaveArtifactID(t, testFolder, amiId)
+		test_structure.SaveString(t, workingDir, "region", awsRegion)
+		test_structure.SaveArtifactID(t, workingDir, amiId)
 	})
 
 	// Spawn two sub tests in parallel using the same AMI. Note that we wrap the sub tests in a synchronous test group
@@ -61,33 +62,36 @@ func TestBastionHost(t *testing.T) {
 	t.Run("group", func(t *testing.T) {
 		t.Run("WithDomain", func(t *testing.T) {
 			t.Parallel()
-			testBastionHelper(t, testFolder, branchName, test.BaseDomainForTest)
+			testBastionHelper(t, workingDir, branchName, test.BaseDomainForTest)
 		})
 		t.Run("WithoutDomain", func(t *testing.T) {
 			t.Parallel()
-			testBastionHelper(t, testFolder, branchName, "")
+			testBastionHelper(t, workingDir, branchName, "")
 		})
 	})
 }
 
-func testBastionHelper(t *testing.T, workingDir string, branchName string, domainName string) {
+func testBastionHelper(t *testing.T, parentWorkingDir string, branchName string, domainName string) {
+	childWorkingDir := filepath.Join(".", "stages", t.Name())
+	terraformDir := test_structure.CopyTerraformFolderToTemp(t, "../..", "examples/for-learning-and-testing/mgmt/bastion-host")
+
 	defer test_structure.RunTestStage(t, "cleanup_keypair", func() {
-		awsKeyPair := test_structure.LoadEc2KeyPair(t, workingDir)
+		awsKeyPair := test_structure.LoadEc2KeyPair(t, childWorkingDir)
 		aws.DeleteEC2KeyPair(t, awsKeyPair)
 	})
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
-		terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
+		terraformOptions := test_structure.LoadTerraformOptions(t, childWorkingDir)
 		terraform.Destroy(t, terraformOptions)
 	})
 
 	test_structure.RunTestStage(t, "deploy_terraform", func() {
 		name := fmt.Sprintf("bastion-host-%s", random.UniqueId())
-		awsRegion := test_structure.LoadString(t, workingDir, "region")
+		awsRegion := test_structure.LoadString(t, parentWorkingDir, "region")
 		uniqueId := random.UniqueId()
 		awsKeyPair := aws.CreateAndImportEC2KeyPair(t, awsRegion, uniqueId)
 
-		terraformOptions := test.CreateBaseTerraformOptions(t, workingDir, awsRegion)
+		terraformOptions := test.CreateBaseTerraformOptions(t, terraformDir, awsRegion)
 		terraformOptions.Vars["aws_region"] = awsRegion
 		terraformOptions.Vars["name"] = name
 		terraformOptions.Vars["ami_version_tag"] = branchName
@@ -101,14 +105,14 @@ func testBastionHelper(t *testing.T, workingDir string, branchName string, domai
 			terraformOptions.Vars["domain_name"] = domainName
 		}
 
-		test_structure.SaveTerraformOptions(t, workingDir, terraformOptions)
-		test_structure.SaveEc2KeyPair(t, workingDir, awsKeyPair)
+		test_structure.SaveTerraformOptions(t, childWorkingDir, terraformOptions)
+		test_structure.SaveEc2KeyPair(t, childWorkingDir, awsKeyPair)
 		terraform.InitAndApply(t, terraformOptions)
 	})
 
 	test_structure.RunTestStage(t, "validate", func() {
-		terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
-		awsKeyPair := test_structure.LoadEc2KeyPair(t, workingDir)
+		terraformOptions := test_structure.LoadTerraformOptions(t, childWorkingDir)
+		awsKeyPair := test_structure.LoadEc2KeyPair(t, childWorkingDir)
 		ip := terraform.OutputRequired(t, terraformOptions, "bastion_host_public_ip")
 		test.TestSSH(t, ip, "ubuntu", awsKeyPair)
 	})
