@@ -34,6 +34,7 @@ module "database" {
   engine_version = var.engine_version
   port           = local.port
   license_model  = var.license_model
+  custom_tags    = var.custom_tags
 
   deletion_protection = var.enable_deletion_protection
 

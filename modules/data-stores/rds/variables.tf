@@ -107,6 +107,12 @@ variable "port" {
   default     = null
 }
 
+variable "custom_tags" {
+  description = "A map of custom tags to apply to the RDS Instance and the Security Group created for it. The key is the tag name and the value is the tag value."
+  type        = map(string)
+  default     = {}
+}
+
 # Monitoring settings
 
 variable "enabled_cloudwatch_logs_exports" {
