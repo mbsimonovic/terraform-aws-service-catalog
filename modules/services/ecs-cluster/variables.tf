@@ -129,20 +129,14 @@ variable "tenancy" {
   default     = "default"
 }
 
-variable "allow_ssh" {
-  description = "Set to true to allow SSH access to this ECS cluster from either the openvpn server or bastion-host, depending upon which you are using"
-  type        = bool
-  default     = true
-}
-
 variable "allow_ssh_from_cidr_blocks" {
-  description = "The IP address ranges in CIDR format from which to allow incoming SSH requests to the ECS instances. Only used if var.allow_ssh is set to true"
+  description = "The IP address ranges in CIDR format from which to allow incoming SSH requests to the ECS instances."
   type        = list(string)
   default     = []
 }
 
 variable "allow_ssh_from_security_group_ids" {
-  description = "The IDs of security groups from which to allow incoming SSH requests to the ECS instances. Only used if var.allow_ssh is set to true"
+  description = "The IDs of security groups from which to allow incoming SSH requests to the ECS instances."
   type        = list(string)
   default     = []
 }
