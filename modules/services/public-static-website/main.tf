@@ -80,11 +80,9 @@ module "cloudfront" {
 
 # Note that ACM certs for CloudFront MUST be in us-east-1!
 provider "aws" {
-  alias  = "east"
-  region = "us-east-1"
-
-  # Provider version 2.X series is the latest, but has breaking changes with 1.X series.
-  version = "~> 2.6"
+  alias   = "east"
+  region  = "us-east-1"
+  version = ">= 2.6"
 }
 
 data "aws_acm_certificate" "cert" {
