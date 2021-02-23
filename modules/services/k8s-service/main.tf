@@ -22,10 +22,9 @@ terraform {
       version = "= 1.10.0"
     }
 
-    # This module uses Helm 3, which depends on helm provider version 1.x series.
     helm = {
       source  = "hashicorp/helm"
-      version = "~> 1.0"
+      version = "~> 2.0"
     }
   }
 }
