@@ -34,6 +34,10 @@ var (
 		".*registry service is unreachable.*":           "Failed to retrieve plugin due to transient network error.",
 		".*timeout while waiting for plugin to start.*": "Failed to retrieve plugin due to transient network error.",
 		".*timed out waiting for server handshake.*":    "Failed to retrieve plugin due to transient network error.",
+
+		// Based on the full error message: "module.vpc_app_example.aws_vpc_endpoint_route_table_association.s3_private[0], provider "registry.terraform.io/hashicorp/aws" produced an unexpected new value: Root resource was present, but now absent."
+		// See https://github.com/hashicorp/terraform-provider-aws/issues/12449 and https://github.com/hashicorp/terraform-provider-aws/issues/12829
+		"Root resource was present, but now absent": "This seems to be an eventual consistency issue with AWS where Terraform looks for a route table association that was just created but doesn't yet see it: https://github.com/hashicorp/terraform-provider-aws/issues/12449",
 	}
 )
 

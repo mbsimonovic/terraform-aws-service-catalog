@@ -33,7 +33,7 @@ import (
 
 const (
 	// renovate.json auto-update-github-releases: gruntwork-io/terraform-aws-eks
-	terraformAWSEKSVersion = "v0.27.0"
+	terraformAWSEKSVersion = "v0.32.4"
 )
 
 var defaultDomainTagFilterForTest = []map[string]string{
