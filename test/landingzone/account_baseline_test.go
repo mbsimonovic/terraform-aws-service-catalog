@@ -129,6 +129,8 @@ func TestAccountBaseline(t *testing.T) {
 					terraformOptions.Vars["config_s3_bucket_name"] = "gruntwork-lz-config-bucket"
 					terraformOptions.Vars["config_aggregate_config_data_in_external_account"] = false
 					terraformOptions.Vars["config_central_account_id"] = "123445678910"
+					terraformOptions.Vars["config_should_create_sns_topic"] = true
+					terraformOptions.Vars["config_sns_topic_name"] = "gruntwork-lz-config-topic"
 					terraformOptions.Vars["cloudtrail_s3_bucket_name"] = "gruntwork-lz-cloudtrail-bucket"
 					terraformOptions.Vars["cloudtrail_kms_key_arn"] = "arn:aws:kms:us-east-1:123445678910:key/12345678-1234-123a-b456-78889123456e3"
 					terraformOptions.Vars["allow_full_access_from_other_account_arns"] = []string{"arn:aws:iam::123445678910:root"}
