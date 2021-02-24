@@ -150,3 +150,9 @@ variable "alarm_sns_topic_arns" {
   type        = list(string)
   default     = []
 }
+
+variable "ebs_enabled" {
+  description = "Set to false to disable EBS volumes, needed for i3 hosts"
+  type        = bool
+  default     = true
+}
