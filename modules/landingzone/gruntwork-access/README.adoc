@@ -22,7 +22,7 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
-= Bastion Host
+= Gruntwork Access
 
 image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
 image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
