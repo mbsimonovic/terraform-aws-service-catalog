@@ -62,7 +62,7 @@ resource "aws_elasticsearch_domain" "cluster" {
   # We always turn on EBS volumes to ensure there is enough disk space and
   # IOPS available to the node than is directly available on the node itself.
   ebs_options {
-    ebs_enabled = true
+    ebs_enabled = var.ebs_enabled
     volume_type = var.volume_type
     volume_size = var.volume_size
     iops        = var.iops

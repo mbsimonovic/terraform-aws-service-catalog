@@ -164,3 +164,9 @@ variable "create_service_linked_role" {
   type        = bool
   default     = false
 }
+
+variable "ebs_enabled" {
+  description = "Set to false to disable EBS volumes, needed for i3 hosts"
+  type        = bool
+  default     = true
+}
