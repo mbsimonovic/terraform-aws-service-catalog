@@ -22,7 +22,7 @@ readonly DEFAULT_JENKINS_VERSION="2.235.5"
 readonly DEFAULT_TERRAFORM_VERSION="0.12.21"
 # We intentionally do NOT auto update K8S, as it should be tied to EKS versions, and our support for them in
 # terraform-aws-eks, both of which lag behind open source K8S
-readonly DEFAULT_KUBECTL_VERSION="v1.17.3"
+readonly DEFAULT_KUBECTL_VERSION="v1.19.1"
 # renovate.json auto-update-github-releases: helm/helm
 readonly DEFAULT_HELM_VERSION="v3.4.1"
 # renovate.json auto-update-github-releases: hashicorp/packer
