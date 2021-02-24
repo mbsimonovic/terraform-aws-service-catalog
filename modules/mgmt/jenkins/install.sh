@@ -14,7 +14,7 @@ readonly DEFAULT_MODULE_CI_VERSION="v0.29.10"
 # renovate.json auto-update: kubergrunt
 readonly DEFAULT_KUBERGRUNT_VERSION="v0.6.9"
 # renovate.json auto-update: terragrunt
-readonly DEFAULT_TERRAGRUNT_VERSION="v0.28.3"
+readonly DEFAULT_TERRAGRUNT_VERSION="v0.28.7"
 
 # renovate.json auto-update-github-releases: jenkinsci/jenkins
 readonly DEFAULT_JENKINS_VERSION="2.235.5"
