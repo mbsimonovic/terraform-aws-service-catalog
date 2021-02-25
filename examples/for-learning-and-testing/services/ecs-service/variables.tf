@@ -8,11 +8,6 @@ variable "ecs_cluster_arn" {
   type        = string
 }
 
-variable "ecs_instance_security_group_id" {
-  description = "The ID of the security group that the ECS cluster module applied to all EC2 container instances"
-  type        = string
-}
-
 variable "domain_name" {
   description = "The domain name to request a certificate for and to associate with the load balancer's https listener"
   type        = string
@@ -27,6 +22,13 @@ variable "hosted_zone_id" {
 # OPTIONAL PARAMETERS
 # These values may optionally be overwritten by the calling Terraform code.
 # ---------------------------------------------------------------------------------------------------------------------
+
+variable "ecs_instance_security_group_id" {
+  description = "The ID of the security group that the ECS cluster module applied to all EC2 container instances. Required if launch_type is EC2."
+  type        = string
+  default     = null
+}
+
 variable "aws_region" {
   description = "The AWS region to deploy into"
   type        = string
@@ -78,4 +80,8 @@ variable "ecs_cluster_name" {
   default     = null
 }
 
-
+variable "launch_type" {
+  description = "The launch type of the ECS service. Must be one of EC2 or FARGATE."
+  type        = string
+  default     = "EC2"
+}

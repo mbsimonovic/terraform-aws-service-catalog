@@ -28,12 +28,16 @@ module "ecs_service" {
   environment_name = var.service_name
   ecs_cluster_arn  = var.ecs_cluster_arn
 
-  launch_type                     = var.launch_type
-  capacity_provider_strategy      = var.capacity_provider_strategy
-  placement_strategy_type         = var.placement_strategy_type
-  placement_strategy_field        = var.placement_strategy_field
-  placement_constraint_type       = var.placement_constraint_type
-  placement_constraint_expression = var.placement_constraint_expression
+  launch_type                       = var.launch_type
+  capacity_provider_strategy        = var.capacity_provider_strategy
+  placement_strategy_type           = var.placement_strategy_type
+  placement_strategy_field          = var.placement_strategy_field
+  placement_constraint_type         = var.placement_constraint_type
+  placement_constraint_expression   = var.placement_constraint_expression
+  ecs_task_definition_network_mode  = var.network_mode
+  ecs_service_network_configuration = var.network_configuration
+  task_cpu                          = var.task_cpu
+  task_memory                       = var.task_memory
 
   ecs_task_container_definitions = local.container_definitions
   desired_number_of_tasks        = var.desired_number_of_tasks
@@ -78,7 +82,7 @@ module "ecs_service" {
 
 # Update the ECS Node Security Group to allow the ECS Service to be accessed directly from an ECS Node (versus only from the ELB).
 resource "aws_security_group_rule" "custom_permissions" {
-  for_each = var.expose_ecs_service_to_other_ecs_nodes ? var.ecs_node_port_mappings : {}
+  for_each = var.launch_type == "EC2" && var.expose_ecs_service_to_other_ecs_nodes ? var.ecs_node_port_mappings : {}
 
   type      = "ingress"
   from_port = each.value
