@@ -85,6 +85,54 @@ variable "engine_mode" {
   default     = "provisioned"
 }
 
+variable "db_cluster_custom_parameter_group" {
+  description = "Configure a custom parameter group for the RDS DB cluster. This will create a new parameter group with the given parameters. When null, the database will be launched with the default parameter group."
+  type = object({
+    # Name of the parameter group to create
+    name = string
+
+    # The family of the DB cluster parameter group.
+    family = string
+
+    # The parameters to configure on the created parameter group.
+    parameters = list(object({
+      # Parameter name to configure.
+      name = string
+
+      # Vaue to set the parameter.
+      value = string
+
+      # When to apply the parameter. "immediate" or "pending-reboot".
+      apply_method = string
+    }))
+  })
+  default = null
+}
+
+variable "db_instance_custom_parameter_group" {
+  description = "Configure a custom parameter group for the RDS DB Instance. This will create a new parameter group with the given parameters. When null, the database will be launched with the default parameter group."
+  type = object({
+    # Name of the parameter group to create
+    name = string
+
+    # The family of the DB cluster parameter group.
+    family = string
+
+    # The parameters to configure on the created parameter group.
+    parameters = list(object({
+      # Parameter name to configure.
+      name = string
+
+      # Vaue to set the parameter.
+      value = string
+
+      # When to apply the parameter. "immediate" or "pending-reboot".
+      apply_method = string
+    }))
+  })
+  default = null
+}
+
 variable "allow_connections_from_cidr_blocks" {
   description = "The list of network CIDR blocks to allow network access to Aurora from. One of var.allow_connections_from_cidr_blocks or var.allow_connections_from_security_groups must be specified for the database to be reachable."
   type        = list(string)
@@ -454,6 +502,12 @@ variable "dashboard_write_latency_widget_parameters" {
     width  = 8
     height = 6
   }
+}
+
+variable "custom_tags" {
+  description = "A map of custom tags to apply to the RDS cluster and all associated resources created for it. The key is the tag name and the value is the tag value."
+  type        = map(string)
+  default     = {}
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

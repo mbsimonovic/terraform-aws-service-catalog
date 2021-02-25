@@ -39,6 +39,30 @@ variable "engine" {
   default     = null
 }
 
+variable "custom_parameter_group" {
+  description = "Configure a custom parameter group for the RDS DB. This will create a new parameter group with the given parameters. When null, the database will be launched with the default parameter group."
+  type = object({
+    # Name of the parameter group to create
+    name = string
+
+    # The family of the DB parameter group.
+    family = string
+
+    # The parameters to configure on the created parameter group.
+    parameters = list(object({
+      # Parameter name to configure.
+      name = string
+
+      # Vaue to set the parameter.
+      value = string
+
+      # When to apply the parameter. "immediate" or "pending-reboot".
+      apply_method = string
+    }))
+  })
+  default = null
+}
+
 variable "master_username" {
   description = "The value to use for the master username of the database. This can also be provided via AWS Secrets Manager. See the description of db_config_secrets_manager_id."
   type        = string

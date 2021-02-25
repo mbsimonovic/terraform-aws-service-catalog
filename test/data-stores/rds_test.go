@@ -37,22 +37,7 @@ func TestRds(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "setup", func() {
-		awsRegion := aws.GetRandomStableRegion(t, nil, nil)
-		test_structure.SaveString(t, testFolder, "region", awsRegion)
-
-		uniqueID := strings.ToLower(random.UniqueId())
-		test_structure.SaveString(t, testFolder, "uniqueID", uniqueID)
-
-		dbName := "rds"
-		dbUsername := "rds"
-		dbPassword := fmt.Sprintf("%s-%s", random.UniqueId(), random.UniqueId())
-
-		dbConfig := getDbConfigJSON(t, dbName, dbUsername, dbPassword, "mysql")
-		secretID := aws.CreateSecretStringWithDefaultKey(t, awsRegion, "Test description", "test-name-"+uniqueID, dbConfig)
-		test_structure.SaveString(t, testFolder, "dbName", dbName)
-		test_structure.SaveString(t, testFolder, "username", dbUsername)
-		test_structure.SaveString(t, testFolder, "password", dbPassword)
-		test_structure.SaveString(t, testFolder, "secretID", secretID)
+		setupRDSParameters(t, testFolder)
 	})
 
 	test_structure.RunTestStage(t, "deploy_terraform", func() {
@@ -82,6 +67,52 @@ func TestRds(t *testing.T) {
 			DBPort:     dbPort,
 		}
 		test.SmokeTestMysql(t, info)
+	})
+}
+
+func TestRdsWithCustomParameters(t *testing.T) {
+	t.Parallel()
+
+	// Uncomment the items below to skip certain parts of the test
+	//os.Setenv("TERRATEST_REGION", "us-west-2")
+	//os.Setenv("SKIP_setup", "true")
+	//os.Setenv("SKIP_deploy_terraform", "true")
+	//os.Setenv("SKIP_cleanup", "true")
+
+	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../../", "examples/for-learning-and-testing/data-stores/rds")
+
+	defer test_structure.RunTestStage(t, "cleanup", func() {
+		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
+		terraform.Destroy(t, terraformOptions)
+
+		awsRegion := test_structure.LoadString(t, testFolder, "region")
+		secretID := test_structure.LoadString(t, testFolder, "secretID")
+		aws.DeleteSecret(t, awsRegion, secretID, true)
+	})
+
+	test_structure.RunTestStage(t, "setup", func() {
+		setupRDSParameters(t, testFolder)
+	})
+
+	test_structure.RunTestStage(t, "deploy_terraform", func() {
+		awsRegion := test_structure.LoadString(t, testFolder, "region")
+		uniqueID := test_structure.LoadString(t, testFolder, "uniqueID")
+		secretID := test_structure.LoadString(t, testFolder, "secretID")
+
+		terraformOptions := createRDSTerraformOptions(t, testFolder, awsRegion, uniqueID, secretID)
+		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
+		terraformOptions.Vars["custom_parameter_group"] = map[string]interface{}{
+			"name":   fmt.Sprintf("parameter-%s", uniqueID),
+			"family": "mysql8.0",
+			"parameters": []map[string]string{
+				map[string]string{
+					"name":         "character_set_server",
+					"value":        "utf8",
+					"apply_method": "pending-reboot",
+				},
+			},
+		}
+		terraform.InitAndApply(t, terraformOptions)
 	})
 }
 
@@ -120,4 +151,23 @@ func getDbConfigJSON(t *testing.T, dbName, username, password, engine string) st
 	require.NoError(t, err)
 
 	return string(result)
+}
+
+func setupRDSParameters(t *testing.T, testFolder string) {
+	awsRegion := aws.GetRandomStableRegion(t, nil, nil)
+	test_structure.SaveString(t, testFolder, "region", awsRegion)
+
+	uniqueID := strings.ToLower(random.UniqueId())
+	test_structure.SaveString(t, testFolder, "uniqueID", uniqueID)
+
+	dbName := "rds"
+	dbUsername := "rds"
+	dbPassword := fmt.Sprintf("%s-%s", random.UniqueId(), random.UniqueId())
+
+	dbConfig := getDbConfigJSON(t, dbName, dbUsername, dbPassword, "mysql")
+	secretID := aws.CreateSecretStringWithDefaultKey(t, awsRegion, "Test description", "test-name-"+uniqueID, dbConfig)
+	test_structure.SaveString(t, testFolder, "dbName", dbName)
+	test_structure.SaveString(t, testFolder, "username", dbUsername)
+	test_structure.SaveString(t, testFolder, "password", dbPassword)
+	test_structure.SaveString(t, testFolder, "secretID", secretID)
 }
