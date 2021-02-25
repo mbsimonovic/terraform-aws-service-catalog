@@ -25,6 +25,8 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_elasticsearch_domain" "cluster" {
+  depends_on = [aws_iam_service_linked_role.es]
+
   domain_name           = var.domain_name
   elasticsearch_version = var.elasticsearch_version
 
@@ -86,6 +88,11 @@ resource "aws_elasticsearch_domain" "cluster" {
   timeouts {
     update = var.update_timeout
   }
+}
+
+resource "aws_iam_service_linked_role" "es" {
+  count            = var.create_service_linked_role ? 1 : 0
+  aws_service_name = "es.amazonaws.com"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
