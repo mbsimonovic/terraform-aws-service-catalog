@@ -59,7 +59,7 @@ module "cloudfront" {
   default_ttl = var.default_ttl
 
   create_route53_entries = var.create_route53_entry
-  domain_names           = [var.website_domain_name]
+  domain_names           = var.create_route53_entry ? [var.website_domain_name] : []
   base_domain_name       = var.base_domain_name
   base_domain_name_tags  = var.base_domain_name_tags
   hosted_zone_id         = var.hosted_zone_id
