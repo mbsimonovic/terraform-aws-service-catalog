@@ -58,6 +58,34 @@ variable "launch_type" {
   default     = "EC2"
 }
 
+variable "network_mode" {
+  description = "The Docker networking mode to use for the containers in the task. The valid values are none, bridge, awsvpc, and host. If the network_mode is set to awsvpc, you must configure var.network_configuration."
+  type        = string
+  default     = "bridge"
+}
+
+variable "network_configuration" {
+  description = "The configuration to use when setting up the VPC network mode. Required and only used if network_mode is awsvpc."
+  type = object({
+    subnets          = list(string)
+    security_groups  = list(string)
+    assign_public_ip = bool
+  })
+  default = null
+}
+
+variable "task_cpu" {
+  description = "The CPU units for the instances that Fargate will spin up. Options here: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate.html#fargate-tasks-size. Required when using FARGATE launch type."
+  type        = number
+  default     = null
+}
+
+variable "task_memory" {
+  description = "The memory units for the instances that Fargate will spin up. Options here: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate.html#fargate-tasks-size. Required when using FARGATE launch type."
+  type        = number
+  default     = null
+}
+
 variable "placement_strategy_type" {
   description = "The strategy to use when placing ECS tasks on EC2 instances. Can be binpack (default), random, or spread."
   type        = string

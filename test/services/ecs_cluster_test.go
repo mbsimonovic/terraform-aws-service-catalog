@@ -82,11 +82,67 @@ func TestEcsCluster(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "deploy_service", func() {
-		deployEcsService(t, ecsClusterTestFolder, ecsServiceTestFolder)
+		deployEcsService(t, ecsClusterTestFolder, ecsServiceTestFolder, false)
 	})
 
 	test_structure.RunTestStage(t, "validate_service", func() {
 		validateECSService(t, ecsClusterTestFolder, ecsServiceTestFolder)
+	})
+}
+
+func TestEcsFargateCluster(t *testing.T) {
+	// Uncomment the items below to skip certain parts of the test
+	//os.Setenv("TERRATEST_REGION", "eu-west-1")
+	//os.Setenv("SKIP_setup", "true")
+	//os.Setenv("SKIP_deploy_cluster", "true")
+	//os.Setenv("SKIP_deploy_service", "true")
+	//os.Setenv("SKIP_validate_service", "true")
+	//os.Setenv("SKIP_destroy_service", "true")
+	//os.Setenv("SKIP_destroy_cluster", "true")
+	t.Parallel()
+
+	ecsFargateClusterTestFolder := "../../examples/for-learning-and-testing/services/ecs-fargate-cluster"
+	ecsServiceTestFolder := test_structure.CopyTerraformFolderToTemp(t, "../..", "examples/for-learning-and-testing/services/ecs-service")
+
+	// The ECS service needs to be torn down prior to the cluster - otherwise AWS will return an error if you try to destroy a cluster that
+	// still has a service defined within it
+	defer test_structure.RunTestStage(t, "destroy_cluster", func() {
+		ecsFargateClusterTerraformOptions := test_structure.LoadTerraformOptions(t, ecsFargateClusterTestFolder)
+		terraform.Destroy(t, ecsFargateClusterTerraformOptions)
+	})
+
+	defer test_structure.RunTestStage(t, "destroy_service", func() {
+		ecsServiceTerraformOptions := test_structure.LoadTerraformOptions(t, ecsServiceTestFolder)
+		terraform.Destroy(t, ecsServiceTerraformOptions)
+	})
+
+	test_structure.RunTestStage(t, "setup", func() {
+		awsRegion := aws.GetRandomStableRegion(t, []string{"us-west-1"}, nil)
+		test_structure.SaveString(t, ecsFargateClusterTestFolder, "region", awsRegion)
+
+		uniqueID := random.UniqueId()
+		test_structure.SaveString(t, ecsFargateClusterTestFolder, "uniqueID", uniqueID)
+
+		clusterName := fmt.Sprintf("ecs-fargate-service-catalog-%s", strings.ToLower(uniqueID))
+		test_structure.SaveString(t, ecsFargateClusterTestFolder, "clusterName", clusterName)
+	})
+
+	test_structure.RunTestStage(t, "deploy_cluster", func() {
+		awsRegion := test_structure.LoadString(t, ecsFargateClusterTestFolder, "region")
+		clusterName := test_structure.LoadString(t, ecsFargateClusterTestFolder, "clusterName")
+		terraformOptions := test.CreateBaseTerraformOptions(t, ecsFargateClusterTestFolder, awsRegion)
+		terraformOptions.Vars["cluster_name"] = clusterName
+		test_structure.SaveTerraformOptions(t, ecsFargateClusterTestFolder, terraformOptions)
+
+		terraform.InitAndApply(t, terraformOptions)
+	})
+
+	test_structure.RunTestStage(t, "deploy_service", func() {
+		deployEcsService(t, ecsFargateClusterTestFolder, ecsServiceTestFolder, true)
+	})
+
+	test_structure.RunTestStage(t, "validate_service", func() {
+		validateECSService(t, ecsFargateClusterTestFolder, ecsServiceTestFolder)
 	})
 }
 
@@ -163,7 +219,7 @@ func validateECSCluster(t *testing.T, testFolder string) {
 }
 
 // Verify that we can deploy an ecs service onto the ECS cluster that was previously created
-func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestFolder string) {
+func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestFolder string, fargate bool) {
 
 	awsRegion := test_structure.LoadString(t, ecsClusterTestFolder, "region")
 
@@ -178,8 +234,6 @@ func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestF
 	}
 
 	ecsClusterArn := terraform.OutputRequired(t, ecsClusterTerraformOptions, "ecs_cluster_arn")
-	clusterInstanceSecurityGroupId := terraform.OutputRequired(t, ecsClusterTerraformOptions, "ecs_instance_security_group_id")
-
 	ecsClusterName := test_structure.LoadString(t, ecsClusterTestFolder, "clusterName")
 	uniqueID := test_structure.LoadString(t, ecsClusterTestFolder, "uniqueID")
 	domainName := fmt.Sprintf("ecs-service-test-%s.%s", uniqueID, TestDomainName)
@@ -195,9 +249,15 @@ func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestF
 	ecsServiceTerraformOptions.Vars["ecs_cluster_name"] = ecsClusterName
 	ecsServiceTerraformOptions.Vars["ecs_cluster_arn"] = ecsClusterArn
 	ecsServiceTerraformOptions.Vars["ecs_node_port_mappings"] = portMappings
-	ecsServiceTerraformOptions.Vars["ecs_instance_security_group_id"] = clusterInstanceSecurityGroupId
 	ecsServiceTerraformOptions.Vars["domain_name"] = domainName
 	ecsServiceTerraformOptions.Vars["hosted_zone_id"] = TestHostedZoneId
+
+	if fargate {
+		ecsServiceTerraformOptions.Vars["launch_type"] = "FARGATE"
+	} else {
+		clusterInstanceSecurityGroupId := terraform.OutputRequired(t, ecsClusterTerraformOptions, "ecs_instance_security_group_id")
+		ecsServiceTerraformOptions.Vars["ecs_instance_security_group_id"] = clusterInstanceSecurityGroupId
+	}
 
 	terraform.InitAndApply(t, ecsServiceTerraformOptions)
 

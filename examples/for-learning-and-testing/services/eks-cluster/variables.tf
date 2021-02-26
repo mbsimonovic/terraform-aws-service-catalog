@@ -45,3 +45,9 @@ variable "aws_auth_merger_image" {
   })
   default = null
 }
+
+variable "fargate_only" {
+  description = "If set to true, do not provision worker nodes."
+  type        = bool
+  default     = false
+}

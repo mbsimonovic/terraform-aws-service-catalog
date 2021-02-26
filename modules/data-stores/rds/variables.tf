@@ -39,6 +39,30 @@ variable "engine" {
   default     = null
 }
 
+variable "custom_parameter_group" {
+  description = "Configure a custom parameter group for the RDS DB. This will create a new parameter group with the given parameters. When null, the database will be launched with the default parameter group."
+  type = object({
+    # Name of the parameter group to create
+    name = string
+
+    # The family of the DB parameter group.
+    family = string
+
+    # The parameters to configure on the created parameter group.
+    parameters = list(object({
+      # Parameter name to configure.
+      name = string
+
+      # Vaue to set the parameter.
+      value = string
+
+      # When to apply the parameter. "immediate" or "pending-reboot".
+      apply_method = string
+    }))
+  })
+  default = null
+}
+
 variable "master_username" {
   description = "The value to use for the master username of the database. This can also be provided via AWS Secrets Manager. See the description of db_config_secrets_manager_id."
   type        = string
@@ -102,9 +126,15 @@ variable "multi_az" {
 }
 
 variable "port" {
-  description = "The port the DB will listen on (e.g. 3306). If not provided, will use the default for the selected engine. This can also be provided via AWS Secrets Manager. See the description of db_config_secrets_manager_id."
+  description = "The port the DB will listen on (e.g. 3306). Alternatively, this can be provided via AWS Secrets Manager. See the description of db_config_secrets_manager_id."
   type        = number
   default     = null
+}
+
+variable "custom_tags" {
+  description = "A map of custom tags to apply to the RDS Instance and the Security Group created for it. The key is the tag name and the value is the tag value."
+  type        = map(string)
+  default     = {}
 }
 
 # Monitoring settings

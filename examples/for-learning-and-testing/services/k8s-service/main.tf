@@ -34,9 +34,8 @@ provider "kubernetes" {
 provider "helm" {
   kubernetes {
     # If using `context`, load the authentication info from the config file and chosen context.
-    load_config_file = var.kubeconfig_auth_type == "context"
-    config_path      = var.kubeconfig_auth_type == "context" ? var.kubeconfig_path : null
-    config_context   = var.kubeconfig_auth_type == "context" ? var.kubeconfig_context : null
+    config_path    = var.kubeconfig_auth_type == "context" ? var.kubeconfig_path : null
+    config_context = var.kubeconfig_auth_type == "context" ? var.kubeconfig_context : null
 
     # If using `eks`, load the authentication info directly from EKS.
     host                   = var.kubeconfig_auth_type == "eks" ? data.aws_eks_cluster.cluster[0].endpoint : null

@@ -22,10 +22,9 @@ terraform {
       version = "= 1.10.0"
     }
 
-    # This module uses Helm 3, which depends on helm provider version 1.x series.
     helm = {
       source  = "hashicorp/helm"
-      version = "~> 1.0"
+      version = "~> 2.0"
     }
   }
 }
@@ -39,7 +38,7 @@ resource "helm_release" "application" {
   name       = var.application_name
   repository = "https://helmcharts.gruntwork.io"
   chart      = "k8s-service"
-  version    = "v0.1.1"
+  version    = "v0.1.7"
   namespace  = var.namespace
 
   values = [yamlencode(local.helm_chart_input)]
@@ -246,9 +245,10 @@ locals {
       )
     }
 
-    envVars    = var.env_vars
-    configMaps = local.configmaps
-    secrets    = local.secrets
+    envVars      = var.env_vars
+    configMaps   = local.configmaps
+    secrets      = local.secrets
+    scratchPaths = var.scratch_paths
 
     # Workaround for deep type checker. See https://github.com/hashicorp/terraform/issues/22405 for more info.
     livenessProbe = try(
@@ -332,7 +332,7 @@ resource "aws_iam_role" "new_role" {
 }
 
 module "service_account_assume_role_policy" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-iam-role-assume-role-policy-for-service-account?ref=v0.32.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-iam-role-assume-role-policy-for-service-account?ref=v0.32.4"
 
   eks_openid_connect_provider_arn = var.eks_iam_role_for_service_accounts_config.openid_connect_provider_arn
   eks_openid_connect_provider_url = var.eks_iam_role_for_service_accounts_config.openid_connect_provider_url

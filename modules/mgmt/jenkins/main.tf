@@ -29,7 +29,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "jenkins" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/jenkins-server?ref=v0.29.8"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/jenkins-server?ref=v0.29.10"
 
   name       = var.name
   aws_region = data.aws_region.current.name
@@ -145,6 +145,46 @@ locals {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
+# GIVE JENKINS PERMISSIONS TO DECRYPT THE ENCRYPTED EBS VOLUME
+# ---------------------------------------------------------------------------------------------------------------------
+
+data "aws_iam_policy_document" "kms_cmk" {
+  count = var.ebs_kms_key_arn != null ? 1 : 0
+  statement {
+    effect    = "Allow"
+    actions   = ["kms:CreateGrant"]
+    resources = [local.kms_key_arn]
+  }
+}
+
+resource "aws_iam_role_policy" "ebs_kms_cmk_permissions" {
+  count  = var.ebs_kms_key_arn != null ? 1 : 0
+  name   = "ebs-kms-cmk-permissions"
+  role   = module.jenkins.jenkins_iam_role_id
+  policy = data.aws_iam_policy_document.kms_cmk[0].json
+}
+
+# ----------------------------------------------------------------------------------------------------------------------
+# TRANSLATE THE KMS KEY ALIAS TO ID
+# If the provided key ARN is an alias, we swap it for the key ID which is necessary for the permissions to be granted
+# successfully.
+# ----------------------------------------------------------------------------------------------------------------------
+
+data "aws_kms_key" "by_loose_id" {
+  count  = var.ebs_kms_key_arn != null && var.ebs_kms_key_arn_is_alias ? 1 : 0
+  key_id = var.ebs_kms_key_arn
+}
+
+locals {
+  kms_key_arn = (
+    length(data.aws_kms_key.by_loose_id) > 0
+    ? data.aws_kms_key.by_loose_id[0].arn
+    : var.ebs_kms_key_arn
+  )
+}
+
+
+# ---------------------------------------------------------------------------------------------------------------------
 # GIVE JENKINS THE PERMISSIONS IT NEEDS TO RUN BUILDS IN THIS ACCOUNT
 # ---------------------------------------------------------------------------------------------------------------------
 
@@ -170,7 +210,7 @@ resource "aws_iam_role_policy" "deploy_this_account_permissions" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "auto_deploy_iam_policies" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-policies?ref=v0.44.10"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-policies?ref=v0.45.0"
 
   aws_account_id = data.aws_caller_identity.current.account_id
 
@@ -210,7 +250,7 @@ module "high_disk_usage_jenkins_volume_alarms" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "jenkins_backup" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ec2-backup?ref=v0.29.8"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ec2-backup?ref=v0.29.10"
 
   instance_name = module.jenkins.jenkins_asg_name
 

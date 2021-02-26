@@ -158,3 +158,9 @@ variable "update_timeout" {
   # case, we set 90m to try to reduce spurious errors.
   default = "90m"
 }
+
+variable "create_service_linked_role" {
+  description = "Whether or not the Service Linked Role for Elasticsearch should be created within this module. Normally the service linked role is created automatically by AWS when creating the Elasticsearch domain in the web console, but API does not implement this logic. You can either have AWS automatically manage this by creating a domain manually in the console, or manage it in terraform using the landing zone modules or this variable."
+  type        = bool
+  default     = false
+}

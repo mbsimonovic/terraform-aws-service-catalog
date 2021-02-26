@@ -88,7 +88,19 @@ variable "tenancy" {
 }
 
 variable "jenkins_volume_encrypted" {
-  description = "Set to true to encrypt the Jenins EBS volume"
+  description = "Set to true to encrypt the Jenkins EBS volume."
+  type        = bool
+  default     = false
+}
+
+variable "ebs_kms_key_arn" {
+  description = "The ARN of the KMS key used for encrypting the Jenkins EBS volume. The module will grant Jenkins permission to use this key."
+  type        = string
+  default     = null
+}
+
+variable "ebs_kms_key_arn_is_alias" {
+  description = "Whether or not the provide EBS KMS key ARN is a key alias. If providing the key ID, leave this set to false."
   type        = bool
   default     = false
 }

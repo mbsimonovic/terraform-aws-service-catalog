@@ -26,14 +26,16 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "database" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/rds?ref=v0.17.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/rds?ref=v0.17.3"
 
-  name           = var.name
-  db_name        = local.db_name
-  engine         = local.engine
-  engine_version = var.engine_version
-  port           = local.port
-  license_model  = var.license_model
+  name                 = var.name
+  db_name              = local.db_name
+  engine               = local.engine
+  engine_version       = var.engine_version
+  port                 = local.port
+  license_model        = var.license_model
+  custom_tags          = var.custom_tags
+  parameter_group_name = local.use_custom_parameter_group ? aws_db_parameter_group.custom[0].name : null
 
   deletion_protection = var.enable_deletion_protection
 
@@ -68,7 +70,26 @@ module "database" {
   snapshot_identifier = var.snapshot_identifier
 }
 
+resource "aws_db_parameter_group" "custom" {
+  count = local.use_custom_parameter_group ? 1 : 0
+
+  name   = var.custom_parameter_group.name
+  family = var.custom_parameter_group.family
+  tags   = var.custom_tags
+
+  dynamic "parameter" {
+    for_each = var.custom_parameter_group.parameters
+    content {
+      name         = parameter.value.name
+      value        = parameter.value.value
+      apply_method = parameter.value.apply_method
+    }
+  }
+}
+
 locals {
+  use_custom_parameter_group = var.custom_parameter_group != null
+
   # The primary_endpoint is of the format <host>:<port>. This output returns just the host part.
   primary_host = split(":", module.database.primary_endpoint)[0]
 
@@ -216,7 +237,7 @@ locals {
 
 # Lambda function that runs on a specified schedule to manually create the DB snapshot.
 module "create_snapshot" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/lambda-create-snapshot?ref=v0.17.2"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/lambda-create-snapshot?ref=v0.17.3"
   create_resources = var.share_snapshot_with_another_account
 
   rds_db_identifier        = module.database.primary_id
@@ -239,7 +260,7 @@ module "create_snapshot" {
 
 # Lambda function that will share the snapshots made using `create_snapshot`.
 module "share_snapshot" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/lambda-share-snapshot?ref=v0.17.2"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/lambda-share-snapshot?ref=v0.17.3"
   create_resources = var.share_snapshot_with_another_account
 
   rds_db_arn = module.database.primary_arn
@@ -248,7 +269,7 @@ module "share_snapshot" {
 
 # Lambda function that periodically culls old snapshots.
 module "cleanup_snapshots" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/lambda-cleanup-snapshots?ref=v0.17.2"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/lambda-cleanup-snapshots?ref=v0.17.3"
   create_resources = var.share_snapshot_with_another_account
 
   rds_db_identifier        = module.database.primary_id
@@ -280,7 +301,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "kms_cmk" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-master-key?ref=v0.44.10"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-master-key?ref=v0.45.0"
   customer_master_keys = (
     var.kms_key_arn == null
     ? {

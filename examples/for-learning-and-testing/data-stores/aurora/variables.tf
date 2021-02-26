@@ -46,7 +46,7 @@ variable "share_snapshot_with_account_id" {
 }
 
 variable "engine" {
-  description = "The name of the database engine to be used for the RDS instance. Must be one of: aurora, aurora-postgresql."
+  description = "The name of the database engine to be used for the RDS instance. Must be one of: aurora, aurora-mysql, aurora-postgresql."
   type        = string
   default     = "aurora"
 }
@@ -61,4 +61,28 @@ variable "aws_region" {
   description = "The AWS region to deploy into"
   type        = string
   default     = "eu-west-1"
+}
+
+variable "db_cluster_custom_parameter_group" {
+  description = "Configure a custom parameter group for the RDS DB cluster. This will create a new parameter group with the given parameters. When null, the database will be launched with the default parameter group."
+  type = object({
+    # Name of the parameter group to create
+    name = string
+
+    # The family of the DB cluster parameter group.
+    family = string
+
+    # The parameters to configure on the created parameter group.
+    parameters = list(object({
+      # Parameter name to configure.
+      name = string
+
+      # Vaue to set the parameter.
+      value = string
+
+      # When to apply the parameter. "immediate" or "pending-reboot".
+      apply_method = string
+    }))
+  })
+  default = null
 }

@@ -31,6 +31,12 @@ This folder contains https://www.terraform.io[Terraform] code to deploy a produc
 https://docs.aws.amazon.com/AmazonECS/latest/developerguide/Welcome.html[Elastic
 Container Service (ECS)].
 
+This module launches an ECS cluster on top of an Auto Scaling Group that you manage. If you wish to launch an ECS
+cluster on top of Fargate that is completely managed by AWS, refer to the
+link:../ecs-fargate-cluster[ecs-fargate-cluster module]. Refer to the section
+https://github.com/gruntwork-io/terraform-aws-ecs/blob/master/core-concepts.md#ec2-vs-fargate-launch-types[EC2 vs
+Fargate Launch Types] for more information on the differences between the two flavors.
+
 image::/_docs/ecs-architecture.png?raw=true[ECS architecture]
 
 toc::[]
@@ -153,4 +159,3 @@ Please see https://gruntwork.io/guides/foundations/how-to-use-gruntwork-infrastr
 == License
 
 Please see link:/LICENSE.txt[LICENSE.txt] for details on how the code in this repo is licensed.
-

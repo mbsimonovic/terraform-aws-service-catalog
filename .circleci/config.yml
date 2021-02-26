@@ -7,15 +7,15 @@ version: 2.1
 env: &env
   environment:
     # renovate.json auto-update: gruntwork-installer
-    GRUNTWORK_INSTALLER_VERSION: v0.0.32
+    GRUNTWORK_INSTALLER_VERSION: v0.0.34
     # renovate.json auto-update: terratest
-    TERRATEST_LOG_PARSER_VERSION: v0.32.1
+    TERRATEST_LOG_PARSER_VERSION: v0.32.8
     # renovate.json auto-update: kubergrunt
-    KUBERGRUNT_VERSION: v0.6.9
+    KUBERGRUNT_VERSION: v0.6.10
     # renovate.json auto-update: terraform-aws-ci
-    MODULE_CI_VERSION: v0.29.8
+    MODULE_CI_VERSION: v0.29.10
     # renovate.json auto-update: terragrunt
-    TERRAGRUNT_VERSION: v0.27.4
+    TERRAGRUNT_VERSION: v0.28.7
     # renovate.json auto-update-github-releases: hashicorp/terraform
     TERRAFORM_VERSION: 0.13.5
     # We intentionally do NOT auto update K8S, as it should be tied to EKS versions, and our support for them in
@@ -173,10 +173,10 @@ jobs:
               echo -e "Tests run for build [$CIRCLE_BUILD_NUM]($CIRCLE_BUILD_URL)\n\`\`\`\n$(cat debug.log)\n\`\`\`" \
                 | hub api repos/{owner}/{repo}/issues/"$CIRCLE_PR_NUMBER"/comments --field body=@-
             fi
-      - save_cache:
-          key: tests-to-run
+      - persist_to_workspace:
+          root: /home/circleci
           paths:
-            - /home/circleci/.terraform-aws-service-catalog
+            - .terraform-aws-service-catalog
 
 # ---------------------------------------------------------------------------------------------------------------------
 # TEST BUILD JOBS
@@ -191,11 +191,10 @@ jobs:
   test_data_stores:
     <<: *defaults
     steps:
+      - attach_workspace:
+          at: /home/circleci
       - checkout
       - prepare_environment
-      - restore_cache:
-          keys:
-            - tests-to-run
       - run: echo "export TEST_PACKAGE='data-stores'" >> $BASH_ENV
       - run:
           <<: *run_tests
@@ -204,11 +203,10 @@ jobs:
   test_landingzone:
     <<: *defaults
     steps:
+      - attach_workspace:
+          at: /home/circleci
       - checkout
       - prepare_environment
-      - restore_cache:
-          keys:
-            - tests-to-run
       - run: echo "export TEST_PACKAGE='landingzone'" >> $BASH_ENV
       - run:
           <<: *run_tests
@@ -217,11 +215,10 @@ jobs:
   test_mgmt:
     <<: *defaults
     steps:
+      - attach_workspace:
+          at: /home/circleci
       - checkout
       - prepare_environment
-      - restore_cache:
-          keys:
-            - tests-to-run
       - run: echo "export TEST_PACKAGE='mgmt'" >> $BASH_ENV
       - run:
           <<: *run_tests
@@ -230,11 +227,10 @@ jobs:
   test_networking:
     <<: *defaults
     steps:
+      - attach_workspace:
+          at: /home/circleci
       - checkout
       - prepare_environment
-      - restore_cache:
-          keys:
-            - tests-to-run
       - run: echo "export TEST_PACKAGE='networking'" >> $BASH_ENV
       - run:
           <<: *run_tests
@@ -243,13 +239,12 @@ jobs:
   test_services:
     <<: *defaults
     steps:
+      - attach_workspace:
+          at: /home/circleci
       - checkout
       - prepare_environment
       - run:
           <<: *install_kube_utils
-      - restore_cache:
-          keys:
-            - tests-to-run
       - run: echo "export TEST_PACKAGE='services'" >> $BASH_ENV
       - run:
           <<: *run_tests
@@ -258,11 +253,10 @@ jobs:
   test_smoke:
     <<: *defaults
     steps:
+      - attach_workspace:
+          at: /home/circleci
       - checkout
       - prepare_environment
-      - restore_cache:
-          keys:
-            - tests-to-run
       - run: echo "export TEST_PACKAGE='smoke'" >> $BASH_ENV
       - run:
           <<: *run_tests
@@ -271,11 +265,10 @@ jobs:
   test_tls_scripts:
     <<: *defaults
     steps:
+      - attach_workspace:
+          at: /home/circleci
       - checkout
       - prepare_environment
-      - restore_cache:
-          keys:
-            - tests-to-run
       - run: echo "export TEST_PACKAGE='tls-scripts'" >> $BASH_ENV
       - run:
           <<: *run_tests

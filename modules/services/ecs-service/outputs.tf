@@ -9,11 +9,6 @@ output "service_iam_role_arn" {
   value       = module.ecs_service.service_iam_role_arn
 }
 
-output "service_autoscaling_iam_role_arn" {
-  description = "The ARN of the autoscaling IAM role"
-  value       = module.ecs_service.service_autoscaling_iam_role_arn
-}
-
 output "service_app_autoscaling_target_arn" {
   description = "The ARN of the app autoscaling target"
   value       = module.ecs_service.service_app_autoscaling_target_arn

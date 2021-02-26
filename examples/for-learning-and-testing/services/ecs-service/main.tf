@@ -7,23 +7,36 @@ provider "aws" {
 }
 
 locals {
-  # This example demonstrates creating a common base configuration across normal and canary container definitions, while also changing the canary container definition to run a different image tag 
-  # This is a helpful pattern for using the canary task to verify a new release candidate
-  container_definitions = {
-    name        = var.service_name
-    image       = "nginx:1.17"
-    cpu         = 1024,
-    memory      = 256,
-    essential   = true
-    Environment = [{ name : "TEST_NAME", value : "TEST_VALUE" }]
-    portMappings = [
-      {
-        "hostPort"      = 80
-        "containerPort" = 80
-        "protocol"      = "tcp"
+  fargate_mode = "FARGATE"
+
+  # This example demonstrates creating a common base configuration across normal and canary container definitions, while
+  # also changing the canary container definition to run a different image tag. This is a helpful pattern for using the
+  # canary task to verify a new release candidate
+  container_definitions = merge(
+    # We inject the cpu into the container definition when launch type is EC2, but omit them for FARGATE as it throws an
+    # error otherwise.
+    (
+      var.launch_type == local.fargate_mode
+      ? {}
+      : {
+        cpu = 256
       }
-    ]
-  }
+    ),
+    {
+      name        = var.service_name
+      image       = "nginx:1.17"
+      memory      = 512
+      essential   = true
+      Environment = [{ name : "TEST_NAME", value : "TEST_VALUE" }]
+      portMappings = [
+        {
+          "hostPort"      = 80
+          "containerPort" = 80
+          "protocol"      = "tcp"
+        }
+      ]
+    }
+  )
 
   # Override the canary task definition to use a unique name and a newer image tag, as you might do when testing a new release tag prior to rolling it out fully
   canary_container_overrides = {
@@ -73,10 +86,24 @@ module "ecs_service" {
   ecs_cluster_name = var.ecs_cluster_name
 
   container_definitions = [local.container_definitions]
+  task_cpu              = 256
+  task_memory           = 512
+  launch_type           = var.launch_type
 
-  # An example of configuring a container definition within Terraform: 
+  network_mode = var.launch_type == local.fargate_mode ? "awsvpc" : "bridge"
+  network_configuration = (
+    var.launch_type == local.fargate_mode
+    ? {
+      subnets          = data.aws_subnet_ids.default.ids
+      security_groups  = [aws_security_group.fargate_sg[0].id]
+      assign_public_ip = true
+    }
+    : null
+  )
+
+  # An example of configuring a container definition within Terraform:
   canary_container_definitions = local.canary_container_definitions
-  # Run one canary container 
+  # Run one canary container
   desired_number_of_canary_tasks = 1
 
   use_auto_scaling = true
@@ -90,7 +117,7 @@ module "ecs_service" {
   ecs_node_port_mappings                = var.ecs_node_port_mappings
   ecs_instance_security_group_id        = var.ecs_instance_security_group_id
 
-  # Ensure the load balancer is provisioned before the ecs service is created 
+  # Ensure the load balancer is provisioned before the ecs service is created
   dependencies = [module.alb.alb_arn]
 
   # Load balancer configuration
@@ -118,7 +145,7 @@ module "ecs_service" {
     }
   }
 
-  # Create a route 53 entry and point it at the load balancer 
+  # Create a route 53 entry and point it at the load balancer
   create_route53_entry        = true
   domain_name                 = var.domain_name
   hosted_zone_id              = var.hosted_zone_id
@@ -133,15 +160,39 @@ module "ecs_service" {
 }
 
 # Create a security group rule allowing traffic from the load balancer to reach
-# the target groups on the EC2 instances backing the EC2 cluster
-resource "aws_security_group_rule" "loadbalancer_to_ec2" {
-  type              = "ingress"
-  from_port         = 80
-  to_port           = 80
-  protocol          = "tcp"
-  security_group_id = var.ecs_instance_security_group_id
-  # Only allow access to the EC2 container instances from the Application Load Balancer
+# the service.
+resource "aws_security_group_rule" "loadbalancer_to_service" {
+  type      = "ingress"
+  from_port = 80
+  to_port   = 80
+  protocol  = "tcp"
+  # Only allow access to the services from the Application Load Balancer
   source_security_group_id = module.alb.alb_security_group_id
+  security_group_id = (
+    var.launch_type == local.fargate_mode
+    # When using Fargate, control traffic directly to the Fargate tasks.
+    ? aws_security_group.fargate_sg[0].id
+    # When using EC2, control traffic to the EC2 instances due to bridge network mode.
+    : var.ecs_instance_security_group_id
+  )
+}
+
+# Create a Security Group for the Fargate Pods when deploying on Fargate.
+resource "aws_security_group" "fargate_sg" {
+  count       = var.launch_type == local.fargate_mode ? 1 : 0
+  name        = var.service_name
+  description = "Security group for Fargate Service"
+  vpc_id      = data.aws_vpc.default.id
+}
+
+resource "aws_security_group_rule" "allow_all_outbound" {
+  count             = var.launch_type == local.fargate_mode ? 1 : 0
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.fargate_sg[0].id
 }
 
 # Create an SNS topic to receive ecs-related alerts when defined service thresholds are breached

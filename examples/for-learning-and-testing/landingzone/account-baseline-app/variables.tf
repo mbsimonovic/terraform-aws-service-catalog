@@ -37,6 +37,18 @@ variable "config_central_account_id" {
   type        = string
 }
 
+variable "config_should_create_sns_topic" {
+  description = "set to true to create an sns topic in this account for sending aws config notifications (e.g., if this is the logs account). set to false to assume the topic specified in var.config_sns_topic_name already exists in another aws account (e.g., if this is the stage or prod account and var.config_sns_topic_name is the name of an sns topic in the logs account)."
+  type        = bool
+  default     = false
+}
+
+variable "config_sns_topic_name" {
+  description = "the name of the sns topic in where aws config notifications will be sent. can be in the same account or in another account."
+  type        = string
+  default     = "configtopic"
+}
+
 variable "cloudtrail_kms_key_arn" {
   description = "All CloudTrail Logs will be encrypted with a KMS CMK (Customer Master Key) that governs access to write API calls older than 7 days and all read API calls. If that CMK already exists (e.g., if this is the stage or prod account and you want to use a CMK that already exists in the logs account), set this to the ARN of that CMK. Otherwise (e.g., if this is the logs account), set this to null, and a new CMK will be created."
   type        = string

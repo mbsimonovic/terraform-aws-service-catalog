@@ -31,7 +31,9 @@ terraform {
 module "namespace" {
   source = "git::git@github.com:gruntwork-io/terraform-kubernetes-namespace.git//modules/namespace?ref=v0.1.1"
 
-  name = var.name
+  name        = var.name
+  labels      = var.labels
+  annotations = var.annotations
 }
 
 resource "aws_eks_fargate_profile" "namespace" {

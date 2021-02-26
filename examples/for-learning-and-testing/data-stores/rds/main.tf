@@ -16,11 +16,12 @@ module "mysql_rds" {
   # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/data-stores/rds?ref=v1.0.8"
   source = "../../../../modules/data-stores/rds"
 
-  name           = local.cluster_name
-  db_name        = var.db_name
-  port           = var.port
-  engine         = var.engine
-  engine_version = "8.0.17"
+  name                   = local.cluster_name
+  db_name                = var.db_name
+  port                   = var.port
+  engine                 = var.engine
+  engine_version         = "8.0.17"
+  custom_parameter_group = var.custom_parameter_group
 
   master_username = var.master_username
   master_password = var.master_password

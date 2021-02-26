@@ -21,7 +21,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_cluster" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ecs.git//modules/ecs-cluster?ref=v0.24.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ecs.git//modules/ecs-cluster?ref=v0.25.1"
 
   cluster_name     = var.cluster_name
   cluster_min_size = var.cluster_min_size
@@ -36,6 +36,7 @@ module "ecs_cluster" {
   vpc_subnet_ids                    = var.vpc_subnet_ids
   tenancy                           = var.tenancy
   allow_ssh_from_security_group_ids = var.allow_ssh_from_security_group_ids
+  allow_ssh_from_cidr_blocks        = var.allow_ssh_from_cidr_blocks
 
   alb_security_group_ids = compact(concat(var.internal_alb_sg_ids, var.public_alb_sg_ids))
 

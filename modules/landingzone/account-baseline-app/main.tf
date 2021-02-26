@@ -26,7 +26,7 @@ terraform {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "config" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/aws-config-multi-region?ref=v0.44.10"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/aws-config-multi-region?ref=v0.45.0"
 
   aws_account_id         = var.aws_account_id
   seed_region            = var.aws_region
@@ -34,6 +34,8 @@ module "config" {
 
   s3_bucket_name                        = var.config_s3_bucket_name != null ? var.config_s3_bucket_name : "${var.name_prefix}-config"
   should_create_s3_bucket               = var.config_should_create_s3_bucket
+  sns_topic_name                        = var.config_sns_topic_name
+  should_create_sns_topic               = var.config_should_create_sns_topic
   force_destroy                         = var.config_force_destroy
   num_days_after_which_archive_log_data = var.config_num_days_after_which_archive_log_data
   num_days_after_which_delete_log_data  = var.config_num_days_after_which_delete_log_data
@@ -86,7 +88,7 @@ module "config" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "iam_cross_account_roles" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/cross-account-iam-roles?ref=v0.44.10"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/cross-account-iam-roles?ref=v0.45.0"
 
   aws_account_id = var.aws_account_id
   tags           = var.iam_role_tags
@@ -111,7 +113,7 @@ module "iam_cross_account_roles" {
 }
 
 module "iam_user_password_policy" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-user-password-policy?ref=v0.44.10"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-user-password-policy?ref=v0.45.0"
 
   # Adjust these settings as appropriate for your company
   minimum_password_length        = var.iam_password_policy_minimum_password_length
@@ -131,7 +133,7 @@ module "iam_user_password_policy" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "guardduty" {
-  source         = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/guardduty-multi-region?ref=v0.44.10"
+  source         = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/guardduty-multi-region?ref=v0.45.0"
   aws_account_id = var.aws_account_id
   seed_region    = var.aws_region
 
@@ -147,7 +149,7 @@ module "guardduty" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "cloudtrail" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/cloudtrail?ref=v0.44.10"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/cloudtrail?ref=v0.45.0"
 
   is_multi_region_trail = true
   cloudtrail_trail_name = var.name_prefix
@@ -183,7 +185,7 @@ module "cloudtrail" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "customer_master_keys" {
-  source         = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-master-key-multi-region?ref=v0.44.10"
+  source         = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-master-key-multi-region?ref=v0.45.0"
   aws_account_id = var.aws_account_id
   seed_region    = var.aws_region
 
@@ -193,7 +195,7 @@ module "customer_master_keys" {
 }
 
 module "kms_grants" {
-  source            = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-grant-multi-region?ref=v0.44.10"
+  source            = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-grant-multi-region?ref=v0.45.0"
   aws_account_id    = var.aws_account_id
   seed_region       = var.aws_region
   opt_in_regions    = var.kms_cmk_opt_in_regions
@@ -216,7 +218,7 @@ module "kms_grants" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "ebs_encryption" {
-  source         = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/ebs-encryption-multi-region?ref=v0.44.10"
+  source         = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/ebs-encryption-multi-region?ref=v0.45.0"
   aws_account_id = var.aws_account_id
   seed_region    = var.aws_region
   opt_in_regions = var.ebs_opt_in_regions

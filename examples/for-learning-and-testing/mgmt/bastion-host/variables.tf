@@ -12,11 +12,6 @@ variable "keypair_name" {
   type        = string
 }
 
-variable "domain_name" {
-  description = "The name of the domain in which to create a DNS record for the bastion host."
-  type        = string
-}
-
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL PARAMETERS
 # ---------------------------------------------------------------------------------------------------------------------
@@ -37,4 +32,16 @@ variable "base_domain_name_tags" {
   description = "Tags to use to filter the Route 53 Hosted Zones that might match var.base_domain_name."
   type        = map(string)
   default     = {}
+}
+
+variable "create_dns_record" {
+  description = "Set to true to create a DNS record in Route53 pointing to the bastion. If true, be sure to set var.domain_name."
+  type        = bool
+  default     = false
+}
+
+variable "domain_name" {
+  description = "The name of the domain in which to create a DNS record for the bastion host."
+  type        = string
+  default     = ""
 }

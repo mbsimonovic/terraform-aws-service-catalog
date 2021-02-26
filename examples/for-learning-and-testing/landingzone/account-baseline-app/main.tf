@@ -39,6 +39,8 @@ module "app_baseline" {
   # We assume the S3 bucket for AWS Config has already been created by account-baseline-root
   config_should_create_s3_bucket                   = false
   config_s3_bucket_name                            = var.config_s3_bucket_name
+  config_sns_topic_name                            = var.config_sns_topic_name
+  config_should_create_sns_topic                   = var.config_should_create_sns_topic
   config_central_account_id                        = var.config_central_account_id
   config_aggregate_config_data_in_external_account = var.config_aggregate_config_data_in_external_account
 

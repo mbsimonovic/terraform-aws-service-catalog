@@ -71,6 +71,12 @@ variable "min_ttl" {
   default     = 0
 }
 
+variable "custom_tags" {
+  description = "A map of custom tags to apply to the S3 bucket containing the website and the CloudFront distribution created for it. The key is the tag name and the value is the tag value."
+  type        = map(string)
+  default     = {}
+}
+
 variable "force_destroy" {
   description = "If set to true, this will force the delete of the website, redirect, and access log S3 buckets when you run terraform destroy, even if there is still content in those buckets. This is only meant for testing and should not be used in production."
   type        = bool

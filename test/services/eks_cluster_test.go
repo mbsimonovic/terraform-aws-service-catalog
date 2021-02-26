@@ -10,8 +10,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gruntwork-io/aws-service-catalog/test"
-
 	awsgo "github.com/aws/aws-sdk-go/aws"
 	"github.com/gruntwork-io/terratest/modules/aws"
 	dns_helper "github.com/gruntwork-io/terratest/modules/dns-helper"
@@ -28,11 +26,14 @@ import (
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/gruntwork-io/aws-service-catalog/test"
 )
 
 const (
 	// renovate.json auto-update-github-releases: gruntwork-io/terraform-aws-eks
-	terraformAWSEKSVersion = "v0.27.0"
+	terraformAWSEKSVersion = "v0.32.4"
 )
 
 var defaultDomainTagFilterForTest = []map[string]string{
@@ -54,6 +55,8 @@ const (
 	expectedEksNodeCountWithoutAuthMerger = 3
 	// 1 worker + 2 fargate pods for coredns + 1 fargate pod for aws-auth-merger
 	expectedEksNodeCountWithAuthMerger = 4
+	// 2 fargate pods for coredns
+	expectedEksNodeCountFargateOnly = 2
 )
 
 func TestEksCluster(t *testing.T) {
@@ -66,6 +69,7 @@ func TestEksCluster(t *testing.T) {
 	//os.Setenv("SKIP_deploy_terraform", "true")
 	//os.Setenv("SKIP_validate_cluster", "true")
 	//os.Setenv("SKIP_deploy_core_services", "true")
+	//os.Setenv("SKIP_validate_core_services_fargate", "true")
 	//os.Setenv("SKIP_validate_external_dns", "true")
 	//os.Setenv("SKIP_deploy_sampleapp", "true")
 	//os.Setenv("SKIP_validate_sampleapp", "true")
@@ -106,7 +110,58 @@ func TestEksCluster(t *testing.T) {
 			testEKSClusterWithoutAuthMerger(t, workingDir)
 		})
 	})
+}
 
+// Regression test to make sure the subnet filtering works to allow deploying EKS clusters to us-east-1 with Fargate
+// pods.
+func TestEksClusterFargateUsEast1(t *testing.T) {
+	t.Parallel()
+
+	// Uncomment the items below to skip certain parts of the test
+	//os.Setenv("TERRATEST_REGION", "eu-west-1")
+	//os.Setenv("SKIP_deploy_terraform", "true")
+	//os.Setenv("SKIP_validate_cluster", "true")
+	//os.Setenv("SKIP_deploy_core_services", "true")
+	//os.Setenv("SKIP_validate_external_dns", "true")
+	//os.Setenv("SKIP_cleanup_core_services", "true")
+	//os.Setenv("SKIP_cleanup", "true")
+
+	// Create a directory path that won't conflict
+	workingDir := filepath.Join(".", "stages", t.Name())
+
+	examplesRoot := test_structure.CopyTerraformFolderToTemp(t, "../../", "examples")
+	eksClusterRoot := filepath.Join(examplesRoot, "for-learning-and-testing/services/eks-cluster")
+	coreServicesRoot := filepath.Join(examplesRoot, "for-learning-and-testing/services/eks-core-services")
+
+	defer test_structure.RunTestStage(t, "cleanup", func() {
+		terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
+		terraform.Destroy(t, terraformOptions)
+
+		kubectlOptions := test_structure.LoadKubectlOptions(t, workingDir)
+		os.Remove(kubectlOptions.ConfigPath)
+	})
+
+	test_structure.RunTestStage(t, "deploy_terraform", func() {
+		test_structure.SaveString(t, workingDir, "region", "us-east-1")
+		deployEKSCluster(t, workingDir, workingDir, eksClusterRoot, false, true)
+	})
+
+	test_structure.RunTestStage(t, "validate_cluster", func() {
+		validateEKSCluster(t, workingDir, expectedEksNodeCountFargateOnly)
+	})
+
+	defer test_structure.RunTestStage(t, "cleanup_core_services", func() {
+		terraformOptions := test_structure.LoadTerraformOptions(t, coreServicesRoot)
+		terraform.Destroy(t, terraformOptions)
+	})
+
+	test_structure.RunTestStage(t, "deploy_core_services", func() {
+		deployCoreServices(t, workingDir, workingDir, coreServicesRoot)
+	})
+
+	test_structure.RunTestStage(t, "validate_core_services_fargate", func() {
+		validateCoreServicesOnFargate(t, workingDir)
+	})
 }
 
 // Test the eks-cluster module without deploying the aws-auth-merger. This test only checks if the requisite number of
@@ -129,7 +184,7 @@ func testEKSClusterWithoutAuthMerger(t *testing.T, parentWorkingDir string) {
 	})
 
 	test_structure.RunTestStage(t, "deploy_terraform", func() {
-		deployEKSCluster(t, parentWorkingDir, workingDir, eksClusterRoot, false)
+		deployEKSCluster(t, parentWorkingDir, workingDir, eksClusterRoot, false, false)
 	})
 
 	test_structure.RunTestStage(t, "validate_cluster", func() {
@@ -165,7 +220,7 @@ func testEKSClusterWithCoreServicesAndAuthMerger(t *testing.T, parentWorkingDir 
 	})
 
 	test_structure.RunTestStage(t, "deploy_terraform", func() {
-		deployEKSCluster(t, parentWorkingDir, workingDir, eksClusterRoot, true)
+		deployEKSCluster(t, parentWorkingDir, workingDir, eksClusterRoot, true, false)
 	})
 
 	test_structure.RunTestStage(t, "validate_cluster", func() {
@@ -179,6 +234,10 @@ func testEKSClusterWithCoreServicesAndAuthMerger(t *testing.T, parentWorkingDir 
 
 	test_structure.RunTestStage(t, "deploy_core_services", func() {
 		deployCoreServices(t, parentWorkingDir, workingDir, coreServicesRoot)
+	})
+
+	test_structure.RunTestStage(t, "validate_core_services_fargate", func() {
+		validateCoreServicesOnFargate(t, workingDir)
 	})
 
 	test_structure.RunTestStage(t, "validate_external_dns", func() {
@@ -231,10 +290,16 @@ func buildWorkerAmi(t *testing.T, testFolder string) {
 // AMI are stored.
 // workingDir should be the working dir of the subtest, and is where local options like the terraform options are
 // stored.
-func deployEKSCluster(t *testing.T, parentWorkingDir string, workingDir string, modulePath string, enableAWSAuthMerger bool) {
+func deployEKSCluster(
+	t *testing.T,
+	parentWorkingDir string,
+	workingDir string,
+	modulePath string,
+	enableAWSAuthMerger bool,
+	fargateOnly bool,
+) {
 	branchName := git.GetCurrentBranchName(t)
 	awsRegion := test_structure.LoadString(t, parentWorkingDir, "region")
-	awsKeyPair := test_structure.LoadEc2KeyPair(t, parentWorkingDir)
 
 	clusterName := fmt.Sprintf("eks-service-catalog-%s", strings.ToLower(random.UniqueId()))
 	test_structure.SaveString(t, workingDir, "clusterName", clusterName)
@@ -242,7 +307,6 @@ func deployEKSCluster(t *testing.T, parentWorkingDir string, workingDir string, 
 	terraformOptions := test.CreateBaseTerraformOptions(t, modulePath, awsRegion)
 	terraformOptions.Vars["cluster_name"] = clusterName
 	terraformOptions.Vars["cluster_instance_ami_version_tag"] = branchName
-	terraformOptions.Vars["keypair_name"] = awsKeyPair.Name
 
 	// Pull in ECR image info and configure the vars to enable the aws-auth-merger if requested.
 	if enableAWSAuthMerger {
@@ -252,6 +316,13 @@ func deployEKSCluster(t *testing.T, parentWorkingDir string, workingDir string, 
 			"repo": ecrRepoURI,
 			"tag":  "v1",
 		}
+	}
+
+	if fargateOnly {
+		terraformOptions.Vars["fargate_only"] = true
+	} else {
+		awsKeyPair := test_structure.LoadEc2KeyPair(t, parentWorkingDir)
+		terraformOptions.Vars["keypair_name"] = awsKeyPair.Name
 	}
 
 	test_structure.SaveTerraformOptions(t, workingDir, terraformOptions)
@@ -307,6 +378,34 @@ func deployCoreServices(t *testing.T, parentWorkingDir string, workingDir string
 	test_structure.SaveTerraformOptions(t, coreServicesModulePath, coreServicesOptions)
 
 	terraform.InitAndApply(t, coreServicesOptions)
+}
+
+// Validate the core services module is running on Fargate.
+// parentWorkingDir should be the working dir of the overarching test, and is where the global options like region and
+// AMI are stored.
+// workingDir should be the working dir of the subtest, and is where local options like the terraform options are
+// stored.
+func validateCoreServicesOnFargate(t *testing.T, workingDir string) {
+	kubectlOptions := test_structure.LoadKubectlOptions(t, workingDir)
+	kubectlOptions.Namespace = "kube-system"
+
+	ingressControllerLabelSelector := "app.kubernetes.io/instance=aws-alb-ingress-controller,app.kubernetes.io/name=aws-load-balancer-controller"
+	assertFargate(t, kubectlOptions, ingressControllerLabelSelector)
+
+	clusterAutoscalerLabelSelector := "app.kubernetes.io/instance=cluster-autoscaler,app.kubernetes.io/name=aws-cluster-autoscaler-chart"
+	assertFargate(t, kubectlOptions, clusterAutoscalerLabelSelector)
+
+	externalDNSLabelSelector := "app.kubernetes.io/instance=external-dns,app.kubernetes.io/name=external-dns"
+	assertFargate(t, kubectlOptions, externalDNSLabelSelector)
+}
+
+func assertFargate(t *testing.T, kubectlOptions *k8s.KubectlOptions, labelSelectorStr string) {
+	pods := k8s.ListPods(t, kubectlOptions, metav1.ListOptions{LabelSelector: labelSelectorStr})
+	require.Greater(t, len(pods), 0)
+	for _, pod := range pods {
+		_, hasFargateLabel := pod.ObjectMeta.Labels["eks.amazonaws.com/fargate-profile"]
+		assert.Truef(t, hasFargateLabel, "%s pod does not have fargate label", pod.ObjectMeta.Name)
+	}
 }
 
 // Validate the deployed external-dns service is running and healthy by using a investigation pod.

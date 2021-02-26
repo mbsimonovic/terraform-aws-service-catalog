@@ -35,6 +35,18 @@ variable "config_s3_bucket_name" {
   default     = null
 }
 
+variable "config_should_create_sns_topic" {
+  description = "set to true to create an sns topic in this account for sending aws config notifications (e.g., if this is the logs account). set to false to assume the topic specified in var.config_sns_topic_name already exists in another aws account (e.g., if this is the stage or prod account and var.config_sns_topic_name is the name of an sns topic in the logs account)."
+  type        = bool
+  default     = false
+}
+
+variable "config_sns_topic_name" {
+  description = "the name of the sns topic in where aws config notifications will be sent. can be in the same account or in another account."
+  type        = string
+  default     = "ConfigTopic"
+}
+
 variable "config_opt_in_regions" {
   description = "Creates resources in the specified regions. Note that the region must be enabled on your AWS account. Regions that are not enabled are automatically filtered from this list. When null (default), AWS Config will be enabled on all regions enabled on the account. Please note that the best practice is to enable AWS Config in all available regions. Use this list to provide an alternate region list for testing purposes"
   type        = list(string)

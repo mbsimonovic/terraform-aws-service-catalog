@@ -1,5 +1,5 @@
 output "ecs_cluster_arn" {
-  description = "The ID of the ECS cluster"
+  description = "The ARN of the ECS cluster"
   value       = module.ecs_cluster.ecs_cluster_arn
 }
 

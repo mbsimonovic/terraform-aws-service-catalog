@@ -60,7 +60,7 @@ provider "helm" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "aws_for_fluent_bit" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-container-logs?ref=v0.32.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-container-logs?ref=v0.32.4"
 
   iam_role_for_service_accounts_config = var.eks_iam_role_for_service_accounts_config
   iam_role_name_prefix                 = var.eks_cluster_name
@@ -93,7 +93,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "alb_ingress_controller" {
-  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-alb-ingress-controller?ref=v0.32.2"
+  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-alb-ingress-controller?ref=v0.32.4"
   dependencies = aws_eks_fargate_profile.core_services.*.id
 
   aws_region                           = var.aws_region
@@ -111,7 +111,7 @@ module "alb_ingress_controller" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "k8s_external_dns" {
-  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-external-dns?ref=v0.32.2"
+  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-external-dns?ref=v0.32.4"
   dependencies = aws_eks_fargate_profile.core_services.*.id
 
   aws_region                           = var.aws_region
@@ -135,7 +135,7 @@ module "k8s_external_dns" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "k8s_cluster_autoscaler" {
-  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-cluster-autoscaler?ref=v0.32.2"
+  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-cluster-autoscaler?ref=v0.32.4"
   dependencies = aws_eks_fargate_profile.core_services.*.id
 
   aws_region                           = var.aws_region
@@ -163,7 +163,7 @@ resource "aws_eks_fargate_profile" "core_services" {
   cluster_name           = var.eks_cluster_name
   fargate_profile_name   = "core-services"
   pod_execution_role_arn = var.pod_execution_iam_role_arn
-  subnet_ids             = var.worker_vpc_subnet_ids
+  subnet_ids             = local.usable_fargate_subnet_ids
 
   dynamic "selector" {
     for_each = local.fargate_profile_selectors
@@ -194,7 +194,7 @@ locals {
       var.schedule_alb_ingress_controller_on_fargate
       ? {
         aws-alb-ingress-controller = {
-          "app.kubernetes.io/name"     = "aws-alb-ingress-controller"
+          "app.kubernetes.io/name"     = "aws-load-balancer-controller"
           "app.kubernetes.io/instance" = "aws-alb-ingress-controller"
         }
       }
@@ -214,7 +214,7 @@ locals {
       var.schedule_cluster_autoscaler_on_fargate
       ? {
         cluster-autoscaler = {
-          "app.kubernetes.io/name"     = "aws-cluster-autoscaler"
+          "app.kubernetes.io/name"     = "aws-cluster-autoscaler-chart"
           "app.kubernetes.io/instance" = "cluster-autoscaler"
         }
       }

@@ -12,9 +12,10 @@ module "aurora" {
   # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/data-stores/aurora?ref=v1.0.8"
   source = "../../../../modules/data-stores/aurora"
 
-  name        = var.name
-  engine      = var.engine
-  engine_mode = var.engine_mode
+  name                              = var.name
+  engine                            = var.engine
+  engine_mode                       = var.engine_mode
+  db_cluster_custom_parameter_group = var.db_cluster_custom_parameter_group
 
   # Database Configurations
   master_username = var.master_username

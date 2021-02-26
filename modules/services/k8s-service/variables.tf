@@ -349,6 +349,17 @@ variable "secrets_as_env_vars" {
   # }
 }
 
+variable "scratch_paths" {
+  description = "Paths that should be allocated as tmpfs volumes in the Deployment container. Each entry in the map is a key value pair where the key is an arbitrary name to bind to the volume, and the value is the path in the container to mount the tmpfs volume."
+  type        = map(string)
+  default     = {}
+
+  # Example: This will mount the tmpfs volume "foo" to the path "/mnt/scratch"
+  # {
+  #   foo = "/mnt/scratch"
+  # }
+}
+
 # IAM role for IRSA
 
 variable "iam_role_exists" {
