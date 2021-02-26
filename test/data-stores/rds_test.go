@@ -59,14 +59,14 @@ func TestRds(t *testing.T) {
 		dbEndpoint := terraform.OutputRequired(t, terraformOptions, "primary_host")
 		dbPort := terraform.OutputRequired(t, terraformOptions, "port")
 
-		info := test.RDSInfo{
+		info := RDSInfo{
 			Username:   dbUsername,
 			Password:   dbPassword,
 			DBName:     dbName,
 			DBEndpoint: dbEndpoint,
 			DBPort:     dbPort,
 		}
-		test.SmokeTestMysql(t, info)
+		SmokeTestMysql(t, info)
 	})
 }
 
