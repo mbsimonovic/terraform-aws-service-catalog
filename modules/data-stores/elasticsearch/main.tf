@@ -29,6 +29,7 @@ resource "aws_elasticsearch_domain" "cluster" {
 
   domain_name           = var.domain_name
   elasticsearch_version = var.elasticsearch_version
+  tags                  = var.custom_tags
 
   cluster_config {
     # Data nodes
@@ -66,6 +67,11 @@ resource "aws_elasticsearch_domain" "cluster" {
     volume_type = var.volume_type
     volume_size = var.volume_size
     iops        = var.iops
+  }
+
+  encrypt_at_rest {
+    enabled    = var.enable_encryption_at_rest
+    kms_key_id = var.encryption_kms_key_id
   }
 
   snapshot_options {

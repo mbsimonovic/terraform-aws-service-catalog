@@ -40,19 +40,28 @@ func TestElasticsearch(t *testing.T) {
 	testFolderPublic := test_structure.CopyTerraformFolderToTemp(t, "../../", "examples/for-learning-and-testing/data-stores/elasticsearch-public")
 
 	testCases := []struct {
-		name       string
-		testFolder string
-		hasKeyPair bool
+		name          string
+		testFolder    string
+		hasKeyPair    bool
+		enableEncrypt bool
 	}{
 		{
 			"VPC-based Cluster",
 			testFolder,
 			true,
+			false,
 		},
 		{
 			"Public Access Cluster",
 			testFolderPublic,
 			false,
+			false,
+		},
+		{
+			"Public Access Cluster (encrypt at rest)",
+			testFolderPublic,
+			false,
+			true,
 		},
 	}
 
@@ -90,19 +99,17 @@ func TestElasticsearch(t *testing.T) {
 				awsRegion := test_structure.LoadString(t, testCase.testFolder, "region")
 				uniqueID := test_structure.LoadString(t, testCase.testFolder, "uniqueID")
 
+				awsKeyPairName := ""
 				if testCase.hasKeyPair {
-
 					awsKeyPair := test_structure.LoadEc2KeyPair(t, testCase.testFolder)
-
-					terraformOptions := createElasticsearchTerraformOptions(t, testCase.testFolder, awsRegion, uniqueID, awsKeyPair.Name)
-					test_structure.SaveTerraformOptions(t, testCase.testFolder, terraformOptions)
-					terraform.InitAndApply(t, terraformOptions)
-				} else {
-
-					terraformOptions := createElasticsearchTerraformOptions(t, testCase.testFolder, awsRegion, uniqueID, "")
-					test_structure.SaveTerraformOptions(t, testCase.testFolder, terraformOptions)
-					terraform.InitAndApply(t, terraformOptions)
+					awsKeyPairName = awsKeyPair.Name
 				}
+
+				terraformOptions := createElasticsearchTerraformOptions(t, testCase.testFolder, awsRegion, uniqueID, awsKeyPairName)
+				terraformOptions.Vars["enable_encryption_at_rest"] = testCase.enableEncrypt
+
+				test_structure.SaveTerraformOptions(t, testCase.testFolder, terraformOptions)
+				terraform.InitAndApply(t, terraformOptions)
 			})
 
 			test_structure.RunTestStage(t, "validate_cluster", func() {

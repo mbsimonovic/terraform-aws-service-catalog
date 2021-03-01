@@ -27,7 +27,7 @@ module "elasticsearch" {
   # Cluster Configurations
   domain_name            = var.domain_name
   elasticsearch_version  = "7.7"
-  instance_type          = "t2.small.elasticsearch"
+  instance_type          = "t3.small.elasticsearch"
   instance_count         = 1
   volume_type            = "gp2"
   volume_size            = 10
@@ -42,6 +42,11 @@ module "elasticsearch" {
   # Since this is just an example, we don't deploy any CloudWatch resources in order to make it faster to deploy, however in
   # production you'll probably want to enable this feature.
   enable_cloudwatch_alarms = false
+
+  # Encryption config.
+  # Since this is just an example, we use the default service KMS key when encryption at rest is
+  # enabled. However, in production, you will want to configure a dedicated encryption KMS key.
+  enable_encryption_at_rest = var.enable_encryption_at_rest
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

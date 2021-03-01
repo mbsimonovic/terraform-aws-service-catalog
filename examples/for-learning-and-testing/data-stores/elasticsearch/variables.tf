@@ -24,3 +24,9 @@ variable "keypair_name" {
   type        = string
   default     = null
 }
+
+variable "enable_encryption_at_rest" {
+  description = "When true, the Elasticsearch domain storage will be encrypted at rest using the aws/es service KMS key."
+  type        = bool
+  default     = false
+}

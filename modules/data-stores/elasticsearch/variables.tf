@@ -91,6 +91,12 @@ variable "dedicated_master_count" {
   default     = null
 }
 
+variable "custom_tags" {
+  description = "A map of custom tags to apply to the ElasticSearch Domain. The key is the tag name and the value is the tag value."
+  type        = map(string)
+  default     = {}
+}
+
 variable "iops" {
   description = "The baseline input/output (I/O) performance of EBS volumes attached to data nodes. Must be between 1000 and 4000. Applicable only if var.volume_type is io1."
   type        = number
@@ -157,6 +163,18 @@ variable "update_timeout" {
   # The default for the aws_elasticsearch_domain resource is 60m, but we've seen that timeout on creation, so just in
   # case, we set 90m to try to reduce spurious errors.
   default = "90m"
+}
+
+variable "enable_encryption_at_rest" {
+  description = "When true, the Elasticsearch domain storage will be encrypted at rest using the KMS key described with var.encryption_kms_key_id. We strongly recommend configuring a custom KMS key instead of using the shared service key for a better security posture when configuring encryption at rest."
+  type        = bool
+  default     = false
+}
+
+variable "encryption_kms_key_id" {
+  description = "The ID of the KMS key to use to encrypt the Elasticsearch domain storage. Only used if enable_encryption_at_rest. When null, uses the aws/es service KMS key."
+  type        = string
+  default     = null
 }
 
 variable "create_service_linked_role" {

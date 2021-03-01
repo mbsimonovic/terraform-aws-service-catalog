@@ -18,3 +18,9 @@ variable "aws_region" {
   type        = string
   default     = "eu-west-1"
 }
+
+variable "enable_encryption_at_rest" {
+  description = "When true, the Elasticsearch domain storage will be encrypted at rest using the aws/es service KMS key."
+  type        = bool
+  default     = false
+}
