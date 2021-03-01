@@ -59,8 +59,6 @@ resource "aws_elasticsearch_domain" "cluster" {
 
   access_policies = data.aws_iam_policy_document.elasticsearch_vpc_access_policy.json
 
-  # We always turn on EBS volumes to ensure there is enough disk space and
-  # IOPS available to the node than is directly available on the node itself.
   ebs_options {
     ebs_enabled = var.ebs_enabled
     volume_type = var.volume_type
