@@ -141,11 +141,11 @@ locals {
 }
 
 data "aws_arn" "config_s3_bucket" {
-  count = local.has_logs_account ? 1 : 0
+  count = local.has_logs_account && var.enable_config ? 1 : 0
   arn   = module.config_bucket.s3_bucket_arn
 }
 
 data "aws_arn" "cloudtrail_s3_bucket" {
-  count = local.has_logs_account ? 1 : 0
+  count = local.has_logs_account && var.enable_cloudtrail ? 1 : 0
   arn   = module.cloudtrail_bucket.s3_bucket_arn
 }
