@@ -421,14 +421,14 @@ variable "additional_config_rules" {
 
 variable "enable_iam_groups" {
   description = "A feature flag to enable or disable this module."
-  type = bool
-  default = true
+  type        = bool
+  default     = true
 }
 
 variable "enable_iam_cross_account_roles" {
   description = "A feature flag to enable or disable this module."
-  type = bool
-  default = true
+  type        = bool
+  default     = true
 }
 
 variable "should_require_mfa" {
