@@ -419,6 +419,18 @@ variable "additional_config_rules" {
 # These variables have defaults, but may be overridden by the operator.
 # ---------------------------------------------------------------------------------------------------------------------
 
+variable "enable_iam_groups" {
+  description = "A feature flag to enable or disable this module."
+  type = bool
+  default = true
+}
+
+variable "enable_iam_cross_account_roles" {
+  description = "A feature flag to enable or disable this module."
+  type = bool
+  default = true
+}
+
 variable "should_require_mfa" {
   description = "Should we require that all IAM Users use Multi-Factor Authentication for both AWS API calls and the AWS Web Console? (true or false)"
   type        = bool
