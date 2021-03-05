@@ -137,14 +137,14 @@ data "aws_iam_policy_document" "service_policy" {
 }
 
 resource "aws_iam_role_policy" "secrets_access_policy" {
-  count  = var.iam_role_name != "" && var.secrets_access != null ? 1 : 0
+  count  = var.iam_role_name != "" && length(var.secrets_access) > 0 ? 1 : 0
   name   = "${var.iam_role_name}SecretsAccessPolicy"
   role   = module.ecs_service.ecs_task_iam_role_name
   policy = data.aws_iam_policy_document.secrets_access_policy_document[0].json
 }
 
 data "aws_iam_policy_document" "secrets_access_policy_document" {
-  count = var.iam_role_name != "" && var.secrets_access != null ? 1 : 0
+  count = var.iam_role_name != "" && length(var.secrets_access) > 0 ? 1 : 0
 
   statement {
     sid       = "SecretsAccess"
