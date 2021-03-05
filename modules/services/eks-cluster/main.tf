@@ -224,7 +224,7 @@ module "eks_aws_auth_merger" {
   fargate_profile = {
     name                   = var.aws_auth_merger_namespace
     eks_cluster_name       = module.eks_cluster.eks_cluster_name
-    worker_subnet_ids      = var.worker_vpc_subnet_ids
+    worker_subnet_ids      = local.usable_fargate_subnet_ids
     pod_execution_role_arn = module.eks_cluster.eks_default_fargate_execution_role_arn_without_dependency
   }
 }
