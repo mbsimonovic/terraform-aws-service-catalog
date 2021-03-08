@@ -41,6 +41,11 @@ output "eks_default_fargate_execution_role_arn" {
   value       = module.eks_cluster.eks_default_fargate_execution_role_arn
 }
 
+output "aws_auth_merger_namespace" {
+  description = "The namespace name for the aws-auth-merger add on, if created."
+  value       = local.aws_auth_merger_namespace_name
+}
+
 # CloudWatch Dashboard Widgets
 
 output "metric_widget_worker_cpu_usage" {

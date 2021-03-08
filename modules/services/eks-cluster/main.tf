@@ -213,12 +213,8 @@ module "eks_aws_auth_merger" {
   source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-aws-auth-merger?ref=v0.32.4"
   create_resources = var.enable_aws_auth_merger
 
-  create_namespace = false
-  namespace = (
-    length(kubernetes_namespace.aws_auth_merger) > 0
-    ? kubernetes_namespace.aws_auth_merger[0].metadata[0].name
-    : null
-  )
+  create_namespace       = false
+  namespace              = local.aws_auth_merger_namespace_name
   aws_auth_merger_image  = var.aws_auth_merger_image
   create_fargate_profile = var.enable_aws_auth_merger_fargate
   fargate_profile = {
@@ -234,12 +230,8 @@ module "eks_k8s_role_mapping" {
 
   # Configure to create this in the merger namespace if using the aws-auth-merger. Otherwise create it as the main
   # config.
-  name = var.enable_aws_auth_merger ? var.aws_auth_merger_default_configmap_name : "aws-auth"
-  namespace = (
-    length(kubernetes_namespace.aws_auth_merger) > 0
-    ? kubernetes_namespace.aws_auth_merger[0].metadata[0].name
-    : "kube-system"
-  )
+  name      = var.enable_aws_auth_merger ? var.aws_auth_merger_default_configmap_name : "aws-auth"
+  namespace = local.aws_auth_merger_namespace_name == null ? "kube-system" : local.aws_auth_merger_namespace_name
 
   eks_worker_iam_role_arns = (
     length(var.autoscaling_group_configurations) > 0
@@ -271,6 +263,15 @@ module "eks_k8s_role_mapping" {
   config_map_labels = {
     eks-cluster = module.eks_cluster.eks_cluster_name
   }
+}
+
+locals {
+  aws_auth_merger_namespace_name = (
+    length(kubernetes_namespace.aws_auth_merger) > 0
+    ? kubernetes_namespace.aws_auth_merger[0].metadata[0].name
+    : null
+  )
+
 }
 
 
