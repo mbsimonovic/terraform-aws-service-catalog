@@ -445,6 +445,12 @@ variable "guardduty_opt_in_regions" {
 # and you can instead inline the values directly in main.tf.
 # ---------------------------------------------------------------------------------------------------------------------
 
+variable enable_cloudtrail {
+  description = "Set to true (default) to enable CloudTrail in this app account. Set to false to disable CloudTrail (note: all other CloudTrail variables will be ignored). Note that if you have enabled organization trail in the root (parent) account, you should set this to false; the organization trail will enable CloudTrail on child accounts by default."
+  type        = bool
+  default     = true
+}
+
 variable "cloudtrail_num_days_after_which_archive_log_data" {
   description = "After this number of days, log files should be transitioned from S3 to Glacier. Enter 0 to never archive log data."
   type        = number

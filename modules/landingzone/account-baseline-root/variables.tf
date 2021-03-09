@@ -815,6 +815,12 @@ variable "cloudtrail_cloudwatch_logs_group_name" {
   default     = "cloudtrail-logs"
 }
 
+variable "cloudtrail_is_organization_trail" {
+  description = "Specifies whether the trail is an AWS Organizations trail. Organization trails log events for the root account and all member accounts. Can only be created in the organization root account. (true or false)"
+  type        = bool
+  default     = false
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL EBS ENCRYPTION PARAMETERS
 # These variables have defaults, but may be overridden by the operator.
