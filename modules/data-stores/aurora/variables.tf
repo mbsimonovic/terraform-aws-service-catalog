@@ -168,6 +168,11 @@ variable "instance_type" {
   default = "db.t3.small"
 }
 
+variable "enabled_cloudwatch_logs_exports" {
+  description = "If non-empty, the Aurora cluster will export the specified logs to Cloudwatch. Must be zero or more of: audit, error, general and slowquery"
+  type        = list(string)
+  default     = []
+}
 
 # Serverless scaling configuration
 #

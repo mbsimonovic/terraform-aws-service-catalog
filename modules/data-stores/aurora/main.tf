@@ -61,6 +61,7 @@ module "database" {
   kms_key_arn                         = var.kms_key_arn
   iam_database_authentication_enabled = var.iam_database_authentication_enabled
   apply_immediately                   = var.apply_immediately
+  enabled_cloudwatch_logs_exports     = var.enabled_cloudwatch_logs_exports
 
   storage_encrypted = var.storage_encrypted
 
