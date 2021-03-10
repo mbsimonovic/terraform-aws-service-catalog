@@ -85,10 +85,10 @@ module "alb_access_logs_bucket" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_route53_record" "dns_record" {
-  count = var.create_route53_entry ? 1 : 0
+  for_each = var.create_route53_entry ? { for domain_name in var.domain_names : domain_name => domain_name } : {}
 
   zone_id = var.hosted_zone_id
-  name    = var.domain_name
+  name    = each.value
   type    = "A"
 
   alias {

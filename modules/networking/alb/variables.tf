@@ -120,10 +120,10 @@ variable "hosted_zone_id" {
   default     = null
 }
 
-variable "domain_name" {
-  description = "The domain name for the DNS A record to add for the ALB (e.g. alb.foo.com). Only used if var.create_route53_entry is true."
-  type        = string
-  default     = null
+variable "domain_names" {
+  description = "The list of domain names for the DNS A record to add for the ALB (e.g. alb.foo.com). Only used if var.create_route53_entry is true."
+  type        = list(string)
+  default     = []
 }
 
 variable "force_destroy" {

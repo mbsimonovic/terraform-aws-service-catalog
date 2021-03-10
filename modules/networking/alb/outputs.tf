@@ -8,9 +8,12 @@ output "alb_arn" {
   value       = module.alb.alb_arn
 }
 
-output "alb_dns_name" {
-  description = "The DNS record for the ALB as specified in the input."
-  value       = var.create_route53_entry ? join(",", aws_route53_record.dns_record.*.fqdn) : module.alb.alb_dns_name
+output "alb_dns_names" {
+  description = "The list of DNS records for the ALB as specified in the input."
+  value = concat(
+    [module.alb.alb_dns_name],
+    [for _, record in aws_route53_record.dns_record : record.fqdn],
+  )
 }
 
 output "original_alb_dns_name" {

@@ -1,6 +1,6 @@
-output "alb_dns_name" {
-  description = "The DNS record for the ALB."
-  value       = module.alb.alb_dns_name
+output "alb_dns_names" {
+  description = "The DNS records for the ALB."
+  value       = module.alb.alb_dns_names
 }
 
 output "alb_access_logs_bucket" {

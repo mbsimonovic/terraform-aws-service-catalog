@@ -31,7 +31,7 @@ module "alb" {
   # Configure a domain name for the ALB
   create_route53_entry = true
   hosted_zone_id       = data.aws_route53_zone.alb.zone_id
-  domain_name          = "${var.alb_subdomain}.${data.aws_route53_zone.alb.name}"
+  domain_names         = ["${var.alb_subdomain}.${data.aws_route53_zone.alb.name}"]
 
   # To make it easier to test, we force destroy the access logs
   # In production, you'll want to retain the access logs irrespective

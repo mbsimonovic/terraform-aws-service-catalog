@@ -2,6 +2,7 @@ package networking
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -60,15 +61,20 @@ func TestAlb(t *testing.T) {
 
 	test_structure.RunTestStage(t, "validate_server", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
-		albDomainName := terraform.OutputRequired(t, terraformOptions, "alb_dns_name")
+		albDomainNames := terraform.OutputList(t, terraformOptions, "alb_dns_names")
 
-		url := fmt.Sprintf("http://%s:8080", albDomainName)
-		retries := 60
-		timeBetweenRetries := 5 * time.Second
+		// Only test the domains with gruntwork.in, as that domain is the only one configured in the listener.
+		for _, domainName := range albDomainNames {
+			if strings.HasSuffix(domainName, "gruntwork.in") {
+				url := fmt.Sprintf("http://%s:8080", domainName)
+				retries := 60
+				timeBetweenRetries := 5 * time.Second
 
-		http_helper.HttpGetWithRetryWithCustomValidation(t, url, nil, retries, timeBetweenRetries, func(status int, body string) bool {
-			return status == 200 && body == "Hello, World!"
-		})
+				http_helper.HttpGetWithRetryWithCustomValidation(t, url, nil, retries, timeBetweenRetries, func(status int, body string) bool {
+					return status == 200 && body == "Hello, World!"
+				})
+			}
+		}
 	})
 
 	test_structure.RunTestStage(t, "validate_access_logs", func() {
