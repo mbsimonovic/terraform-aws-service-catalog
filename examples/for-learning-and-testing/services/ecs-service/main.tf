@@ -50,14 +50,10 @@ locals {
 }
 
 module "alb" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/alb?ref=v0.14.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/alb?ref=v0.22.0"
 
-  aws_region     = var.aws_region
-  aws_account_id = data.aws_caller_identity.current.account_id
-
-  alb_name         = var.service_name
-  environment_name = "test"
-  is_internal_alb  = false
+  alb_name        = var.service_name
+  is_internal_alb = false
 
   http_listener_ports = []
   https_listener_ports_and_acm_ssl_certs = [

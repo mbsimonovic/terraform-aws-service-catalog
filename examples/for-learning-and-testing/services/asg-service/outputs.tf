@@ -5,7 +5,7 @@ output "asg_name" {
 
 output "lb_dns_name" {
   description = "The DNS name that can be used to reach the ALB that has been deployed using this module."
-  value       = module.alb.alb_dns_name
+  value       = module.alb.alb_dns_names[0]
 }
 
 output "asg_unique_id" {

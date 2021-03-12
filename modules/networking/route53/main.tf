@@ -114,9 +114,9 @@ resource "aws_service_discovery_private_dns_namespace" "namespaces" {
 module "acm-tls-certificates" {
   # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
   # to a specific version of the modules, such as the following example:
-  # source = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/acm-tls-certificate?ref=v0.21.0"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/acm-tls-certificate?ref=v0.22.0"
 
-  source               = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/acm-tls-certificate?ref=v0.21.0"
+  source               = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/acm-tls-certificate?ref=v0.22.0"
   acm_tls_certificates = local.acm_tls_certificates
 
   # Workaround Terraform limitation where there is no module depends_on.

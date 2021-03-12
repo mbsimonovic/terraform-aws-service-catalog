@@ -24,7 +24,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "alb" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/alb?ref=v0.21.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/alb?ref=v0.22.0"
 
   # You can find the list of policies here: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html#describe-ssl-policies
   ssl_policy = "ELBSecurityPolicy-2016-08"
