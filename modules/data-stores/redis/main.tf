@@ -26,7 +26,7 @@ terraform {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "redis" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-cache.git//modules/redis?ref=v0.10.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-cache.git//modules/redis?ref=v0.11.0"
 
   name = var.name
 
@@ -41,6 +41,7 @@ module "redis" {
   allow_connections_from_security_groups = var.allow_connections_from_security_groups
 
   enable_automatic_failover = var.enable_automatic_failover
+  enable_multi_az           = var.enable_multi_az
 
   parameter_group_name     = var.parameter_group_name
   snapshot_retention_limit = var.snapshot_retention_limit

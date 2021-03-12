@@ -33,6 +33,7 @@ module "redis" {
   apply_immediately         = true
   replication_group_size    = 1
   enable_automatic_failover = false
+  enable_multi_az           = false
   maintenance_window        = "sun:05:00-sun:09:00"
   snapshot_retention_limit  = 0
   snapshot_window           = ""

@@ -26,6 +26,11 @@ variable "enable_automatic_failover" {
   type        = bool
 }
 
+variable "enable_multi_az" {
+  description = "Indicates whether Multi-AZ is enabled. When Multi-AZ is enabled, a read-only replica is automatically promoted to a read-write primary cluster if the existing primary cluster fails. If you specify true, you must specify a value greater than 1 for replication_group_size."
+  type        = bool
+}
+
 variable "vpc_id" {
   description = "The ID of the VPC in which to deploy RDS."
   type        = string
