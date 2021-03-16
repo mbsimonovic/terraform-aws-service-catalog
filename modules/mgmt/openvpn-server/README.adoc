@@ -54,7 +54,7 @@ toc::[]
 
 
 Under the hood, this is all implemented using Terraform modules from the Gruntwork
-[terraform-aws-openvpn](https://github.com/gruntwork-io/terraform-aws-openvpn) repo.
+link:https://github.com/gruntwork-io/terraform-aws-openvpn[terraform-aws-openvpn] repo.
 
 
 == Learn

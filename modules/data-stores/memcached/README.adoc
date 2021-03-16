@@ -27,8 +27,9 @@ endif::[]
 image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
 image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
 
-This folder contains code to deploy a [Memcached](https://memcached.org/) Cluster using [Amazon ElastiCache](https://aws.amazon.com/elasticache/). The cluster is managed by AWS and automatically handles automatic node
-discovery, recovery from failures, patching and the ability to scale to large clusters of nodes.
+This folder contains code to deploy a link:https://memcached.org/[Memcached] Cluster using
+link:https://aws.amazon.com/elasticache/[Amazon ElastiCache]. The cluster is managed by AWS and automatically handles
+automatic node discovery, recovery from failures, patching, and the ability to scale to large clusters of nodes.
 
 image::/_docs/elasticache-memcached-architecture.png?raw=true[ElastiCache for Memcached architecture]
 
