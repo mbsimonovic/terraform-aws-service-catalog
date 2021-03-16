@@ -68,7 +68,9 @@ module "vpc_flow_logs" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "vpc_network_acls" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-mgmt-network-acls?ref=v0.13.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-mgmt-network-acls?ref=v0.14.2"
+
+  create_resources = var.create_network_acls
 
   vpc_id      = module.vpc.vpc_id
   vpc_name    = module.vpc.vpc_name

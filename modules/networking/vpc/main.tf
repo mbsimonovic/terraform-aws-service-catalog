@@ -173,13 +173,15 @@ locals {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# CREATE THE NETWORK ACLS FOR THE VPC
+# CREATE THE NETWORK ACLs FOR THE VPC
 # Network ACLs provide an extra layer of network security across an entire subnet, whereas security groups provide
 # network security on a single resource.
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "vpc_network_acls" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-app-network-acls?ref=v0.13.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-app-network-acls?ref=v0.14.2"
+
+  create_resources = var.create_network_acls
 
   vpc_id      = module.vpc.vpc_id
   vpc_name    = module.vpc.vpc_name

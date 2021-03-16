@@ -137,6 +137,12 @@ variable "create_private_persistence_subnets" {
   default     = true
 }
 
+variable "create_network_acls" {
+  description = "If set to false, this module will NOT create Network ACLs. This is useful if you don't want to use Network ACLs or you want to provide your own Network ACLs outside of this module."
+  type        = bool
+  default     = true
+}
+
 # ----------------------------------------------------------------------------------------------------------------------
 # OPTIONAL PARAMETERS FOR DEFAULT SECURITY GROUP AND DEFAULT NACL
 # ----------------------------------------------------------------------------------------------------------------------
