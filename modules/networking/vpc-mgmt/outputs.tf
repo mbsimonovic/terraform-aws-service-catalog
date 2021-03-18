@@ -66,3 +66,8 @@ output "num_availability_zones" {
   description = "The number of availability zones used by the mgmt VPC."
   value       = module.vpc.num_availability_zones
 }
+
+output "vpc_ready" {
+  description = "Indicates whether or not the VPC has finished creating"
+  value       = module.vpc.vpc_ready
+}

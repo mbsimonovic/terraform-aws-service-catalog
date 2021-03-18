@@ -92,3 +92,8 @@ output "availability_zones" {
   description = "The availability zones of the VPC"
   value       = module.vpc.availability_zones
 }
+
+output "vpc_ready" {
+  description = "Indicates whether or not the VPC has finished creating"
+  value       = module.vpc.vpc_ready
+}
