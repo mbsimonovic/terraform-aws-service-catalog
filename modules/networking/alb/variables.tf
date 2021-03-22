@@ -133,7 +133,7 @@ variable "allow_all_outbound" {
 }
 
 variable "idle_timeout" {
-  description = "The time in seconds that the client TCP connection to the ALB is allowed to be idle before the ALB closes the TCP connection.  "
+  description = "The time in seconds that the client TCP connection to the ALB is allowed to be idle before the ALB closes the TCP connection."
   type        = number
   default     = 60
 }
