@@ -53,6 +53,16 @@ module "alb" {
 
   enable_alb_access_logs         = true
   alb_access_logs_s3_bucket_name = var.should_create_access_logs_bucket ? module.alb_access_logs_bucket.s3_bucket_name : var.access_logs_s3_bucket_name
+
+  allow_all_outbound          = var.allow_all_outbound
+  idle_timeout                = var.idle_timeout
+  drop_invalid_header_fields  = var.drop_invalid_header_fields
+  custom_tags                 = var.custom_tags
+  default_action_content_type = var.default_action_content_type
+  default_action_body         = var.default_action_body
+  default_action_status_code  = var.default_action_status_code
+  acm_cert_statuses           = var.acm_cert_statuses
+  acm_cert_types              = var.acm_cert_types
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

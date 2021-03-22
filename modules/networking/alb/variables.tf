@@ -126,6 +126,60 @@ variable "domain_names" {
   default     = []
 }
 
+variable "allow_all_outbound" {
+  description = "Set to true to enable all outbound traffic on this ALB. If set to false, the ALB will allow no outbound traffic by default. This will make the ALB unusuable, so some other code must then update the ALB Security Group to enable outbound access!"
+  type        = bool
+  default     = true
+}
+
+variable "idle_timeout" {
+  description = "The time in seconds that the client TCP connection to the ALB is allowed to be idle before the ALB closes the TCP connection."
+  type        = number
+  default     = 60
+}
+
+variable "drop_invalid_header_fields" {
+  description = "If true, the ALB will drop invalid headers. Elastic Load Balancing requires that message header names contain only alphanumeric characters and hyphens."
+  type        = bool
+  default     = false
+}
+
+variable "custom_tags" {
+  description = "A map of custom tags to apply to the ALB and its Security Group. The key is the tag name and the value is the tag value."
+  type        = map(string)
+  default     = {}
+}
+
+variable "default_action_content_type" {
+  description = "If a request to the load balancer does not match any of your listener rules, the default action will return a fixed response with this content type."
+  type        = string
+  default     = "text/plain"
+}
+
+variable "default_action_body" {
+  description = "If a request to the load balancer does not match any of your listener rules, the default action will return a fixed response with this body."
+  type        = string
+  default     = null
+}
+
+variable "default_action_status_code" {
+  description = "If a request to the load balancer does not match any of your listener rules, the default action will return a fixed response with this status code."
+  type        = number
+  default     = 404
+}
+
+variable "acm_cert_statuses" {
+  description = "When looking up the ACM certs passed in via https_listener_ports_and_acm_ssl_certs, only match certs with the given statuses. Valid values are PENDING_VALIDATION, ISSUED, INACTIVE, EXPIRED, VALIDATION_TIMED_OUT, REVOKED and FAILED."
+  type        = list(string)
+  default     = ["ISSUED"]
+}
+
+variable "acm_cert_types" {
+  description = "When looking up the ACM certs passed in via https_listener_ports_and_acm_ssl_certs, only match certs of the given types. Valid values are AMAZON_ISSUED and IMPORTED."
+  type        = list(string)
+  default     = ["AMAZON_ISSUED", "IMPORTED"]
+}
+
 variable "force_destroy" {
   description = "A boolean that indicates whether the access logs bucket should be destroyed, even if there are files in it, when you run Terraform destroy. Unless you are using this bucket only for test purposes, you'll want to leave this variable set to false."
   type        = bool
