@@ -140,11 +140,14 @@ locals {
   # will be provided as input to the acm-tls-certificates module
   route53_acm_tls_certificates = {
     for domain, zone in var.public_zones :
-    # These certificates that are going to be automatically issued and verified for public Route53 zones, so we prefix
-    # them with *. to denote we are requesting "wildcard" certificates
+    # We create the local object that is fed into our terraform-aws-load-balancer module by using the apex domain name
+    # as the key name and supplying the wildcard prefix of "*.${domain}" as a subject alternative name (SAN) so that
+    # the final result is a single ACM certificate that covers the apex domain of example.com AND *.example.com
 
     # A wildcard certificate for example.com, requested with a domain of *.example.com, will protect all one-level
-    # subdomains of example.com, such as mail.example.com, admin.example.com, etc
+    # subdomains of example.com, such as mail.example.com, admin.example.com. Meanwhile, the apex domain of example.com
+    # is explicitly supplied for the domain entry of the underlying terraform aws_acm_certificate resource.
+    # This means you can use the same cert to protect example.com, mail.example.com, static.example.com, etc.
     domain => {
       tags                       = zone.tags
       subject_alternative_names  = ["*.${domain}"]
@@ -157,11 +160,14 @@ locals {
   }
   service_discovery_namespace_acm_tls_certificates = {
     for domain, config in var.service_discovery_public_namespaces :
-    # These certificates that are going to be automatically issued and verified for public Route53 zones, so we prefix
-    # them with *. to denote we are requesting "wildcard" certificates
+    # We create the local object that is fed into our terraform-aws-load-balancer module by using the apex domain name
+    # as the key name and supplying the wildcard prefix of "*.${domain}" as a subject alternative name (SAN) so that
+    # the final result is a single ACM certificate that covers the apex domain of example.com AND *.example.com
 
     # A wildcard certificate for example.com, requested with a domain of *.example.com, will protect all one-level
-    # subdomains of example.com, such as mail.example.com, admin.example.com, etc
+    # subdomains of example.com, such as mail.example.com, admin.example.com. Meanwhile, the apex domain of example.com
+    # is explicitly supplied for the domain entry of the underlying terraform aws_acm_certificate resource.
+    # This means you can use the same cert to protect example.com, mail.example.com, static.example.com, etc.
     domain => {
       tags                       = {}
       subject_alternative_names  = ["*.${domain}"]
