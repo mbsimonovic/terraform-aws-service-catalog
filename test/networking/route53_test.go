@@ -167,7 +167,7 @@ func TestRoute53ProvisionWildcardCertPlan(t *testing.T) {
 	test_structure.RunTestStage(t, "validate", func() {
 		output := test_structure.LoadString(t, testFolder, "output")
 		resourceCount := terraform.GetResourceCount(t, output)
-		assert.Equal(t, resourceCount.Add, 5)
+		assert.Equal(t, resourceCount.Add, 6)
 		assert.Equal(t, resourceCount.Change, 0)
 		assert.Equal(t, resourceCount.Destroy, 0)
 	})
