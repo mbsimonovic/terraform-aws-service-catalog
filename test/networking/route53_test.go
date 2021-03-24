@@ -19,9 +19,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// This is a Hosted Zone in the Gruntwork Phoenix DevOps AWS account
-const DefaultDomainNameForTest = "gruntwork.in"
-
 func TestRoute53(t *testing.T) {
 	t.Parallel()
 
@@ -47,7 +44,6 @@ func TestRoute53(t *testing.T) {
 		test_structure.SaveString(t, testFolder, "region", awsRegion)
 
 		privateZoneName := fmt.Sprintf("gruntwork-test-%s.xyz", uniqueID)
-		publicZoneName := fmt.Sprintf("gruntwork-test-%s.com", uniqueID)
 
 		var privateZones = map[string]interface{}{
 			privateZoneName: map[string]interface{}{
@@ -62,20 +58,7 @@ func TestRoute53(t *testing.T) {
 			},
 		}
 
-		var publicZones = map[string]interface{}{
-			publicZoneName: map[string]interface{}{
-				"name":    publicZoneName,
-				"comment": "This is another optional test comment",
-				"tags": map[string]interface{}{
-					"Application": "redis",
-					"Env":         "dev",
-				},
-				"force_destroy":             true,
-				"subject_alternative_names": []string{},
-				"created_outside_terraform": false,
-				"base_domain_name_tags":     map[string]interface{}{},
-			},
-		}
+		var publicZones = map[string]interface{}{}
 
 		terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, awsRegion)
 		terraformOptions.Vars["private_zones"] = privateZones
@@ -142,11 +125,10 @@ func TestRoute53ProvisionWildcardCertPlan(t *testing.T) {
 					"Application": "redis",
 					"Env":         "dev",
 				},
-				"force_destroy":                  true,
-				"subject_alternative_names":      []string{fmt.Sprintf("*.%s", publicZoneName)},
-				"provision_wildcard_certificate": true,
-				"created_outside_terraform":      false,
-				"base_domain_name_tags":          map[string]interface{}{"original": "true"},
+				"force_destroy":             true,
+				"subject_alternative_names": []string{fmt.Sprintf("*.%s", publicZoneName)},
+				"created_outside_terraform": false,
+				"base_domain_name_tags":     map[string]interface{}{"original": "true"},
 			},
 		}
 
