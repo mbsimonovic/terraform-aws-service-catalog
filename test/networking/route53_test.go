@@ -70,10 +70,10 @@ func TestRoute53(t *testing.T) {
 					"Application": "redis",
 					"Env":         "dev",
 				},
-				"force_destroy":                  true,
-				"provision_wildcard_certificate": false,
-				"created_outside_terraform":      false,
-				"base_domain_name_tags":          map[string]interface{}{},
+				"force_destroy":             true,
+				"subject_alternative_names": []string{},
+				"created_outside_terraform": false,
+				"base_domain_name_tags":     map[string]interface{}{},
 			},
 		}
 
@@ -229,8 +229,8 @@ func TestRoute53CloudMap(t *testing.T) {
 
 		publicSDNamespaces := map[string]interface{}{
 			publicDomainName: map[string]interface{}{
-				"description":                    "This is another optional test comment",
-				"provision_wildcard_certificate": false,
+				"description":               "This is another optional test comment",
+				"subject_alternative_names": []string{},
 			},
 		}
 
