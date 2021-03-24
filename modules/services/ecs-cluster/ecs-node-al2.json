@@ -25,14 +25,15 @@
     "docker_version": "",
     "enable_ssh_grunt": "true",
     "enable_cloudwatch_metrics": "true",
-    "enable_cloudwatch_log_aggregation": "true"
+    "enable_cloudwatch_log_aggregation": "true",
+    "instance_type": "t3.micro"
   },
   "sensitive-variables": ["github_auth_token"],
   "builders": [{
     "ami_name": "{{user `ami_name`}}-{{user `version_tag`}}-{{isotime | clean_resource_name}}",
     "ami_description": "An Amazon ECS-optimized AMI that is meant to be run as part of an ECS cluster.",
     "region": "{{user `aws_region`}}",
-    "instance_type": "t3.micro",
+    "instance_type": "{{user `instance_type`}}",
     "type": "amazon-ebs",
     "source_ami_filter": {
       "filters": {

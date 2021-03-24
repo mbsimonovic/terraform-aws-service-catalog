@@ -31,13 +31,14 @@
     "docker_version": "",
     "enable_ssh_grunt": "true",
     "enable_cloudwatch_metrics": "true",
-    "enable_cloudwatch_log_aggregation": "true"
+    "enable_cloudwatch_log_aggregation": "true",
+    "instance_type": "t3.micro"
   },
   "sensitive-variables": ["github_auth_token"],
   "builders": [{
     "ami_name": "{{user `ami_name`}}-{{user `version_tag`}}-{{isotime | clean_resource_name}}",
     "ami_description": "An Ubuntu AMI that runs Jenkins.",
-    "instance_type": "t3.micro",
+    "instance_type": "{{user `instance_type`}}",
     "region": "{{user `aws_region`}}",
     "type": "amazon-ebs",
     "source_ami_filter": {
