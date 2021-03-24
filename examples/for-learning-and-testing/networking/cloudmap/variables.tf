@@ -12,8 +12,13 @@ variable "aws_region" {
 variable "service_discovery_public_namespaces" {
   description = "A map of domain names to configurations for setting up a new public namespace in AWS Cloud Map. Note that the domain name must be registered with Route 53."
   type = map(object({
-    # If set to true, automatically order and verify a wildcard certificate via ACM for this domain.
-    provision_wildcard_certificate = bool
+
+    # Subject alternative names are a set of domains that you want the issued certificate to also cover. These can be
+    # additional (sites, IP addresses and common names). You can also use this field to create a wildcard certificate.
+    # For example, if your domain is example.com, add "*.example.com" as a subject alternative name in order to request
+    # a certificate that will protect both the apex domain name and the first-level subdomains such as mail.example.com
+    # and test.example.com. See the examples below for all possible scenarios.
+    subject_alternative_names = list(string)
 
     # A user friendly description for the namespace.
     description = string
