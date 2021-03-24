@@ -136,46 +136,36 @@ module "acm-tls-certificates" {
 
 locals {
 
-  # For public zones and namespaces with their `provision_wildcard_certificate` attribute set to true, build a map that
-  # will be provided as input to the acm-tls-certificates module
+  # Build a map of objects representing ACM certificates to request, which will be merged together with
+  # service_discovery_namespace_acml_tls_certificates and provided as input to the acm-tls-certificates module
   route53_acm_tls_certificates = {
     for domain, zone in var.public_zones :
-    # We create the local object that is fed into our terraform-aws-load-balancer module by using the apex domain name
-    # as the key name and supplying the wildcard prefix of "*.${domain}" as a subject alternative name (SAN) so that
-    # the final result is a single ACM certificate that covers the apex domain of example.com AND *.example.com
-
-    # A wildcard certificate for example.com, requested with a domain of *.example.com, will protect all one-level
-    # subdomains of example.com, such as mail.example.com, admin.example.com. Meanwhile, the apex domain of example.com
-    # is explicitly supplied for the domain entry of the underlying terraform aws_acm_certificate resource.
-    # This means you can use the same cert to protect example.com, mail.example.com, static.example.com, etc.
+    # See var.public_zones in variables.tf for example scenarios for requesting certificates that cover either the
+    # apex domain (example.com) only, or a wildcard cert that covers first-level subdomains (such as mail.example.com,
+    # test.example.com, etc) or both (example.com AND *.example.com).
     domain => {
       tags                       = zone.tags
-      subject_alternative_names  = ["*.${domain}"]
+      subject_alternative_names  = zone.subject_alternative_names
       create_verification_record = true
       verify_certificate         = true
       # If the created_outside_terraform attribute is set to true, the zone ID will be looked up dynamically
       hosted_zone_id = zone.created_outside_terraform ? data.aws_route53_zone.selected[domain].zone_id : ""
-      # Only issue wildcard certificates for those zones where they were requested
-    } if zone.provision_wildcard_certificate
+    }
   }
+  # Build a map of objects representing ACM certificates to request, which will be merged together with
+  # route53_acm_tls_certificates and provided as input to the acm-tls-certificates module
   service_discovery_namespace_acm_tls_certificates = {
     for domain, config in var.service_discovery_public_namespaces :
-    # We create the local object that is fed into our terraform-aws-load-balancer module by using the apex domain name
-    # as the key name and supplying the wildcard prefix of "*.${domain}" as a subject alternative name (SAN) so that
-    # the final result is a single ACM certificate that covers the apex domain of example.com AND *.example.com
-
-    # A wildcard certificate for example.com, requested with a domain of *.example.com, will protect all one-level
-    # subdomains of example.com, such as mail.example.com, admin.example.com. Meanwhile, the apex domain of example.com
-    # is explicitly supplied for the domain entry of the underlying terraform aws_acm_certificate resource.
-    # This means you can use the same cert to protect example.com, mail.example.com, static.example.com, etc.
+    # See var.service_discovery_public_namespaces in variables.tf for example scenarios for requesting certificates that
+    # cover both the apex domain (example.com) only, or a wildcard cert that covers first-level subdomains
+    # (such as mail.example.com, test.example.com, etc) or both (example.com AND *.example.com).
     domain => {
       tags                       = {}
-      subject_alternative_names  = ["*.${domain}"]
+      subject_alternative_names  = config.subject_alternative_names
       create_verification_record = true
       verify_certificate         = true
       hosted_zone_id             = ""
-      # Only issue wildcard certificates for those zones where they were requested
-    } if config.provision_wildcard_certificate
+    }
   }
   acm_tls_certificates = merge(local.route53_acm_tls_certificates, local.service_discovery_namespace_acm_tls_certificates)
 
