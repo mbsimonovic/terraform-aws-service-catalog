@@ -58,7 +58,7 @@ variable "public_zones" {
     # a certificate that will protect both the apex domain name and the first-level subdomains such as mail.example.com
     # and test.example.com. See the examples below for all possible scenarios.
     subject_alternative_names = list(string)
-    # If the zone already exists, and you just want to provision a wildcard certificate for it, you can set created_outside_terraform to true, in which case the
+    # If the zone already exists, and you just want to provision a certificate for it, you can set created_outside_terraform to true, in which case the
     # existing zone will have its ID looked up programmatically and DNS validation records required for certificate validation will be written
     # to it
     created_outside_terraform = bool
