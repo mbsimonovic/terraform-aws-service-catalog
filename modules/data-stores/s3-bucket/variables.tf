@@ -7,15 +7,16 @@ variable "primary_bucket" {
   type        = string
 }
 
-variable "access_logging_bucket" {
-  description = "The S3 bucket where access logs for this bucket should be stored. Set to null to disable access logging."
-  type        = string
-}
-
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL PARAMETERS
 # Generally, these values won't need to be changed.
 # ---------------------------------------------------------------------------------------------------------------------
+
+variable "access_logging_bucket" {
+  description = "The S3 bucket where access logs for this bucket should be stored. Set to null to disable access logging."
+  type        = string
+  default     = null
+}
 
 variable "bucket_policy_statements" {
   # The bucket policy statements for this S3 bucket. See the 'statement' block in the aws_iam_policy_document data
