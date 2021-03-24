@@ -128,7 +128,6 @@ module "iam_user_password_policy" {
   hard_expiry                    = var.iam_password_policy_hard_expiry
   max_password_age               = var.iam_password_policy_max_password_age
   password_reuse_prevention      = var.iam_password_policy_password_reuse_prevention
-
 }
 
 # ----------------------------------------------------------------------------------------------------------------------
