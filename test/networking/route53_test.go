@@ -142,8 +142,8 @@ func TestRoute53ProvisionWildcardCertPlan(t *testing.T) {
 					"Application": "redis",
 					"Env":         "dev",
 				},
-				"force_destroy": true,
-
+				"force_destroy":                  true,
+				"subject_alternative_names":      []string{fmt.Sprintf("*.%s", publicZoneName)},
 				"provision_wildcard_certificate": true,
 				"created_outside_terraform":      false,
 				"base_domain_name_tags":          map[string]interface{}{"original": "true"},
