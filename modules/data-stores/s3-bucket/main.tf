@@ -48,6 +48,7 @@ module "s3_bucket_primary" {
   bucket_policy_statements = var.bucket_policy_statements
   bucket_ownership         = var.bucket_ownership
   sse_algorithm            = var.bucket_sse_algorithm
+  tags                     = var.tags
   force_destroy            = var.force_destroy_primary
 }
 
@@ -64,6 +65,7 @@ module "s3_bucket_logs" {
   bucket_policy_statements = var.access_logging_bucket_policy_statements
   sse_algorithm            = "AES256" # For access logging buckets, only AES256 encryption is supported
   bucket_ownership         = var.access_logging_bucket_ownership
+  tags                     = var.tags
   force_destroy            = var.force_destroy_logs
 }
 
@@ -84,5 +86,6 @@ module "s3_bucket_replica" {
   bucket_policy_statements = var.replica_bucket_policy_statements
   bucket_ownership         = var.replica_bucket_ownership
   sse_algorithm            = var.replica_sse_algorithm
+  tags                     = var.tags
   force_destroy            = var.force_destroy_replica
 }

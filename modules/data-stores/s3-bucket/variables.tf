@@ -258,6 +258,12 @@ variable "replica_sse_algorithm" {
   default     = "aws:kms"
 }
 
+variable "tags" {
+  description = "A map of tags to apply to the S3 Bucket. These tags will also be applied to the access logging and replica buckets (if any). The key is the tag name and the value is the tag value."
+  type        = map(string)
+  default     = {}
+}
+
 variable "force_destroy_primary" {
   description = "If set to true, when you run 'terraform destroy', delete all objects from the primary bucket so that the bucket can be destroyed without error. Warning: these objects are not recoverable so only use this if you're absolutely sure you want to permanently delete everything!"
   type        = bool
