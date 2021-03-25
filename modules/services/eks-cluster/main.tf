@@ -230,6 +230,8 @@ module "eks_k8s_role_mapping" {
 
   # Configure to create this in the merger namespace if using the aws-auth-merger. Otherwise create it as the main
   # config.
+  # NOTE: the hardcoded strings used when aws-auth-merger is disabled is important as that is what AWS expects this
+  # ConfigMap to be named. The mapping and authentication will not work if you use a different Namespace or name.
   name      = var.enable_aws_auth_merger ? var.aws_auth_merger_default_configmap_name : "aws-auth"
   namespace = local.aws_auth_merger_namespace_name == null ? "kube-system" : local.aws_auth_merger_namespace_name
 
