@@ -228,6 +228,12 @@ variable "additional_config_rules" {
 # These variables have defaults, but may be overridden by the operator.
 # ---------------------------------------------------------------------------------------------------------------------
 
+variable enable_iam_user_password_policy {
+  description = "Set to true (default) to enable the IAM User Password Policies in this app account. Set to false to disable the policies. (Note: all other IAM User Password Policy variables will be ignored)."
+  type        = bool
+  default     = true
+}
+
 variable "iam_password_policy_require_uppercase_characters" {
   description = "Require at least one uppercase character in password."
   type        = bool
