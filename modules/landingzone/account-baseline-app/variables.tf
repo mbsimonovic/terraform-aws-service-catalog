@@ -228,7 +228,7 @@ variable "additional_config_rules" {
 # These variables have defaults, but may be overridden by the operator.
 # ---------------------------------------------------------------------------------------------------------------------
 
-variable enable_iam_user_password_policy {
+variable "enable_iam_user_password_policy" {
   description = "Set to true (default) to enable the IAM User Password Policies in this app account. Set to false to disable the policies. (Note: all other IAM User Password Policy variables will be ignored)."
   type        = bool
   default     = true
@@ -463,7 +463,7 @@ variable "guardduty_opt_in_regions" {
 # and you can instead inline the values directly in main.tf.
 # ---------------------------------------------------------------------------------------------------------------------
 
-variable enable_cloudtrail {
+variable "enable_cloudtrail" {
   description = "Set to true (default) to enable CloudTrail in this app account. Set to false to disable CloudTrail (note: all other CloudTrail variables will be ignored). Note that if you have enabled organization trail in the root (parent) account, you should set this to false; the organization trail will enable CloudTrail on child accounts by default."
   type        = bool
   default     = true
