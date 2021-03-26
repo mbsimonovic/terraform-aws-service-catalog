@@ -57,10 +57,13 @@ variable "public_zones" {
     # a certificate that will protect both the apex domain name and the first-level subdomains such as mail.example.com
     # and test.example.com
     subject_alternative_names = list(string)
-    # If the zone already exists, and you just want to provision a wildcard certificate for it, you can set created_outside_terraform to true, in which case the
-    # existing zone will have its ID looked up programmatically and DNS validation records required for certificate validation will be written
-    # to it
+    # If the zone already exists, and you just want to provision a wildcard certificate for it, you can set
+    # created_outside_terraform to true, in which case the existing zone will have its ID looked up programmatically
+    # and DNS validation records required for certificate validation will be written to it
     created_outside_terraform = bool
+    # If created_outside_terraform is true, look up the existing hosted zone uising this domain name. If not specified, uses the key in this map as the domain name.
+    # This var is useful when the domain in the cert is different than the domain in the hosted zone.
+    hosted_zone_domain_name = string
     # Tags to use to filter the Route 53 Hosted Zones that might match the hosted zone's name (use if you have multiple public hosted zones with the same name)
     base_domain_name_tags = map(string)
   }))
@@ -118,7 +121,13 @@ variable "service_discovery_public_namespaces" {
     # a certificate that will protect both the apex domain name and the first-level subdomains such as mail.example.com
     # and test.example.com
     subject_alternative_names = list(string)
-
+    # If the zone already exists, and you just want to provision a wildcard certificate for it, you can set
+    # created_outside_terraform to true, in which case the existing zone will have its ID looked up programmatically
+    # and DNS validation records required for certificate validation will be written to it
+    created_outside_terraform = bool
+    # If created_outside_terraform is true, look up the existing hosted zone uising this domain name. If not specified, uses the key in this map as the domain name.
+    # This var is useful when the domain in the cert is different than the domain in the hosted zone.
+    hosted_zone_domain_name = string
     # A user friendly description for the namespace.
     description = string
   }))

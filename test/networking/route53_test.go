@@ -43,12 +43,13 @@ func TestRoute53(t *testing.T) {
 
 		test_structure.SaveString(t, testFolder, "region", awsRegion)
 
+		publicZoneName := fmt.Sprintf("%s.gruntwork.in", uniqueID)
+		publicZoneName2 := fmt.Sprintf("%s.gruntwork-dev.io", uniqueID)
 		privateZoneName := fmt.Sprintf("gruntwork-test-%s.xyz", uniqueID)
 
 		var privateZones = map[string]interface{}{
 			privateZoneName: map[string]interface{}{
-				"name":    privateZoneName,
-				"comment": "This is an optional test comment",
+				"comment": "This is a test comment",
 				"vpc_id":  aws.GetDefaultVpc(t, awsRegion).Id,
 				"tags": map[string]interface{}{
 					"Application": "redis",
@@ -58,7 +59,33 @@ func TestRoute53(t *testing.T) {
 			},
 		}
 
-		var publicZones = map[string]interface{}{}
+		var publicZones = map[string]interface{}{
+			publicZoneName: map[string]interface{}{
+				"comment": "This is a test comment",
+				"tags": map[string]interface{}{
+					"Application": "redis",
+					"Env":         "dev",
+				},
+				"force_destroy": true,
+				// This public zone should result in a single ACM cert that covers the apex and *.{uniqueID}.gruntwork.in
+				"subject_alternative_names": []string{fmt.Sprintf("*.%s", publicZoneName)},
+				"created_outside_terraform": true,
+				"base_domain_name_tags":     map[string]interface{}{},
+				"hosted_zone_domain_name":   "gruntwork.in",
+			},
+			publicZoneName2: map[string]interface{}{
+				"comment": "This is a test comment",
+				"tags": map[string]interface{}{
+					"Application": "memcached",
+					"Env":         "stage",
+				},
+				"force_destroy": true,
+				// This public zone will not result in a wildcard cert
+				"subject_alternative_names": []string{},
+				"created_outside_terraform": true,
+				"base_domain_name_tags":     map[string]interface{}{},
+				"hosted_zone_domain_name":   "gruntwork-dev.io",
+			}}
 
 		terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, awsRegion)
 		terraformOptions.Vars["private_zones"] = privateZones
@@ -120,15 +147,16 @@ func TestRoute53ProvisionWildcardCertPlan(t *testing.T) {
 		var publicZones = map[string]interface{}{
 			publicZoneName: map[string]interface{}{
 				"name":    publicZoneName,
-				"comment": "This is another optional test comment",
+				"comment": "This is a test comment",
 				"tags": map[string]interface{}{
 					"Application": "redis",
 					"Env":         "dev",
 				},
 				"force_destroy":             true,
 				"subject_alternative_names": []string{fmt.Sprintf("*.%s", publicZoneName)},
-				"created_outside_terraform": false,
+				"created_outside_terraform": true,
 				"base_domain_name_tags":     map[string]interface{}{"original": "true"},
+				"hosted_zone_domain_name":   "gruntwork.in",
 			},
 		}
 
@@ -149,7 +177,7 @@ func TestRoute53ProvisionWildcardCertPlan(t *testing.T) {
 	test_structure.RunTestStage(t, "validate", func() {
 		output := test_structure.LoadString(t, testFolder, "output")
 		resourceCount := terraform.GetResourceCount(t, output)
-		assert.Equal(t, resourceCount.Add, 6)
+		assert.Equal(t, resourceCount.Add, 5)
 		assert.Equal(t, resourceCount.Change, 0)
 		assert.Equal(t, resourceCount.Destroy, 0)
 	})
@@ -201,7 +229,7 @@ func TestRoute53CloudMap(t *testing.T) {
 		defaultVPC := aws.GetDefaultVpc(t, awsRegion)
 
 		privateDomainName := fmt.Sprintf("gruntwork-test-%s.xyz", uniqueID)
-		publicDomainName := fmt.Sprintf("gruntwork-test-%s.com", uniqueID)
+		publicDomainName := fmt.Sprintf("gruntwork-test-%s.gruntwork.in", uniqueID)
 		privateSDNamespaces := map[string]interface{}{
 			privateDomainName: map[string]interface{}{
 				"description": "This is an optional test description",
@@ -212,7 +240,9 @@ func TestRoute53CloudMap(t *testing.T) {
 		publicSDNamespaces := map[string]interface{}{
 			publicDomainName: map[string]interface{}{
 				"description":               "This is another optional test comment",
-				"subject_alternative_names": []string{},
+				"subject_alternative_names": []string{fmt.Sprintf("*.%s", publicDomainName)},
+				"created_outside_terraform": true,
+				"hosted_zone_domain_name":   "gruntwork.in",
 			},
 		}
 

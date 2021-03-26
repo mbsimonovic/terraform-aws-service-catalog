@@ -81,9 +81,9 @@ resource "aws_route53_zone" "public_zones" {
 data "aws_route53_zone" "selected" {
   for_each = local.existing_zones_to_lookup
 
-  name = each.key
+  name = lookup(each.value, "hosted_zone_domain_name", null) != null ? each.value.hosted_zone_domain_name : each.key
 
-  tags = each.value.base_domain_name_tags != null ? each.value.base_domain_name_tags : {}
+  tags = lookup(each.value, "base_domain_name_tags", null) != null ? each.value.base_domain_name_tags : {}
 
   private_zone = false
 }
@@ -147,7 +147,7 @@ locals {
       create_verification_record = true
       verify_certificate         = true
       # If the created_outside_terraform attribute is set to true, the zone ID will be looked up dynamically
-      hosted_zone_id = zone.created_outside_terraform ? data.aws_route53_zone.selected[domain].zone_id : ""
+      hosted_zone_id = zone.created_outside_terraform ? (zone.hosted_zone_domain_name != "" ? data.aws_route53_zone.selected[zone.hosted_zone_domain_name].zone_id : data.aws_route53_zone.selected[domain].zone_id) : ""
     }
   }
   # Build a map of objects representing ACM certificates to request, which will be merged together with
@@ -162,14 +162,14 @@ locals {
       subject_alternative_names  = config.subject_alternative_names
       create_verification_record = true
       verify_certificate         = true
-      hosted_zone_id             = ""
+      hosted_zone_id             = config.created_outside_terraform ? data.aws_route53_zone.selected[config.hosted_zone_domain_name].zone_id : ""
     }
   }
   acm_tls_certificates = merge(local.route53_acm_tls_certificates, local.service_discovery_namespace_acm_tls_certificates)
 
   # The zones that should be pulled in via data sources as opposed to created and managed by this module.
   existing_zones_to_lookup = {
-    for domain, zone in var.public_zones :
-    domain => zone if zone.created_outside_terraform
+    for domain, zone in merge(var.public_zones, var.service_discovery_public_namespaces) :
+    (zone.hosted_zone_domain_name != "" ? zone.hosted_zone_domain_name : domain) => zone if zone.created_outside_terraform
   }
 }

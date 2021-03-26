@@ -62,6 +62,10 @@ variable "public_zones" {
     # existing zone will have its ID looked up programmatically and DNS validation records required for certificate validation will be written
     # to it
     created_outside_terraform = bool
+    # (Optional) If created_outside_terraform is true, look up the existing hosted zone using this domain name. If not
+    # specified, uses the key in this map as the domain name. This var is useful when the domain in the cert is
+    # different than the domain in the hosted zone.
+    hosted_zone_domain_name = string
     # Tags to use to filter the Route 53 Hosted Zones that might match the hosted zone's name (use if you have multiple public hosted zones with the same name)
     base_domain_name_tags = map(string)
   }))
