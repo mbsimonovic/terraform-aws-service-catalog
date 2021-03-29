@@ -211,6 +211,8 @@ module "iam_cross_account_roles" {
 module "iam_user_password_policy" {
   source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-user-password-policy?ref=v0.46.0"
 
+  create_resources = var.enable_iam_password_policy
+
   # Adjust these settings as appropriate for your company
   minimum_password_length        = var.iam_password_policy_minimum_password_length
   require_numbers                = var.iam_password_policy_require_numbers

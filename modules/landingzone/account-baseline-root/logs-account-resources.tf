@@ -100,9 +100,10 @@ module "cloudtrail_bucket" {
 
   create_resources = var.enable_cloudtrail && var.cloudtrail_s3_bucket_already_exists == false
 
-  # Create the S3 bucket and allow all the other accounts to write to this bcket
+  # Create the S3 bucket and allow all the other accounts (or entire organization) to write to this bucket
   s3_bucket_name                             = local.cloudtrail_s3_bucket_name_base
   external_aws_account_ids_with_write_access = local.all_non_logs_account_ids
+  organization_id                            = var.cloudtrail_organization_id
 
   cloudtrail_trail_name = var.name_prefix
 
