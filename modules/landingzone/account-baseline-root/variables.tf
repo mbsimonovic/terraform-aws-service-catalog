@@ -821,6 +821,12 @@ variable "cloudtrail_is_organization_trail" {
   default     = false
 }
 
+variable "cloudtrail_organization_id" {
+  description = "The ID of the organization. Required only if an organization wide CloudTrail is being setup. In such a case, this ensures that the entire organization is whitelisted in the CloudTrail bucket write policy."
+  type        = string
+  default     = null
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL EBS ENCRYPTION PARAMETERS
 # These variables have defaults, but may be overridden by the operator.
