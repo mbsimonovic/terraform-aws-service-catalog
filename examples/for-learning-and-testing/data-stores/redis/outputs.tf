@@ -25,7 +25,7 @@ output "configuration_endpoint" {
   value       = module.redis.configuration_endpoint
 }
 
-output "read_endpoints" {
+output "reader_endpoint" {
   description = "When cluster mode is disabled, use this endpoint for all read operations."
-  value       = module.redis.read_endpoints
+  value       = module.redis.reader_endpoint
 }
