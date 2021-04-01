@@ -22,14 +22,10 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_service" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ecs.git//modules/ecs-service?ref=v0.25.3"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ecs.git//modules/ecs-service?ref=v0.27.0"
 
   service_name    = var.service_name
   ecs_cluster_arn = var.ecs_cluster_arn
-
-  # DEBT: The underlying module should support setting an empty environment name string, which will omit that section
-  # from names.
-  environment_name = var.service_name
 
   launch_type                       = var.launch_type
   capacity_provider_strategy        = var.capacity_provider_strategy
@@ -82,6 +78,7 @@ module "ecs_service" {
 
   custom_iam_role_name_prefix       = var.custom_iam_role_name_prefix
   custom_task_execution_name_prefix = var.custom_task_execution_iam_role_name_prefix
+  custom_ecs_service_role_name      = var.custom_ecs_service_role_name
 
   dependencies = var.dependencies
 }
@@ -168,7 +165,7 @@ data "aws_secretsmanager_secret" "secrets_arn_exchange" {
 }
 
 locals {
-  iam_policy_name_prefix = var.custom_iam_policy_prefix == "" ? var.service_name : var.custom_iam_policy_prefix
+  iam_policy_name_prefix = var.custom_iam_policy_prefix == null ? var.service_name : var.custom_iam_policy_prefix
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

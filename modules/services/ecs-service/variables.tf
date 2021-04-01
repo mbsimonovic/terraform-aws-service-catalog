@@ -724,25 +724,25 @@ variable "secrets_access" {
 variable "custom_iam_policy_prefix" {
   description = "Prefix for name of the custom IAM policies created by this module (those resulting from var.iam_policy and var.secrets_access). If omitted, defaults to var.service_name."
   type        = string
-  # Ideally we will default these to null, but since they are used in string interpolations for the underlying module,
-  # we need to default to "" so terraform won't error out.
-  default = ""
+  default     = null
 }
 
 variable "custom_iam_role_name_prefix" {
   description = "Prefix for name of the IAM role used by the ECS task."
   type        = string
-  # Ideally we will default these to null, but since they are used in string interpolations for the underlying module,
-  # we need to default to "" so terraform won't error out.
-  default = ""
+  default     = null
 }
 
 variable "custom_task_execution_iam_role_name_prefix" {
   description = "Prefix for name of task execution IAM role and policy that grants access to CloudWatch and ECR."
   type        = string
-  # Ideally we will default these to null, but since they are used in string interpolations for the underlying module,
-  # we need to default to "" so terraform won't error out.
-  default = ""
+  default     = null
+}
+
+variable "custom_ecs_service_role_name" {
+  description = "The name to use for the ECS Service IAM role, which is used to grant permissions to the ECS service to register the task IPs to ELBs."
+  type        = string
+  default     = null
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
