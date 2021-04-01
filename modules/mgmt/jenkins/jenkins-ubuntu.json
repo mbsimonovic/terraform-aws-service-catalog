@@ -12,7 +12,7 @@
     "vpc_filter_value": "true",
     "vpc_subnet_filter_key": "default-for-az",
     "vpc_subnet_filter_value": "true",
-    "gruntwork_installer_version": "v0.0.34",
+    "gruntwork_installer_version": "v0.0.35",
     "ami_users": "",
     "jenkins_version": "",
     "module_security_version": "",
