@@ -168,7 +168,7 @@ variable "organizations_default_tags" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "enable_config" {
-  description = "Set to true to enable AWS Config in the root account. Set to false to disable AWS Config (note: all other AWS config variables will be ignored). In case you want to disable the CloudTrail module and the S3 bucket, you need to set both var.enable_cloudtrail and cloudtrail_should_create_s3_bucket to false. Note that if you want to aggregate AWS Config data in an S3 bucket in a child account (e.g., a logs account), you MUST: (1) set this variable to false initially, as that S3 bucket doesn't exist yet in the child account, (2) run 'apply' to create the child account, (3) go to the child account and create the S3 bucket, e.g., by deploying a security baseline in that account, (4) come back to this root account and set this variable to true, and (5) run 'apply' again to enable AWS Config."
+  description = "Set to true to enable AWS Config in the root account. Set to false to disable AWS Config (note: all other AWS config variables will be ignored). In case you want to disable the CloudTrail module and the S3 bucket, you need to set both var.enable_cloudtrail and cloudtrail_should_create_s3_bucket to false."
   type        = bool
   default     = true
 }
@@ -743,7 +743,7 @@ variable "guardduty_opt_in_regions" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "enable_cloudtrail" {
-  description = "Set to true to enable CloudTrail in the root account. Set to false to disable CloudTrail (note: all other CloudTrail variables will be ignored). Note that if you want to aggregate CloudTrail logs in an S3 bucket in a child account (e.g., a logs account), you MUST: (1) set this variable to false initially, as that S3 bucket doesn't exist yet in the child account, (2) run 'apply' to create the child account, (3) go to the child account and create the S3 bucket, e.g., by deploying a security baseline in that account, (4) come back to this root account and set this variable to true, and (5) run 'apply' again to enable CloudTrail. In case you want to disable the CloudTrail module and the S3 bucket, you need to set both var.enable_cloudtrail and cloudtrail_should_create_s3_bucket to false."
+  description = "Set to true to enable CloudTrail in the root account. Set to false to disable CloudTrail (note: all other CloudTrail variables will be ignored). In case you want to disable the CloudTrail module and the S3 bucket, you need to set both var.enable_cloudtrail and cloudtrail_should_create_s3_bucket to false."
   type        = bool
   default     = true
 }
