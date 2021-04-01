@@ -29,7 +29,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "jenkins" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/jenkins-server?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/jenkins-server?ref=v0.31.1"
 
   name       = var.name
   aws_region = data.aws_region.current.name
@@ -250,7 +250,7 @@ module "high_disk_usage_jenkins_volume_alarms" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "jenkins_backup" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ec2-backup?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ec2-backup?ref=v0.31.1"
 
   instance_name = module.jenkins.jenkins_asg_name
 
