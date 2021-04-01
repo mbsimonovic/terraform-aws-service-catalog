@@ -147,7 +147,7 @@ module "ecs_service" {
   hosted_zone_id              = var.hosted_zone_id
   enable_route53_health_check = true
 
-  health_check_protocol = "HTTPS"
+  route53_health_check_protocol = "HTTPS"
 
   original_lb_dns_name = module.alb.alb_dns_name
   lb_hosted_zone_id    = module.alb.alb_hosted_zone_id
