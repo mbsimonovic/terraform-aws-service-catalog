@@ -64,7 +64,10 @@ module "application" {
   expose_type            = var.expose_type
   desired_number_of_pods = 1
 
-  domain_name            = var.domain_name
+  domain_name = var.domain_name
+
+  # We set the domain propagation TTL to a low number so that we don't have to wait as long for the domain to be
+  # available during testing.
   domain_propagation_ttl = 10
 
   # This is an example of how to configure hard coded environment variables that are necessary for running your app.
