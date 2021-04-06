@@ -46,6 +46,11 @@ output "aws_auth_merger_namespace" {
   value       = local.aws_auth_merger_namespace_name
 }
 
+output "eks_kubeconfig" {
+  description = "Minimal configuration for kubectl to authenticate with the created EKS cluster."
+  value       = module.eks_cluster.eks_kubeconfig
+}
+
 # CloudWatch Dashboard Widgets
 
 output "metric_widget_worker_cpu_usage" {
