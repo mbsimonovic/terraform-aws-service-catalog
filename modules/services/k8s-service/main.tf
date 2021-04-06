@@ -149,13 +149,19 @@ locals {
       "alb.ingress.kubernetes.io/backend-protocol"         = var.ingress_backend_protocol
       "alb.ingress.kubernetes.io/load-balancer-attributes" = "access_logs.s3.enabled=true,access_logs.s3.bucket=${module.alb_access_logs_bucket.s3_bucket_name},access_logs.s3.prefix=${var.application_name}"
     },
-    try(
+    (
       var.ingress_configure_ssl_redirect
       ? {
-        "alb.ingress.kubernetes.io/actions.ssl-redirect" : "{\"Type\": \"redirect\", \"RedirectConfig\": { \"Protocol\": \"HTTPS\", \"Port\": \"443\", \"StatusCode\": \"HTTP_301\"}}",
+        "alb.ingress.kubernetes.io/actions.ssl-redirect" = "{\"Type\": \"redirect\", \"RedirectConfig\": { \"Protocol\": \"HTTPS\", \"Port\": \"443\", \"StatusCode\": \"HTTP_301\"}}"
       }
-      : tomap(false),
-      {},
+      : {}
+    ),
+    (
+      var.domain_propagation_ttl != null
+      ? {
+        "external-dns.alpha.kubernetes.io/ttl" = tostring(var.domain_propagation_ttl)
+      }
+      : {}
     ),
     {
       "alb.ingress.kubernetes.io/certificate-arn" : join(",", var.alb_acm_certificate_arns),

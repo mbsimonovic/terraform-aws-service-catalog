@@ -163,6 +163,12 @@ variable "domain_name" {
   default     = null
 }
 
+variable "domain_propagation_ttl" {
+  description = "The TTL value of the DNS A record that is bound to the Ingress resource. Only used if var.domain_name is set and external-dns is deployed."
+  type        = number
+  default     = null
+}
+
 # Healthcheck options
 
 ## Liveness Config
