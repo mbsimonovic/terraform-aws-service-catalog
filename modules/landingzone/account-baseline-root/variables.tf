@@ -128,6 +128,7 @@ variable "organizations_aws_service_access_principals" {
     "cloudtrail.amazonaws.com",
     "config-multiaccountsetup.amazonaws.com",
     "config.amazonaws.com",
+    "access-analyzer.amazonaws.com",
   ]
 }
 
