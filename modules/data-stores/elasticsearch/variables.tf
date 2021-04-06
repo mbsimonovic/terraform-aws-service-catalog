@@ -182,3 +182,9 @@ variable "create_service_linked_role" {
   type        = bool
   default     = false
 }
+
+variable "ebs_enabled" {
+  description = "Set to false to disable EBS volumes. This is useful for nodes that have optimized instance storage, like hosts running the i3 instance type."
+  type        = bool
+  default     = true
+}
