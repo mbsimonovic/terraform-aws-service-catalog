@@ -45,7 +45,7 @@ module "organization" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "config" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/aws-config-multi-region?ref=not-create-null-resources"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/aws-config-multi-region?ref=v0.46.0"
 
   create_resources       = var.enable_config
   aws_account_id         = var.aws_account_id
