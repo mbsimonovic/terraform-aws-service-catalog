@@ -140,7 +140,7 @@ func TestRoute53ProvisionWildcardCertPlan(t *testing.T) {
 
 		test_structure.SaveString(t, testFolder, "region", awsRegion)
 
-		publicZoneName := fmt.Sprintf("gruntwork-test-%s.com", uniqueID)
+		publicZoneName := fmt.Sprintf("gruntwork-test-%s.gruntwork.in", uniqueID)
 
 		var privateZones = make(map[string]interface{})
 
@@ -157,6 +157,7 @@ func TestRoute53ProvisionWildcardCertPlan(t *testing.T) {
 				"created_outside_terraform": true,
 				"base_domain_name_tags":     map[string]interface{}{"original": "true"},
 				"hosted_zone_domain_name":   "gruntwork.in",
+				"hosted_zone_id":            "Z2AJ7S3R6G9UYJ",
 			},
 		}
 
@@ -243,6 +244,7 @@ func TestRoute53CloudMap(t *testing.T) {
 				"subject_alternative_names": []string{fmt.Sprintf("*.%s", publicDomainName)},
 				"created_outside_terraform": true,
 				"hosted_zone_domain_name":   "gruntwork.in",
+				"hosted_zone_id":            "Z2AJ7S3R6G9UYJ",
 			},
 		}
 
