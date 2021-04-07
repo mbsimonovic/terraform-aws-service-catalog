@@ -55,12 +55,14 @@ module "config" {
   # Set to false here because we create the bucket using the aws-config-bucket module in the logs account
   should_create_s3_bucket = false
   s3_bucket_name          = local.config_s3_bucket_name_with_dependency
+  sns_topic_name          = var.config_sns_topic_name
+  should_create_sns_topic = var.config_should_create_sns_topic
 
   force_destroy  = var.config_force_destroy
   opt_in_regions = var.config_opt_in_regions
 
   aggregate_config_data_in_external_account = local.has_logs_account ? true : var.config_aggregate_config_data_in_external_account
-  central_account_id                        = local.has_logs_account ? null_resource.wait_for_account_creation.triggers.logs_account_id : var.config_central_account_id
+  central_account_id                        = local.has_logs_account ? local.logs_account_id : var.config_central_account_id
 
   tags = var.config_tags
 
@@ -106,8 +108,20 @@ locals {
   # If the user chooses to use org-level config rules, we have to do some magic to exclude all the child accounts from
   # config rules initially, as they don't have any Config Recorders yet, and then allow the user to opt-in to enabling
   # config rules on an account-by-account basis afterwords.
-  excluded_child_account_ids      = var.config_create_account_rules ? [] : [for account_name, account in module.organization.child_accounts : account.id if lookup(lookup(var.child_accounts, account_name, {}), "enable_config_rules", false) == false]
-  all_excluded_child_accounts_ids = var.config_create_account_rules ? [] : toset(concat(var.configrules_excluded_accounts, local.excluded_child_account_ids))
+  excluded_child_account_ids = (
+    var.config_create_account_rules
+    ? []
+    : [
+      for account_name, account in module.organization.child_accounts
+      : account.id
+      if lookup(lookup(var.child_accounts, account_name, {}), "enable_config_rules", false) == false
+    ]
+  )
+  all_excluded_child_accounts_ids = (
+    var.config_create_account_rules
+    ? []
+    : toset(concat(var.configrules_excluded_accounts, local.excluded_child_account_ids))
+  )
 }
 
 # ----------------------------------------------------------------------------------------------------------------------
