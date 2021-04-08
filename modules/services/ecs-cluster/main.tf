@@ -95,26 +95,6 @@ locals {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# ADD IAM POLICY THAT ALLOWS CLOUDWATCH LOG AGGREGATION
-# ---------------------------------------------------------------------------------------------------------------------
-
-module "cloudwatch_log_aggregation" {
-  source      = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/logs/cloudwatch-log-aggregation-iam-policy?ref=v0.26.1"
-  name_prefix = var.cluster_name
-
-  # We set this to false so that the cloudwatch-custom-metrics-iam policy generates JSON for the policy, but does not
-  # create a standalone IAM policy with that JSON. We'll instead add that JSON to the ECS cluster IAM role.
-  create_resources = false
-}
-
-resource "aws_iam_role_policy" "custom_cloudwatch_logging" {
-  count  = var.enable_cloudwatch_log_aggregation ? 1 : 0
-  name   = "cloudwatch-log-aggregation"
-  role   = module.ecs_cluster.ecs_instance_iam_role_id
-  policy = module.ec2_baseline.cloudwatch_logs_permissions_json
-}
-
-# ---------------------------------------------------------------------------------------------------------------------
 # ADD CLOUDWATCH ALARMS THAT GO OFF IF THE CLUSTER'S CPU, MEMORY, OR DISK SPACE USAGE GET TOO HIGH
 # ---------------------------------------------------------------------------------------------------------------------
 
@@ -169,12 +149,14 @@ module "ec2_baseline" {
   enable_ssh_grunt                    = var.enable_ssh_grunt
   external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
   enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
-  # We use custom metrics for ECS, as specified above
-  enable_cloudwatch_metrics = false
-  iam_role_name             = module.ecs_cluster.ecs_instance_iam_role_name
-  cloud_init_parts          = local.cloud_init_parts
-  ami                       = var.cluster_instance_ami
-  ami_filters               = var.cluster_instance_ami_filters
+  enable_cloudwatch_metrics           = var.enable_cloudwatch_metrics
+  iam_role_name                       = module.ecs_cluster.ecs_instance_iam_role_name
+  cloud_init_parts                    = local.cloud_init_parts
+  ami                                 = var.cluster_instance_ami
+  ami_filters                         = var.cluster_instance_ami_filters
+
+  # We use custom alarms for ECS, as specified above
+  enable_instance_cloudwatch_alarms = false
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

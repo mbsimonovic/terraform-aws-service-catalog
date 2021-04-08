@@ -69,12 +69,6 @@ variable "cloud_init_parts" {
   default = {}
 }
 
-variable "allow_requests_from_public_alb" {
-  description = "Set to true to allow inbound requests to this ECS cluster from the public ALB (if you're using one)"
-  type        = bool
-  default     = false
-}
-
 variable "public_alb_sg_ids" {
   description = "The Security Group ID for the public ALB"
   type        = list(string)
@@ -87,40 +81,16 @@ variable "internal_alb_sg_ids" {
   default     = []
 }
 
-variable "include_internal_alb" {
-  description = "Set to true to if you want to put an internal application load balancer in front of the ECS cluster"
-  type        = bool
-  default     = false
-}
-
 variable "cluster_instance_keypair_name" {
   description = "The name of the Key Pair that can be used to SSH to each instance in the ECS cluster"
   type        = string
   default     = null
 }
 
-variable "enable_cloudwatch_alarms" {
-  description = "Set to true to install Cloudwatch monitoring and alerts in the cluster"
-  type        = bool
-  default     = false
-}
-
-variable "enable_cloudwatch_metrics" {
-  description = "Set to true to enable Cloudwatch metrics collection for the ECS cluster"
-  type        = bool
-  default     = false
-}
-
 variable "enable_cloudwatch_log_aggregation" {
   description = "Set to true to enable Cloudwatch log aggregation for the ECS cluster"
   type        = bool
-  default     = false
-}
-
-variable "allow_requests_from_internal_alb" {
-  description = "Set to true to allow inbound requests to this ECS cluster from the internal ALB. Only used if var.include_internal_alb is set to true"
-  type        = bool
-  default     = false
+  default     = true
 }
 
 variable "tenancy" {
@@ -270,6 +240,13 @@ variable "cluster_access_from_sgs" {
 
 variable "enable_ecs_cloudwatch_alarms" {
   description = "Set to true to enable several basic Cloudwatch alarms around CPU usage, memory usage, and disk space usage. If set to true, make sure to specify SNS topics to send notifications to using var.alarms_sns_topic_arn"
+  default     = true
+}
+
+variable "enable_cloudwatch_metrics" {
+  description = "Set to true to enable Cloudwatch metrics collection for the ECS cluster"
+  type        = bool
+  default     = true
 }
 
 variable "alarms_sns_topic_arn" {
@@ -291,7 +268,7 @@ variable "high_cpu_utilization_evaluation_periods" {
 }
 
 variable "high_cpu_utilization_threshold" {
-  description = "Trigger an alarm if the ECS Cluster has a CPU utilization percentage above this threshold. Only used if var.enable_cloudwatch_alarms is set to true"
+  description = "Trigger an alarm if the ECS Cluster has a CPU utilization percentage above this threshold. Only used if var.enable_ecs_cloudwatch_alarms is set to true"
   type        = number
   default     = 90
 }
@@ -310,7 +287,7 @@ variable "high_cpu_utilization_unit" {
 }
 
 variable "high_cpu_utilization_period" {
-  description = "The period, in seconds, over which to measure the CPU utilization percentage. Only used if var.enable_cloudwatch_alarms is set to true"
+  description = "The period, in seconds, over which to measure the CPU utilization percentage. Only used if var.enable_ecs_cloudwatch_alarms is set to true"
   type        = number
   default     = 300
 }
@@ -328,7 +305,7 @@ variable "low_cpu_utilization_evaluation_periods" {
 }
 
 variable "low_cpu_utilization_threshold" {
-  description = "Trigger an alarm if the ECS Cluster has a CPU utilization percentage above this threshold. Only used if var.enable_cloudwatch_alarms is set to true"
+  description = "Trigger an alarm if the ECS Cluster has a CPU utilization percentage above this threshold. Only used if var.enable_ecs_cloudwatch_alarms is set to true"
   type        = number
   default     = 90
 }
@@ -347,30 +324,30 @@ variable "low_cpu_utilization_unit" {
 }
 
 variable "low_cpu_utilization_period" {
-  description = "The period, in seconds, over which to measure the CPU utilization percentage. Only used if var.enable_cloudwatch_alarms is set to true"
+  description = "The period, in seconds, over which to measure the CPU utilization percentage. Only used if var.enable_ecs_cloudwatch_alarms is set to true"
   type        = number
   default     = 300
 }
 variable "high_memory_utilization_threshold" {
-  description = "Trigger an alarm if the ECS Cluster has a memory utilization percentage above this threshold. Only used if var.enable_cloudwatch_alarms is set to true"
+  description = "Trigger an alarm if the ECS Cluster has a memory utilization percentage above this threshold. Only used if var.enable_ecs_cloudwatch_alarms is set to true"
   type        = number
   default     = 90
 }
 
 variable "high_memory_utilization_period" {
-  description = "The period, in seconds, over which to measure the memory utilization percentage. Only used if var.enable_cloudwatch_alarms is set to true"
+  description = "The period, in seconds, over which to measure the memory utilization percentage. Only used if var.enable_ecs_cloudwatch_alarms is set to true"
   type        = number
   default     = 300
 }
 
 variable "high_disk_utilization_threshold" {
-  description = "Trigger an alarm if the EC2 instances in the ECS Cluster have a disk utilization percentage above this threshold. Only used if var.enable_cloudwatch_alarms is set to true"
+  description = "Trigger an alarm if the EC2 instances in the ECS Cluster have a disk utilization percentage above this threshold. Only used if var.enable_ecs_cloudwatch_alarms is set to true"
   type        = number
   default     = 90
 }
 
 variable "high_disk_utilization_period" {
-  description = "The period, in seconds, over which to measure the disk utilization percentage. Only used if var.enable_cloudwatch_alarms is set to true"
+  description = "The period, in seconds, over which to measure the disk utilization percentage. Only used if var.enable_ecs_cloudwatch_alarms is set to true"
   type        = number
   default     = 300
 }
