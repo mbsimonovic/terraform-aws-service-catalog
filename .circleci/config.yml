@@ -171,10 +171,7 @@ jobs:
             # Comment the debug log on GitHub if there is a PR number
             CIRCLE_PR_NUMBER="${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}"
             if [[ -n "$CIRCLE_PR_NUMBER" ]]; then
-              echo -e "Tests run for build [$CIRCLE_BUILD_NUM]($CIRCLE_BUILD_URL)
-\`\`\`
-$(cat debug.log)
-\`\`\`" \
+              echo -e "Tests run for build [$CIRCLE_BUILD_NUM]($CIRCLE_BUILD_URL)\n\`\`\`\n$(cat debug.log)\n\`\`\`" \
                 | hub api repos/{owner}/{repo}/issues/"$CIRCLE_PR_NUMBER"/comments --field body=@-
             fi
       - persist_to_workspace:
