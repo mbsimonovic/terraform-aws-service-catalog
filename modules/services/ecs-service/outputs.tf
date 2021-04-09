@@ -42,7 +42,7 @@ output "ecs_task_iam_role_arn" {
 
 output "ecs_task_execution_iam_role_name" {
   description = "The name of the ECS task execution IAM role. The execution role is used by the ECS container agent to make calls to the ECS API, pull container images from ECR, use the logs driver, etc"
-  value       = aws_iam_role.ecs_task_execution_role.name
+  value       = module.ecs_service.ecs_task_execution_iam_role_name
 }
 
 output "ecs_task_execution_iam_role_arn" {

@@ -8,13 +8,13 @@ variable "service_name" {
   type        = string
 }
 
-variable "ecs_node_port_mappings" {
-  description = "A map of ports to be opened via security groups applied to the EC2 instances that back the ECS cluster, when not using fargate. The key should be the container port and the value should be what host port to map it to."
-  type        = map(number)
+variable "ecs_cluster_arn" {
+  description = "The ARN of the cluster to which the ecs service should be deployed."
+  type        = string
 }
 
-variable "ecs_cluster_arn" {
-  description = "The ARN of the cluster to which the ecs service should be deployed"
+variable "ecs_cluster_name" {
+  description = "The name of the ecs cluster to deploy the ecs service onto."
   type        = string
 }
 
@@ -179,6 +179,12 @@ variable "expose_ecs_service_to_other_ecs_nodes" {
   default     = false
 }
 
+variable "ecs_node_port_mappings" {
+  description = "A map of ports to be opened via security groups applied to the EC2 instances that back the ECS cluster, when not using fargate. The key should be the container port and the value should be what host port to map it to."
+  type        = map(number)
+  default     = {}
+}
+
 variable "secrets_manager_kms_key_arn" {
   description = "The ARN of the kms key associated with secrets manager"
   type        = string
@@ -316,7 +322,7 @@ variable "health_check_interval" {
   default     = 30
 }
 
-variable "health_check_target_group_path" {
+variable "health_check_path" {
   description = "The ping path that is the destination on the Targets for health checks. Required when using ALBs."
   type        = string
   default     = "/"
@@ -634,12 +640,6 @@ variable "use_auto_scaling" {
   default     = true
 }
 
-variable "ecs_cluster_name" {
-  description = "The name of the ecs cluster to deploy the ecs service onto"
-  type        = string
-  default     = null
-}
-
 variable "deployment_maximum_percent" {
   description = "The upper limit, as a percentage of var.desired_number_of_tasks, of the number of running tasks that can be running in a service during a deployment. Setting this to more than 100 means that during deployment, ECS will deploy new instances of a Task before undeploying the old ones."
   type        = number
@@ -686,14 +686,8 @@ variable "deployment_check_loglevel" {
 # IAM ROLES AND POLICIES
 # ---------------------------------------------------------------------------------------------------------------------
 
-variable "iam_role_name" {
-  description = "The name of an IAM role that will be used by the pod to access the AWS API. If `iam_role_exists` is set to false, this role will be created. Leave as an empty string if you do not wish to use IAM role with Service Accounts."
-  type        = string
-  default     = ""
-}
-
 variable "iam_policy" {
-  description = "An object defining the policy to attach to `iam_role_name` if the IAM role is going to be created. Accepts a map of objects, where the map keys are sids for IAM policy statements, and the object fields are the resources, actions, and the effect (\"Allow\" or \"Deny\") of the statement. Ignored if `iam_role_arn` is provided. Leave as null if you do not wish to use IAM role with Service Accounts."
+  description = "An object defining the policy to attach to the ECS task. Accepts a map of objects, where the map keys are sids for IAM policy statements, and the object fields are the resources, actions, and the effect (\"Allow\" or \"Deny\") of the statement."
   type = map(object({
     resources = list(string)
     actions   = list(string)
@@ -725,6 +719,30 @@ variable "secrets_access" {
   #   "arn:aws:secretsmanager:us-east-1:123456789012:secret:example",
   #    "arn:aws:secretsmanager:us-east-1:123456789012:secret:example-123456",
   #  ]
+}
+
+variable "custom_iam_policy_prefix" {
+  description = "Prefix for name of the custom IAM policies created by this module (those resulting from var.iam_policy and var.secrets_access). If omitted, defaults to var.service_name."
+  type        = string
+  default     = null
+}
+
+variable "custom_iam_role_name_prefix" {
+  description = "Prefix for name of the IAM role used by the ECS task."
+  type        = string
+  default     = null
+}
+
+variable "custom_task_execution_iam_role_name_prefix" {
+  description = "Prefix for name of task execution IAM role and policy that grants access to CloudWatch and ECR."
+  type        = string
+  default     = null
+}
+
+variable "custom_ecs_service_role_name" {
+  description = "The name to use for the ECS Service IAM role, which is used to grant permissions to the ECS service to register the task IPs to ELBs."
+  type        = string
+  default     = null
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -761,20 +779,20 @@ variable "alarm_sns_topic_arns_us_east_1" {
   default     = []
 }
 
-variable "health_check_path" {
-  description = "The path, without any leading slash, that can be used as a health check (e.g. healthcheck). Should return a 200 OK when the service is up and running."
+variable "route53_health_check_path" {
+  description = "The path, without any leading slash, that can be used as a health check (e.g. healthcheck) by Route 53. Should return a 200 OK when the service is up and running."
   type        = string
   default     = "/"
 }
 
-variable "health_check_protocol" {
-  description = "The protocol to use for health checks. Should be one of HTTP, HTTPS."
+variable "route53_health_check_protocol" {
+  description = "The protocol to use for Route 53 health checks. Should be one of HTTP, HTTPS."
   type        = string
   default     = "HTTP"
 }
 
-variable "server_port" {
-  description = "The port the EC2 instances listen on for health checks"
+variable "route53_health_check_port" {
+  description = "The port to use for Route 53 health checks. This should be the port for the service that is available at the publicly accessible domain name (var.domain_name)."
   type        = number
   default     = 80
 }

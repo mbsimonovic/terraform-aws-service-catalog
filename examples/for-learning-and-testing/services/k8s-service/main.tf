@@ -66,6 +66,10 @@ module "application" {
 
   domain_name = var.domain_name
 
+  # We set the domain propagation TTL to a low number so that we don't have to wait as long for the domain to be
+  # available during testing.
+  domain_propagation_ttl = 10
+
   # This is an example of how to configure hard coded environment variables that are necessary for running your app.
   # Here we configure all the necessary settings for running the Gruntwork AWS Sample App
   # (https://github.com/gruntwork-io/aws-sample-app/).

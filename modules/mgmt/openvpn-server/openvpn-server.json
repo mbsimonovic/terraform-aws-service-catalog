@@ -11,7 +11,7 @@
     "vpc_filter_value": "true",
     "vpc_subnet_filter_key": "default-for-az",
     "vpc_subnet_filter_value": "true",
-    "gruntwork_installer_version": "v0.0.34",
+    "gruntwork_installer_version": "v0.0.35",
     "ami_users": "",
     "bash_commons_version": "",
     "module_security_version": "",
@@ -21,14 +21,15 @@
     "module_ec2_baseline_branch": "",
     "enable_cloudwatch_metrics": "true",
     "enable_cloudwatch_log_aggregation": "true",
-    "enable_ssh_grunt": "true"
+    "enable_ssh_grunt": "true",
+    "instance_type": "t3.micro"
   },
   "sensitive-variables": ["github_auth_token"],
   "builders": [{
     "ami_name": "{{user `ami_name`}}-{{user `version_tag`}}-{{isotime | clean_resource_name}}",
     "ami_description": "An Ubuntu AMI that is meant to be run as an OpenVPN server.",
     "region": "{{user `aws_region`}}",
-    "instance_type": "t3.micro",
+    "instance_type": "{{user `instance_type`}}",
     "type": "amazon-ebs",
     "source_ami_filter": {
       "filters": {

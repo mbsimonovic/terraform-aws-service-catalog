@@ -60,10 +60,8 @@ resource "aws_elasticsearch_domain" "cluster" {
 
   access_policies = data.aws_iam_policy_document.elasticsearch_vpc_access_policy.json
 
-  # We always turn on EBS volumes to ensure there is enough disk space and
-  # IOPS available to the node than is directly available on the node itself.
   ebs_options {
-    ebs_enabled = true
+    ebs_enabled = var.ebs_enabled
     volume_type = var.volume_type
     volume_size = var.volume_size
     iops        = var.iops
@@ -171,7 +169,7 @@ resource "aws_security_group_rule" "allow_inbound_https_from_security_group" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "elasticsearch_alarms" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/elasticsearch-alarms?ref=v0.24.1"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/elasticsearch-alarms?ref=v0.26.1"
   create_resources = var.enable_cloudwatch_alarms
 
   cluster_name   = var.domain_name

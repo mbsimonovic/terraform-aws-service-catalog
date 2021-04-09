@@ -22,7 +22,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "asg" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-asg.git//modules/asg-rolling-deploy?ref=v0.11.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-asg.git//modules/asg-rolling-deploy?ref=v0.12.1"
 
   launch_configuration_name = aws_launch_configuration.launch_configuration.name
   vpc_subnet_ids            = var.subnet_ids
@@ -262,7 +262,7 @@ resource "aws_alb_target_group" "service" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "listener_rules" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/lb-listener-rules?ref=v0.22.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/lb-listener-rules?ref=v0.23.0"
 
   default_listener_arns  = var.listener_arns
   default_listener_ports = var.listener_ports
@@ -304,7 +304,7 @@ resource "aws_route53_record" "service" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "route53_health_check" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/route53-health-check-alarms?ref=v0.24.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/route53-health-check-alarms?ref=v0.26.1"
 
   create_resources               = var.enable_route53_health_check
   alarm_configs                  = local.route53_alarm_configurations

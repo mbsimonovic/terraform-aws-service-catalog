@@ -22,11 +22,10 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_service" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ecs.git//modules/ecs-service?ref=v0.25.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ecs.git//modules/ecs-service?ref=v0.27.0"
 
-  service_name     = var.service_name
-  environment_name = var.service_name
-  ecs_cluster_arn  = var.ecs_cluster_arn
+  service_name    = var.service_name
+  ecs_cluster_arn = var.ecs_cluster_arn
 
   launch_type                       = var.launch_type
   capacity_provider_strategy        = var.capacity_provider_strategy
@@ -62,7 +61,7 @@ module "ecs_service" {
   health_check_grace_period_seconds = var.health_check_grace_period_seconds
   health_check_enabled              = var.health_check_enabled
   health_check_interval             = var.health_check_interval
-  health_check_path                 = var.health_check_target_group_path
+  health_check_path                 = var.health_check_path
   health_check_port                 = var.health_check_port
   health_check_timeout              = var.health_check_timeout
   health_check_healthy_threshold    = var.health_check_healthy_threshold
@@ -76,6 +75,10 @@ module "ecs_service" {
   service_tags         = var.service_tags
   task_definition_tags = var.task_definition_tags
   propagate_tags       = var.propagate_tags
+
+  custom_iam_role_name_prefix       = var.custom_iam_role_name_prefix
+  custom_task_execution_name_prefix = var.custom_task_execution_iam_role_name_prefix
+  custom_ecs_service_role_name      = var.custom_ecs_service_role_name
 
   dependencies = var.dependencies
 }
@@ -115,14 +118,14 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_iam_role_policy" "service_policy" {
-  count  = var.iam_role_name != "" && var.iam_policy != null ? 1 : 0
-  name   = "${var.iam_role_name}Policy"
+  count  = var.iam_policy != null ? 1 : 0
+  name   = "${local.iam_policy_name_prefix}Policy"
   role   = module.ecs_service.ecs_task_iam_role_name
   policy = data.aws_iam_policy_document.service_policy[0].json
 }
 
 data "aws_iam_policy_document" "service_policy" {
-  count = var.iam_role_name != "" && var.iam_policy != null ? 1 : 0
+  count = var.iam_policy != null ? 1 : 0
 
   dynamic "statement" {
     for_each = var.iam_policy == null ? {} : var.iam_policy
@@ -137,14 +140,14 @@ data "aws_iam_policy_document" "service_policy" {
 }
 
 resource "aws_iam_role_policy" "secrets_access_policy" {
-  count  = var.iam_role_name != "" && length(var.secrets_access) > 0 ? 1 : 0
-  name   = "${var.iam_role_name}SecretsAccessPolicy"
+  count  = length(var.secrets_access) > 0 ? 1 : 0
+  name   = "${local.iam_policy_name_prefix}SecretsAccessPolicy"
   role   = module.ecs_service.ecs_task_iam_role_name
   policy = data.aws_iam_policy_document.secrets_access_policy_document[0].json
 }
 
 data "aws_iam_policy_document" "secrets_access_policy_document" {
-  count = var.iam_role_name != "" && length(var.secrets_access) > 0 ? 1 : 0
+  count = length(var.secrets_access) > 0 ? 1 : 0
 
   statement {
     sid       = "SecretsAccess"
@@ -157,48 +160,27 @@ data "aws_iam_policy_document" "secrets_access_policy_document" {
 # This allows the user to pass either the full ARN of a Secrets Manager secret (including the randomly generated
 # suffix) or the ARN without the random suffix. The data source will find the full ARN for use in the IAM policy.
 data "aws_secretsmanager_secret" "secrets_arn_exchange" {
-  for_each = var.iam_role_name != "" ? { for secret in var.secrets_access : secret => secret } : {}
+  for_each = { for secret in var.secrets_access : secret => secret }
   arn      = each.value
 }
 
-# ---------------------------------------------------------------------------------------------------------------------
-# CREATE AN IAM POLICY AND EXECUTION ROLE TO ALLOW ECS TASK TO MAKE CLOUDWATCH REQUESTS AND PULL IMAGES FROM ECR
-# ---------------------------------------------------------------------------------------------------------------------
-
-resource "aws_iam_role" "ecs_task_execution_role" {
-  name               = "${var.service_name}-task-execution-role"
-  assume_role_policy = data.aws_iam_policy_document.ecs_task.json
-
-  # IAM objects take time to propagate. This leads to subtle eventual consistency bugs where the ECS task cannot be
-  # created because the IAM role does not exist. We add a 15 second wait here to give the IAM role a chance to propagate
-  # within AWS.
-  provisioner "local-exec" {
-    command = "echo 'Sleeping for 15 seconds to wait for IAM role to be created'; sleep 15"
-  }
+locals {
+  iam_policy_name_prefix = var.custom_iam_policy_prefix == null ? var.service_name : var.custom_iam_policy_prefix
 }
 
+# ---------------------------------------------------------------------------------------------------------------------
+# CREATE AN IAM POLICY TO ALLOW ECS TASK TO ACCESS SECRETS AND BIND TO ROLE
+# ---------------------------------------------------------------------------------------------------------------------
+
 resource "aws_iam_role_policy" "ecs_task_execution_policy" {
+  count  = local.task_execution_role_needs_secrets_access ? 1 : 0
   name   = "${var.service_name}-task-execution-policy"
-  policy = data.aws_iam_policy_document.ecs_task_execution_policy_document.json
-  role   = aws_iam_role.ecs_task_execution_role.name
+  policy = data.aws_iam_policy_document.ecs_task_execution_policy_document[0].json
+  role   = module.ecs_service.ecs_task_execution_iam_role_name
 }
 
 data "aws_iam_policy_document" "ecs_task_execution_policy_document" {
-  statement {
-    effect = "Allow"
-
-    actions = [
-      "ecr:GetAuthorizationToken",
-      "ecr:BatchCheckLayerAvailability",
-      "ecr:GetDownloadUrlForLayer",
-      "ecr:BatchGetImage",
-      "logs:CreateLogGroup",
-      "logs:CreateLogStream",
-      "logs:PutLogEvents",
-    ]
-
-    resources = ["*"]
-  }
+  count = local.task_execution_role_needs_secrets_access ? 1 : 0
 
   dynamic "statement" {
     # The contents of the for each list does not matter here, as the only purpose is to determine whether or not to
@@ -236,13 +218,17 @@ data "aws_iam_policy_document" "ecs_task" {
   }
 }
 
+locals {
+  task_execution_role_needs_secrets_access = length(var.secrets_manager_arns) > 0 || var.secrets_manager_kms_key_arn != null
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # CONFIGURE THE ROUTING RULES FOR THIS SERVICE
 # Below, we configure the ALB to send requests that come in on certain ports (the listener_arn) and certain paths or
 # domain names (the condition block) to the Target Group that contains this ASG service.
 # ---------------------------------------------------------------------------------------------------------------------
 module "listener_rules" {
-  source                 = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/lb-listener-rules?ref=v0.22.0"
+  source                 = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/lb-listener-rules?ref=v0.23.0"
   default_listener_arns  = var.default_listener_arns
   default_listener_ports = var.default_listener_ports
 
@@ -263,7 +249,7 @@ module "listener_rules" {
 
 # Add CloudWatch Alarms that go off if the ECS Service's CPU or Memory usage gets too high.
 module "ecs_service_cpu_memory_alarms" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/ecs-service-alarms?ref=v0.24.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/ecs-service-alarms?ref=v0.26.1"
 
   ecs_service_name     = var.service_name
   ecs_cluster_name     = var.ecs_cluster_name
@@ -276,7 +262,7 @@ module "ecs_service_cpu_memory_alarms" {
 }
 
 module "metric_widget_ecs_service_cpu_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.24.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.26.1"
 
   period = 60
   stat   = "Average"
@@ -288,7 +274,7 @@ module "metric_widget_ecs_service_cpu_usage" {
 }
 
 module "metric_widget_ecs_service_memory_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.24.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.26.1"
 
   period = 60
   stat   = "Average"
@@ -325,7 +311,7 @@ resource "aws_route53_record" "service" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "route53_health_check" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/route53-health-check-alarms?ref=v0.24.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/route53-health-check-alarms?ref=v0.26.1"
 
   create_resources               = var.enable_route53_health_check
   alarm_sns_topic_arns_us_east_1 = var.alarm_sns_topic_arns_us_east_1
@@ -333,9 +319,9 @@ module "route53_health_check" {
   alarm_configs = {
     default = {
       domain = var.domain_name
-      path   = var.health_check_path
-      type   = var.health_check_protocol
-      port   = var.server_port
+      path   = var.route53_health_check_path
+      type   = var.route53_health_check_protocol
+      port   = var.route53_health_check_port
 
       failure_threshold = 2
       request_interval  = 30

@@ -68,60 +68,58 @@ func TestEcrRepos(t *testing.T) {
 		terraform.InitAndApply(t, terraformOptions)
 	})
 
-	name := test_structure.LoadString(t, testFolder, "repoName")
-	awsRegion := test_structure.LoadString(t, testFolder, "region")
-	terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
-	repoUrls := terraform.OutputMap(t, terraformOptions, "ecr_repo_urls")
-	repoUrl := repoUrls[name]
-	imgTag := fmt.Sprintf("%s:v1", repoUrl)
+	validateECRRepo(t, testFolder)
+}
 
-	// Build and push docker image
-	test_structure.RunTestStage(t, "build_and_push_docker_image", func() {
-		// Delete image immediately, as we want to test pulling from ECR
-		defer func() {
-			cmd := shell.Command{
-				Command: "docker",
-				Args:    []string{"rmi", imgTag},
-			}
-			shell.RunCommand(t, cmd)
-		}()
+func TestEcrReposWithEncryption(t *testing.T) {
+	t.Parallel()
 
-		buildOpts := &docker.BuildOptions{
-			Tags:         []string{imgTag},
-			OtherOptions: []string{"--no-cache"},
-		}
-		docker.Build(t, "../fixtures/simple-docker-img", buildOpts)
+	// Uncomment the items below to skip certain parts of the test
+	//os.Setenv("TERRATEST_REGION", "eu-west-1")
+	//os.Setenv("SKIP_setup", "true")
+	//os.Setenv("SKIP_deploy_terraform", "true")
+	//os.Setenv("SKIP_build_and_push_docker_image", "true")
+	//os.Setenv("SKIP_validate_image", "true")
+	//os.Setenv("SKIP_cleanup", "true")
 
-		pushCmd := shell.Command{
-			Command: "bash",
-			Args: []string{
-				"-c",
-				fmt.Sprintf(
-					"eval $(aws ecr get-login --no-include-email --region %s) && docker push %s",
-					awsRegion,
-					imgTag,
-				),
-			},
-		}
-		shell.RunCommand(t, pushCmd)
+	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../../", "examples/for-learning-and-testing/data-stores/ecr-repos")
+
+	defer test_structure.RunTestStage(t, "cleanup", func() {
+		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
+		terraform.Destroy(t, terraformOptions)
 	})
 
-	// Validate the image in ECR by pulling it down and running it.
-	test_structure.RunTestStage(t, "validate_image", func() {
-		testCmd := shell.Command{
-			Command: "bash",
-			Args: []string{
-				"-c",
-				fmt.Sprintf(
-					"eval $(aws ecr get-login --no-include-email --region %s) && docker run --rm %s",
-					awsRegion,
-					imgTag,
-				),
+	test_structure.RunTestStage(t, "setup", func() {
+		// We hard code to us-east-1 so that we can use the dedicated test KMS key.
+		test_structure.SaveString(t, testFolder, "region", "us-east-1")
+
+		uniqueID := strings.ToLower(random.UniqueId())
+		test_structure.SaveString(t, testFolder, "uniqueID", uniqueID)
+	})
+
+	test_structure.RunTestStage(t, "deploy_terraform", func() {
+		awsRegion := test_structure.LoadString(t, testFolder, "region")
+		uniqueID := test_structure.LoadString(t, testFolder, "uniqueID")
+
+		name := fmt.Sprintf("sample-app-%s", strings.ToLower(uniqueID))
+		test_structure.SaveString(t, testFolder, "repoName", name)
+
+		terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, awsRegion)
+		terraformOptions.Vars["repositories"] = map[string]interface{}{
+			name: map[string]interface{}{
+				"encryption_config": map[string]string{
+					"encryption_type": "KMS",
+					"kms_key":         "alias/dedicated-test-key",
+				},
 			},
 		}
-		out := shell.RunCommandAndGetOutput(t, testCmd)
-		assert.Contains(t, out, "Hello from Docker!")
+
+		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
+
+		terraform.InitAndApply(t, terraformOptions)
 	})
+
+	validateECRRepo(t, testFolder)
 }
 
 // TODO: Once terratest has support for testing with plan files, update with plan testing for the various merge
@@ -272,4 +270,62 @@ func constructTerraformOptionsWithVarFiles(t *testing.T, terraformDir string, va
 	delete(terraformOptions.Vars, "aws_region")
 	terraformOptions.VarFiles = []string{fname}
 	return terraformOptions, fname
+}
+
+func validateECRRepo(t *testing.T, testFolder string) {
+	name := test_structure.LoadString(t, testFolder, "repoName")
+	awsRegion := test_structure.LoadString(t, testFolder, "region")
+	terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
+	repoUrls := terraform.OutputMap(t, terraformOptions, "ecr_repo_urls")
+	repoUrl := repoUrls[name]
+	imgTag := fmt.Sprintf("%s:v1", repoUrl)
+
+	// Build and push docker image
+	test_structure.RunTestStage(t, "build_and_push_docker_image", func() {
+		// Delete image immediately, as we want to test pulling from ECR
+		defer func() {
+			cmd := shell.Command{
+				Command: "docker",
+				Args:    []string{"rmi", imgTag},
+			}
+			shell.RunCommand(t, cmd)
+		}()
+
+		buildOpts := &docker.BuildOptions{
+			Tags:         []string{imgTag},
+			OtherOptions: []string{"--no-cache"},
+		}
+		docker.Build(t, "../fixtures/simple-docker-img", buildOpts)
+
+		pushCmd := shell.Command{
+			Command: "bash",
+			Args: []string{
+				"-c",
+				fmt.Sprintf(
+					"eval $(aws ecr get-login --no-include-email --region %s) && docker push %s",
+					awsRegion,
+					imgTag,
+				),
+			},
+		}
+		shell.RunCommand(t, pushCmd)
+	})
+
+	// Validate the image in ECR by pulling it down and running it.
+	test_structure.RunTestStage(t, "validate_image", func() {
+		testCmd := shell.Command{
+			Command: "bash",
+			Args: []string{
+				"-c",
+				fmt.Sprintf(
+					"eval $(aws ecr get-login --no-include-email --region %s) && docker run --rm %s",
+					awsRegion,
+					imgTag,
+				),
+			},
+		}
+		out := shell.RunCommandAndGetOutput(t, testCmd)
+		assert.Contains(t, out, "Hello from Docker!")
+	})
+
 }

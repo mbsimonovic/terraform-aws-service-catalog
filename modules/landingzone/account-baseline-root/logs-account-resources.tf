@@ -6,15 +6,51 @@
 # one account from another, so we've extracted this part of the code into its own file to try to make that more clear.
 # ----------------------------------------------------------------------------------------------------------------------
 
-# Use a null_resource as an awkward mechanism to ensure that we wait for the child accounts to be created before trying
-# to do anything in them (e.g., assume a role in them)
-resource "null_resource" "wait_for_account_creation" {
+# This data source is used to check if the logs account already exists. By not depending on the organization module,
+# it can be used to correctly determine the logs account ID during a Terraform refresh.
+data "aws_organizations_organization" "logs_account_id_exists" {
+  count      = local.has_logs_account ? 1 : 0
+  depends_on = [null_resource.wait_for_creation]
+}
+
+# This data source is used to find the logs account ID if the logs account does not yet exist. It depends on the
+# organization to create an explicit dependency so that provider configuration below will not fail when attempting to
+# assume an IAM role in the logs account before it is ready. We cannot use this data source if the account ID
+# already exists because the data source will not refresh correctly, and subsequently the logs account ID
+# will not be known, causing errors to occur. For more information, see:
+#   https://github.com/hashicorp/terraform/pull/24904
+#   https://github.com/gruntwork-io/terraform-aws-security/issues/421
+data "aws_organizations_organization" "logs_account_id_does_not_exist" {
+  count      = local.has_logs_account ? 1 : 0
+  depends_on = [module.organization, null_resource.wait_for_creation]
+}
+
+# This null_resource is triggered under two conditions:
+#
+#  - If the logs account exists.
+#  - If the logs account does not exist.
+#
+# To explain further, if the Organization does NOT yet exist - e.g. the first run with create_organization=true
+# - and a logs account exists in var.child_accounts, the first condition is met, the null_resource is
+# triggered, and the wait occurs, thus allowing the Organization and logs account to be created before the data
+# source tries to look up the logs account.
+#
+# If the Organization does NOT yet exist, and a logs account ALSO does not exist in var.child_accounts, the second
+# condition is met, and the null_resource is triggered, the wait occurs, allowing the Organization to be created
+# before the data source executes.
+#
+# Why not just trigger it with a string of "", you may ask? For the following reason: If the Organization _already_
+# exists, and any child account (but not the logs account) already exists, then the null_resource will also already
+# exist, and hence will not trigger during a refresh phase or plan. But then if the user later adds a logs account,
+# we need this null_resource to trigger again, thus incurring the wait condition, and thus not failing to assume the
+# role and cause all the other problems described in https://github.com/gruntwork-io/terraform-aws-security/issues/421.
+resource "null_resource" "wait_for_creation" {
   triggers = {
-    logs_account_id = local.logs_account_id
+    logs_account_name = length(local.logs_account_name_array) > 0 ? local.logs_account_name_array[0] : ""
   }
 
   provisioner "local-exec" {
-    # We need a sleep 30 here to give the child accounts and the IAM roles within them time to be created
+    # We need a sleep 30 here to give the Organization, child accounts and the IAM roles within them time to be created
     command = "python -c 'import time; time.sleep(30)'"
   }
 }
@@ -28,8 +64,52 @@ locals {
   logs_account_name       = local.has_logs_account ? local.logs_account_name_array[0] : null
   logs_account_role_name  = local.has_logs_account ? lookup(var.child_accounts[local.logs_account_name], "role_name", var.organizations_default_role_name) : null
 
-  logs_account_id          = local.has_logs_account ? module.organization.child_accounts[local.logs_account_name].id : var.config_central_account_id
-  non_logs_account_ids     = local.has_logs_account ? [for account in module.organization.child_accounts : account.id if account.name != local.logs_account_name] : [for account in module.organization.child_accounts : account.id if account.id != var.config_central_account_id]
+  # First, find out if the logs account already exists
+  existing_logs_account_list = (
+    local.has_logs_account ? (
+      [
+        for account in data.aws_organizations_organization.logs_account_id_exists[0].non_master_accounts
+        : account.id
+        if account.name == local.logs_account_name
+      ]
+    )
+    : []
+  )
+
+  logs_account_id_exists = length(local.existing_logs_account_list) == 1 ? local.existing_logs_account_list[0] : null
+
+  # If no matches were found, that must mean that we are creating a logs account for the first time, so use the other data source
+  logs_account_id_new = (
+    local.has_logs_account && local.logs_account_id_exists == null
+    ? (
+      [
+        for account in data.aws_organizations_organization.logs_account_id_does_not_exist[0].non_master_accounts
+        : account.id
+        if account.name == local.logs_account_name
+      ][0]
+    )
+    : var.config_central_account_id
+  )
+
+  # Finally, set the logs account ID based on the results of the previous searches.
+  logs_account_id = (
+    local.has_logs_account && local.logs_account_id_exists == null
+    ? local.logs_account_id_new
+    : local.logs_account_id_exists
+  )
+
+  non_logs_account_ids = (
+    local.has_logs_account
+    ? [
+      for account in module.organization.child_accounts
+      : account.id if account.name != local.logs_account_name
+    ]
+    : [
+      for account in module.organization.child_accounts
+      : account.id if account.id != var.config_central_account_id
+    ]
+  )
+
   all_non_logs_account_ids = concat(local.non_logs_account_ids, [module.organization.master_account_id])
 
   # If the user specified a logs account, include that account's root user ARN in the list of admins for the CloudTrail
@@ -46,30 +126,17 @@ locals {
   cloudtrail_kms_key_administrator_iam_arns = local.has_logs_account ? toset(concat(var.cloudtrail_kms_key_administrator_iam_arns, [local.logs_account_arn])) : var.cloudtrail_kms_key_administrator_iam_arns
 }
 
-# Workaround for Terraform limitation where you cannot directly set a depends on directive or interpolate from resources
-# in the provider config.
-# Specifically, Terraform requires all information for the Terraform provider config to be available at plan time,
-# meaning there can be no computed resources. We work around this limitation by creating a template_file data source
-# that does the computation.
-# See https://github.com/hashicorp/terraform/issues/2430 for more details
-data "template_file" "logs_account_iam_role_arn" {
-  template = local.has_logs_account ? "arn:aws:iam::${null_resource.wait_for_account_creation.triggers.logs_account_id}:role/${local.logs_account_role_name}" : ""
-}
-
 provider "aws" {
   alias  = "logs"
   region = var.aws_region
 
   assume_role {
-    # We intentionally depend on the null_resource here to ensure we give the child accounts and the IAM roles in them
-    # enough time to be created and usable. Note that if the user has not specified a logs account, then we set
-    # role_arn to null, so instead, this provider block will use the same (root) account as all the other resources.
-    role_arn = local.has_logs_account ? data.template_file.logs_account_iam_role_arn.rendered : null
+    role_arn = local.has_logs_account && local.logs_account_id != "" ? "arn:aws:iam::${local.logs_account_id}:role/${local.logs_account_role_name}" : null
   }
 }
 
 module "config_bucket" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/aws-config-bucket?ref=v0.45.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/aws-config-bucket?ref=v0.46.4"
 
   providers = {
     aws = aws.logs
@@ -92,7 +159,7 @@ module "config_bucket" {
 }
 
 module "cloudtrail_bucket" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/cloudtrail-bucket?ref=v0.45.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/cloudtrail-bucket?ref=v0.46.4"
 
   providers = {
     aws = aws.logs
@@ -100,9 +167,10 @@ module "cloudtrail_bucket" {
 
   create_resources = var.enable_cloudtrail && var.cloudtrail_s3_bucket_already_exists == false
 
-  # Create the S3 bucket and allow all the other accounts to write to this bcket
+  # Create the S3 bucket and allow all the other accounts (or entire organization) to write to this bucket
   s3_bucket_name                             = local.cloudtrail_s3_bucket_name_base
   external_aws_account_ids_with_write_access = local.all_non_logs_account_ids
+  organization_id                            = var.cloudtrail_organization_id
 
   cloudtrail_trail_name = var.name_prefix
 

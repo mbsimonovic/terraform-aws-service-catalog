@@ -5,29 +5,35 @@
 # management tasks from your production workloads at the network layer, so we create a dedicated VPC.
 # ---------------------------------------------------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------------------------------------------------
+# REQUIRED PARAMETERS
+# These variables are expected to be passed in by the operator
+# ---------------------------------------------------------------------------------------------------------------------
+
 variable "aws_region" {
   description = "The AWS region to deploy into"
   type        = string
-  default     = "us-east-1"
 }
 
 variable "vpc_name" {
   description = "The name of the VPC. Defaults to mgmt."
   type        = string
-  default     = "mgmt"
 }
 
 variable "cidr_block" {
   description = "The IP address range of the VPC in CIDR notation. A prefix of /16 is recommended. Do not use a prefix higher than /27. Examples include '10.100.0.0/16', '10.200.0.0/16', etc."
   type        = string
-  default     = "172.31.80.0/20"
 }
 
 variable "num_nat_gateways" {
   description = "The number of NAT Gateways to launch for this VPC. The management VPC defaults to 1 NAT Gateway to save on cost, but to increase redundancy, you can adjust this to add additional NAT Gateways."
   type        = number
-  default     = 1
 }
+
+# ----------------------------------------------------------------------------------------------------------------------
+# OPTIONAL PARAMETERS
+# The remaining variables are optional.
+# ----------------------------------------------------------------------------------------------------------------------
 
 variable "num_availability_zones" {
   description = "How many AWS Availability Zones (AZs) to use. One subnet of each type (public, private app) will be created in each AZ. Note that this must be less than or equal to the total number of AZs in a region. A value of null means all AZs should be used. For example, if you specify 3 in a region with 5 AZs, subnets will be created in just 3 AZs instead of all 5. Defaults to 3."

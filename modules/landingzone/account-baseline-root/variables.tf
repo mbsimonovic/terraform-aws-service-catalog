@@ -128,6 +128,7 @@ variable "organizations_aws_service_access_principals" {
     "cloudtrail.amazonaws.com",
     "config-multiaccountsetup.amazonaws.com",
     "config.amazonaws.com",
+    "access-analyzer.amazonaws.com",
   ]
 }
 
@@ -184,6 +185,18 @@ variable "config_s3_bucket_name" {
   default     = null
 }
 
+variable "config_should_create_sns_topic" {
+  description = "Set to true to create an SNS topic in this account for sending AWS Config notifications. Set to false to assume the topic specified in var.config_sns_topic_name already exists in another AWS account (e.g the logs account)."
+  type        = bool
+  default     = false
+}
+
+variable "config_sns_topic_name" {
+  description = "The name of the SNS Topic in where AWS Config notifications will be sent. Can be in the same account or in another account."
+  type        = string
+  default     = "ConfigTopic"
+}
+
 variable "config_opt_in_regions" {
   description = "Creates resources in the specified regions. Note that the region must be enabled on your AWS account. Regions that are not enabled are automatically filtered from this list. When null (default), AWS Config will be enabled on all regions enabled on the account. Please note that the best practice is to enable AWS Config in all available regions. Use this list to provide an alternate region list for testing purposes"
   type        = list(string)
@@ -221,9 +234,9 @@ variable "config_aggregate_config_data_in_external_account" {
 }
 
 variable "config_central_account_id" {
-  description = "If the S3 bucket and SNS topics used for AWS Config live in a different AWS account, set this variable to the ID of that account. If the S3 bucket and SNS topics live in this account, set this variable to null. Note that if one of the accounts in var.child_accounts has is_logs_account set to true (this is the approach we recommended!), that account's ID will be used automatically, and you can leave this variable null."
+  description = "If the S3 bucket and SNS topics used for AWS Config live in a different AWS account, set this variable to the ID of that account. If the S3 bucket and SNS topics live in this account, set this variable to an empty string. Note that if one of the accounts in var.child_accounts has is_logs_account set to true (this is the approach we recommended!), that account's ID will be used automatically, and you can leave this variable null."
   type        = string
-  default     = null
+  default     = ""
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -819,6 +832,12 @@ variable "cloudtrail_is_organization_trail" {
   description = "Specifies whether the trail is an AWS Organizations trail. Organization trails log events for the root account and all member accounts. Can only be created in the organization root account. (true or false)"
   type        = bool
   default     = false
+}
+
+variable "cloudtrail_organization_id" {
+  description = "The ID of the organization. Required only if an organization wide CloudTrail is being setup. In such a case, this ensures that the entire organization is whitelisted in the CloudTrail bucket write policy."
+  type        = string
+  default     = null
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

@@ -68,7 +68,7 @@ data "aws_eks_cluster_auth" "kubernetes_token" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "eks_cluster" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.32.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.33.1"
 
   cluster_name = var.cluster_name
 
@@ -100,7 +100,7 @@ module "eks_cluster" {
 }
 
 module "eks_workers" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.32.4"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.33.1"
   create_resources = local.has_self_managed_workers
 
   # Use the output from control plane module as the cluster name to ensure the module only looks up the information
@@ -210,7 +210,7 @@ resource "kubernetes_namespace" "aws_auth_merger" {
 }
 
 module "eks_aws_auth_merger" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-aws-auth-merger?ref=v0.32.4"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-aws-auth-merger?ref=v0.33.1"
   create_resources = var.enable_aws_auth_merger
 
   create_namespace       = false
@@ -226,10 +226,12 @@ module "eks_aws_auth_merger" {
 }
 
 module "eks_k8s_role_mapping" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.32.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.33.1"
 
   # Configure to create this in the merger namespace if using the aws-auth-merger. Otherwise create it as the main
   # config.
+  # NOTE: the hardcoded strings used when aws-auth-merger is disabled is important as that is what AWS expects this
+  # ConfigMap to be named. The mapping and authentication will not work if you use a different Namespace or name.
   name      = var.enable_aws_auth_merger ? var.aws_auth_merger_default_configmap_name : "aws-auth"
   namespace = local.aws_auth_merger_namespace_name == null ? "kube-system" : local.aws_auth_merger_namespace_name
 
@@ -280,7 +282,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "metric_widget_worker_cpu_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.24.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.26.1"
 
   title = "${var.cluster_name} EKSWorker CPUUtilization"
   stat  = "Average"
@@ -295,7 +297,7 @@ module "metric_widget_worker_cpu_usage" {
 }
 
 module "metric_widget_worker_memory_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.24.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.26.1"
 
   title = "${var.cluster_name} EKSWorker MemoryUtilization"
   stat  = "Average"
@@ -310,7 +312,7 @@ module "metric_widget_worker_memory_usage" {
 }
 
 module "metric_widget_worker_disk_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.24.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.26.1"
 
   title = "${var.cluster_name} EKSWorker DiskUtilization"
   stat  = "Average"
