@@ -115,9 +115,21 @@ variable "cluster_instance_ami_filters" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "schedule_control_plane_services_on_fargate" {
-  description = "When true, configures control plane services to run on Fargate so that the cluster can run without worker nodes. When true, requires kubergrunt to be available on the system."
+  description = "When true, configures control plane services to run on Fargate so that the cluster can run without worker nodes. If true, requires kubergrunt to be available on the system, and create_default_fargate_iam_role be set to true."
   type        = bool
   default     = false
+}
+
+variable "create_default_fargate_iam_role" {
+  description = "When true, IAM role will be created and attached to Fargate control plane services."
+  type        = bool
+  default     = true
+}
+
+variable "custom_default_fargate_iam_role_name" {
+  description = "The name to use for the default Fargate execution IAM role that is created when create_default_fargate_iam_role is true. When null, defaults to CLUSTER_NAME-fargate-role."
+  type        = string
+  default     = null
 }
 
 variable "secret_envelope_encryption_kms_key_arn" {
