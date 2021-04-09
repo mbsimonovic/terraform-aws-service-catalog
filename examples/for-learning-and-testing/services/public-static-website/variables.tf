@@ -35,7 +35,7 @@ variable "base_domain_name" {
 
 variable "base_domain_name_tags" {
   description = "The tags associated with var.base_domain_name. If there are multiple hosted zones for the same base_domain_name, this will help filter the hosted zones so that the correct hosted zone is found."
-  type        = map
+  type        = map(any)
   default     = {}
 }
 

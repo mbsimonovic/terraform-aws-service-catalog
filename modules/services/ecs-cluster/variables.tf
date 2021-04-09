@@ -223,13 +223,13 @@ variable "enable_autoscaling" {
 
 variable "enable_cluster_access_ports" {
   description = "Specify a list of ECS Cluster ports which should be accessible from the security groups given in cluster_access_from_sgs"
-  type        = list
+  type        = list(any)
   default     = []
 }
 
 variable "cluster_access_from_sgs" {
   description = "Specify a list of Security Groups that will have access to the ECS cluster. Only used if var.enable_cluster_access_ports is set to true"
-  type        = list
+  type        = list(any)
   default     = []
 }
 

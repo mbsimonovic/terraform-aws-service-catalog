@@ -3,9 +3,9 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This module is now only being tested with Terraform 0.13.x. However, to make upgrading easier, we are setting
+  # This module is now only being tested with Terraform 0.14.x. However, to make upgrading easier, we are setting
   # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 0.13.x code.
+  # forwards compatible with 0.14.x code.
   required_version = ">= 0.12.26"
 
   required_providers {
@@ -57,7 +57,7 @@ resource "aws_route53_zone" "public_zones" {
   # validation records to which are required by ACM to complete certificate validation and issuance 
   for_each = {
     for domain, zone in var.public_zones :
-    domain => zone if ! zone.created_outside_terraform
+    domain => zone if !zone.created_outside_terraform
   }
   # Normalize zone name - whether the user added a 
   # trailing dot or not, ensure the trailing dot is present
