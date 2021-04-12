@@ -58,6 +58,18 @@ output "db_name" {
 
 # CloudWatch Dashboard Widgets
 
+output "all_metric_widgets" {
+  description = "A list of all the CloudWatch Dashboard metric widgets available in this module."
+  value = [
+    module.metric_widget_rds_cpu_usage.widget,
+    module.metric_widget_rds_memory.widget,
+    module.metric_widget_rds_disk_space.widget,
+    module.metric_widget_rds_db_connections.widget,
+    module.metric_widget_rds_read_latency.widget,
+    module.metric_widget_rds_write_latency.widget,
+  ]
+}
+
 output "metric_widget_rds_cpu_usage" {
   description = "A CloudWatch Dashboard widget that graphs CPU usage (percentage) on the RDS DB instance."
   value       = module.metric_widget_rds_cpu_usage.widget
