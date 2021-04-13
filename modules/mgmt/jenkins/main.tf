@@ -53,6 +53,7 @@ module "jenkins" {
   is_internal_alb                             = var.is_internal_alb
   allow_incoming_http_from_cidr_blocks        = var.allow_incoming_http_from_cidr_blocks
   allow_incoming_http_from_security_group_ids = var.allow_incoming_http_from_security_group_ids
+  redirect_http_to_https                      = true
 
   key_pair_name                     = var.keypair_name
   allow_ssh_from_cidr_blocks        = var.allow_ssh_from_cidr_blocks
