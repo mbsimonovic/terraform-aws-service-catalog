@@ -28,7 +28,7 @@ Library](https://gruntwork.io/infrastructure-as-code-library/).
 * [How to deploy new infrastructure from the Service Catalog](core-concepts.md#deploy-new-infrastructure)
 * [How to update infrastructure from the Service Catalog](core-concepts.md#make-changes-to-your-infrastructure)
 * [How to create your own Service Catalog](core-concepts.md#create-your-own-service-catalog)
-* [Patterns used in the Service Catalog](core-concepts.md#patterns-used-in-the-service-catalog)
+* [How to build AMIs for the Service Catalog](core-concepts.md#how-to-build-amis-for-the-service-catalog)
 
 
 

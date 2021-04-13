@@ -860,7 +860,9 @@ inputs = {
 
 ## Patterns used in the Service Catalog
 
-### AMIs for EC2 instances
+- [How to build AMIs for the Service Catalog](#how-to-build-amis-for-the-service-catalog)
+
+### How to build AMIs for the Service Catalog
 
 Some services depend on EC2 instances to host the underlying service. For example, when deploying an ECS cluster, you
 need to provision worker nodes that will run the Docker Containers of the ECS services that are deployed on the cluster.
