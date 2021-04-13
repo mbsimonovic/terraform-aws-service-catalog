@@ -199,9 +199,15 @@ module "ec2_baseline" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_route53_record" "openvpn" {
-  count   = var.domain_name != null ? 1 : 0
-  name    = "${var.name}.${var.domain_name}"
-  zone_id = data.aws_route53_zone.selected[count.index].zone_id
+  count = var.create_route53_entry ? 1 : 0
+  name = (
+    var.domain_name == null
+    ? "${var.name}.${var.base_domain_name}"
+    : var.domain_name
+  )
+  zone_id = (
+    length(data.aws_route53_zone.selected) > 0 ? data.aws_route53_zone.selected[0].zone_id : var.hosted_zone_id
+  )
   type    = "A"
   ttl     = "300"
   records = [module.openvpn.public_ip]
@@ -209,16 +215,14 @@ resource "aws_route53_record" "openvpn" {
 
 # ---------------------------------------------------------------------------------------------------------------------
 # DYNAMICALLY LOOK UP THE ZONE ID OF SUPPLIED DOMAIN NAME
-# Look up the zone ID associated with var.domain_name. This makes usage of this module simpler as the zone ID does 
+# Look up the zone ID associated with var.base_domain_name. This makes usage of this module simpler as the zone ID does
 # not have to be supplied as an argument.
 # ---------------------------------------------------------------------------------------------------------------------
 
 data "aws_route53_zone" "selected" {
-  # We only need to perform a dynamic lookup of the zone ID if: 
-  # - the domain name was supplied as an input AND 
-  # - the hosted_zone_id was NOT supplied as an input
-  count = var.domain_name != null ? 1 : 0
-  name  = var.domain_name
+  # We only need to perform a dynamic lookup of the zone ID if the hosted_zone_id was NOT supplied as an input.
+  count = var.create_route53_entry && var.hosted_zone_id == null ? 1 : 0
+  name  = var.base_domain_name
 
   tags = var.base_domain_name_tags != null ? var.base_domain_name_tags : {}
 

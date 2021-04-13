@@ -90,7 +90,7 @@ func TestOpenvpnServer(t *testing.T) {
 				"aws_region":            awsRegion,
 				"name":                  name,
 				"ami_version_tag":       branchName,
-				"domain_name":           "gruntwork.in",
+				"base_domain_name":      "gruntwork.in",
 				"base_domain_name_tags": test.DomainNameTagsForTest,
 				"keypair_name":          awsKeyPair.Name,
 				"backup_bucket_name":    s3BucketName,

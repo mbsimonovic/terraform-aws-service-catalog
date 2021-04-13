@@ -84,7 +84,7 @@ variable "instance_type" {
   default     = "t3.micro"
 }
 
-variable "domain_name" {
+variable "base_domain_name" {
   description = "The domain name in which to create the Route53 DNS record."
   type        = string
   default     = null
