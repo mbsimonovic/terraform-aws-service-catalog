@@ -28,6 +28,7 @@ terraform {
 module "config" {
   source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/aws-config-multi-region?ref=v0.46.4"
 
+  create_resources       = var.enable_config
   aws_account_id         = var.aws_account_id
   seed_region            = var.aws_region
   global_recorder_region = var.aws_region
@@ -90,6 +91,8 @@ module "config" {
 module "iam_cross_account_roles" {
   source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/cross-account-iam-roles?ref=v0.46.4"
 
+  create_resources = var.enable_iam_cross_account_roles
+
   aws_account_id = var.aws_account_id
   tags           = var.iam_role_tags
 
@@ -113,7 +116,9 @@ module "iam_cross_account_roles" {
 }
 
 module "iam_user_password_policy" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-user-password-policy?ref=v0.46.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-user-password-policy?ref=v0.46.5"
+
+  create_resources = var.enable_iam_user_password_policy
 
   # Adjust these settings as appropriate for your company
   minimum_password_length        = var.iam_password_policy_minimum_password_length
@@ -125,7 +130,6 @@ module "iam_user_password_policy" {
   hard_expiry                    = var.iam_password_policy_hard_expiry
   max_password_age               = var.iam_password_policy_max_password_age
   password_reuse_prevention      = var.iam_password_policy_password_reuse_prevention
-
 }
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -246,4 +250,19 @@ module "ebs_encryption" {
 resource "aws_iam_service_linked_role" "role" {
   for_each         = var.service_linked_roles
   aws_service_name = each.value
+}
+
+# ----------------------------------------------------------------------------------------------------------------------
+# IAM ACCESS ANALYZER DEFAULTS
+# ----------------------------------------------------------------------------------------------------------------------
+module "iam_access_analyzer" {
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-access-analyzer-multi-region?ref=v0.45.3"
+
+  aws_account_id = var.aws_account_id
+
+  create_resources         = var.enable_iam_access_analyzer
+  iam_access_analyzer_name = var.iam_access_analyzer_name
+  iam_access_analyzer_type = var.iam_access_analyzer_type
+  seed_region              = var.aws_region
+  opt_in_regions           = var.iam_access_analyzer_opt_in_regions
 }
