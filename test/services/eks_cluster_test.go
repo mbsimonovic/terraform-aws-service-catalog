@@ -609,16 +609,5 @@ func buildAWSAuthMergerImage(t *testing.T, parentWorkingDir string, workingDir s
 		OtherOptions: []string{"--no-cache"},
 	}
 	docker.Build(t, filepath.Join(repoDir, "modules/eks-aws-auth-merger"), buildOpts)
-	pushCmd := shell.Command{
-		Command: "bash",
-		Args: []string{
-			"-c",
-			fmt.Sprintf(
-				"eval $(aws ecr get-login --no-include-email --region %s) && docker push %s",
-				region,
-				awsAuthMergerDockerRepoTag,
-			),
-		},
-	}
-	shell.RunCommand(t, pushCmd)
+	test.RunCommandWithEcrAuth(t, fmt.Sprintf("docker push %s", awsAuthMergerDockerRepoTag), region)
 }
