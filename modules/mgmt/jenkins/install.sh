@@ -17,9 +17,9 @@ readonly DEFAULT_KUBERGRUNT_VERSION="v0.6.11"
 readonly DEFAULT_TERRAGRUNT_VERSION="v0.28.19"
 
 # renovate.json auto-update-github-releases: jenkinsci/jenkins
-readonly DEFAULT_JENKINS_VERSION="2.263.4"
+readonly DEFAULT_JENKINS_VERSION="2.277.2"
 # renovate.json auto-update-github-releases: hashicorp/terraform
-readonly DEFAULT_TERRAFORM_VERSION="0.12.21"
+readonly DEFAULT_TERRAFORM_VERSION="0.13.6"
 # We intentionally do NOT auto update K8S, as it should be tied to EKS versions, and our support for them in
 # terraform-aws-eks, both of which lag behind open source K8S
 readonly DEFAULT_KUBECTL_VERSION="v1.19.1"
