@@ -358,7 +358,7 @@ func deployCoreServices(t *testing.T, parentWorkingDir string, workingDir string
 
 	eksClusterIRSAConfig := terraform.OutputMap(t, terraformOptions, "eks_iam_role_for_service_accounts_config")
 	eksClusterVpcID := terraform.Output(t, terraformOptions, "eks_cluster_vpc_id")
-	eksPrivateSubnetIDs := terraform.Output(t, terraformOptions, "private_subnet_ids")
+	eksPrivateSubnetIDs := terraform.OutputList(t, terraformOptions, "private_subnet_ids")
 	eksClusterFargateRole := terraform.Output(t, terraformOptions, "eks_default_fargate_execution_role_arn")
 
 	coreServicesOptions := test.CreateBaseTerraformOptions(t, coreServicesModulePath, awsRegion)
