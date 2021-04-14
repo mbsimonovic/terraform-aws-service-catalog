@@ -2,12 +2,25 @@
 # DEPLOY A STATIC WEBSITE WITH A CLOUDFRONT DISTRIBUTION IN FRONT OF IT AS A CDN.
 # ----------------------------------------------------------------------------------------------------------------------
 
+terraform {
+  # This module is now only being tested with Terraform 0.14.x. However, to make upgrading easier, we are setting
+  # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
+  # forwards compatible with 0.14.x code.
+  required_version = ">= 0.12.26"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 2.6"
+    }
+  }
+}
+
+
 provider "aws" {
   # The AWS region in which all resources will be created
   region = var.aws_region
 
-  # Provider version 2.X series is the latest, but has breaking changes with 1.X series.
-  version = "~> 2.6"
 
   # Only these AWS Account IDs may be operated on by this template
   allowed_account_ids = [var.aws_account_id]

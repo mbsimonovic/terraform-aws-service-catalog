@@ -2,7 +2,9 @@ package test
 
 import (
 	"fmt"
+	"github.com/gruntwork-io/terratest/modules/shell"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
@@ -141,4 +143,27 @@ func RequireEnvVar(t *testing.T, envVarName string) {
 // This will fail the test if there is an error in the command.
 func PlanWithParallelismE(t *testing.T, options *terraform.Options) (string, error) {
 	return terraform.RunTerraformCommandE(t, options, terraform.FormatArgs(options, "plan", "-parallelism=2", "-input=false", "-lock=false")...)
+}
+
+var ecrAuthMutex sync.Mutex
+
+// Authenticate to ECR in the given region and run the given command.
+func RunCommandWithEcrAuth(t *testing.T, command string, awsRegion string) string {
+	// We've seen issues where multiple tests doing 'docker login' concurrently leads to conflicts, so we use a lock
+	// to ensure they don't do it simultaneously.
+	defer ecrAuthMutex.Unlock()
+	ecrAuthMutex.Lock()
+
+	cmd := shell.Command{
+		Command: "bash",
+		Args: []string{
+			"-c",
+			fmt.Sprintf(
+				"eval $(aws ecr get-login --no-include-email --region %s) && %s",
+				awsRegion,
+				command,
+			),
+		},
+	}
+	return shell.RunCommandAndGetOutput(t, cmd)
 }

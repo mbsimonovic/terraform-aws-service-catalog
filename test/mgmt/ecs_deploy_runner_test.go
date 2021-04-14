@@ -18,7 +18,6 @@ import (
 	"github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/packer"
 	"github.com/gruntwork-io/terratest/modules/random"
-	"github.com/gruntwork-io/terratest/modules/shell"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 	"github.com/stretchr/testify/require"
@@ -170,19 +169,7 @@ func TestEcsDeployRunner(t *testing.T) {
 		edrhelpers.GitCloneAndDockerBuild(t, edrhelpers.ModuleCIRepo, moduleCITag, "modules/ecs-deploy-runner/docker/kaniko", kanikoBuildOpts)
 	})
 	test_structure.RunTestStage(t, "push_docker_image", func() {
-		pushCmd := shell.Command{
-			Command: "bash",
-			Args: []string{
-				"-c",
-				fmt.Sprintf(
-					"eval $(aws ecr get-login --no-include-email --region %s) && docker push %s && docker push %s",
-					region,
-					deployRunnerImg,
-					kanikoImg,
-				),
-			},
-		}
-		shell.RunCommand(t, pushCmd)
+		test.RunCommandWithEcrAuth(t, fmt.Sprintf("docker push %s && docker push %s", deployRunnerImg, kanikoImg), region)
 	})
 
 	// Deploy the ECS deploy runner

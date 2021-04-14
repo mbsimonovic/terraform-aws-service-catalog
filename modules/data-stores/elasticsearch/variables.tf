@@ -123,7 +123,7 @@ variable "iam_principal_arns" {
 
 variable "advanced_options" {
   description = "Key-value string pairs to specify advanced configuration options. Note that the values for these configuration options must be strings (wrapped in quotes)."
-  type        = map
+  type        = map(any)
   default     = {}
 }
 

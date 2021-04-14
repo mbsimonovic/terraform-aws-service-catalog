@@ -358,7 +358,7 @@ func deployCoreServices(t *testing.T, parentWorkingDir string, workingDir string
 
 	eksClusterIRSAConfig := terraform.OutputMap(t, terraformOptions, "eks_iam_role_for_service_accounts_config")
 	eksClusterVpcID := terraform.Output(t, terraformOptions, "eks_cluster_vpc_id")
-	eksPrivateSubnetIDs := terraform.Output(t, terraformOptions, "private_subnet_ids")
+	eksPrivateSubnetIDs := terraform.OutputList(t, terraformOptions, "private_subnet_ids")
 	eksClusterFargateRole := terraform.Output(t, terraformOptions, "eks_default_fargate_execution_role_arn")
 
 	coreServicesOptions := test.CreateBaseTerraformOptions(t, coreServicesModulePath, awsRegion)
@@ -609,16 +609,5 @@ func buildAWSAuthMergerImage(t *testing.T, parentWorkingDir string, workingDir s
 		OtherOptions: []string{"--no-cache"},
 	}
 	docker.Build(t, filepath.Join(repoDir, "modules/eks-aws-auth-merger"), buildOpts)
-	pushCmd := shell.Command{
-		Command: "bash",
-		Args: []string{
-			"-c",
-			fmt.Sprintf(
-				"eval $(aws ecr get-login --no-include-email --region %s) && docker push %s",
-				region,
-				awsAuthMergerDockerRepoTag,
-			),
-		},
-	}
-	shell.RunCommand(t, pushCmd)
+	test.RunCommandWithEcrAuth(t, fmt.Sprintf("docker push %s", awsAuthMergerDockerRepoTag), region)
 }
