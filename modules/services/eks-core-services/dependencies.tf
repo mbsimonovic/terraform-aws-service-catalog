@@ -8,7 +8,8 @@ data "aws_eks_cluster" "cluster" {
 }
 
 data "aws_eks_cluster_auth" "kubernetes_token" {
-  name = var.eks_cluster_name
+  count = var.use_exec_plugin_for_auth ? 0 : 1
+  name  = var.eks_cluster_name
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
