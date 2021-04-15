@@ -308,6 +308,18 @@ variable "schedule_cluster_autoscaler_on_fargate" {
   default     = false
 }
 
+variable "cluster_autoscaler_pod_annotations" {
+  description = "Annotations to apply to the cluster autoscaler pod(s), as key value pairs."
+  type        = map(string)
+  default     = {}
+}
+
+variable "cluster_autoscaler_pod_labels" {
+  description = "Labels to apply to the cluster autoscaler pod(s), as key value pairs."
+  type        = map(string)
+  default     = {}
+}
+
 variable "cluster_autoscaler_pod_tolerations" {
   description = "Configure tolerations rules to allow the cluster-autoscaler Pod to schedule on nodes that have been tainted. Each item in the list specifies a toleration rule."
   type        = list(map(any))

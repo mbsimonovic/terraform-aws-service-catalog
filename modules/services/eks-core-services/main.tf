@@ -176,6 +176,8 @@ module "k8s_cluster_autoscaler" {
   aws_region                           = var.aws_region
   eks_cluster_name                     = var.eks_cluster_name
   iam_role_for_service_accounts_config = var.eks_iam_role_for_service_accounts_config
+  pod_annotations                      = var.cluster_autoscaler_pod_annotations
+  pod_labels                           = var.cluster_autoscaler_pod_labels
   pod_tolerations                      = var.cluster_autoscaler_pod_tolerations
   pod_node_affinity                    = var.cluster_autoscaler_pod_node_affinity
 
