@@ -18,24 +18,24 @@ terraform {
 
 
 # ---------------------------------------------------------------------------------------------------------------------
-# CREATE PRIVATE HOSTED ZONE(S) 
+# CREATE PRIVATE HOSTED ZONE(S)
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_route53_zone" "private_zones" {
   for_each = var.private_zones
 
   # Normalize zone name - whether the user added a trailing dot or not, ensure the trailing dot is present
-  # This helps prevent some state change errors where the AWS provider may return a zone name with a trailing dot, 
+  # This helps prevent some state change errors where the AWS provider may return a zone name with a trailing dot,
   # which causes Terraform to see the input map that is provided to for_each loops has been changed at runtime,
   # leading to very obscure errors
   name    = "${trimsuffix(each.key, ".")}."
   comment = each.value.comment
 
-  # The presence of the VPC association here signifies that this zone will be private. 
-  # Public zones do not require a VPC association 
+  # The presence of the VPC association here signifies that this zone will be private.
+  # Public zones do not require a VPC association
 
   # See https://www.terraform.io/docs/providers/aws/r/route53_zone.html#private-zone
-  # for more information 
+  # for more information
   vpc {
     vpc_id = each.value.vpc_id
   }
@@ -51,19 +51,19 @@ resource "aws_route53_zone" "private_zones" {
 
 resource "aws_route53_zone" "public_zones" {
   # We need only create new zones when the created_outside_terraform attribute is false. If created_outside_terraform is set to true, it means a that a
-  # public hosted zone with this name already exists, as is often the case if the target AWS account registered a domain 
+  # public hosted zone with this name already exists, as is often the case if the target AWS account registered a domain
   # via route 53 which automatically creates a new public hosted zone for the domain. In these cases, we'll dynamically look up
-  # the existing zone's ID and pass it through to acm certificates modules so that it knows the correct hosted zone to write DNS 
-  # validation records to which are required by ACM to complete certificate validation and issuance 
+  # the existing zone's ID and pass it through to acm certificates modules so that it knows the correct hosted zone to write DNS
+  # validation records to which are required by ACM to complete certificate validation and issuance
   for_each = {
     for domain, zone in var.public_zones :
     domain => zone if !zone.created_outside_terraform
   }
-  # Normalize zone name - whether the user added a 
+  # Normalize zone name - whether the user added a
   # trailing dot or not, ensure the trailing dot is present
   # This helps prevent some state change errors where the AWS
-  # provider may return a zone name with a trailing dot, 
-  # which causes Terraform to see the input map that is 
+  # provider may return a zone name with a trailing dot,
+  # which causes Terraform to see the input map that is
   # provided to for_each loops has been changed at runtime
   # which leads to very obscure errors
   name    = "${trimsuffix(each.key, ".")}."
@@ -81,9 +81,9 @@ resource "aws_route53_zone" "public_zones" {
 data "aws_route53_zone" "selected" {
   for_each = local.existing_zones_to_lookup
 
-  name = each.key
+  name = lookup(each.value, "hosted_zone_domain_name", null) != null ? each.value.hosted_zone_domain_name : each.key
 
-  tags = each.value.base_domain_name_tags != null ? each.value.base_domain_name_tags : {}
+  tags = lookup(each.value, "base_domain_name_tags", null) != null ? each.value.base_domain_name_tags : {}
 
   private_zone = false
 }
@@ -114,16 +114,14 @@ resource "aws_service_discovery_private_dns_namespace" "namespaces" {
 module "acm-tls-certificates" {
   # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
   # to a specific version of the modules, such as the following example:
-  # source = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/acm-tls-certificate?ref=v0.23.0"
-
-  source               = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/acm-tls-certificate?ref=v0.23.0"
+  source               = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/acm-tls-certificate?ref=v0.24.0"
   acm_tls_certificates = local.acm_tls_certificates
 
   # Workaround Terraform limitation where there is no module depends_on.
   # See https://github.com/hashicorp/terraform/issues/1178 for more details.
-  # This effectively draws an explicit dependency between the public 
-  # and private zones managed here and the ACM certificates that will be optionally 
-  # provisioned for them 
+  # This effectively draws an explicit dependency between the public
+  # and private zones managed here and the ACM certificates that will be optionally
+  # provisioned for them
   dependencies = flatten(concat([
     values(aws_route53_zone.public_zones).*.name_servers,
     values(aws_service_discovery_public_dns_namespace.namespaces).*.id,
@@ -136,46 +134,42 @@ module "acm-tls-certificates" {
 
 locals {
 
-  # For public zones and namespaces with their `provision_wildcard_certificate` attribute set to true, build a map that
-  # will be provided as input to the acm-tls-certificates module 
+  # Build a map of objects representing ACM certificates to request, which will be merged together with
+  # service_discovery_namespace_acml_tls_certificates and provided as input to the acm-tls-certificates module
   route53_acm_tls_certificates = {
     for domain, zone in var.public_zones :
-    # These certificates that are going to be automatically issued and verified for public Route53 zones, so we prefix
-    # them with *. to denote we are requesting "wildcard" certificates
-
-    # A wildcard certificate for example.com, requested with a domain of *.example.com, will protect all one-level
-    # subdomains of example.com, such as mail.example.com, admin.example.com, etc
-    "*.${domain}" => {
+    # See var.public_zones in variables.tf for example scenarios for requesting certificates that cover either the
+    # apex domain (example.com) only, or a wildcard cert that covers first-level subdomains (such as mail.example.com,
+    # test.example.com, etc) or both (example.com AND *.example.com).
+    domain => {
       tags                       = zone.tags
-      subject_alternative_names  = []
+      subject_alternative_names  = zone.subject_alternative_names
       create_verification_record = true
       verify_certificate         = true
-      # If the created_outside_terraform attribute is set to true, the zone ID will be looked up dynamically 
-      hosted_zone_id = zone.created_outside_terraform ? data.aws_route53_zone.selected[domain].zone_id : ""
-      # Only issue wildcard certificates for those zones where they were requested
-    } if zone.provision_wildcard_certificate
+      # If the created_outside_terraform attribute is set to true, the zone ID will be looked up dynamically
+      hosted_zone_id = zone.created_outside_terraform ? (zone.hosted_zone_domain_name != "" ? data.aws_route53_zone.selected[zone.hosted_zone_domain_name].zone_id : data.aws_route53_zone.selected[domain].zone_id) : ""
+    }
   }
+  # Build a map of objects representing ACM certificates to request, which will be merged together with
+  # route53_acm_tls_certificates and provided as input to the acm-tls-certificates module
   service_discovery_namespace_acm_tls_certificates = {
     for domain, config in var.service_discovery_public_namespaces :
-    # These certificates that are going to be automatically issued and verified for public Route53 zones, so we prefix
-    # them with *. to denote we are requesting "wildcard" certificates
-
-    # A wildcard certificate for example.com, requested with a domain of *.example.com, will protect all one-level
-    # subdomains of example.com, such as mail.example.com, admin.example.com, etc
-    "*.${domain}" => {
+    # See var.service_discovery_public_namespaces in variables.tf for example scenarios for requesting certificates that
+    # cover both the apex domain (example.com) only, or a wildcard cert that covers first-level subdomains
+    # (such as mail.example.com, test.example.com, etc) or both (example.com AND *.example.com).
+    domain => {
       tags                       = {}
-      subject_alternative_names  = []
+      subject_alternative_names  = config.subject_alternative_names
       create_verification_record = true
       verify_certificate         = true
-      hosted_zone_id             = ""
-      # Only issue wildcard certificates for those zones where they were requested
-    } if config.provision_wildcard_certificate
+      hosted_zone_id             = config.created_outside_terraform ? data.aws_route53_zone.selected[config.hosted_zone_domain_name].zone_id : ""
+    }
   }
   acm_tls_certificates = merge(local.route53_acm_tls_certificates, local.service_discovery_namespace_acm_tls_certificates)
 
   # The zones that should be pulled in via data sources as opposed to created and managed by this module.
   existing_zones_to_lookup = {
-    for domain, zone in var.public_zones :
-    domain => zone if zone.created_outside_terraform
+    for domain, zone in merge(var.public_zones, var.service_discovery_public_namespaces) :
+    (zone.hosted_zone_domain_name != "" ? zone.hosted_zone_domain_name : domain) => zone if zone.created_outside_terraform
   }
 }
