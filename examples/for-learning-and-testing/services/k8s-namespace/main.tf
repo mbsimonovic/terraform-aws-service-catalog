@@ -35,13 +35,13 @@ provider "kubernetes" {
 
   host                   = var.kubeconfig_auth_type == "eks" ? data.aws_eks_cluster.cluster[0].endpoint : null
   cluster_ca_certificate = var.kubeconfig_auth_type == "eks" ? base64decode(data.aws_eks_cluster.cluster[0].certificate_authority.0.data) : null
-  token                  = var.kubeconfig_auth_type == "eks"  && var.use_exec_plugin_for_auth == false ? data.aws_eks_cluster_auth.kubernetes_token[0].token : null
+  token                  = var.kubeconfig_auth_type == "eks" && var.use_exec_plugin_for_auth == false ? data.aws_eks_cluster_auth.kubernetes_token[0].token : null
 
   # EKS clusters use short-lived authentication tokens that can expire in the middle of an 'apply' or 'destroy'. To
   # avoid this issue, we use an exec-based plugin here to fetch an up-to-date token. Note that this code requires a
   # binary—either kubergrunt or aws—to be installed and on your PATH.
   dynamic "exec" {
-    for_each = var.kubeconfig_auth_type == "eks"  && var.use_exec_plugin_for_auth ? ["once"] : null
+    for_each = var.kubeconfig_auth_type == "eks" && var.use_exec_plugin_for_auth ? ["once"] : null
 
     content {
       api_version = "client.authentication.k8s.io/v1alpha1"
