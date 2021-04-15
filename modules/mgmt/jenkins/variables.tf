@@ -90,7 +90,7 @@ variable "tenancy" {
 variable "jenkins_volume_encrypted" {
   description = "Set to true to encrypt the Jenkins EBS volume."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "ebs_kms_key_arn" {

@@ -67,6 +67,7 @@ func buildASGAmi(t *testing.T, testFolder string) {
 			"bash_commons_version":          "v0.1.2",
 			"module_aws_monitoring_version": "v0.19.0",
 			"module_security_version":       "v0.25.1",
+			"encrypt_boot":                  "false",
 		},
 		MaxRetries:         3,
 		TimeBetweenRetries: 5 * time.Second,

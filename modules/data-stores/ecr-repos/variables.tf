@@ -76,7 +76,10 @@ variable "default_encryption_config" {
     # the default AWS managed key for ECR.
     kms_key = string
   })
-  default = null
+  default = {
+    encryption_type = "AES256"
+    kms_key         = null
+  }
 }
 
 variable "global_tags" {

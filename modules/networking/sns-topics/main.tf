@@ -28,15 +28,17 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "sns_topic" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-messaging.git//modules/sns?ref=v0.3.4"
+  source = "git::git@github.com:gruntwork-io/package-messaging.git//modules/sns?ref=v0.5.0"
 
   create_resources = var.create_resources
 
   name                      = var.name
   display_name              = var.display_name
   allow_publish_accounts    = var.allow_publish_accounts
+  allow_publish_services    = var.allow_publish_services
   allow_subscribe_accounts  = var.allow_subscribe_accounts
   allow_subscribe_protocols = var.allow_subscribe_protocols
+  kms_master_key_id         = var.kms_master_key_id
 }
 
 
@@ -45,7 +47,6 @@ module "sns_topic" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "sns_to_slack" {
-  # TODO: Update to released version
   source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/sns-to-slack?ref=v0.26.1"
 
   create_resources = var.create_resources && var.slack_webhook_url != null

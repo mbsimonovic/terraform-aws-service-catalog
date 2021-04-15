@@ -46,6 +46,7 @@ func TestBastionHost(t *testing.T) {
 				"aws_region":          awsRegion,
 				"service_catalog_ref": branchName,
 				"version_tag":         branchName,
+				"encrypt_boot":        "false",
 			},
 			MaxRetries:         3,
 			TimeBetweenRetries: 5 * time.Second,

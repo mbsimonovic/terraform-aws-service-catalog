@@ -5,7 +5,7 @@
     "aws_region": "us-east-1",
     "ami_name": "openvpn-server",
     "github_auth_token": "{{env `GITHUB_OAUTH_TOKEN`}}",
-    "encrypt_boot": "false",
+    "encrypt_boot": "true",
     "encrypt_kms_key_id": "",
     "vpc_filter_key": "isDefault",
     "vpc_filter_value": "true",
