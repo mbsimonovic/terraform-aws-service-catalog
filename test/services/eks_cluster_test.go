@@ -32,7 +32,7 @@ import (
 )
 
 const (
-	// renovate.json auto-update-github-releases: gruntwork-io/terraform-aws-eks
+	// renovate.json auto-update-variable: terraform-aws-eks
 	terraformAWSEKSVersion = "v0.32.4"
 )
 

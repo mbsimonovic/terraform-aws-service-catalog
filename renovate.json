@@ -2,7 +2,12 @@
   "extends": [
     "config:base"
   ],
-  "registryUrls": ["https://registry.dogfood-dev.com"],
+  "packageRules": [
+    {
+      "matchDatasources": ["terraform-module"],
+      "registryUrls": ["https://registry.dogfood-dev.com"]
+    }
+  ],
   "enabledManagers": ["regex"],
   "regexManagers": [
     {
@@ -10,6 +15,13 @@
       "matchStrings": ["source\\s*=\\s*\".*?github\\.com.gruntwork-io/(?:(?<prefix>terraform)-(?<cloud>.+?)-)?(?<name>.+?)(?:\\.git)?(?:/.*?)?\\?ref=(?<currentValue>.*?)\""],
       "depNameTemplate": "gruntwork-io/{{#if cloud}}terraform-{{cloud}}-{{/if}}{{name}}",
       "lookupNameTemplate": "gruntwork-io/{{name}}/{{#if cloud}}{{cloud}}{{else}}aws{{/if}}",
+      "datasourceTemplate": "terraform-module"
+    },
+    {
+      "fileMatch": ["\\.tf$", "\\.go$"],
+      "matchStrings": ["renovate.json auto-update-variable: (?<name>.+?)\n.+=\\s*\"(?<currentValue>.+?)\""],
+      "depNameTemplate": "gruntwork-io/{{name}}",
+      "lookupNameTemplate": "gruntwork-io/{{name}}/aws",
       "datasourceTemplate": "terraform-module"
     },
     {
