@@ -68,6 +68,7 @@ func TestEksCluster(t *testing.T) {
 	//os.Setenv("SKIP_build_aws_auth_merger_image", "true")
 	//os.Setenv("SKIP_deploy_terraform", "true")
 	//os.Setenv("SKIP_validate_cluster", "true")
+	//os.Setenv("SKIP_validate_core_services_optionality", "true")
 	//os.Setenv("SKIP_deploy_core_services", "true")
 	//os.Setenv("SKIP_validate_core_services_fargate", "true")
 	//os.Setenv("SKIP_validate_external_dns", "true")
@@ -156,7 +157,8 @@ func TestEksClusterFargateUsEast1(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "deploy_core_services", func() {
-		deployCoreServices(t, workingDir, workingDir, coreServicesRoot)
+		coreServicesTerraformOptions := getCoreServicesTerraformOptions(t, workingDir, workingDir, coreServicesRoot)
+		terraform.InitAndApply(t, coreServicesTerraformOptions)
 	})
 
 	test_structure.RunTestStage(t, "validate_core_services_fargate", func() {
@@ -232,8 +234,24 @@ func testEKSClusterWithCoreServicesAndAuthMerger(t *testing.T, parentWorkingDir 
 		terraform.Destroy(t, terraformOptions)
 	})
 
+	test_structure.RunTestStage(t, "validate_core_services_optionality", func() {
+		coreServicesTerraformOptions := getCoreServicesTerraformOptions(t, parentWorkingDir, workingDir, coreServicesRoot)
+
+		// Set up vars to disable all the core services and verify nothing gets deployed.
+		coreServicesTerraformOptions.Vars["enable_fluent_bit"] = false
+		coreServicesTerraformOptions.Vars["enable_alb_ingress_controller"] = false
+		coreServicesTerraformOptions.Vars["enable_external_dns"] = false
+		coreServicesTerraformOptions.Vars["enable_cluster_autoscaler"] = false
+		coreServicesTerraformOptions.Vars["service_dns_mappings"] = map[string]interface{}{}
+		planCounts := terraform.GetResourceCount(t, terraform.InitAndPlan(t, coreServicesTerraformOptions))
+		assert.Equal(t, 0, planCounts.Add)
+		assert.Equal(t, 0, planCounts.Change)
+		assert.Equal(t, 0, planCounts.Destroy)
+	})
+	coreServicesTerraformOptions := test_structure.LoadTerraformOptions(t, coreServicesRoot)
+
 	test_structure.RunTestStage(t, "deploy_core_services", func() {
-		deployCoreServices(t, parentWorkingDir, workingDir, coreServicesRoot)
+		terraform.InitAndApply(t, coreServicesTerraformOptions)
 	})
 
 	test_structure.RunTestStage(t, "validate_core_services_fargate", func() {
@@ -347,12 +365,12 @@ func validateEKSCluster(t *testing.T, workingDir string, expectedEksNodeCount in
 	assert.Equal(t, len(readyNodes), expectedEksNodeCount)
 }
 
-// Deploy the core services module in the test.
+// Setup the core services module terraform options in the test.
 // parentWorkingDir should be the working dir of the overarching test, and is where the global options like region and
 // AMI are stored.
 // workingDir should be the working dir of the subtest, and is where local options like the terraform options are
 // stored.
-func deployCoreServices(t *testing.T, parentWorkingDir string, workingDir string, coreServicesModulePath string) {
+func getCoreServicesTerraformOptions(t *testing.T, parentWorkingDir string, workingDir string, coreServicesModulePath string) *terraform.Options {
 	awsRegion := test_structure.LoadString(t, parentWorkingDir, "region")
 	clusterName := test_structure.LoadString(t, workingDir, "clusterName")
 	terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
@@ -378,7 +396,7 @@ func deployCoreServices(t *testing.T, parentWorkingDir string, workingDir string
 	}
 	test_structure.SaveTerraformOptions(t, coreServicesModulePath, coreServicesOptions)
 
-	terraform.InitAndApply(t, coreServicesOptions)
+	return coreServicesOptions
 }
 
 // Validate the core services module is running on Fargate.

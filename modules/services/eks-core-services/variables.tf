@@ -55,6 +55,12 @@ variable "fargate_worker_disallowed_availability_zones" {
 
 # Fluent-bit DaemonSet options
 
+variable "enable_fluent_bit" {
+  description = "Whether or not to enable fluent-bit for log aggregation."
+  type        = bool
+  default     = true
+}
+
 variable "fluent_bit_log_group_name" {
   description = "Name of the CloudWatch Log Group fluent-bit should use to stream logs to. When null (default), uses the eks_cluster_name as the Log Group name."
   type        = string
@@ -137,6 +143,12 @@ variable "fluent_bit_pod_node_affinity" {
 
 # AWS ALB Ingress controller options
 
+variable "enable_alb_ingress_controller" {
+  description = "Whether or not to enable the AWS LB Ingress controller."
+  type        = bool
+  default     = true
+}
+
 variable "schedule_alb_ingress_controller_on_fargate" {
   description = "When true, the ALB ingress controller pods will be scheduled on Fargate."
   type        = bool
@@ -200,6 +212,12 @@ variable "alb_ingress_controller_pod_node_affinity" {
 }
 
 # external-dns configuration options
+
+variable "enable_external_dns" {
+  description = "Whether or not to enable external-dns for DNS entry syncing with Route 53 for Services and Ingresses."
+  type        = bool
+  default     = true
+}
 
 variable "schedule_external_dns_on_fargate" {
   description = "When true, the external-dns pods will be scheduled on Fargate."
@@ -301,6 +319,12 @@ variable "external_dns_route53_hosted_zone_domain_filters" {
 }
 
 # Cluster Autoscaler settings
+
+variable "enable_cluster_autoscaler" {
+  description = "Whether or not to enable cluster-autoscaler for Autoscaling EKS worker nodes."
+  type        = bool
+  default     = true
+}
 
 variable "schedule_cluster_autoscaler_on_fargate" {
   description = "When true, the cluster autoscaler pods will be scheduled on Fargate. It is recommended to run the cluster autoscaler on Fargate to avoid the autoscaler scaling down a node where it is running (and thus shutting itself down during a scale down event). However, since Fargate is only supported on a handful of regions, we don't default to true here."

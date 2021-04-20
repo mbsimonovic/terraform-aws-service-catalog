@@ -50,4 +50,10 @@ module "eks_core_services" {
   autoscaler_down_delay_after_add     = "2m"
 
   service_dns_mappings = var.service_dns_mappings
+
+  # Feature flags for each individual service
+  enable_fluent_bit             = var.enable_fluent_bit
+  enable_alb_ingress_controller = var.enable_alb_ingress_controller
+  enable_external_dns           = var.enable_external_dns
+  enable_cluster_autoscaler     = var.enable_cluster_autoscaler
 }
