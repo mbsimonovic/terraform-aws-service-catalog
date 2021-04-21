@@ -56,7 +56,7 @@ func TestLambdaService(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "validate_lambda", func() {
-		validateLambda(t, terraformOptions)
+		validateLambda(t, awsRegion, name)
 	})
 }
 
@@ -81,10 +81,7 @@ type Response struct {
 	Status int
 }
 
-func validateLambda(t *testing.T, terraformOptions *terraform.Options) {
-	awsRegion := terraformOptions.Vars["aws_region"].(string)
-	name := terraformOptions.Vars["name"].(string)
-
+func validateLambda(t *testing.T, awsRegion string, name string) {
 	payload := map[string]string{
 		"url": "http://www.example.com",
 	}
