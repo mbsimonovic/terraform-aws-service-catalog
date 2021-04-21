@@ -26,8 +26,6 @@ terraform {
 module "alb" {
   source = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/alb?ref=v0.23.0"
 
-  # You can find the list of policies here: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html#describe-ssl-policies
-  ssl_policy = "ELBSecurityPolicy-2016-08"
 
   alb_name        = var.alb_name
   is_internal_alb = var.is_internal_alb
@@ -63,6 +61,7 @@ module "alb" {
   default_action_status_code  = var.default_action_status_code
   acm_cert_statuses           = var.acm_cert_statuses
   acm_cert_types              = var.acm_cert_types
+  ssl_policy                  = var.ssl_policy
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
