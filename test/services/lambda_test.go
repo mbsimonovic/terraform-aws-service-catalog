@@ -86,11 +86,10 @@ func validateLambda(t *testing.T, awsRegion string, name string) {
 		"url": "http://www.example.com",
 	}
 
-	out, err := aws.InvokeFunctionE(t, awsRegion, name, payload)
-	require.NoError(t, err)
+	out := aws.InvokeFunction(t, awsRegion, name, payload)
 
 	var response Response
-	err = json.Unmarshal([]byte(out), &response)
+	err := json.Unmarshal([]byte(out), &response)
 	require.NoError(t, err)
 
 	assert.Equal(t, 200, response.Status)
