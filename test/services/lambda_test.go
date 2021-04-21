@@ -3,6 +3,7 @@ package services
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/gruntwork-io/aws-service-catalog/test"
@@ -60,15 +61,8 @@ func TestLambdaService(t *testing.T) {
 }
 
 func cleanupLambdaArtifacts(t *testing.T, terraformOptions *terraform.Options) {
-	command := shell.Command{
-		Command: "rm",
-		Args: []string{
-			"-rf",
-			"python/build/",
-		},
-		WorkingDir: terraformOptions.TerraformDir,
-	}
-	shell.RunCommand(t, command)
+	err := os.RemoveAll(terraformOptions.TerraformDir)
+	require.NoError(t, err)
 }
 
 func buildLambdaArtifacts(t *testing.T, terraformOptions *terraform.Options) {
