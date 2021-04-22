@@ -39,6 +39,8 @@ func TestLambdaService(t *testing.T) {
 		terraformOptions.TerraformDir = testFolder
 
 		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
+		test_structure.SaveString(t, testFolder, "aws_region", awsRegion)
+		test_structure.SaveString(t, testFolder, "name", name)
 	})
 
 	defer test_structure.RunTestStage(t, "cleanup_lambda", func() {
@@ -62,13 +64,8 @@ func TestLambdaService(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "validate_lambda", func() {
-		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
-
-		awsRegion, ok := terraformOptions.Vars["aws_region"].(string)
-		assert.True(t, ok)
-
-		name, ok := terraformOptions.Vars["name"].(string)
-		assert.True(t, ok)
+		awsRegion := test_structure.LoadString(t, testFolder, "aws_region")
+		name := test_structure.LoadString(t, testFolder, "name")
 
 		validateLambda(t, awsRegion, name)
 	})
