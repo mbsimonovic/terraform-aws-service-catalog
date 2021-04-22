@@ -1,33 +1,40 @@
-## How do you deploy this example?
+# Lambda Example
 
-First, make sure that you have these tools installed:
+This is an example of how to use the [Lambda module](/modules/services/lambda)
+to create a Lambda function.
+This example is optimized for learning, experimenting, and testing (but not
+direct production usage). If you want to deploy modules directly in production,
+check out the [examples/for-production folder](/examples/for-production).
 
-1. [Docker](https://www.docker.com/).
-1. [Terraform](https://www.terraform.io/).
+## Deploy Instructions
 
-Next, build the lambda deployment package:
-
-1. `./python/build.sh`
-
-Next, deploy the code with Terraform:
-
-1. Open `variables.tf` and change the variables that you want.
+1. Install [Python 3](https://www.python.org).
+1. Install [Docker](https://www.docker.com/).
+1. Install [Terraform](https://www.terraform.io/).
+1. Configure your AWS credentials
+   ([instructions](https://blog.gruntwork.io/a-comprehensive-guide-to-authenticating-to-aws-on-the-command-line-63656a686799)).
+1. Open [variables.tf](variables.tf) and set all required parameters (plus any
+   others you wish to override). We recommend setting these variables in a
+   `terraform.tfvars` file (see
+   [here](https://www.terraform.io/docs/configuration/variables.html#assigning-values-to-root-module-variables)
+   for all the ways you can set Terraform variables).
+1. Build the lambda deployment package with `./python/build.sh`.
 1. Run `terraform init`.
-1. Run `terraform plan -out plan`.
-1. If the plan looks good, run `terraform apply plan`.
+1. Run `terraform apply`.
+1. The module will output the endpoint of the lambda function.  <!-- Validate/update the output -->
+1. When you're done testing, to undeploy everything, run `terraform destroy`.
 
-## How do you test the Lambda function?
+## Testing the Lambda
 
 There are two ways to test the Lambda function once it's deployed:
 
 1. [Test in AWS](#test-in-aws)
 1. [Test locally](#test-locally)
 
-
 ### Test in AWS
 
-Open up the [AWS Console UI](https://console.aws.amazon.com/lambda/home), find the function, click the "Test" button,
-and enter test data that looks something like this:
+After the lambda deployment, open up the [AWS Console UI](https://console.aws.amazon.com/lambda/home),
+find the function, click the "Test" button, and enter test data that looks something like this:
 
 ```json
 {
