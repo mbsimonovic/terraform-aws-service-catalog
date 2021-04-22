@@ -21,6 +21,7 @@ func TestLambdaService(t *testing.T) {
 
 	// Uncomment the items below to skip certain parts of the test
 	// os.Setenv("TERRATEST_REGION", "us-east-1")
+	// os.Setenv("SKIP_setup", "true")
 	// os.Setenv("SKIP_build_lambda", "true")
 	// os.Setenv("SKIP_deploy_lambda", "true")
 	// os.Setenv("SKIP_validate_lambda", "true")
@@ -29,16 +30,19 @@ func TestLambdaService(t *testing.T) {
 
 	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../..", "examples/for-learning-and-testing/services/lambda")
 
-	awsRegion := aws.GetRandomRegion(t, nil, nil)
-	name := fmt.Sprintf("lambda-%s", random.UniqueId())
+	test_structure.RunTestStage(t, "setup", func() {
+		awsRegion := aws.GetRandomRegion(t, nil, nil)
+		name := fmt.Sprintf("lambda-%s", random.UniqueId())
 
-	terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, awsRegion)
-	terraformOptions.Vars["name"] = name
-	terraformOptions.TerraformDir = testFolder
+		terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, awsRegion)
+		terraformOptions.Vars["name"] = name
+		terraformOptions.TerraformDir = testFolder
 
-	test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
+		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
+	})
 
 	defer test_structure.RunTestStage(t, "cleanup_lambda", func() {
+		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
 		cleanupLambdaArtifacts(t, terraformOptions)
 	})
 
@@ -48,14 +52,24 @@ func TestLambdaService(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "build_lambda", func() {
+		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
 		buildLambdaArtifacts(t, terraformOptions)
 	})
 
 	test_structure.RunTestStage(t, "deploy_lambda", func() {
+		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
 		deployLambda(t, terraformOptions)
 	})
 
 	test_structure.RunTestStage(t, "validate_lambda", func() {
+		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
+
+		awsRegion, ok := terraformOptions.Vars["aws_region"].(string)
+		assert.True(t, ok)
+
+		name, ok := terraformOptions.Vars["name"].(string)
+		assert.True(t, ok)
+
 		validateLambda(t, awsRegion, name)
 	})
 }
