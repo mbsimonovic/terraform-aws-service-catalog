@@ -31,5 +31,5 @@ module "lambda_function" {
 }
 
 resource "aws_sns_topic" "failure_topic" {
-  name = "example-failure-sns-topic"
+  name = var.sns_topic_name
 }

@@ -33,9 +33,11 @@ func TestLambdaService(t *testing.T) {
 	test_structure.RunTestStage(t, "setup", func() {
 		awsRegion := aws.GetRandomRegion(t, nil, nil)
 		name := fmt.Sprintf("lambda-%s", random.UniqueId())
+		snsTopicName := fmt.Sprintf("%s-sns-topic", name)
 
 		terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, awsRegion)
 		terraformOptions.Vars["name"] = name
+		terraformOptions.Vars["sns_topic_name"] = snsTopicName
 		terraformOptions.TerraformDir = testFolder
 
 		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
