@@ -5,7 +5,8 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This module uses Terraform variable validation, which was introduced in Terraform 0.13.0. Read more at 
+  # This module is now only being tested with Terraform 0.14.x. However, we are setting 0.13.0 as the minimum version
+  # as that version added support for Terraform native variable validation. See:
   # https://www.terraform.io/docs/language/values/variables.html#custom-validation-rules
   required_version = ">= 0.13.0"
 
