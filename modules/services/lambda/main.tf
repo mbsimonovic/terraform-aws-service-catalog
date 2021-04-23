@@ -19,7 +19,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "lambda_function" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-lambda//modules/lambda?ref=v0.10.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-lambda//modules/lambda?ref=v0.10.1"
 
   create_resources = var.create_resources
 
@@ -36,6 +36,8 @@ module "lambda_function" {
   s3_key            = var.s3_key
   s3_object_version = var.s3_object_version
 
+  image_uri = var.image_uri
+
   runtime                        = var.runtime
   handler                        = var.handler
   memory_size                    = var.memory_size
@@ -48,16 +50,19 @@ module "lambda_function" {
   lambda_role_permissions_boundary_arn = var.lambda_role_permissions_boundary_arn
   assume_role_policy                   = var.assume_role_policy
 
-  run_in_vpc                  = var.run_in_vpc
-  vpc_id                      = var.vpc_id
-  subnet_ids                  = var.subnet_ids
-  should_create_outbound_rule = var.should_create_outbound_rule
-
-  dead_letter_target_arn = var.dead_letter_target_arn
-
+  run_in_vpc                   = var.run_in_vpc
+  vpc_id                       = var.vpc_id
   mount_to_file_system         = var.mount_to_file_system
   file_system_access_point_arn = var.file_system_access_point_arn
   file_system_mount_path       = var.file_system_mount_path
+  subnet_ids                   = var.subnet_ids
+  should_create_outbound_rule  = var.should_create_outbound_rule
+
+  dead_letter_target_arn = var.dead_letter_target_arn
+
+  entry_point       = var.entry_point
+  command           = var.command
+  working_directory = var.working_directory
 
   tags = var.tags
 }
@@ -67,8 +72,8 @@ module "lambda_function" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "scheduled_job" {
-  source   = "git::git@github.com:gruntwork-io/terraform-aws-lambda//modules/scheduled-lambda-job?ref=v0.10.0"
-  for_each = var.schedule_expression != null ? { for expression in [var.schedule_expression] : expression => expression } : {}
+  source   = "git::git@github.com:gruntwork-io/terraform-aws-lambda//modules/scheduled-lambda-job?ref=v0.10.1"
+  for_each = var.schedule_expression == null ? toset([]) : toset(["once"])
 
   create_resources = var.create_resources
 

@@ -47,11 +47,13 @@ variable "source_code_hash" {
 variable "runtime" {
   description = "The runtime environment for the Lambda function (e.g. nodejs, python2.7, java8). See https://docs.aws.amazon.com/lambda/latest/dg/API_CreateFunction.html#SSS-CreateFunction-request-Runtime for all possible values."
   type        = string
+  default     = null
 }
 
 variable "handler" {
   description = "The function entrypoint in your code. This is typically the name of a function or method in your code that AWS will execute when this Lambda function is triggered."
   type        = string
+  default     = null
 }
 
 variable "layers" {
@@ -185,6 +187,30 @@ variable "should_create_outbound_rule" {
   description = "If true, create an egress rule allowing all outbound traffic from Lambda function to the entire Internet (e.g. 0.0.0.0/0)."
   type        = bool
   default     = false
+}
+
+variable "image_uri" {
+  description = "The ECR image URI containing the function's deployment package. Example: 01234501234501.dkr.ecr.us-east-1.amazonaws.com/image_name:image_tag"
+  type        = string
+  default     = null
+}
+
+variable "entry_point" {
+  description = "The ENTRYPOINT for the docker image. Only used if you specify a Docker image via image_uri."
+  type        = list(string)
+  default     = []
+}
+
+variable "command" {
+  description = "The CMD for the docker image. Only used if you specify a Docker image via image_uri."
+  type        = list(string)
+  default     = []
+}
+
+variable "working_directory" {
+  description = "The working directory for the docker image. Only used if you specify a Docker image via image_uri."
+  type        = string
+  default     = null
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
