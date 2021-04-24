@@ -28,10 +28,10 @@ check out the [examples/for-production folder](/examples/for-production).
 
 There are two ways to test the Lambda function once it's deployed:
 
-1. [Test in AWS](#test-in-aws)
+1. [Test in AWS](#test-in-the-aws-console)
 1. [Test locally](#test-locally)
 
-### Test in AWS
+### Test in the AWS Console
 
 After the lambda deployment, open up the [AWS Console UI](https://console.aws.amazon.com/lambda/home),
 find the function, click the "Test" button, and enter test data that looks something like this:
@@ -44,8 +44,15 @@ find the function, click the "Test" button, and enter test data that looks somet
 
 Click "Save and test" and AWS will show you the log output and returned value in the browser.
 
-
 ### Test locally
+
+After the lambda deployment, you can invoke it using the `aws` command, like this:
+
+```bash
+aws lambda invoke --function-name $(terraform output -raw function_arn) --payload '{"url": "http://www.example.com"}' outfile
+```
+
+## Local lambda development
 
 The code you write for a Lambda function is just regular code with a well-defined entrypoint (the "handler"), so you can also run it locally by calling that entrypoint. The example Python app includes a `test_harness.py` file that is configured to allow you to run your code locally. This test harness script is configured as the `ENTRYPOINT` for the Docker container, so you can test locally as follows:
 
