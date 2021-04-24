@@ -116,7 +116,11 @@ resource "aws_cloudwatch_metric_alarm" "lambda_failure_alarm" {
 }
 
 locals {
-  sns_failure_topic_name = var.alert_on_failure_sns_topic != null ? var.alert_on_failure_sns_topic.name : "${module.lambda_function.function_name}-failures"
+  sns_failure_topic_name = (
+    var.alert_on_failure_sns_topic != null
+    ? var.alert_on_failure_sns_topic.name
+    : "${module.lambda_function.function_name}-failures"
+  )
 }
 
 resource "aws_sns_topic" "failure_topic" {
