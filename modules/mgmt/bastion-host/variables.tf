@@ -93,15 +93,15 @@ variable "enable_ssh_grunt" {
 }
 
 variable "ssh_grunt_iam_group" {
-  description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to this bastion host. To omit this variable, set it to an empty string (do NOT use null, or Terraform will complain)."
+  description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to this Bastion Host. This value is only used if enable_ssh_grunt=true."
   type        = string
-  default     = ""
+  default     = "ssh-grunt-users"
 }
 
 variable "ssh_grunt_iam_group_sudo" {
-  description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to this bastion host. To omit this variable, set it to an empty string (do NOT use null, or Terraform will complain)."
+  description = "If you are using ssh-grunt, this is the name of the IAM group from which users will be allowed to SSH to this Bastion Host with sudo permissions. This value is only used if enable_ssh_grunt=true."
   type        = string
-  default     = ""
+  default     = "ssh-grunt-sudo-users"
 }
 
 variable "tenancy" {
