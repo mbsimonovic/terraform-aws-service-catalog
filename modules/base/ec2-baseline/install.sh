@@ -70,7 +70,7 @@ function install_security_packages {
         echo "$remove_log_msg"
         sudo yum -y remove ec2-instance-connect
       fi
-    elif command -f "dpkg"; then
+    elif command -v "dpkg"; then
       if dpkg -l ec2-instance-connect; then
         echo "$remove_log_msg"
         sudo apt-get -y purge ec2-instance-connect
