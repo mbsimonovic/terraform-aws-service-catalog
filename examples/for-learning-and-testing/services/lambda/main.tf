@@ -30,6 +30,9 @@ module "lambda_function" {
   alert_on_failure_sns_topic = aws_sns_topic.failure_topic
 }
 
+# A pre existing SNS Topic is not necessary, if none are passed a new one will
+# be created. Here is just an example that a previously created topic can be
+# used.
 resource "aws_sns_topic" "failure_topic" {
   name = var.sns_topic_name
 }
