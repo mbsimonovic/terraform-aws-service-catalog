@@ -71,3 +71,15 @@ output "alarm_arn" {
   # This will change the output type from list to string but it will, then, be closer to reality
   # value       = one([for alarm in aws_cloudwatch_metric_alarm.lambda_failure_alarm : alarm.arn])
 }
+
+output "alarm_actions" {
+  # alarm.alarm_actions is a set so, without flatten(), we ended up with a list
+  # of a set (similar to a list of lists). This way we end up with a single list
+  value = flatten([for alarm in aws_cloudwatch_metric_alarm.lambda_failure_alarm : alarm.alarm_actions])
+}
+
+output "ok_actions" {
+  # alarm.ok_actions is a set so, without flatten(), we ended up with a list
+  # of a set (similar to a list of lists). This way we end up with a single list
+  value = flatten([for alarm in aws_cloudwatch_metric_alarm.lambda_failure_alarm : alarm.ok_actions])
+}

@@ -49,3 +49,11 @@ output "alarm_arn" {
   description = "ARN of the Cloudwatch alarm"
   value       = module.lambda_function.alarm_arn
 }
+
+output "alarm_actions" {
+  value = module.lambda_function.alarm_actions
+}
+
+output "ok_actions" {
+  value = module.lambda_function.ok_actions
+}
