@@ -210,7 +210,8 @@ locals {
         protocol = "TCP"
       }
     }
-    replicaCount = var.desired_number_of_pods
+    replicaCount     = var.desired_number_of_pods
+    minPodsAvailable = var.min_number_of_pods_available
 
     service = {
       # When expose_type is cluster-internal, we do not want to associate an Ingress resource, or allow access

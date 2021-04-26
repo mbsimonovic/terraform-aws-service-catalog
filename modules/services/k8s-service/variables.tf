@@ -45,6 +45,12 @@ variable "desired_number_of_pods" {
 
 # Pod container options
 
+variable "min_number_of_pods_available" {
+  description = "The minimum number of pods that should be available at any given point in time. This is used to configure a PodDisruptionBudget for the service, allowing you to achieve a graceful rollout. See https://blog.gruntwork.io/avoiding-outages-in-your-kubernetes-cluster-using-poddisruptionbudgets-ef6a4baa5085 for an introduction to PodDisruptionBudgets."
+  type        = number
+  default     = 0
+}
+
 variable "desired_number_of_canary_pods" {
   description = "The number of canary Pods to run on the Kubernetes cluster for this service. If greater than 0, you must provide var.canary_image."
   type        = number
