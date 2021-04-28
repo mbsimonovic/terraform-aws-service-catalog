@@ -39,18 +39,22 @@ output "version" {
 
 output "event_rule_arn" {
   description = "Cloudwatch Event Rule Arn"
-  value       = [for job in module.scheduled_job : job.event_rule_arn]
-  # For Terraform 0.15+
-  # This will change the output type from list to string but it will, then, be closer to reality
-  # value       = one([for job in module.scheduled_job : job.event_rule_arn])
+  # Because we are iterating over a dynamically generated value that can exist,
+  # or not, we have to perform a not so beautiful workaround to return a single
+  # value, or not. Luckily, for terraform 0.15+ this is natively implemented
+  # and will become:
+  # value = one([for job in module.scheduled_job : job.event_rule_arn])
+  value = lookup({ for job in module.scheduled_job : "one" => job.event_rule_arn }, "one", null)
 }
 
 output "event_rule_schedule" {
   description = "Cloudwatch Event Rule schedule expression"
-  value       = [for job in module.scheduled_job : job.event_rule_schedule]
-  # For Terraform 0.15+
-  # This will change the output type from list to string but it will, then, be closer to reality
-  # value       = one([for job in module.scheduled_job : job.event_rule_schedule])
+  # Because we are iterating over a dynamically generated value that can exist,
+  # or not, we have to perform a not so beautiful workaround to return a single
+  # value, or not. Luckily, for terraform 0.15+ this is natively implemented
+  # and will become:
+  # value = one([for job in module.scheduled_job : job.event_rule_schedule])
+  value = lookup({ for job in module.scheduled_job : "one" => job.event_rule_schedule }, "one", null)
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -58,28 +62,32 @@ output "event_rule_schedule" {
 # ---------------------------------------------------------------------------------------------------------------------
 output "alarm_name" {
   description = "Name of the Cloudwatch alarm"
-  value       = [for alarm in aws_cloudwatch_metric_alarm.lambda_failure_alarm : alarm.alarm_name]
-  # For Terraform 0.15+
-  # This will change the output type from list to string but it will, then, be closer to reality
-  # value       = one([for alarm in aws_cloudwatch_metric_alarm.lambda_failure_alarm : alarm.alarm_name])
+  # Because we are iterating over a dynamically generated value that can exist,
+  # or not, we have to perform a not so beautiful workaround to return a single
+  # value, or not. Luckily, for terraform 0.15+ this is natively implemented
+  # and will become:
+  # value = one([for alarm in aws_cloudwatch_metric_alarm.lambda_failure_alarm : alarm.alarm_name])
+  value = lookup({ for alarm in aws_cloudwatch_metric_alarm.lambda_failure_alarm : "one" => alarm.alarm_name }, "one", null)
 }
 
 output "alarm_arn" {
   description = "ARN of the Cloudwatch alarm"
-  value       = [for alarm in aws_cloudwatch_metric_alarm.lambda_failure_alarm : alarm.arn]
-  # For Terraform 0.15+
-  # This will change the output type from list to string but it will, then, be closer to reality
-  # value       = one([for alarm in aws_cloudwatch_metric_alarm.lambda_failure_alarm : alarm.arn])
+  # Because we are iterating over a dynamically generated value that can exist,
+  # or not, we have to perform a not so beautiful workaround to return a single
+  # value, or not. Luckily, for terraform 0.15+ this is natively implemented
+  # and will become:
+  # value = one([for alarm in aws_cloudwatch_metric_alarm.lambda_failure_alarm : alarm.arn])
+  value = lookup({ for alarm in aws_cloudwatch_metric_alarm.lambda_failure_alarm : "one" => alarm.arn }, "one", null)
 }
 
 output "alarm_actions" {
-  # alarm.alarm_actions is a set so, without flatten(), we ended up with a list
+  # alarm.alarm_actions is a set so, without flatten(), we end up with a list
   # of a set (similar to a list of lists). This way we end up with a single list
   value = flatten([for alarm in aws_cloudwatch_metric_alarm.lambda_failure_alarm : alarm.alarm_actions])
 }
 
 output "ok_actions" {
-  # alarm.ok_actions is a set so, without flatten(), we ended up with a list
+  # alarm.ok_actions is a set so, without flatten(), we end up with a list
   # of a set (similar to a list of lists). This way we end up with a single list
   value = flatten([for alarm in aws_cloudwatch_metric_alarm.lambda_failure_alarm : alarm.ok_actions])
 }
