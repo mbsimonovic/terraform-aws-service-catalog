@@ -219,7 +219,7 @@ variable "working_directory" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "schedule_expression" {
-  description = "An expression that defines the schedule for this lambda job. For example, cron(0 20 * * ? *) or rate(5 minutes)."
+  description = "An expression that defines the schedule for this lambda job. For example, cron(0 20 * * ? *) or rate(5 minutes). For more information visit https://docs.aws.amazon.com/lambda/latest/dg/services-cloudwatchevents-expressions.html"
   type        = string
   default     = null
 }
