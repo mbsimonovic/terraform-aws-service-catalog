@@ -3,6 +3,7 @@ package services
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/gruntwork-io/aws-service-catalog/test"
@@ -20,6 +21,7 @@ func TestLambdaService(t *testing.T) {
 
 	// Uncomment the items below to skip certain parts of the test
 	// os.Setenv("TERRATEST_REGION", "us-east-1")
+	// os.Setenv("SKIP_setup", "true")
 	// os.Setenv("SKIP_build_lambda", "true")
 	// os.Setenv("SKIP_deploy_lambda", "true")
 	// os.Setenv("SKIP_validate_lambda", "true")
@@ -28,16 +30,23 @@ func TestLambdaService(t *testing.T) {
 
 	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../..", "examples/for-learning-and-testing/services/lambda")
 
-	awsRegion := aws.GetRandomRegion(t, nil, nil)
-	name := fmt.Sprintf("lambda-%s", random.UniqueId())
+	test_structure.RunTestStage(t, "setup", func() {
+		awsRegion := aws.GetRandomRegion(t, nil, nil)
+		name := fmt.Sprintf("lambda-%s", random.UniqueId())
+		snsTopicName := fmt.Sprintf("%s-sns-topic", name)
 
-	terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, awsRegion)
-	terraformOptions.Vars["name"] = name
-	terraformOptions.TerraformDir = testFolder
+		terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, awsRegion)
+		terraformOptions.Vars["name"] = name
+		terraformOptions.Vars["sns_topic_name"] = snsTopicName
+		terraformOptions.TerraformDir = testFolder
 
-	test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
+		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
+		test_structure.SaveString(t, testFolder, "aws_region", awsRegion)
+		test_structure.SaveString(t, testFolder, "name", name)
+	})
 
 	defer test_structure.RunTestStage(t, "cleanup_lambda", func() {
+		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
 		cleanupLambdaArtifacts(t, terraformOptions)
 	})
 
@@ -47,28 +56,26 @@ func TestLambdaService(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "build_lambda", func() {
+		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
 		buildLambdaArtifacts(t, terraformOptions)
 	})
 
 	test_structure.RunTestStage(t, "deploy_lambda", func() {
-		deployLambda(t, terraformOptions)
+		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
+		terraform.InitAndApply(t, terraformOptions)
 	})
 
 	test_structure.RunTestStage(t, "validate_lambda", func() {
-		validateLambda(t, terraformOptions)
+		awsRegion := test_structure.LoadString(t, testFolder, "aws_region")
+		name := test_structure.LoadString(t, testFolder, "name")
+
+		validateLambda(t, awsRegion, name)
 	})
 }
 
 func cleanupLambdaArtifacts(t *testing.T, terraformOptions *terraform.Options) {
-	command := shell.Command{
-		Command: "rm",
-		Args: []string{
-			"-rf",
-			"python/build/",
-		},
-		WorkingDir: terraformOptions.TerraformDir,
-	}
-	shell.RunCommand(t, command)
+	err := os.RemoveAll(terraformOptions.TerraformDir)
+	require.NoError(t, err)
 }
 
 func buildLambdaArtifacts(t *testing.T, terraformOptions *terraform.Options) {
@@ -79,27 +86,19 @@ func buildLambdaArtifacts(t *testing.T, terraformOptions *terraform.Options) {
 	shell.RunCommand(t, command)
 }
 
-func deployLambda(t *testing.T, terraformOptions *terraform.Options) {
-	terraform.InitAndApply(t, terraformOptions)
-}
-
 type Response struct {
 	Status int
 }
 
-func validateLambda(t *testing.T, terraformOptions *terraform.Options) {
-	awsRegion := terraformOptions.Vars["aws_region"].(string)
-	name := terraformOptions.Vars["name"].(string)
-
+func validateLambda(t *testing.T, awsRegion string, name string) {
 	payload := map[string]string{
 		"url": "http://www.example.com",
 	}
 
-	out, err := aws.InvokeFunctionE(t, awsRegion, name, payload)
-	require.NoError(t, err)
+	out := aws.InvokeFunction(t, awsRegion, name, payload)
 
 	var response Response
-	err = json.Unmarshal([]byte(out), &response)
+	err := json.Unmarshal([]byte(out), &response)
 	require.NoError(t, err)
 
 	assert.Equal(t, 200, response.Status)
