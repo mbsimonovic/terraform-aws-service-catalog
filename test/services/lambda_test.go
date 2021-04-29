@@ -62,7 +62,7 @@ func TestLambdaService(t *testing.T) {
 
 	test_structure.RunTestStage(t, "deploy_lambda", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
-		deployLambda(t, terraformOptions)
+		terraform.InitAndApply(t, terraformOptions)
 	})
 
 	test_structure.RunTestStage(t, "validate_lambda", func() {
@@ -84,10 +84,6 @@ func buildLambdaArtifacts(t *testing.T, terraformOptions *terraform.Options) {
 		WorkingDir: terraformOptions.TerraformDir,
 	}
 	shell.RunCommand(t, command)
-}
-
-func deployLambda(t *testing.T, terraformOptions *terraform.Options) {
-	terraform.InitAndApply(t, terraformOptions)
 }
 
 type Response struct {
