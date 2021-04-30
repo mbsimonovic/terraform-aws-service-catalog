@@ -170,9 +170,13 @@ module "cloudtrail_bucket" {
   # Create the S3 bucket and allow all the other accounts (or entire organization) to write to this bucket
   s3_bucket_name                             = local.cloudtrail_s3_bucket_name_base
   external_aws_account_ids_with_write_access = local.all_non_logs_account_ids
-  organization_id                            = var.cloudtrail_organization_id
+  cloudtrail_trail_name                      = var.name_prefix
+  organization_id = (
+    var.create_organization && var.cloudtrail_organization_id == null
+    ? module.organization.organization_id
+    : var.cloudtrail_organization_id
+  )
 
-  cloudtrail_trail_name = var.name_prefix
 
   kms_key_already_exists                          = var.cloudtrail_kms_key_arn != null
   kms_key_arn                                     = var.cloudtrail_kms_key_arn
