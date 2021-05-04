@@ -53,3 +53,53 @@ resource "aws_eks_fargate_profile" "namespace" {
     delete = "1h"
   }
 }
+
+resource "kubernetes_role_binding" "full_access_bindings" {
+  count = length(var.full_access_rbac_entities) > 0 ? 1 : 0
+
+  metadata {
+    name      = "${module.namespace.name}-full-access-rbac-entities"
+    namespace = module.namespace.name
+  }
+
+  role_ref {
+    api_group = "rbac.authorization.k8s.io"
+    kind      = "Role"
+    name      = module.namespace.rbac_access_all_role
+  }
+
+  dynamic "subject" {
+    for_each = var.full_access_rbac_entities
+    content {
+      api_group = subject.value.kind != "ServiceAccount" ? "rbac.authorization.k8s.io" : null
+      kind      = subject.value.kind
+      name      = subject.value.name
+      namespace = subject.value.kind == "ServiceAccount" ? subject.value.namespace : null
+    }
+  }
+}
+
+resource "kubernetes_role_binding" "read_only_access_bindings" {
+  count = length(var.read_only_access_rbac_entities) > 0 ? 1 : 0
+
+  metadata {
+    name      = "${module.namespace.name}-readonly-access-rbac-entities"
+    namespace = module.namespace.name
+  }
+
+  role_ref {
+    api_group = "rbac.authorization.k8s.io"
+    kind      = "Role"
+    name      = module.namespace.rbac_access_read_only_role
+  }
+
+  dynamic "subject" {
+    for_each = var.read_only_access_rbac_entities
+    content {
+      api_group = subject.value.kind != "ServiceAccount" ? "rbac.authorization.k8s.io" : null
+      kind      = subject.value.kind
+      name      = subject.value.name
+      namespace = subject.value.kind == "ServiceAccount" ? subject.value.namespace : null
+    }
+  }
+}

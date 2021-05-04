@@ -48,3 +48,33 @@ variable "annotations" {
   type        = map(string)
   default     = {}
 }
+
+variable "full_access_rbac_entities" {
+  description = "The list of RBAC entities that should have full access to the Namespace."
+  type = list(object({
+    # The type of entity. One of User, Group, or ServiceAccount
+    kind = string
+
+    # The name of the entity (e.g., the username or group name, depending on kind).
+    name = string
+
+    # The namespace where the entity is located. Only used for ServiceAccount.
+    namespace = string
+  }))
+  default = []
+}
+
+variable "read_only_access_rbac_entities" {
+  description = "The list of RBAC entities that should have read only access to the Namespace."
+  type = list(object({
+    # The type of entity. One of User, Group, or ServiceAccount
+    kind = string
+
+    # The name of the entity (e.g., the username or group name, depending on kind).
+    name = string
+
+    # The namespace where the entity is located. Only used for ServiceAccount.
+    namespace = string
+  }))
+  default = []
+}
