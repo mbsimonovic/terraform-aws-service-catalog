@@ -224,6 +224,29 @@ variable "default_nacl_egress_rules" {
 # OPTIONAL PARAMETERS FOR VPC PEERING AND DNS FORWARDING
 # ----------------------------------------------------------------------------------------------------------------------
 
+variable "private_app_allow_inbound_ports_from_cidr" {
+  description = "A map of unique names to client IP CIDR block and inbound ports that should be exposed in the private app subnet tier nACLs. This is useful when exposing your service on a privileged port with an NLB, where the address isn't translated."
+  type = map(
+    object({
+      # The CIDR block of the client IP addresses for the service. Traffic will only be exposed to IP sources of this
+      # CIDR block.
+      client_cidr_block = string
+
+      # A rule number indicating priority. A lower number has precedence. Note that the default rules created by this
+      # module start with 100.
+      rule_number = number
+
+      # Network protocol (tcp, udp, icmp, or all) to expose.
+      protocol = string
+
+      # Range of ports to expose.
+      from_port = number
+      to_port   = number
+    })
+  )
+  default = {}
+}
+
 variable "create_peering_connection" {
   description = "Whether or not to create a peering connection to another VPC."
   type        = bool
