@@ -1,0 +1,174 @@
+######################################################################################################################
+# INFRASTRUCTURE CI/CD CONFIGURATION
+#
+# This configures CircleCI to implement a CI/CD pipeline for infrastructure code. Refer to the Gruntwork Production
+# Deployment Guide, "How to configure a production-grade CI/CD workflow for infrastructure code"
+# (https://gruntwork.io/guides/automations/how-to-configure-a-production-grade-ci-cd-setup-for-apps-and-infrastructure-code/)
+# for details on how the pipeline is setup.
+#
+# The following pipeline is implemented in this configuration:
+#
+# - For any commit on any branch, detect all the terragrunt modules that changed between the `HEAD` of the branch and
+#  `master` and run `terragrunt plan` on each of those modules.
+# - For commits to master:
+#     - Run `plan` as above, only instead of comparing the `HEAD` of the branch to `master`, this will only look at the
+#       last commit that triggered the build. Note that this will include all the changes that were merged in from the
+#       branch as the last commit is a merge commit containing all the changes.
+#     - Hold for approval.
+#     - If approved:
+#         - Find all the build scripts that were changed and run them. This will create the necessary resources that are
+#           not managed by Terraform, such as AMIs.
+#         - Run `terragrunt apply` on each of the updated modules.
+#
+# Pipeline notifications will stream to the Slack channel set in the SLACK_DEFAULT_CHANNEL env var on the build.
+######################################################################################################################
+version: 2.1
+
+# We use the slack orb to implement slack notifications.
+# Note that in order for this to work, we need to specify the oauth token for the bot using SLACK_ACCESS_TOKEN env var on
+# the build.
+# Refer to the official setup documentation for more info: https://github.com/CircleCI-Public/slack-orb/wiki/Setup
+orbs:
+  slack: circleci/slack@4.1.1
+
+# Global constants for the jobs. This includes:
+# - Using machine executor
+# - Tools versions
+defaults: &defaults
+  machine:
+    image: "ubuntu-1604:201903-01"
+  environment:
+    GRUNTWORK_INSTALLER_VERSION: v0.0.30
+    MODULE_CI_VERSION: v0.29.1
+    MODULE_SECURITY_VERSION: v0.41.3
+
+
+# This common step is used to determine the user friendly Git Ref name of the build, either the branch or tag.
+set_friendly_git_ref: &set_friendly_git_ref
+  run:
+    name: set friendly git ref name
+    command: |
+      if [[ ! -z "$CIRCLE_TAG" ]]; then
+        echo 'export CIRCLE_FRIENDLY_REF="$CIRCLE_TAG"' >> $BASH_ENV
+      elif [[ ! -z "$CIRCLE_BRANCH" ]]; then
+        echo 'export CIRCLE_FRIENDLY_REF="$CIRCLE_BRANCH"' >> $BASH_ENV
+      else
+        echo 'export CIRCLE_FRIENDLY_REF="$CIRCLE_SHA1"' >> $BASH_ENV
+      fi
+
+
+# This is used to determine what to use as the base comparison point for determining what modules to deploy. The logic
+# is as follows:
+#   - If we are on the master branch, the comparison is only the current commit.
+#   - If we are not on master, the comparison is to the current state of the master branch.
+set_source_ref: &set_source_ref
+  run:
+    name: set source ref
+    command: |
+      if [[ "$CIRCLE_BRANCH" == "master" ]]; then
+        echo 'export SOURCE_REF=HEAD^' >> $BASH_ENV
+      else
+        # We have to use origin/master because the checkout routine in CircleCI sets the local master to HEAD.
+        echo 'export SOURCE_REF=origin/master' >> $BASH_ENV
+      fi
+
+# This trick allows us to use custom Slack notifications.
+# See: https://github.com/CircleCI-Public/slack-orb/wiki/Dynamic-Templates
+slack_templates: &slack_templates
+  run:
+    name: create slack templates
+    command: |
+      echo 'export plan_fail=$(cat $(pwd)/_ci/slack-templates/plan-fail.json)' >> $BASH_ENV
+      echo 'export plan_success=$(cat $(pwd)/_ci/slack-templates/plan-success.json)' >> $BASH_ENV
+      echo 'export apply_fail=$(cat $(pwd)/_ci/slack-templates/apply-fail.json)' >> $BASH_ENV
+      echo 'export apply_success=$(cat $(pwd)/_ci/slack-templates/apply-success.json)' >> $BASH_ENV
+      echo 'export on_hold=$(cat $(pwd)/_ci/slack-templates/on-hold.json)' >> $BASH_ENV
+      echo 'export approved=$(cat $(pwd)/_ci/slack-templates/approved.json)' >> $BASH_ENV
+
+
+jobs:
+  plan:
+    <<: *defaults
+    steps:
+      - <<: *set_friendly_git_ref
+      - <<: *set_source_ref
+      - <<: *slack_templates
+      - checkout
+      - run:
+          name: install utilities
+          command: ./_ci/scripts/install.sh
+      - run:
+          name: run plan
+          command: ./_ci/scripts/deploy-infra.sh "$SOURCE_REF" "$CIRCLE_SHA1" plan
+      - slack/notify:
+          event: fail
+          template: plan_fail
+      - slack/notify:
+          event: pass
+          template: plan_success
+
+  notify:
+    <<: *defaults
+    steps:
+      - <<: *set_friendly_git_ref
+      - <<: *slack_templates
+      - checkout
+      - slack/notify:
+          event: always
+          template: on_hold
+
+  deploy:
+    <<: *defaults
+    steps:
+      - <<: *set_friendly_git_ref
+      - <<: *set_source_ref
+      - <<: *slack_templates
+      - checkout
+      - slack/notify:
+          event: always
+          template: approved
+      - run:
+          name: install utilities
+          command: ./_ci/scripts/install.sh
+      - run:
+          name: run build scripts
+          command: ./_ci/scripts/run-build-scripts.sh "$SOURCE_REF" "$CIRCLE_BRANCH"
+      - run:
+          name: run apply
+          command: ./_ci/scripts/deploy-infra.sh "$SOURCE_REF" "$CIRCLE_BRANCH" apply
+      - slack/notify:
+          event: fail
+          template: apply_fail
+      - slack/notify:
+          event: pass
+          template: apply_success
+
+
+workflows:
+  # This workflow is triggered on all branches and master.
+  continuous-deploy:
+    jobs:
+      # Infra Deploy: always run plan, and on master, notify and hold for approval before continuing on to deploy.
+      - plan
+
+      - notify:
+          requires:
+            - plan
+          filters:
+            branches:
+              only: master
+
+      - hold:
+          type: approval
+          requires:
+            - notify
+          filters:
+            branches:
+              only: master
+
+      - deploy:
+          requires:
+            - hold
+          filters:
+            branches:
+              only: master

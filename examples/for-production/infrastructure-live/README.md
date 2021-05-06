@@ -1,60 +1,57 @@
-# Live Infrastructure
+# Live infrastructure
 
-This repository contains the code to deploy and manage infrastructure across all of your live environments (e.g., dev,
-stage, prod) in AWS. It is built on top of the Gruntwork 
-[Service Catalog](https://gruntwork.io/infrastructure-as-code-library/) and 
-[Reference Architecture](https://gruntwork.io/reference-architecture/). 
+This repository contains code to deploy infrastructure across all live environments in AWS. This code implements the
+[Gruntwork Reference Architecture](https://gruntwork.io/reference-architecture/) using services from the [Gruntwork
+AWS Service Catalog](https://github.com/gruntwork-io/terraform-aws-service-catalog).
 
-![Reference Architecture](_docs/_images/ref-arch-full.png?raw=true)
-
+![Reference Architecture](docs/images/landing-zone-ref-arch.png?raw=true)
 
 
 
-## Usage instructions
+## Learn
 
-* [Overview](_docs/01-overview.md): Learn about the Reference Architecture, managing infrastructure as code (IaC), and 
-  how the code in this repo is organized.
+### Core concepts
 
-* [Authenticate](_docs/02-authenticate.md): Authenticate to your resources in AWS—via the web console, CLI, VPN, SSH, 
-  Kubernetes, and Helm—so you can make changes to the infrastructure.
+* [Reference Architecture Walkthrough Documentation](docs): Comprehensive documentation that walks through all
+  aspects of this architecture, including what's deployed, how the code is organized, how to run the code in dev,
+  how the CI / CD pipeline works, how to access metrics and logs, how to connect via VPN and SSH, and much more.
+* [How to Build an End to End Production-Grade Architecture on AWS](https://blog.gruntwork.io/how-to-build-an-end-to-end-production-grade-architecture-on-aws-part-1-eae8eeb41fec):
+  A blog post series that discusses the basic principles behind the Reference Architecture.
+* [How to use the Gruntwork Infrastructure as Code Library](https://gruntwork.io/guides/foundations/how-to-use-gruntwork-infrastructure-as-code-library/):
+  The Service Catalog is built on top of the [Gruntwork Infrastructure as Code
+  Library](https://gruntwork.io/infrastructure-as-code-library/). Check out this guide to learn what the library is and
+  how to use it.
+* [How to configure a production-grade CI-CD workflow for infrastructure code](https://gruntwork.io/guides/automations/how-to-configure-a-production-grade-ci-cd-setup-for-apps-and-infrastructure-code/): A comprehensive guide on the Gruntwork Continuous Integration and Continuous Delivery pipeline for infrastructure code.
+* [Gruntwork Production Deployment Guides](https://gruntwork.io/guides/): Additional step-by-step guides that show you how to go
+  to production on top of AWS.
+* [Overview](docs/01-overview.md): An overview of what this repository is.
 
-* [Make changes to the infrastructure](https://github.com/gruntwork-io/terraform-aws-service-catalog/blob/master/core-concepts.md#make-changes-to-your-infrastructure): 
-  Update the code and roll out changes to the infrastructure that's already deployed.
 
-* [Deploy new infrastructure](https://github.com/gruntwork-io/terraform-aws-service-catalog/blob/master/core-concepts.md#deploy-new-infrastructure): 
-  Deploy new infrastructure from the Gruntwork Service Catalog.
 
-* [Create your own infrastructure](https://github.com/gruntwork-io/terraform-aws-service-catalog/blob/master/core-concepts.md#create-your-own-service-catalog): 
-  Create your own service catalog and use it to deploy new infrastructure.
+## Deploy
 
-* [Deploy your apps](_docs/03-deploy-apps.md): Deploy your applications and web services (e.g., Docker images, AMIs) on 
-  top of this infrastructure.
+### Deploy updates
 
-* [Configure CI / CD](_docs/04-configure-ci-cd.md): Learn about the CI / CD pipeline, including the build process, 
-  automated tests, and automated deployment.  
-  
-* [Check the logs, metrics, and alerts](_docs/05-monitoring-alerting-logging.md): Learn about monitoring, alerting, and 
-  log aggregation.  
+If you want to deploy updates to this infrastructure, check out the following resources:
 
-* [Undeploy](_docs/06-undeploy.md): Undeploy infrastructure or even the entire Reference Architecture.
+* [Deploying app changes](docs/03-deploy-apps.md): Instructions on how to deploy changes to an app, such as a Java/Ruby/Python web service packaged with Docker or Packer.
+* [Deploying infrastructure changes](docs/04-configure-ci-cd.md): Instructions on how to deploy changes to infrastructure code, such as Terraform modules that configure your VPCs, databases, DNS settings, etc.
+* [Undeploying the Reference Architecture](docs/06-undeploy.md): Instructions on how to
+  undeploy the Reference Architecture completely.
 
-* [Deploy from scratch](_docs/07-deploy-from-scratch.md): Deploy the entire Reference Architecture from scratch.
 
+## Manage
+
+### Day-to-day operations
+
+* [How to authenticate to AWS](docs/02-authenticate.md)
+* [How to connect via VPN](docs/02-authenticate.md#authenticate-to-the-vpn-server)
+* [How to view metrics, logs, and alerts](docs/05-monitoring-alerting-logging.md)
 
 
 
 ## Support
 
-If you need help with this repo or anything else related to infrastructure or DevOps, Gruntwork offers 
-[Commercial Support](https://gruntwork.io/support/) via Slack, email, and phone/video. You can contact us using one of
-the following channels:
-
-* [Gruntwork Community Slack](https://gruntwork-community.slack.com): Chat with other Gruntwork customers and the 
-  Gruntwork team.
-
-* **Private Shared Slack Channel**: For Gruntwork Pro Support and Enterprise Support customers, we create a private, 
-  shared channel in Slack between your company and Gruntwork that shows up in your existing Slack workspace. Contact
-  one of your Slack admins to get the channel name!  
-
-* [support@gruntwork.io](mailto:support@gruntwork.io): If you're having trouble contacting us via Slack, please feel 
-  free to email Gruntwork Support at any time! 
+If you need help with this repo or anything else related to infrastructure or DevOps, Gruntwork offers [Commercial
+Support](https://gruntwork.io/support/) via Slack, email, and video conference. If you have questions, feel free to
+email us at [support@gruntwork.io](mailto:support@gruntwork.io).

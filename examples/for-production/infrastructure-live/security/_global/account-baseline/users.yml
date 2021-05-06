@@ -1,0 +1,19 @@
+ci-machine-user:
+  create_access_keys: false
+  create_login_profile: false
+  groups:
+  - _account.stage-auto-deploy
+  - _account.prod-auto-deploy
+  - _account.logs-auto-deploy
+  - _account.shared-auto-deploy
+  - _account.security-auto-deploy
+  - _account.dev-auto-deploy
+gruntwork:
+  create_access_keys: false
+  create_login_profile: true
+  groups:
+  - _all-accounts
+  - full-access
+  - ssh-grunt-sudo-users
+  pgp_key: keybase:gruntwork
+

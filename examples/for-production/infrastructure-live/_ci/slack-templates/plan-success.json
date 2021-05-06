@@ -1,0 +1,48 @@
+{
+  "text": "",
+  "blocks": [
+    {
+      "type": "header",
+      "text": {
+        "type": "plain_text",
+        "text": "Plan successful! :tada:",
+        "emoji": true
+      }
+    },
+    {
+      "type": "section",
+      "text": {
+        "type": "mrkdwn",
+        "text": "Your plan has succeeded. :thumbsup:"
+      },
+      "fields": [
+        {
+          "type": "mrkdwn",
+          "text": "*Committer*:${CIRCLE_USERNAME}"
+        },
+        {
+          "type": "mrkdwn",
+          "text": "*SHA*:${CIRCLE_SHA1}"
+        }
+      ],
+      "accessory": {
+        "type": "image",
+        "image_url": "https://cdn-images-1.medium.com/max/280/1*ei2A0OOpIe1PO0G0nr_QGQ@2x.png",
+        "alt_text": "Gruntwork logo"
+      }
+    },
+    {
+      "type": "actions",
+      "elements": [
+        {
+          "type": "button",
+          "text": {
+            "type": "plain_text",
+            "text": "View Job"
+          },
+          "url": "${CIRCLE_BUILD_URL}"
+        }
+      ]
+    }
+  ]
+}

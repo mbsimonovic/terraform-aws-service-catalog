@@ -1,58 +1,85 @@
-# Common variables for all AWS accounts
+# Common variables for all AWS accounts.
 locals {
-  # Centrally define all our AWS account IDs
-  # NOTE: these are currently all set to the same account ID (for Gruntworks Phx DevOps AWS account) for easy testing,
-  # but in real usage, each of these would be set to a different value!
-  account_ids = {
-    master   = "087285199408"
-    security = "087285199408"
-    shared   = "087285199408"
-    dev      = "087285199408"
-    stage    = "087285199408"
-    prod     = "087285199408"
+  # ----------------------------------------------------------------------------------------------------------------
+  # ACCOUNT IDS AND CONVENIENCE LOCALS
+  # ----------------------------------------------------------------------------------------------------------------
+
+  # Centrally define all the AWS account IDs. We use JSON so that it can be readily parsed outside of Terraform.
+  accounts = jsondecode(file("accounts.json"))
+
+  # Define a default region to use when operating on resources that are not contained within a specific region.
+  default_region = "us-west-2"
+
+  # A prefix used for naming resources.
+  name_prefix = "gruntwork"
+
+  # All accounts use the ECR repo in the shared account for the ecs-deploy-runner docker image.
+  deploy_runner_ecr_uri             = "${local.accounts.shared}.dkr.ecr.${local.default_region}.amazonaws.com/ecs-deploy-runner"
+  deploy_runner_container_image_tag = "v0.29.14"
+
+  # All accounts use the ECR repo in the shared account for the Kaniko docker image.
+  kaniko_ecr_uri             = "${local.accounts.shared}.dkr.ecr.${local.default_region}.amazonaws.com/kaniko"
+  kaniko_container_image_tag = "v0.29.14"
+
+  # The infastructure-live repository on which the deploy runner operates.
+  infra_live_repo_https = "https://github.com/gruntwork-io/infrastructure-live"
+  infra_live_repo_ssh   = "git@github.com:gruntwork-io/infrastructure-live.git"
+
+  # These repos will be allowed for plan and apply operations in the CI/CD pipeline in addition to the value
+  # provided in infra_live_repo_https
+  additional_plan_and_apply_repos = [
+    "git@github.com:gruntwork-clients/infrastructure-live-gruntwork.git",
+  ]
+
+  # The name of the S3 bucket in the Logs account where AWS Config will report its findings.
+  config_s3_bucket_name = "gruntwork-config-logs"
+
+  # The name of the S3 bucket in the Logs account where AWS CloudTrail will report its findings.
+  cloudtrail_s3_bucket_name = "gruntwork-cloudtrail-logs"
+
+  # IAM configurations for cross account ssh-grunt setup.
+  ssh_grunt_users_group      = "ssh-grunt-users"
+  ssh_grunt_sudo_users_group = "ssh-grunt-sudo-users"
+  allow_ssh_grunt_role       = "arn:aws:iam::${local.accounts.security}:role/allow-ssh-grunt-access-from-other-accounts"
+
+  # -------------------------------------------------------------------------------------------------------------------
+  # COMMON NETWORK CONFIGURATION DATA
+  # -------------------------------------------------------------------------------------------------------------------
+
+  # Map of account name to VPC CIDR blocks to use for the mgmt VPC.
+  mgmt_vpc_cidrs = {
+    dev      = "172.31.80.0/20"
+    logs     = "172.31.80.0/20"
+    prod     = "172.31.80.0/20"
+    security = "172.31.80.0/20"
+    shared   = "172.31.80.0/20"
+    stage    = "172.31.80.0/20"
   }
 
-  # Centrally define all domain names
-  domain_names = {
-    shared = "refarch-sbox-shared-gruntwork.com"
-    dev    = "refarch-sbox-dev-gruntwork.com"
-    stage  = "refarch-sbox-stage-gruntwork.com"
-    prod   = "refarch-sbox-prod-gruntwork.com"
+  # Map of account name to VPC CIDR blocks to use for the app VPC.
+  app_vpc_cidrs = {
+    dev    = "10.6.0.0/16"
+    prod   = "10.2.0.0/16"
+    shared = "10.4.0.0/16"
+    stage  = "10.0.0.0/16"
   }
 
-  # Prefix resources with this name
-  name_prefix = "gw-ra-service-catalog"
-
-  # Send all CloudTrail logs from all child accounts to this S3 bucket
-  cloudtrail_s3_bucket_name = "ref-arch-lite-security-logs"
-
-  # Use the KMS key created in the security account
-  cloudtrail_kms_key_arn = "TODO: fill me in after deploying the security account"
-
-  # Centrally manage all the VPC CIDR blocks
-  vpc_cidr_blocks = {
-    shared = "10.0.0.0/16"
-    dev    = "10.2.0.0/16"
-    stage  = "10.4.0.0/16"
-    prod   = "10.6.0.0/16"
-  }
-
-  # Default AWS region for API calls
-  default_region = "eu-west-1"
-
-  # List of known CIDR blocks that correspond to organization office locations. Administrative access (e.g., VPN, SSH,
+  # List of known static CIDR blocks for the organization. Administrative access (e.g., VPN, SSH,
   # etc) will be limited to these source CIDRs.
-  office_cidr_blocks = [
-    "1.2.3.0/24",
+  ip_allow_list = [
+    "0.0.0.0/0",
   ]
 
   # Information used to generate the CA certificate used by OpenVPN in each account
   ca_cert_fields = {
     ca_country  = "US"
-    ca_state    = "Arizona"
+    ca_email    = "support@gruntwork.io"
     ca_locality = "Phoenix"
     ca_org      = "Gruntwork"
     ca_org_unit = "IT"
-    ca_email    = "info@gruntwork.com"
+    ca_state    = "AZ"
   }
+
+  # Centrally define the internal services domain name configured by the route53-private module
+  internal_services_domain_name = "gruntwork.aws"
 }

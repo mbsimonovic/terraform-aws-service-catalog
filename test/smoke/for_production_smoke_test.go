@@ -13,7 +13,7 @@ import (
 )
 
 // Folders in infrastructure live that are not terragrunt examples.
-var notTerragruntExamples = []string{"_docs"}
+var notTerragruntExamples = []string{"docs", "_ci"}
 
 func TestSmokeForProductionExamples(t *testing.T) {
 	t.Parallel()
@@ -22,7 +22,7 @@ func TestSmokeForProductionExamples(t *testing.T) {
 
 	// For each directory, run validate-all. Note that we can't run validate-all at the root due to a limitation of
 	// find_in_parent_folders where it will not search the current directory, and thus can't find the common.hcl when it
-	// tries to process the root terragrunt.hcl file.
+	// tries to process the root terragrunt.hcl file. We also skip the ci and docs folders.
 	allItemsInLive, err := zglob.Glob(filepath.Join(infraLiveRoot, "*"))
 	require.NoError(t, err)
 	allAccounts := []string{}

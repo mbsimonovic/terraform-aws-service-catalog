@@ -1,0 +1,95 @@
+######################################################################################################################
+# APPLICATION CI/CD CONFIGURATION
+#
+# This configures CircleCI to implement a CI/CD pipeline for application code. Refer to the Gruntwork Production
+# Deployment Guide, "How to configure a production-grade CI/CD workflow for infrastructure code"
+# (https://gruntwork.io/guides/automations/how-to-configure-a-production-grade-ci-cd-setup-for-apps-and-infrastructure-code/)
+# for details on how the pipeline is setup.
+#
+# The following pipeline is implemented in this configuration:
+#
+# - For any commit on any branch, build a new docker image using the commit SHA.
+# - For commits to main, deploy the built image to the dev environment.
+# - For release tags, deploy the built image to the stage environment.
+######################################################################################################################
+version: 2.1
+
+# We use the slack orb to implement slack notifications.
+# Note that in order for this to work, we need to specify the oauth token for the bot using SLACK_ACCESS_TOKEN env var on
+# the build.
+# Refer to the official setup documentation for more info: https://github.com/CircleCI-Public/slack-orb/wiki/Setup
+orbs:
+  slack: circleci/slack@4.1.1
+
+# Global constants for the jobs. This includes:
+# - Using machine executor
+# - Tools versions
+defaults: &defaults
+  machine:
+    image: "ubuntu-1604:201903-01"
+  environment:
+    REGION: us-west-2
+    GRUNTWORK_INSTALLER_VERSION: v0.0.30
+    MODULE_CI_VERSION: v0.29.1
+    MODULE_SECURITY_VERSION: v0.41.3
+    # TODO: update the following on installation to your repositories.
+    DEV_DEPLOY_PATH: "dev/us-west-2/dev/services/application"
+    STAGE_DEPLOY_PATH: "stage/us-west-2/stage/services/application"
+    IMAGE_TAG_VARNAME: "tag"
+
+
+jobs:
+  build:
+    <<: *defaults
+    steps:
+      - checkout
+      - run:
+          name: install utilities
+          command: ./_ci/scripts/install.sh
+      - run:
+          name: build docker image
+          command: ./_ci/scripts/build-docker-image.sh "$REGION" "$CIRCLE_SHA1" "$CIRCLE_SHA1"
+
+  deploy_dev:
+    <<: *defaults
+    steps:
+      - checkout
+      - run:
+          name: install utilities
+          command: ./_ci/scripts/install.sh
+      - run:
+          name: deploy docker image to dev environment
+          command: ./_ci/scripts/deploy-docker-image.sh "$REGION" "$CIRCLE_SHA1" "$DEV_DEPLOY_PATH" "$IMAGE_TAG_VARNAME"
+
+  deploy_stage:
+    <<: *defaults
+    steps:
+      - checkout
+      - run:
+          name: install utilities
+          command: ./_ci/scripts/install.sh
+      - run:
+          name: deploy docker image to stage environment
+          command: ./_ci/scripts/deploy-docker-image.sh "$REGION" "$CIRCLE_SHA1" "$STAGE_DEPLOY_PATH" "$IMAGE_TAG_VARNAME"
+
+
+workflows:
+  continuous-deploy:
+    jobs:
+      # Workflow: always build images, and then deploy image to dev on all commits to main, and deploy image to stage on
+      # all tags that start with `v`.
+      - build
+      - deploy_dev:
+          requires:
+            - build
+          filters:
+            branches:
+              only: main
+      - deploy_stage:
+          requires:
+            - build
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/

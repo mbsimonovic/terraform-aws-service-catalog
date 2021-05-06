@@ -1,0 +1,26 @@
+cross_account_groups:
+# NOTE: we have to comment out the directives so that the python based data
+# merger (see the `merge-data` hook under blueprints in this repository) can
+# parse this yaml file (we expect to apply the data merger to this module in
+# the future). This still works when feeding through templatefile, as it will
+# interleave blank comments with the list items, which yaml handles gracefully.
+#%{~ for name, id in accounts }
+  - group_name: "_account.${name}-full-access"
+    iam_role_arns:
+      - "arn:aws:iam::${id}:role/allow-full-access-from-other-accounts"
+  - group_name: "_account.${name}-read-only"
+    iam_role_arns:
+      - "arn:aws:iam::${id}:role/allow-read-only-access-from-other-accounts"
+  - group_name: "_account.${name}-auto-deploy"
+    iam_role_arns:
+      - "arn:aws:iam::${id}:role/allow-auto-deploy-from-other-accounts"
+  - group_name: "_account.${name}-dev"
+    iam_role_arns:
+      - "arn:aws:iam::${id}:role/allow-dev-access-from-other-accounts"
+  - group_name: "_account.${name}-billing"
+    iam_role_arns:
+      - "arn:aws:iam::${id}:role/allow-billing-only-access-from-other-accounts"
+  - group_name: "_account.${name}-support"
+    iam_role_arns:
+      - "arn:aws:iam::${id}:role/allow-support-access-from-other-accounts"
+#%{ endfor ~}
