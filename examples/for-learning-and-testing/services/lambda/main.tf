@@ -31,9 +31,7 @@ module "lambda_function" {
 
   schedule_expression = "rate(1 minute)"
 
-  # A pre existing SNS Topic is not necessary, if none are passed a new one will
-  # be created. Here is just an example that a previously created topic can be
-  # used.
+  # A pre existing SNS Topic. It will receive cloudwatch metric alarms
   alert_on_failure_sns_topic = aws_sns_topic.failure_topic
 }
 
