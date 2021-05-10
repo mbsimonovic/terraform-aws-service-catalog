@@ -96,16 +96,16 @@ resource "aws_cloudwatch_metric_alarm" "lambda_failure_alarm" {
   } : {}
 
   alarm_name                = "${module.lambda_function.function_name}-failure-alarm"
-  comparison_operator       = "GreaterThanThreshold"
-  evaluation_periods        = 1
-  datapoints_to_alarm       = 1
-  metric_name               = "Errors"
+  comparison_operator       = var.comparison_operator
+  evaluation_periods        = var.evaluation_periods
+  datapoints_to_alarm       = var.datapoints_to_alarm
+  metric_name               = var.metric_name
   namespace                 = "AWS/Lambda"
-  period                    = "60"
-  statistic                 = "Sum"
-  threshold                 = "0.0"
+  period                    = var.period
+  statistic                 = var.statistic
+  threshold                 = var.threshold
   alarm_description         = "Indicates that the lambda function ${module.lambda_function.function_name} failed"
-  insufficient_data_actions = []
+  insufficient_data_actions = var.insufficient_data_actions
 
   dimensions = {
     FunctionName = module.lambda_function.function_name
