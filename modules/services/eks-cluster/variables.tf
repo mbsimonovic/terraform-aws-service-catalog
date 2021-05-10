@@ -51,7 +51,7 @@ variable "autoscaling_group_configurations" {
   #                                            instances to use for the ASG in GB (e.g., 40).
   # - asg_instance_root_volume_type   string : (Defaults to value from var.asg_default_instance_root_volume_type) The root volume type of
   #                                            instances to use for the ASG (e.g., "standard").
-  # - asg_instance_root_volume_encryption   bool  : (Defaults to value from var.asg_default_instance_root_volume_encryption) 
+  # - asg_instance_root_volume_encryption   bool  : (Defaults to value from var.asg_default_instance_root_volume_encryption)
   #                                             Whether or not to enable root volume encryption for instances of the ASG.
   # - tags                list(object[Tag])  : (Defaults to value from var.asg_default_tags) Custom tags to apply to the
   #                                            EC2 Instances in this ASG. Refer to structure definition below for the
@@ -89,12 +89,12 @@ variable "allow_inbound_api_access_from_cidr_blocks" {
 }
 
 variable "cluster_instance_ami" {
-  description = "The AMI to run on each instance in the EKS cluster. You can build the AMI using the Packer template eks-node-al2.json. One of var.cluster_instance_ami or var.cluster_instance_ami_filters is required."
+  description = "The AMI to run on each instance in the EKS cluster. You can build the AMI using the Packer template eks-node-al2.json. One of var.cluster_instance_ami or var.cluster_instance_ami_filters is required. Only used if var.cluster_instance_ami_filters is null. Set to null if cluster_instance_ami_filters is set."
   type        = string
 }
 
 variable "cluster_instance_ami_filters" {
-  description = "Properties on the AMI that can be used to lookup a prebuilt AMI for use with self managed workers. You can build the AMI using the Packer template eks-node-al2.json. Only used if var.cluster_instance_ami is null. One of var.cluster_instance_ami or var.cluster_instance_ami_filters is required. Set to null if cluster_instance_ami is set."
+  description = "Properties on the AMI that can be used to lookup a prebuilt AMI for use with self managed workers. You can build the AMI using the Packer template eks-node-al2.json. One of var.cluster_instance_ami or var.cluster_instance_ami_filters is required. If both are defined, var.cluster_instance_ami_filters will be used. Set to null if cluster_instance_ami is set."
   type = object({
     # List of owners to limit the search. Set to null if you do not wish to limit the search by AMI owners.
     owners = list(string)
@@ -113,6 +113,11 @@ variable "cluster_instance_ami_filters" {
 # OPTIONAL PARAMETERS
 # Generally, these values won't need to be changed.
 # ---------------------------------------------------------------------------------------------------------------------
+variable "worker_name_prefix" {
+  description = "Prefix EKS worker resource names with this string. When you have multiple worker groups for the cluster, you can use this to namespace the resources. Defaults to empty string so that resource names are not excessively long by default."
+  type        = string
+  default     = ""
+}
 
 variable "schedule_control_plane_services_on_fargate" {
   description = "When true, configures control plane services to run on Fargate so that the cluster can run without worker nodes. If true, requires kubergrunt to be available on the system, and create_default_fargate_iam_role be set to true."

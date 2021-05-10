@@ -96,13 +96,13 @@ variable "cloud_init_parts" {
 }
 
 variable "ami" {
-  description = "The ID of an AMI to use for deploying servers. This provides a convenience function for choosing between looking up an AMI with filters, or returning a hard coded AMI ID. Used if var.ami_filters is null."
+  description = "The ID of an AMI to use for deploying servers. This provides a convenience function for choosing between looking up an AMI with filters, or returning a hard coded AMI ID. Only used if var.ami_filters is null."
   type        = string
   default     = null
 }
 
 variable "ami_filters" {
-  description = "Properties on the AMI that can be used to lookup a prebuilt AMI."
+  description = "Properties on the AMI that can be used to lookup a prebuilt AMI. Define one of var.ami_filters and var.ami. If both are defined, var.ami_filters is used."
   type = object({
     # List of owners to limit the search. Set to null if you do not wish to limit the search by AMI owners.
     owners = list(string)
