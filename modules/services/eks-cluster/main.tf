@@ -123,6 +123,8 @@ module "eks_workers" {
   source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.36.0"
   create_resources = local.has_self_managed_workers
 
+  name_prefix = var.worker_name_prefix
+
   # Use the output from control plane module as the cluster name to ensure the module only looks up the information
   # after the cluster is provisioned.
   cluster_name = module.eks_cluster.eks_cluster_name

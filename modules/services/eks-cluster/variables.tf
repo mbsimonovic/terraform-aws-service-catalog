@@ -113,8 +113,8 @@ variable "cluster_instance_ami_filters" {
 # OPTIONAL PARAMETERS
 # Generally, these values won't need to be changed.
 # ---------------------------------------------------------------------------------------------------------------------
-variable "name_prefix" {
-  description = "Prefix resource names with this string. When you have multiple worker groups for the cluster, you can use this to namespace the resources. Defaults to empty string so that resource names are not excessively long by default."
+variable "worker_name_prefix" {
+  description = "Prefix EKS worker resource names with this string. When you have multiple worker groups for the cluster, you can use this to namespace the resources. Defaults to empty string so that resource names are not excessively long by default."
   type        = string
   default     = ""
 }
