@@ -90,7 +90,7 @@ module "scheduled_job" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_cloudwatch_metric_alarm" "lambda_failure_alarm" {
-  # Dynamic way to choose the correct topic based on if a new one was created or passed as a variable
+  # Dynamic way to create the alarm, depending on whether a topic was passed or not
   for_each = var.alert_on_failure_sns_topic != null ? {
     for topic in [var.alert_on_failure_sns_topic] : topic.name => topic.arn
   } : {}
