@@ -3,7 +3,9 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # We are using some features that are only available on Terraform >= 0.13.0
+  # This module is now only being tested with Terraform 0.14.x. However, to make upgrading easier, we are setting
+  # 0.13.0 as the minimum version, as that version added support for required_providers with source URLs, making it
+  # forwards compatible with 0.14.x code.
   required_version = ">= 0.13.0"
 
   required_providers {
@@ -88,24 +90,22 @@ module "scheduled_job" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_cloudwatch_metric_alarm" "lambda_failure_alarm" {
-  # Dynamic way to choose the correct topic based on if a new one was created or passed as a variable
-  for_each = local.should_create_sns_topic ? {
-    for topic in aws_sns_topic.failure_topic : topic.name => topic.arn
-    } : {
+  # Dynamic way to create the alarm, depending on whether a topic was passed or not
+  for_each = var.alert_on_failure_sns_topic != null ? {
     for topic in [var.alert_on_failure_sns_topic] : topic.name => topic.arn
-  }
+  } : {}
 
   alarm_name                = "${module.lambda_function.function_name}-failure-alarm"
-  comparison_operator       = "GreaterThanThreshold"
-  evaluation_periods        = 1
-  datapoints_to_alarm       = 1
-  metric_name               = "Errors"
+  comparison_operator       = var.comparison_operator
+  evaluation_periods        = var.evaluation_periods
+  datapoints_to_alarm       = var.datapoints_to_alarm
+  metric_name               = var.metric_name
   namespace                 = "AWS/Lambda"
-  period                    = "60"
-  statistic                 = "Sum"
-  threshold                 = "0.0"
+  period                    = var.period
+  statistic                 = var.statistic
+  threshold                 = var.threshold
   alarm_description         = "Indicates that the lambda function ${module.lambda_function.function_name} failed"
-  insufficient_data_actions = []
+  insufficient_data_actions = var.insufficient_data_actions
 
   dimensions = {
     FunctionName = module.lambda_function.function_name
@@ -113,22 +113,4 @@ resource "aws_cloudwatch_metric_alarm" "lambda_failure_alarm" {
 
   alarm_actions = [each.value]
   ok_actions    = [each.value]
-}
-
-locals {
-  # We only create a new topic if the alert_on_failure_sns_topic variable is null
-  should_create_sns_topic = var.alert_on_failure_sns_topic == null ? true : false
-
-  sns_failure_topic_name = (
-    local.should_create_sns_topic
-    ? "${module.lambda_function.function_name}-failures"
-    : var.alert_on_failure_sns_topic.name
-  )
-}
-
-resource "aws_sns_topic" "failure_topic" {
-  # Using for_each to decide if we should create the SNS Topic or not.
-  for_each = local.should_create_sns_topic ? { create = true } : {}
-
-  name = local.sns_failure_topic_name
 }

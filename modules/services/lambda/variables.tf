@@ -231,10 +231,50 @@ variable "namespace" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# ALERT ON FAILURE PARAMETERS
+# CLOUDWATCH ALARM PARAMETERS
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "alert_on_failure_sns_topic" {
   description = "An SNS Topic resource to use when the lambda fails to execute. If an SNS Topic is not provided, a new one will be created and the lambda function will subscribe to it automatically."
   default     = null
+}
+
+variable "comparison_operator" {
+  description = "The arithmetic operation to use when comparing the specified Statistic and Threshold. The specified Statistic value is used as the first operand. Either of the following is supported: `GreaterThanOrEqualToThreshold`, `GreaterThanThreshold`, `LessThanThreshold`, `LessThanOrEqualToThreshold`. Additionally, the values `LessThanLowerOrGreaterThanUpperThreshold`, `LessThanLowerThreshold`, and `GreaterThanUpperThreshold` are used only for alarms based on anomaly detection models."
+  default     = "GreaterThanThreshold"
+}
+
+variable "evaluation_periods" {
+  description = "The number of periods over which data is compared to the specified threshold."
+  default     = 1
+}
+
+variable "datapoints_to_alarm" {
+  description = "The number of datapoints that must be breaching to trigger the alarm."
+  default     = 1
+}
+
+variable "metric_name" {
+  description = "The name for the alarm's associated metric."
+  default     = "Errors"
+}
+
+variable "period" {
+  description = "The period in seconds over which the specified `statistic` is applied."
+  default     = "60"
+}
+
+variable "statistic" {
+  description = "The statistic to apply to the alarm's associated metric."
+  default     = "Sum"
+}
+
+variable "threshold" {
+  description = "The value against which the specified statistic is compared. This parameter is required for alarms based on static thresholds, but should not be used for alarms based on anomaly detection models."
+  default     = "0.0"
+}
+
+variable "insufficient_data_actions" {
+  description = "The list of actions to execute when this alarm transitions into an INSUFFICIENT_DATA state from any other state. Each action is specified as an Amazon Resource Name (ARN)."
+  default     = []
 }

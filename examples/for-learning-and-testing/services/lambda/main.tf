@@ -7,7 +7,11 @@ provider "aws" {
 }
 
 module "lambda_function" {
-  source      = "../../../../modules/services/lambda"
+  # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
+  # to a specific version of the modules, such as the following example:
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/services/lambda?ref=v1.0.8"
+  source = "../../../../modules/services/lambda"
+
   name        = var.name
   description = "Executing some requests to the internet"
 
@@ -27,9 +31,7 @@ module "lambda_function" {
 
   schedule_expression = "rate(1 minute)"
 
-  # A pre existing SNS Topic is not necessary, if none are passed a new one will
-  # be created. Here is just an example that a previously created topic can be
-  # used.
+  # A pre existing SNS Topic. It will receive cloudwatch metric alarms
   alert_on_failure_sns_topic = aws_sns_topic.failure_topic
 }
 
