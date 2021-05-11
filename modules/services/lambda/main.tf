@@ -89,28 +89,17 @@ module "scheduled_job" {
 # CLOUDWATCH METRIC ALARM
 # ---------------------------------------------------------------------------------------------------------------------
 
-resource "aws_cloudwatch_metric_alarm" "lambda_failure_alarm" {
-  # Dynamic way to create the alarm, depending on whether a topic was passed or not
-  for_each = var.alert_on_failure_sns_topic != null ? {
-    for topic in [var.alert_on_failure_sns_topic] : topic.name => topic.arn
-  } : {}
+module "lambda_alarm" {
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/lambda-alarms?ref=v0.26.2"
 
-  alarm_name                = "${module.lambda_function.function_name}-failure-alarm"
-  comparison_operator       = var.comparison_operator
-  evaluation_periods        = var.evaluation_periods
-  datapoints_to_alarm       = var.datapoints_to_alarm
-  metric_name               = var.metric_name
-  namespace                 = "AWS/Lambda"
-  period                    = var.period
-  statistic                 = var.statistic
-  threshold                 = var.threshold
-  alarm_description         = "Indicates that the lambda function ${module.lambda_function.function_name} failed"
-  insufficient_data_actions = var.insufficient_data_actions
+  function_name        = module.lambda_function.function_name
+  alarm_sns_topic_arns = var.alarm_sns_topic_arns
 
-  dimensions = {
-    FunctionName = module.lambda_function.function_name
-  }
-
-  alarm_actions = [each.value]
-  ok_actions    = [each.value]
+  comparison_operator = var.comparison_operator
+  evaluation_periods  = var.evaluation_periods
+  datapoints_to_alarm = var.datapoints_to_alarm
+  metric_name         = var.metric_name
+  period              = var.period
+  statistic           = var.statistic
+  threshold           = var.threshold
 }

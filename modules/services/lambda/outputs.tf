@@ -47,22 +47,12 @@ output "version" {
 
 output "event_rule_arn" {
   description = "Cloudwatch Event Rule Arn"
-  # Because we are iterating over a dynamically generated value that can exist,
-  # or not, we have to perform a not so beautiful workaround to return a single
-  # value, or not. Luckily, for terraform 0.15+ this is natively implemented
-  # and will become:
-  # value = one([for job in module.scheduled_job : job.event_rule_arn])
-  value = lookup({ for job in module.scheduled_job : "one" => job.event_rule_arn }, "one", null)
+  value       = lookup({ for job in module.scheduled_job : "one" => job.event_rule_arn }, "one", null)
 }
 
 output "event_rule_schedule" {
   description = "Cloudwatch Event Rule schedule expression"
-  # Because we are iterating over a dynamically generated value that can exist,
-  # or not, we have to perform a not so beautiful workaround to return a single
-  # value, or not. Luckily, for terraform 0.15+ this is natively implemented
-  # and will become:
-  # value = one([for job in module.scheduled_job : job.event_rule_schedule])
-  value = lookup({ for job in module.scheduled_job : "one" => job.event_rule_schedule }, "one", null)
+  value       = lookup({ for job in module.scheduled_job : "one" => job.event_rule_schedule }, "one", null)
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -70,34 +60,25 @@ output "event_rule_schedule" {
 # ---------------------------------------------------------------------------------------------------------------------
 output "alarm_name" {
   description = "Name of the Cloudwatch alarm"
-  # Because we are iterating over a dynamically generated value that can exist,
-  # or not, we have to perform a not so beautiful workaround to return a single
-  # value, or not. Luckily, for terraform 0.15+ this is natively implemented
-  # and will become:
-  # value = one([for alarm in aws_cloudwatch_metric_alarm.lambda_failure_alarm : alarm.alarm_name])
-  value = lookup({ for alarm in aws_cloudwatch_metric_alarm.lambda_failure_alarm : "one" => alarm.alarm_name }, "one", null)
+  value       = module.lambda_alarm.alarm_name
 }
 
 output "alarm_arn" {
   description = "ARN of the Cloudwatch alarm"
-  # Because we are iterating over a dynamically generated value that can exist,
-  # or not, we have to perform a not so beautiful workaround to return a single
-  # value, or not. Luckily, for terraform 0.15+ this is natively implemented
-  # and will become:
-  # value = one([for alarm in aws_cloudwatch_metric_alarm.lambda_failure_alarm : alarm.arn])
-  value = lookup({ for alarm in aws_cloudwatch_metric_alarm.lambda_failure_alarm : "one" => alarm.arn }, "one", null)
+  value       = module.lambda_alarm.alarm_arn
 }
 
 output "alarm_actions" {
   description = "The list of actions to execute when this alarm transitions into an ALARM state from any other state"
-  # alarm.alarm_actions is a set so, without flatten(), we end up with a list
-  # of a set (similar to a list of lists). This way we end up with a single list
-  value = flatten([for alarm in aws_cloudwatch_metric_alarm.lambda_failure_alarm : alarm.alarm_actions])
+  value       = module.lambda_alarm.alarm_actions
 }
 
 output "ok_actions" {
   description = "The list of actions to execute when this alarm transitions into an OK state from any other state"
-  # alarm.ok_actions is a set so, without flatten(), we end up with a list
-  # of a set (similar to a list of lists). This way we end up with a single list
-  value = flatten([for alarm in aws_cloudwatch_metric_alarm.lambda_failure_alarm : alarm.ok_actions])
+  value       = module.lambda_alarm.ok_actions
+}
+
+output "insufficient_data_actions" {
+  description = "The list of actions to execute when this alarm transitions into an INSUFFICIENT_DATA state from any other state"
+  value       = module.lambda_alarm.insufficient_data_actions
 }
