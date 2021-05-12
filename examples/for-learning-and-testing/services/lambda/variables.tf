@@ -17,5 +17,5 @@ variable "name" {
 variable "sns_topic_name" {
   description = "The name of the SNS Topic to be used for alerting failures of this lambda function"
   type        = string
-  default     = "lamda-example-sns-topic"
+  default     = "lambda-example-sns-topic"
 }
