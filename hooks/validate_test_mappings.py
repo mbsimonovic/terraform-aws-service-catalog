@@ -37,6 +37,9 @@ IGNORE_PREFIX_LIST = [
     # Ignore production examples for now until https://github.com/gruntwork-io/terraform-aws-service-catalog/issues/28
     'examples/for-production',
 
+    # This is the example lambda function path and don't require the testing mapping
+    'examples/for-learning-and-testing/services/lambda/python',
+
     # Ignore test fixture changes
     'test/fixtures',
 
