@@ -27,7 +27,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_deploy_runner" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner?ref=v0.33.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner?ref=v0.35.0"
 
   name                          = var.name
   container_images              = module.standard_config.container_images
@@ -44,7 +44,7 @@ module "ecs_deploy_runner" {
 }
 
 module "standard_config" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner-standard-configuration?ref=v0.33.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner-standard-configuration?ref=v0.35.0"
 
   docker_image_builder = (
     var.docker_image_builder_config != null
@@ -81,6 +81,7 @@ module "standard_config" {
       allowed_repos                           = var.ami_builder_config.allowed_repos
       allowed_repos_regex                     = var.ami_builder_config.allowed_repos_regex
       repo_access_ssh_key_secrets_manager_arn = var.ami_builder_config.repo_access_ssh_key_secrets_manager_arn
+      repo_access_https_tokens                = var.ami_builder_config.repo_access_https_tokens
       secrets_manager_env_vars                = var.ami_builder_config.secrets_manager_env_vars
       environment_vars                        = var.ami_builder_config.environment_vars
     }
@@ -94,12 +95,50 @@ module "standard_config" {
       infrastructure_live_repositories       = var.terraform_planner_config.infrastructure_live_repositories
       infrastructure_live_repositories_regex = var.terraform_planner_config.infrastructure_live_repositories_regex
       secrets_manager_env_vars = merge(
-        {
-          DEPLOY_SCRIPT_SSH_PRIVATE_KEY = var.terraform_planner_config.repo_access_ssh_key_secrets_manager_arn
-        },
+        # Optionally add ssh key for private repo access.
+        (
+          var.terraform_planner_config.repo_access_ssh_key_secrets_manager_arn != null
+          ? {
+            DEPLOY_SCRIPT_SSH_PRIVATE_KEY = var.terraform_planner_config.repo_access_ssh_key_secrets_manager_arn
+          }
+          : {}
+        ),
+        # Optionally add https auth key for private repo access.
+        (
+          local.terraform_planner_https_tokens_config.github_token_secrets_manager_arn != null
+          ? {
+            DEPLOY_SCRIPT_GITHUB_TOKEN = local.terraform_planner_https_tokens_config.github_token_secrets_manager_arn
+          }
+          : {}
+        ),
+        (
+          local.terraform_planner_https_tokens_config.gitlab_token_secrets_manager_arn != null
+          ? {
+            DEPLOY_SCRIPT_GITLAB_TOKEN = local.terraform_planner_https_tokens_config.gitlab_token_secrets_manager_arn
+          }
+          : {}
+        ),
+        (
+          local.terraform_planner_https_tokens_config.bitbucket_token_secrets_manager_arn != null
+          ? {
+            DEPLOY_SCRIPT_BITBUCKET_TOKEN = local.terraform_planner_https_tokens_config.bitbucket_token_secrets_manager_arn
+          }
+          : {}
+        ),
+        # Finally, merge in the custom secrets manager env vars specified by the user.
         var.terraform_planner_config.secrets_manager_env_vars,
       )
-      environment_vars = var.terraform_planner_config.environment_vars
+      environment_vars = merge(
+        # Optionally include the bitbucket username as a hardcoded env var if bitbucket HTTPS access is configured.
+        (
+          local.terraform_planner_https_tokens_config.bitbucket_token_secrets_manager_arn != null
+          ? {
+            DEPLOY_SCRIPT_BITBUCKET_USERNAME = local.terraform_planner_https_tokens_config.bitbucket_username
+          }
+          : {}
+        ),
+        var.terraform_planner_config.environment_vars,
+      )
     }
     : null
   )
@@ -114,16 +153,92 @@ module "standard_config" {
       machine_user_git_info                   = var.terraform_applier_config.machine_user_git_info
       allowed_update_variable_names           = var.terraform_applier_config.allowed_update_variable_names
       repo_access_ssh_key_secrets_manager_arn = var.terraform_applier_config.repo_access_ssh_key_secrets_manager_arn
+      repo_access_https_tokens                = var.terraform_applier_config.repo_access_https_tokens
       secrets_manager_env_vars = merge(
-        {
-          DEPLOY_SCRIPT_SSH_PRIVATE_KEY = var.terraform_applier_config.repo_access_ssh_key_secrets_manager_arn
-        },
+        # Optionally add ssh key for private repo access.
+        (
+
+          var.terraform_applier_config.repo_access_ssh_key_secrets_manager_arn != null
+          ? {
+            DEPLOY_SCRIPT_SSH_PRIVATE_KEY = var.terraform_applier_config.repo_access_ssh_key_secrets_manager_arn
+          }
+          : {}
+        ),
+        # Optionally add https auth key for private repo access.
+        (
+          local.terraform_applier_https_tokens_config.github_token_secrets_manager_arn != null
+          ? {
+            DEPLOY_SCRIPT_GITHUB_TOKEN = local.terraform_applier_https_tokens_config.github_token_secrets_manager_arn
+          }
+          : {}
+        ),
+        (
+          local.terraform_applier_https_tokens_config.gitlab_token_secrets_manager_arn != null
+          ? {
+            DEPLOY_SCRIPT_GITLAB_TOKEN = local.terraform_applier_https_tokens_config.gitlab_token_secrets_manager_arn
+          }
+          : {}
+        ),
+        (
+          local.terraform_applier_https_tokens_config.bitbucket_token_secrets_manager_arn != null
+          ? {
+            DEPLOY_SCRIPT_BITBUCKET_TOKEN = local.terraform_applier_https_tokens_config.bitbucket_token_secrets_manager_arn
+          }
+          : {}
+        ),
+        # Finally, merge in the custom secrets manager env vars specified by the user.
         var.terraform_applier_config.secrets_manager_env_vars,
       )
-      environment_vars = var.terraform_applier_config.environment_vars
+      environment_vars = merge(
+        # Optionally include the bitbucket username as a hardcoded env var if bitbucket HTTPS access is configured.
+        (
+          local.terraform_applier_https_tokens_config.bitbucket_token_secrets_manager_arn != null
+          ? {
+            DEPLOY_SCRIPT_BITBUCKET_USERNAME = local.terraform_applier_https_tokens_config.bitbucket_username
+          }
+          : {}
+        ),
+        var.terraform_applier_config.environment_vars,
+      )
     }
     : null
   )
+}
+
+locals {
+  # Convenience variable to extract out the `repo_access_https_tokens` configuration and handle optionals.
+  # ... for terraform_applier
+  maybe_terraform_applier_repo_access_https_tokens = (
+    var.terraform_applier_config != null
+    ? (
+      var.terraform_applier_config.repo_access_https_tokens != null
+      ? var.terraform_applier_config.repo_access_https_tokens
+      : {}
+    )
+    : {}
+  )
+  terraform_applier_https_tokens_config = {
+    github_token_secrets_manager_arn    = lookup(local.maybe_terraform_applier_repo_access_https_tokens, "github_token_secrets_manager_arn", null)
+    gitlab_token_secrets_manager_arn    = lookup(local.maybe_terraform_applier_repo_access_https_tokens, "gitlab_token_secrets_manager_arn", null)
+    bitbucket_token_secrets_manager_arn = lookup(local.maybe_terraform_applier_repo_access_https_tokens, "bitbucket_token_secrets_manager_arn", null)
+    bitbucket_username                  = lookup(local.maybe_terraform_applier_repo_access_https_tokens, "bitbucket_username", null)
+  }
+  # ... for terraform_planner
+  maybe_terraform_planner_repo_access_https_tokens = (
+    var.terraform_planner_config != null
+    ? (
+      var.terraform_planner_config.repo_access_https_tokens != null
+      ? var.terraform_planner_config.repo_access_https_tokens
+      : {}
+    )
+    : {}
+  )
+  terraform_planner_https_tokens_config = {
+    github_token_secrets_manager_arn    = lookup(local.maybe_terraform_planner_repo_access_https_tokens, "github_token_secrets_manager_arn", null)
+    gitlab_token_secrets_manager_arn    = lookup(local.maybe_terraform_planner_repo_access_https_tokens, "gitlab_token_secrets_manager_arn", null)
+    bitbucket_token_secrets_manager_arn = lookup(local.maybe_terraform_planner_repo_access_https_tokens, "bitbucket_token_secrets_manager_arn", null)
+    bitbucket_username                  = lookup(local.maybe_terraform_planner_repo_access_https_tokens, "bitbucket_username", null)
+  }
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -491,7 +606,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "invoke_policy" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner-invoke-iam-policy?ref=v0.33.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner-invoke-iam-policy?ref=v0.35.0"
 
   name                                      = "invoke-${var.name}"
   deploy_runner_invoker_lambda_function_arn = module.ecs_deploy_runner.invoker_function_arn
