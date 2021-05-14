@@ -26,7 +26,9 @@
     "enable_ssh_grunt": "true",
     "enable_cloudwatch_metrics": "true",
     "enable_cloudwatch_log_aggregation": "true",
-    "instance_type": "t3.micro"
+    "instance_type": "t3.micro",
+    "ssh_interface": "public_ip",
+    "associate_public_ip_address": "true"
   },
   "sensitive-variables": ["github_auth_token"],
   "builders": [{
@@ -57,12 +59,13 @@
         },
         "most_free": "true"
     },
+    "ssh_interface": "{{user `ssh_interface`}}",
     "ssh_username": "ec2-user",
     "encrypt_boot": "{{user `encrypt_boot`}}",
     "kms_key_id": "{{user `encrypt_kms_key_id`}}",
     "ami_users": "{{user `ami_users`}}",
     "ami_regions": "{{user `copy_to_regions`}}",
-    "associate_public_ip_address": true,
+    "associate_public_ip_address": "{{user `associate_public_ip_address`}}",
     "tags": {
       "service": "{{ user `ami_name` }}",
       "version": "{{user `version_tag`}}"
