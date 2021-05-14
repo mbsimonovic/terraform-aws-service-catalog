@@ -24,6 +24,8 @@ out/
 
 # Terratest
 .test-data
+# Ignore autogen test examples
+k8s-service-alt
 
 # python
 __pycache__

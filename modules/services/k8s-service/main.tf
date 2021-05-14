@@ -147,8 +147,16 @@ locals {
       # ints
       "alb.ingress.kubernetes.io/listen-ports"             = "[${join(",", data.template_file.ingress_listener_protocol_ports.*.rendered)}]"
       "alb.ingress.kubernetes.io/backend-protocol"         = var.ingress_backend_protocol
-      "alb.ingress.kubernetes.io/load-balancer-attributes" = "access_logs.s3.enabled=true,access_logs.s3.bucket=${module.alb_access_logs_bucket.s3_bucket_name},access_logs.s3.prefix=${var.application_name}"
+      "alb.ingress.kubernetes.io/load-balancer-attributes" = "access_logs.s3.enabled=true,access_logs.s3.bucket=${module.alb_access_logs_bucket.s3_bucket_name},access_logs.s3.prefix=${local.access_logs_s3_prefix}"
     },
+    (
+      var.ingress_group != null
+      ? {
+        "alb.ingress.kubernetes.io/group.name"  = var.ingress_group.name
+        "alb.ingress.kubernetes.io/group.order" = tostring(var.ingress_group.priority)
+      }
+      : {}
+    ),
     (
       var.ingress_configure_ssl_redirect
       ? {
@@ -242,7 +250,9 @@ locals {
       annotations = local.ingress_annotations
       # Only configure the redirect path if using ssl redirect
       additionalPathsHigherPriority = (
+        # When in Ingress Group mode, we need to make sure to only define this once per group.
         var.ingress_configure_ssl_redirect
+        && var.ingress_ssl_redirect_rule_already_exists == false
         ? [{
           path        = "/*"
           serviceName = "ssl-redirect"
@@ -305,8 +315,12 @@ data "template_file" "ingress_listener_protocol_ports" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "alb_access_logs_bucket" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/logs/load-balancer-access-logs?ref=v0.26.1"
-  create_resources = var.expose_type != "cluster-internal"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/logs/load-balancer-access-logs?ref=v0.26.1"
+  create_resources = (
+    var.expose_type != "cluster-internal"
+    # Only create access logs if requested
+    && var.ingress_access_logs_s3_bucket_already_exists == false
+  )
 
   s3_bucket_name    = local.access_logs_s3_bucket_name
   s3_logging_prefix = var.application_name
@@ -324,6 +338,7 @@ locals {
   default_access_logs_s3_bucket_name = "alb-${lower(replace(var.application_name, "_", "-"))}-access-logs"
 
   access_logs_s3_bucket_name = length(var.ingress_access_logs_s3_bucket_name) > 0 ? var.ingress_access_logs_s3_bucket_name : local.default_access_logs_s3_bucket_name
+  access_logs_s3_prefix      = var.ingress_access_logs_s3_prefix == null ? var.application_name : var.ingress_access_logs_s3_prefix
 }
 
 

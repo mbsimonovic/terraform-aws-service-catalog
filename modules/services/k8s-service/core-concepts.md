@@ -60,6 +60,35 @@ passed into `var.applciation_name`.
 To access the `Service` within the Kubernetes cluster for any of the modes, you can use the DNS record
 `$APPLICATION_NAME-$APPLICATION_NAME.$NAMESPACE.svc.cluster.local`.
 
+### Ingress Groups
+
+By default each deployment of the `k8s-service` module will create a new ALB when using the `internal` and `external`
+value for `expose_type`. To share the ALB across each `k8s-service` deployment, you can leverage the Ingress grouping
+feature.
+
+To setup an Ingress Group, you need to configure the `ingress_group` input variable. The `ingress_group` input variable
+takes in two parameters:
+
+- `name`: The unique identifier that specifies the Ingress Group that this deployment is associated with. All
+  Ingress rules for `k8s-service` deployments sharing the same `ingress_group.name` values will be combined into a
+  single ALB.
+- `priority`: The order in which the rules are evaluated. Smaller numbers have higher priority. This is used to break
+  ties when there are overlapping Ingress rules.
+
+Note that all the ALB parameters **must be the same** for the Ingress Group to resolve correctly. This includes the
+access logs configuration. You should leverage the `ingress_access_logs_s3_bucket_name` and
+`ingress_access_logs_s3_prefix` variables to ensure that all your `k8s-service` deployments use the same S3 bucket to
+configure ingress access logs.
+
+Note also that you will want to ensure only one of the services manages the Access Log S3 bucket and the SSL redirect
+rule (if you have `ingress_configure_ssl_redirect = true`). For each Ingress grouping, ensure that only and exactly one
+of the module calls has the following variable inputs:
+
+```
+ingress_ssl_redirect_rule_already_exists     = false
+ingress_access_logs_s3_bucket_already_exists = false
+```
+
 
 ## Configuration and Secrets Management
 

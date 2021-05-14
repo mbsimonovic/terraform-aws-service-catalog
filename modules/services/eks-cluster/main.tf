@@ -25,7 +25,7 @@ terraform {
     # (Only for EKS)
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "= 1.10.0"
+      version = "~> 1.12.0"
     }
   }
 }

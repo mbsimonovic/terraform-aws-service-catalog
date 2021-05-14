@@ -14,6 +14,7 @@ import (
 	"github.com/gruntwork-io/terratest/modules/aws"
 	dns_helper "github.com/gruntwork-io/terratest/modules/dns-helper"
 	"github.com/gruntwork-io/terratest/modules/docker"
+	"github.com/gruntwork-io/terratest/modules/files"
 	"github.com/gruntwork-io/terratest/modules/git"
 	http_helper "github.com/gruntwork-io/terratest/modules/http-helper"
 	"github.com/gruntwork-io/terratest/modules/k8s"
@@ -204,6 +205,14 @@ func testEKSClusterWithCoreServicesAndAuthMerger(t *testing.T, parentWorkingDir 
 	coreServicesRoot := filepath.Join(examplesRoot, "for-learning-and-testing/services/eks-core-services")
 	k8sServiceRoot := filepath.Join(examplesRoot, "for-learning-and-testing/services/k8s-service")
 
+	// We also create a sibling copy of the k8s-service example so that we can test the IngressGroup feature.
+	altK8sServiceRoot := filepath.Join(examplesRoot, "for-learning-and-testing/services/k8s-service-alt")
+	if !files.FileExists(altK8sServiceRoot) {
+		tmpRootFolder, err := files.CopyTerraformFolderToTemp(k8sServiceRoot, "eksclustertest")
+		require.NoError(t, err)
+		require.NoError(t, os.Rename(tmpRootFolder, altK8sServiceRoot))
+	}
+
 	defer test_structure.RunTestStage(t, "cleanup_aws_auth_merger_image", func() {
 		region := test_structure.LoadString(t, parentWorkingDir, "region")
 		repository := test_structure.LoadString(t, workingDir, "ecrRepoName")
@@ -265,14 +274,24 @@ func testEKSClusterWithCoreServicesAndAuthMerger(t *testing.T, parentWorkingDir 
 	defer test_structure.RunTestStage(t, "cleanup_sampleapp", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, k8sServiceRoot)
 		terraform.Destroy(t, terraformOptions)
+
+		altTerraformOptions := test_structure.LoadTerraformOptions(t, altK8sServiceRoot)
+		terraform.Destroy(t, altTerraformOptions)
 	})
 
 	test_structure.RunTestStage(t, "deploy_sampleapp", func() {
-		deploySampleApp(t, parentWorkingDir, workingDir, k8sServiceRoot)
+		deploySampleApp(t, parentWorkingDir, workingDir, k8sServiceRoot, "", nil, 1)
+
+		// Make another copy of the sample app that shares the ingress group.
+		deploySampleApp(t, parentWorkingDir, workingDir, altK8sServiceRoot, "alt", awsgo.String("additional app"), 2)
 	})
 
 	test_structure.RunTestStage(t, "validate_sampleapp", func() {
 		validateSampleApp(t, workingDir, k8sServiceRoot)
+		validateSampleApp(t, workingDir, altK8sServiceRoot)
+
+		// We also validate to make sure the two app domains are routing to the same ALB.
+		validateSameALBDomain(t, workingDir, k8sServiceRoot, altK8sServiceRoot)
 	})
 
 }
@@ -471,20 +490,56 @@ func validateExternalDNS(t *testing.T, workingDir string) {
 // AMI are stored.
 // workingDir should be the working dir of the subtest, and is where local options like the terraform options are
 // stored.
-func deploySampleApp(t *testing.T, parentWorkingDir string, workingDir string, k8sServiceModulePath string) {
+func deploySampleApp(
+	t *testing.T,
+	parentWorkingDir string,
+	workingDir string,
+	k8sServiceModulePath string,
+	nameSuffix string,
+	customGreeting *string,
+	ingressOrder int,
+) {
 	uniqueID := test_structure.LoadString(t, parentWorkingDir, "uniqueID")
+	uniqueIDLower := strings.ToLower(uniqueID)
 	awsRegion := test_structure.LoadString(t, parentWorkingDir, "region")
 	clusterName := test_structure.LoadString(t, workingDir, "clusterName")
-	applicationName := fmt.Sprintf("sampleapp-%s", strings.ToLower(uniqueID))
+	applicationName := fmt.Sprintf("sampleapp-%s%s", uniqueIDLower, nameSuffix)
 	test_structure.SaveString(t, k8sServiceModulePath, "applicationName", applicationName)
 
 	k8sServiceOptions := test.CreateBaseTerraformOptions(t, k8sServiceModulePath, awsRegion)
 	k8sServiceOptions.Vars["application_name"] = applicationName
 	k8sServiceOptions.Vars["expose_type"] = "external"
-	k8sServiceOptions.Vars["domain_name"] = fmt.Sprintf("sample-app-%s.%s", clusterName, test.BaseDomainForTest)
+	k8sServiceOptions.Vars["domain_name"] = fmt.Sprintf("%s.%s", applicationName, test.BaseDomainForTest)
 	k8sServiceOptions.Vars["aws_region"] = awsRegion
 	k8sServiceOptions.Vars["kubeconfig_auth_type"] = "eks"
 	k8sServiceOptions.Vars["kubeconfig_eks_cluster_name"] = clusterName
+	k8sServiceOptions.Vars["ingress_group"] = map[string]interface{}{
+		"name":     "aws-sample-app",
+		"priority": ingressOrder,
+	}
+
+	// Make sure we use the same S3 bucket name and prefix so that the ALB can be shared.
+	k8sServiceOptions.Vars["ingress_access_logs_s3_bucket_name"] = fmt.Sprintf("gw-service-catalog-test-%s-alb-access-logs", uniqueIDLower)
+	k8sServiceOptions.Vars["ingress_access_logs_s3_prefix"] = fmt.Sprintf("sampleapp-%s", uniqueIDLower)
+	// Make sure only one of the sample apps manage the access logs bucket. We assume the sample app with no nameSuffix
+	// is the main one to manage the bucket.
+	if nameSuffix == "" {
+		k8sServiceOptions.Vars["ingress_ssl_redirect_rule_already_exists"] = false
+		k8sServiceOptions.Vars["ingress_access_logs_s3_bucket_already_exists"] = false
+	} else {
+		k8sServiceOptions.Vars["ingress_ssl_redirect_rule_already_exists"] = true
+		k8sServiceOptions.Vars["ingress_access_logs_s3_bucket_already_exists"] = true
+	}
+
+	var expectedGreeting string
+	if customGreeting == nil {
+		expectedGreeting = "Hello from the dev config!"
+	} else {
+		expectedGreeting = *customGreeting
+		k8sServiceOptions.Vars["server_greeting"] = expectedGreeting
+	}
+	test_structure.SaveString(t, k8sServiceModulePath, "expectedGreeting", expectedGreeting)
+
 	test_structure.SaveTerraformOptions(t, k8sServiceModulePath, k8sServiceOptions)
 
 	terraform.InitAndApply(t, k8sServiceOptions)
@@ -495,15 +550,15 @@ func deploySampleApp(t *testing.T, parentWorkingDir string, workingDir string, k
 // stored.
 func validateSampleApp(t *testing.T, workingDir string, k8sServiceModulePath string) {
 	terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
-	clusterName := test_structure.LoadString(t, workingDir, "clusterName")
 	eksClusterArn := terraform.OutputRequired(t, terraformOptions, "eks_cluster_arn")
 	applicationName := test_structure.LoadString(t, k8sServiceModulePath, "applicationName")
+	expectedGreeting := test_structure.LoadString(t, k8sServiceModulePath, "expectedGreeting")
 
 	tmpKubeConfigPath := configureKubectlForEKSCluster(t, eksClusterArn)
 	defer os.Remove(tmpKubeConfigPath)
 	options := k8s.NewKubectlOptions("", tmpKubeConfigPath, "default")
 
-	sampleAppValidationFunction := sampleAppValidationWithGreetingFunctionGenerator("Hello from the dev config!")
+	sampleAppValidationFunction := sampleAppValidationWithGreetingFunctionGenerator(expectedGreeting)
 
 	verifyPodsCreatedSuccessfully(t, options, applicationName)
 	verifyAllPodsAvailable(t, options, applicationName, "/greeting", sampleAppValidationFunction)
@@ -512,7 +567,7 @@ func validateSampleApp(t *testing.T, workingDir string, k8sServiceModulePath str
 	// hostname to have propagated through DNS before making requests to it. Otherwise, if we make requests too early,
 	// before DNS has propagated, the missing DNS entry gets recorded in the local cache, and the test will keep
 	// failing, despite retries.
-	hostname := fmt.Sprintf("sample-app-%s.%s", clusterName, test.BaseDomainForTest)
+	hostname := fmt.Sprintf("%s.%s", applicationName, test.BaseDomainForTest)
 	dns_helper.DNSLookupAuthoritativeWithRetry(
 		t,
 		dns_helper.DNSQuery{
@@ -629,4 +684,34 @@ func buildAWSAuthMergerImage(t *testing.T, parentWorkingDir string, workingDir s
 	}
 	docker.Build(t, filepath.Join(repoDir, "modules/eks-aws-auth-merger"), buildOpts)
 	test.RunCommandWithEcrAuth(t, fmt.Sprintf("docker push %s", awsAuthMergerDockerRepoTag), region)
+}
+
+func validateSameALBDomain(t *testing.T, workingDir string, k8sServiceRoot string, altK8sServiceRoot string) {
+	applicationName := test_structure.LoadString(t, k8sServiceRoot, "applicationName")
+	hostname := fmt.Sprintf("%s.%s", applicationName, test.BaseDomainForTest)
+	answers := dns_helper.DNSLookupAuthoritativeWithRetry(
+		t,
+		dns_helper.DNSQuery{
+			Type: "A",
+			Name: hostname,
+		},
+		nil,
+		K8SServiceWaitTimerRetries,
+		K8SIngressWaitTimerSleep,
+	)
+
+	altApplicationName := test_structure.LoadString(t, altK8sServiceRoot, "applicationName")
+	altHostname := fmt.Sprintf("%s.%s", altApplicationName, test.BaseDomainForTest)
+	altAnswers := dns_helper.DNSLookupAuthoritativeWithRetry(
+		t,
+		dns_helper.DNSQuery{
+			Type: "A",
+			Name: altHostname,
+		},
+		nil,
+		K8SServiceWaitTimerRetries,
+		K8SIngressWaitTimerSleep,
+	)
+
+	assert.Equal(t, altAnswers, answers)
 }

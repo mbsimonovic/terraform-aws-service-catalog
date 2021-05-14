@@ -106,6 +106,8 @@ module "application" {
   container_port         = var.container_port
   namespace              = var.namespace
   expose_type            = var.expose_type
+  ingress_path           = var.ingress_path
+  ingress_group          = var.ingress_group
   desired_number_of_pods = 1
 
   domain_name = var.domain_name
@@ -121,19 +123,28 @@ module "application" {
   # IMPORTANT NOTE: Do NOT use this setting for configuring secrets (e.g. database passwords)! Instead, rely on
   # the `secrets_as_env_vars` setting to inject from Kubernetes Secrets, or injecting directly into the app from your
   # preferred secrets management solution!
-  env_vars = {
-    CONFIG_APP_NAME             = "backend"
-    CONFIG_APP_ENVIRONMENT_NAME = "dev"
-    CONFIG_SERVER_HTTP_PORT     = var.container_port
-    CONFIG_SECRETS_DIR          = "/mnt/secrets"
-
-    # Disable HTTPS endpoint for test purposes.
-    NODE_CONFIG = jsonencode({
-      server = {
-        httpsPort = null
+  env_vars = merge(
+    (
+      var.server_greeting != null
+      ? {
+        CONFIG_APP_GREETING = var.server_greeting
       }
-    })
-  }
+      : {}
+    ),
+    {
+      CONFIG_APP_NAME             = "backend"
+      CONFIG_APP_ENVIRONMENT_NAME = "dev"
+      CONFIG_SERVER_HTTP_PORT     = var.container_port
+      CONFIG_SECRETS_DIR          = "/mnt/secrets"
+
+      # Disable HTTPS endpoint for test purposes.
+      NODE_CONFIG = jsonencode({
+        server = {
+          httpsPort = null
+        }
+      })
+    },
+  )
 
   # These variables can be used for configuring dynamic data that is managed separately from the app deployment.
   # ConfigMaps are recommended for configuration data that are not sensitive, while Secrets are recommended for
@@ -159,6 +170,13 @@ module "application" {
 
   # To make it easier to test, we allow force destroying the ALB access logs but in production, you will want to set
   # this to false so that the access logs are not accidentally destroyed permanently.
-  force_destroy_ingress_access_logs  = true
-  ingress_access_logs_s3_bucket_name = "gw-service-catalog-test-${var.application_name}-alb-access-logs"
+  force_destroy_ingress_access_logs = true
+  ingress_access_logs_s3_bucket_name = (
+    var.ingress_access_logs_s3_bucket_name == null
+    ? "gw-service-catalog-test-${var.application_name}-alb-access-logs"
+    : var.ingress_access_logs_s3_bucket_name
+  )
+  ingress_access_logs_s3_prefix                = var.ingress_access_logs_s3_prefix
+  ingress_ssl_redirect_rule_already_exists     = var.ingress_ssl_redirect_rule_already_exists
+  ingress_access_logs_s3_bucket_already_exists = var.ingress_access_logs_s3_bucket_already_exists
 }
