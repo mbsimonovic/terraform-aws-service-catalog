@@ -56,12 +56,6 @@ variable "s3_object_version" {
   default     = null
 }
 
-variable "source_code_hash" {
-  description = "When uploading your deployment package to S3 as part of your Terraform deployment, this should be set to the filebase64sha256() of the file so Terraform can detect a new version."
-  type        = string
-  default     = null
-}
-
 variable "runtime" {
   description = "The runtime environment for the Lambda function (e.g. nodejs, python2.7, java8). See https://docs.aws.amazon.com/lambda/latest/dg/API_CreateFunction.html#SSS-CreateFunction-request-Runtime for all possible values."
   type        = string

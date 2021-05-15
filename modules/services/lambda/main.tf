@@ -29,10 +29,9 @@ module "lambda_function" {
   description       = var.description
   enable_versioning = var.enable_versioning
 
-  source_path      = var.source_path
-  skip_zip         = var.skip_zip
-  zip_output_path  = var.zip_output_path
-  source_code_hash = var.source_code_hash
+  source_path     = var.source_path
+  skip_zip        = var.skip_zip
+  zip_output_path = var.zip_output_path
 
   s3_bucket         = var.s3_bucket
   s3_key            = var.s3_key
