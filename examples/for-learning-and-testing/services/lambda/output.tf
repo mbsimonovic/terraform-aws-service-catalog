@@ -67,3 +67,8 @@ output "ok_actions" {
   description = "The list of actions to execute when this alarm transitions into an OK state from any other state"
   value       = module.lambda_function.ok_actions
 }
+
+output "insufficient_data_actions" {
+  description = "The list of actions to execute when this alarm transitions into an INSUFFICIENT_DATA state from any other state"
+  value       = module.lambda_function.insufficient_data_actions
+}

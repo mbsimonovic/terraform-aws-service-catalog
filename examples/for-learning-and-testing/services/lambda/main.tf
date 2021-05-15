@@ -32,7 +32,7 @@ module "lambda_function" {
   schedule_expression = "rate(1 minute)"
 
   # A pre existing SNS Topic. It will receive cloudwatch metric alarms
-  alert_on_failure_sns_topic = aws_sns_topic.failure_topic
+  alarm_sns_topic_arns = [aws_sns_topic.failure_topic.arn]
 }
 
 # A pre existing SNS Topic is not necessary. Here is just an example that a

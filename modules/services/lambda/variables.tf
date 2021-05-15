@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------------------------------------------------------------
-# REQUIRED LAMBDA MODULE PARAMETERS
+# REQUIRED LAMBDA SERVICE PARAMETERS
 # These variables must be passed in by the operator.
 # ---------------------------------------------------------------------------------------------------------------------
 
@@ -7,6 +7,24 @@ variable "name" {
   description = "The name of the Lambda function. Used to namespace all resources created by this module."
   type        = string
 }
+
+variable "timeout" {
+  description = "The maximum amount of time, in seconds, your Lambda function will be allowed to run. Must be between 1 and 900 seconds."
+  type        = number
+}
+
+variable "memory_size" {
+  description = "The maximum amount of memory, in MB, your Lambda function will be able to use at runtime. Can be set in 64MB increments from 128MB up to 1536MB. Note that the amount of CPU power given to a Lambda function is proportional to the amount of memory you request, so a Lambda function with 256MB of memory has twice as much CPU power as one with 128MB."
+  type        = number
+}
+
+variable "alarm_sns_topic_arns" {
+  description = "A list of SNS topic ARNs to notify when the lambda alarms change to ALARM, OK, or INSUFFICIENT_DATA state"
+  type        = list(string)
+}
+
+# The variable below may seem optional (as they have 'defalt' populated) but we
+# need at least a combination of them to point at the code for the lambda function
 
 variable "source_path" {
   description = "The path to the directory that contains your Lambda function source code. This code will be zipped up and uploaded to Lambda as your deployment package. If var.skip_zip is set to true, then this is assumed to be the path to an already-zipped file, and it will be uploaded directly to Lambda as a deployment package. Exactly one of var.source_path or the var.s3_xxx variables must be specified."
@@ -38,12 +56,6 @@ variable "s3_object_version" {
   default     = null
 }
 
-variable "source_code_hash" {
-  description = "When uploading your deployment package to S3 as part of your Terraform deployment, this should be set to the filebase64sha256() of the file so Terraform can detect a new version."
-  type        = string
-  default     = null
-}
-
 variable "runtime" {
   description = "The runtime environment for the Lambda function (e.g. nodejs, python2.7, java8). See https://docs.aws.amazon.com/lambda/latest/dg/API_CreateFunction.html#SSS-CreateFunction-request-Runtime for all possible values."
   type        = string
@@ -62,18 +74,8 @@ variable "layers" {
   default     = []
 }
 
-variable "timeout" {
-  description = "The maximum amount of time, in seconds, your Lambda function will be allowed to run. Must be between 1 and 300 seconds."
-  type        = number
-}
-
-variable "memory_size" {
-  description = "The maximum amount of memory, in MB, your Lambda function will be able to use at runtime. Can be set in 64MB increments from 128MB up to 1536MB. Note that the amount of CPU power given to a Lambda function is proportional to the amount of memory you request, so a Lambda function with 256MB of memory has twice as much CPU power as one with 128MB."
-  type        = number
-}
-
 # ---------------------------------------------------------------------------------------------------------------------
-# OPTIONAL LAMBDA MODULE PARAMETERS
+# OPTIONAL LAMBDA SERVICE PARAMETERS
 # These variables have defaults, but may be overridden by the operator.
 # ---------------------------------------------------------------------------------------------------------------------
 
@@ -234,47 +236,44 @@ variable "namespace" {
 # CLOUDWATCH ALARM PARAMETERS
 # ---------------------------------------------------------------------------------------------------------------------
 
-variable "alert_on_failure_sns_topic" {
-  description = "An SNS Topic resource to use when the lambda fails to execute. If an SNS Topic is not provided, a new one will be created and the lambda function will subscribe to it automatically."
-  default     = null
-}
-
 variable "comparison_operator" {
   description = "The arithmetic operation to use when comparing the specified Statistic and Threshold. The specified Statistic value is used as the first operand. Either of the following is supported: `GreaterThanOrEqualToThreshold`, `GreaterThanThreshold`, `LessThanThreshold`, `LessThanOrEqualToThreshold`. Additionally, the values `LessThanLowerOrGreaterThanUpperThreshold`, `LessThanLowerThreshold`, and `GreaterThanUpperThreshold` are used only for alarms based on anomaly detection models."
+  type        = string
   default     = "GreaterThanThreshold"
 }
 
 variable "evaluation_periods" {
   description = "The number of periods over which data is compared to the specified threshold."
+  type        = number
   default     = 1
 }
 
 variable "datapoints_to_alarm" {
   description = "The number of datapoints that must be breaching to trigger the alarm."
+  type        = number
   default     = 1
 }
 
 variable "metric_name" {
   description = "The name for the alarm's associated metric."
+  type        = string
   default     = "Errors"
 }
 
 variable "period" {
   description = "The period in seconds over which the specified `statistic` is applied."
-  default     = "60"
+  type        = number
+  default     = 60
 }
 
 variable "statistic" {
   description = "The statistic to apply to the alarm's associated metric."
+  type        = string
   default     = "Sum"
 }
 
 variable "threshold" {
   description = "The value against which the specified statistic is compared. This parameter is required for alarms based on static thresholds, but should not be used for alarms based on anomaly detection models."
-  default     = "0.0"
-}
-
-variable "insufficient_data_actions" {
-  description = "The list of actions to execute when this alarm transitions into an INSUFFICIENT_DATA state from any other state. Each action is specified as an Amazon Resource Name (ARN)."
-  default     = []
+  type        = number
+  default     = 0.0
 }
