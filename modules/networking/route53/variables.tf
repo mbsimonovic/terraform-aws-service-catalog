@@ -66,6 +66,10 @@ variable "public_zones" {
     hosted_zone_domain_name = string
     # Tags to use to filter the Route 53 Hosted Zones that might match the hosted zone's name (use if you have multiple public hosted zones with the same name)
     base_domain_name_tags = map(string)
+    # Whether or not to create a Route 53 DNS record for use in validating the issued certificate. You may want to set this to false if you are not using Route 53 as your DNS provider.
+    create_verification_record = bool
+    # Whether or not to attempt to verify the issued certificate via DNS entries automatically created via Route 53 records. You may want to set this to false on your certificate inputs if you are not using Route 53 as your DNS provider.
+    verify_certificate = bool
   }))
   # Allow empty maps to be passed by default - since we sometimes define only public zones or only private zones in a given module call
   default = {}
@@ -81,6 +85,8 @@ variable "public_zones" {
   #         force_destroy = true
   #         subject_alternative_names = []
   #         created_outside_terraform = true
+  #         create_verification_record= true
+  #         verify_certificate        = true
   #         base_domain_name_tags = {
   #             original = true
   #         }
@@ -96,6 +102,8 @@ variable "public_zones" {
   #           force_destroy = true
   #           subject_alternative_names = []
   #           base_domain_name_tags = {}
+  #           create_verification_record = true
+  #           verify_certificate         = true
   #     }
   # }
   #
@@ -108,6 +116,8 @@ variable "public_zones" {
   #         force_destroy = false
   #         subject_alternative_names = ["*.example.com"]
   #         base_domain_name_tags = {}
+  #         create_verification_record = true
+  #         verify_certificate         = true
   #     }
   # }
 }
@@ -130,6 +140,10 @@ variable "service_discovery_public_namespaces" {
     hosted_zone_domain_name = string
     # A user friendly description for the namespace.
     description = string
+    # Whether or not to create a Route 53 DNS record for use in validating the issued certificate. You may want to set this to false if you are not using Route 53 as your DNS provider.
+    create_verification_record = bool
+    # Whether or not to attempt to verify the issued certificate via DNS entries automatically created via Route 53 records. You may want to set this to false on your certificate inputs if you are not using Route 53 as your DNS provider.
+    verify_certificate = bool
   }))
 
   # Default to empty map so that public namespaces are only created when requested.
@@ -139,14 +153,18 @@ variable "service_discovery_public_namespaces" {
   # service_discovery_public_namespaces = {
   #     "example.com" = {
   #         subject_alternative_names = []
+  #         create_verification_record = true
+  #         verify_certificate         = true
   #     }
   # }
   #
   # Example: Request a wildcard certificate that does NOT protect the apex:
   #
   # service_discovery_public_namespaces = {
-  #     "*.example.com = {
+  #     "*.example.com" = {
   #           subject_alternative_names = []
+  #           create_verification_record = true
+  #           verify_certificate         = true
   #     }
   # }
   #
@@ -155,6 +173,8 @@ variable "service_discovery_public_namespaces" {
   # service_discovery_public_namespaces = {
   #     "example.com" = {
   #         subject_alternative_names = ["*.example.com"]
+  #         create_verification_record = true
+  #         verify_certificate         = true
   #     }
   # }
 }
