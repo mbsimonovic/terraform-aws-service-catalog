@@ -1,10 +1,10 @@
 :type: service
-:name: Management VPC
-:description: Deploy a VPC  on AWS for administrative and management functions.
-:icon: /_docs/amazon-vpc-icon.png
-:category: networking
+:name: Lambda
+:description: Deploy a Lambda on AWS.
+:icon: /_docs/lambda-icon.png
+:category: lambda
 :cloud: aws
-:tags: vpc, ec2
+:tags: lambda
 :license: gruntwork
 :built-with: terraform
 
@@ -22,19 +22,14 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
-= Management VPC
+= Lambda
 
 image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
-image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
+image:https://img.shields.io/badge/tf-%3E%3D0.13.0-blue.svg[Terraform version]
 
-This folder contains code to deploy a link:https://aws.amazon.com/vpc/[Virtual Private Cloud (VPC)] on AWS that can be
-used for administrative and management purposes, such as CI/CD services. The primary difference between this and the
-link:../vpc[application VPC] is this one has two subnet tiers (public and private) while the application VPC has three
-(public, private, and persistence). In this management VPC, we assume that there are no data stores that need to be
-separated in to a dedicated persistence tier.
+This folder contains code to deploy a link:https://aws.amazon.com/lambda[Lambda] on AWS that can be used for either production or non-production workloads.
 
-image::../../../_docs/vpc-architecture.png?raw=true[VPC architecture]
-
+image::../../../_docs/lambda-service-architecture.png?raw=true[Lambda architecture]
 
 toc::[]
 
@@ -43,11 +38,9 @@ toc::[]
 
 == Features
 
-* The VPC itself.
-* Subnets, which are isolated subdivisions within the VPC. There are 2 "tiers" of subnets, public and private, spanning multiple availability zones.
-* Route tables, which provide routing rules for the subnets.
-* Internet Gateways to route traffic to the public Internet from public subnets.
-* NATs to route traffic to the public Internet from private subnets.
+* The lambda function
+* Optionally, a schedule expression if you want to execute the lambda periodically
+* Optionally, an alarm that can be triggered when the lambda fails
 
 
 == Learn
@@ -59,14 +52,14 @@ Service Catalog]!
 
 
 Under the hood, this is all implemented using Terraform modules from the Gruntwork
-https://github.com/gruntwork-io/terraform-aws-vpc[terraform-aws-vpc] repo. If you don't have access to this repo, email
+https://github.com/gruntwork-io/terraform-aws-lambda[terraform-aws-lambda] repo. If you don't have access to this repo, email
 support@gruntwork.io.
 
 
 === Core concepts
 
-To understand core concepts like what's a VPC, how subnets are configured, how network ACLs work, and more, see the
-documentation in the https://github.com/gruntwork-io/terraform-aws-vpc[terraform-aws-vpc] repo.
+To understand core concepts like what's a Lambda, how to test it, and more, see the
+documentation in the https://github.com/gruntwork-io/terraform-aws-lambda[terraform-aws-lambda] repo.
 
 === Repo organization
 
