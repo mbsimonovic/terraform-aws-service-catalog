@@ -44,7 +44,7 @@ variable "private_zones" {
 
 variable "public_zones" {
   description = "A map of public Route 53 Hosted Zones. In this map, the key should be the domain name. See examples below."
-  type = map(object({
+  type = any(object({
     # An arbitrary comment to attach to the public Hosted Zone
     comment = string
     # A mapping of tags to assign to the public Hosted Zone
@@ -124,7 +124,7 @@ variable "public_zones" {
 
 variable "service_discovery_public_namespaces" {
   description = "A map of domain names to configurations for setting up a new public namespace in AWS Cloud Map. Note that the domain name must be registered with Route 53."
-  type = map(object({
+  type = any(object({
     # Subject alternative names are a set of domains that you want the issued certificate to also cover. These can be
     # additional (sites, IP addresses and common names). You can also use this field to create a wildcard certificate.
     # For example, if your domain is example.com, add "*.example.com" as a subject alternative name in order to request
