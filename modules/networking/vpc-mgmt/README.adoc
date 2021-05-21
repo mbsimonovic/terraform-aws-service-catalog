@@ -120,9 +120,7 @@ Contributions to this repo are very welcome and appreciated! If you find a bug o
 contribute an entirely new module, we are very happy to accept pull requests, provide feedback, and run your changes
 through our automated test suite.
 
-Please see https://gruntwork.io/guides/foundations/how-to-use-gruntwork-infrastructure-as-code-library/#contributing-to-the-gruntwork-infrastructure-as-code-library
-[Contributing to the Gruntwork Service Catalog]
-for instructions.
+Please see https://gruntwork.io/guides/foundations/how-to-use-gruntwork-infrastructure-as-code-library/#contributing-to-the-gruntwork-infrastructure-as-code-library[Contributing to the Gruntwork Service Catalog] for instructions.
 
 
 == License
