@@ -104,7 +104,7 @@ locals {
     local.has_logs_account
     ? [
       for account in module.organization.child_accounts
-      : account.id if account.name != local.logs_account_name
+      : account.id if account.email != local.logs_account_email
     ]
     : [
       for account in module.organization.child_accounts
