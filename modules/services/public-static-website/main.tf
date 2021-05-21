@@ -7,9 +7,9 @@
 # ---------------------------------------------------------------------------------------------------------------------
 
 terraform {
-  # This module is now only being tested with Terraform 0.14.x. However, to make upgrading easier, we are setting
+  # This module is now only being tested with Terraform 0.15.x. However, to make upgrading easier, we are setting
   # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 0.14.x code.
+  # forwards compatible with 0.15.x code.
   required_version = ">= 0.12.26"
 
   required_providers {
@@ -26,7 +26,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "static_website" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-static-assets.git//modules/s3-static-website?ref=v0.8.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-static-assets.git//modules/s3-static-website?ref=v0.9.0"
 
   website_domain_name   = var.website_domain_name
   index_document        = var.index_document
@@ -46,7 +46,7 @@ module "static_website" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "cloudfront" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-static-assets.git//modules/s3-cloudfront?ref=v0.8.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-static-assets.git//modules/s3-cloudfront?ref=v0.9.0"
 
   bucket_name                 = var.website_domain_name
   s3_bucket_is_public_website = true
