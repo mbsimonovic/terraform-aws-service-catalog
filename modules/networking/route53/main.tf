@@ -144,8 +144,8 @@ locals {
     domain => {
       tags                       = zone.tags
       subject_alternative_names  = zone.subject_alternative_names
-      create_verification_record = zone.create_verification_record
-      verify_certificate         = zone.verify_certificate
+      create_verification_record = zone.create_verification_record != null ? zone.create_verification_record : true
+      verify_certificate         = zone.verify_certificate != null ? zone.verify_certificate : true
       # If the created_outside_terraform attribute is set to true, the zone ID will be looked up dynamically
       hosted_zone_id = zone.created_outside_terraform ? (zone.hosted_zone_domain_name != "" ? data.aws_route53_zone.selected[zone.hosted_zone_domain_name].zone_id : data.aws_route53_zone.selected[domain].zone_id) : ""
     }
@@ -160,8 +160,8 @@ locals {
     domain => {
       tags                       = {}
       subject_alternative_names  = config.subject_alternative_names
-      create_verification_record = config.create_verification_record
-      verify_certificate         = config.verify_certificate
+      create_verification_record = config.create_verification_record != null ? config.create_verification_record : true
+      verify_certificate         = config.verify_certificate != null ? config.verify_certificate : true
       hosted_zone_id             = config.created_outside_terraform ? data.aws_route53_zone.selected[config.hosted_zone_domain_name].zone_id : ""
     }
   }
