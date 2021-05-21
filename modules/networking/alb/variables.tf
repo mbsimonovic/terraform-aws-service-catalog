@@ -6,6 +6,11 @@
 variable "alb_name" {
   description = "The name of the ALB."
   type        = string
+
+  validation {
+    condition     = length(var.alb_name) <= 32
+    error_message = "Your alb_name must be 32 characters or less in length."
+  }
 }
 
 variable "is_internal_alb" {
@@ -37,6 +42,12 @@ variable "num_days_after_which_delete_log_data" {
 # OPTIONAL PARAMETERS
 # Generally, these values won't need to be changed.
 # ---------------------------------------------------------------------------------------------------------------------
+
+variable "ssl_policy" {
+  description = "The AWS predefined TLS/SSL policy for the ALB. A List of policies can be found here: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html#describe-ssl-policies. AWS recommends ELBSecurityPolicy-2016-08 policy for general use but this policy includes TLSv1.0 which is rapidly being phased out. ELBSecurityPolicy-TLS-1-1-2017-01 is the next policy up that doesn't include TLSv1.0."
+  type        = string
+  default     = "ELBSecurityPolicy-2016-08"
+}
 
 variable "enable_deletion_protection" {
   description = "Enable deletion protection on the ALB instance. If this is enabled, the load balancer cannot be deleted prior to disabling"

@@ -123,7 +123,7 @@ variable "iam_principal_arns" {
 
 variable "advanced_options" {
   description = "Key-value string pairs to specify advanced configuration options. Note that the values for these configuration options must be strings (wrapped in quotes)."
-  type        = map
+  type        = map(any)
   default     = {}
 }
 
@@ -166,9 +166,9 @@ variable "update_timeout" {
 }
 
 variable "enable_encryption_at_rest" {
-  description = "When true, the Elasticsearch domain storage will be encrypted at rest using the KMS key described with var.encryption_kms_key_id. We strongly recommend configuring a custom KMS key instead of using the shared service key for a better security posture when configuring encryption at rest."
+  description = "False by default because encryption at rest is not included in the free tier. When true, the Elasticsearch domain storage will be encrypted at rest using the KMS key described with var.encryption_kms_key_id. We strongly recommend configuring a custom KMS key instead of using the shared service key for a better security posture when configuring encryption at rest."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "encryption_kms_key_id" {

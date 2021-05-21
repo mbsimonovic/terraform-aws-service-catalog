@@ -6,6 +6,14 @@
 # - fluentd-cloudwatch to ship container logs on workers to CloudWatch Logs
 # ----------------------------------------------------------------------------------------------------------------------
 
+terraform {
+  # This module is now only being tested with Terraform 0.14.x. However, to make upgrading easier, we are setting
+  # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
+  # forwards compatible with 0.14.x code.
+  required_version = ">= 0.12.26"
+}
+
+
 provider "aws" {
   region = var.aws_region
 }
@@ -42,4 +50,10 @@ module "eks_core_services" {
   autoscaler_down_delay_after_add     = "2m"
 
   service_dns_mappings = var.service_dns_mappings
+
+  # Feature flags for each individual service
+  enable_fluent_bit             = var.enable_fluent_bit
+  enable_alb_ingress_controller = var.enable_alb_ingress_controller
+  enable_external_dns           = var.enable_external_dns
+  enable_cluster_autoscaler     = var.enable_cluster_autoscaler
 }

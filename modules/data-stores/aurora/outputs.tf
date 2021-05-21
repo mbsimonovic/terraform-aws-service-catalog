@@ -50,6 +50,18 @@ output "cleanup_snapshots_lambda_arn" {
 
 # CloudWatch Dashboard Widgets
 
+output "all_metric_widgets" {
+  description = "A list of all the CloudWatch Dashboard metric widgets available in this module."
+  value = [
+    module.metric_widget_aurora_cpu_usage.widget,
+    module.metric_widget_aurora_memory.widget,
+    module.metric_widget_aurora_disk_space.widget,
+    module.metric_widget_aurora_db_connections.widget,
+    module.metric_widget_aurora_read_latency.widget,
+    module.metric_widget_aurora_write_latency.widget,
+  ]
+}
+
 output "metric_widget_aurora_cpu_usage" {
   description = "A CloudWatch Dashboard widget that graphs CPU usage (percentage) of the Aurora cluster."
   value       = module.metric_widget_aurora_cpu_usage.widget

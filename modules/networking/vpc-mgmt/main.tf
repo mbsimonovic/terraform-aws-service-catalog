@@ -5,9 +5,9 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This module is now only being tested with Terraform 0.13.x. However, to make upgrading easier, we are setting
+  # This module is now only being tested with Terraform 0.14.x. However, to make upgrading easier, we are setting
   # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 0.13.x code.
+  # forwards compatible with 0.14.x code.
   required_version = ">= 0.12.26"
 
   required_providers {
@@ -23,7 +23,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "vpc" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-mgmt?ref=v0.14.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-mgmt?ref=v0.15.2"
 
   aws_region                      = var.aws_region
   vpc_name                        = var.vpc_name
@@ -51,7 +51,7 @@ module "vpc" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "vpc_flow_logs" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-flow-logs?ref=v0.14.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-flow-logs?ref=v0.15.2"
 
   vpc_id                    = module.vpc.vpc_id
   cloudwatch_log_group_name = "${module.vpc.vpc_name}-vpc-flow-logs"
@@ -68,7 +68,7 @@ module "vpc_flow_logs" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "vpc_network_acls" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-mgmt-network-acls?ref=v0.14.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-mgmt-network-acls?ref=v0.15.2"
 
   create_resources = var.create_network_acls
 

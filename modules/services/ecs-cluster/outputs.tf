@@ -57,3 +57,23 @@ output "ecs_cluster_vpc_subnet_ids" {
   description = "The VPC subnet IDs into which the ECS cluster can launch resources into"
   value       = var.vpc_subnet_ids
 }
+
+# CloudWatch Dashboard Widgets
+
+output "all_metric_widgets" {
+  description = "A list of all the CloudWatch Dashboard metric widgets available in this module."
+  value = [
+    module.metric_widget_ecs_cluster_cpu_usage.widget,
+    module.metric_widget_ecs_cluster_memory_usage.widget,
+  ]
+}
+
+output "metric_widget_ecs_cluster_cpu_usage" {
+  description = "The CloudWatch Dashboard metric widget for the ECS cluster workers' CPU utilization metric."
+  value       = module.metric_widget_ecs_cluster_cpu_usage.widget
+}
+
+output "metric_widget_ecs_cluster_memory_usage" {
+  description = "The CloudWatch Dashboard metric widget for the ECS cluster workers' Memory utilization metric."
+  value       = module.metric_widget_ecs_cluster_memory_usage.widget
+}

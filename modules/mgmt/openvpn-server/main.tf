@@ -9,9 +9,9 @@
 # ---------------------------------------------------------------------------------------------------------------------
 
 terraform {
-  # This module is now only being tested with Terraform 0.13.x. However, to make upgrading easier, we are setting
+  # This module is now only being tested with Terraform 0.14.x. However, to make upgrading easier, we are setting
   # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 0.13.x code.
+  # forwards compatible with 0.14.x code.
   required_version = ">= 0.12.26"
 
   required_providers {
@@ -27,7 +27,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "openvpn" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-openvpn.git//modules/openvpn-server?ref=v0.13.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-openvpn.git//modules/openvpn-server?ref=v0.15.2"
 
   aws_region     = data.aws_region.current.name
   aws_account_id = data.aws_caller_identity.current.account_id
@@ -151,7 +151,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "kms_cmk" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-master-key?ref=v0.46.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-master-key?ref=v0.48.2"
   customer_master_keys = (
     var.kms_key_arn == null
     ? {
@@ -199,9 +199,15 @@ module "ec2_baseline" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_route53_record" "openvpn" {
-  count   = var.domain_name != null ? 1 : 0
-  name    = "${var.name}.${var.domain_name}"
-  zone_id = data.aws_route53_zone.selected[count.index].zone_id
+  count = var.create_route53_entry ? 1 : 0
+  name = (
+    var.domain_name == null
+    ? "${var.name}.${var.base_domain_name}"
+    : var.domain_name
+  )
+  zone_id = (
+    length(data.aws_route53_zone.selected) > 0 ? data.aws_route53_zone.selected[0].zone_id : var.hosted_zone_id
+  )
   type    = "A"
   ttl     = "300"
   records = [module.openvpn.public_ip]
@@ -209,16 +215,14 @@ resource "aws_route53_record" "openvpn" {
 
 # ---------------------------------------------------------------------------------------------------------------------
 # DYNAMICALLY LOOK UP THE ZONE ID OF SUPPLIED DOMAIN NAME
-# Look up the zone ID associated with var.domain_name. This makes usage of this module simpler as the zone ID does 
+# Look up the zone ID associated with var.base_domain_name. This makes usage of this module simpler as the zone ID does
 # not have to be supplied as an argument.
 # ---------------------------------------------------------------------------------------------------------------------
 
 data "aws_route53_zone" "selected" {
-  # We only need to perform a dynamic lookup of the zone ID if: 
-  # - the domain name was supplied as an input AND 
-  # - the hosted_zone_id was NOT supplied as an input
-  count = var.domain_name != null ? 1 : 0
-  name  = var.domain_name
+  # We only need to perform a dynamic lookup of the zone ID if the hosted_zone_id was NOT supplied as an input.
+  count = var.create_route53_entry && var.hosted_zone_id == null ? 1 : 0
+  name  = var.base_domain_name
 
   tags = var.base_domain_name_tags != null ? var.base_domain_name_tags : {}
 

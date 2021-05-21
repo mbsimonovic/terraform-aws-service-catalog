@@ -51,7 +51,7 @@ variable "autoscaling_group_configurations" {
   #                                            instances to use for the ASG in GB (e.g., 40).
   # - asg_instance_root_volume_type   string : (Defaults to value from var.asg_default_instance_root_volume_type) The root volume type of
   #                                            instances to use for the ASG (e.g., "standard").
-  # - asg_instance_root_volume_encryption   bool  : (Defaults to value from var.asg_default_instance_root_volume_encryption) 
+  # - asg_instance_root_volume_encryption   bool  : (Defaults to value from var.asg_default_instance_root_volume_encryption)
   #                                             Whether or not to enable root volume encryption for instances of the ASG.
   # - tags                list(object[Tag])  : (Defaults to value from var.asg_default_tags) Custom tags to apply to the
   #                                            EC2 Instances in this ASG. Refer to structure definition below for the
@@ -89,12 +89,12 @@ variable "allow_inbound_api_access_from_cidr_blocks" {
 }
 
 variable "cluster_instance_ami" {
-  description = "The AMI to run on each instance in the EKS cluster. You can build the AMI using the Packer template eks-node-al2.json. One of var.cluster_instance_ami or var.cluster_instance_ami_filters is required."
+  description = "The AMI to run on each instance in the EKS cluster. You can build the AMI using the Packer template eks-node-al2.json. One of var.cluster_instance_ami or var.cluster_instance_ami_filters is required. Only used if var.cluster_instance_ami_filters is null. Set to null if cluster_instance_ami_filters is set."
   type        = string
 }
 
 variable "cluster_instance_ami_filters" {
-  description = "Properties on the AMI that can be used to lookup a prebuilt AMI for use with self managed workers. You can build the AMI using the Packer template eks-node-al2.json. Only used if var.cluster_instance_ami is null. One of var.cluster_instance_ami or var.cluster_instance_ami_filters is required. Set to null if cluster_instance_ami is set."
+  description = "Properties on the AMI that can be used to lookup a prebuilt AMI for use with self managed workers. You can build the AMI using the Packer template eks-node-al2.json. One of var.cluster_instance_ami or var.cluster_instance_ami_filters is required. If both are defined, var.cluster_instance_ami_filters will be used. Set to null if cluster_instance_ami is set."
   type = object({
     # List of owners to limit the search. Set to null if you do not wish to limit the search by AMI owners.
     owners = list(string)
@@ -113,11 +113,28 @@ variable "cluster_instance_ami_filters" {
 # OPTIONAL PARAMETERS
 # Generally, these values won't need to be changed.
 # ---------------------------------------------------------------------------------------------------------------------
+variable "worker_name_prefix" {
+  description = "Prefix EKS worker resource names with this string. When you have multiple worker groups for the cluster, you can use this to namespace the resources. Defaults to empty string so that resource names are not excessively long by default."
+  type        = string
+  default     = ""
+}
 
 variable "schedule_control_plane_services_on_fargate" {
-  description = "When true, configures control plane services to run on Fargate so that the cluster can run without worker nodes. When true, requires kubergrunt to be available on the system."
+  description = "When true, configures control plane services to run on Fargate so that the cluster can run without worker nodes. If true, requires kubergrunt to be available on the system, and create_default_fargate_iam_role be set to true."
   type        = bool
   default     = false
+}
+
+variable "create_default_fargate_iam_role" {
+  description = "When true, IAM role will be created and attached to Fargate control plane services."
+  type        = bool
+  default     = true
+}
+
+variable "custom_default_fargate_iam_role_name" {
+  description = "The name to use for the default Fargate execution IAM role that is created when create_default_fargate_iam_role is true. When null, defaults to CLUSTER_NAME-fargate-role."
+  type        = string
+  default     = null
 }
 
 variable "secret_envelope_encryption_kms_key_arn" {
@@ -476,6 +493,18 @@ variable "dashboard_disk_usage_widget_parameters" {
     width  = 8
     height = 6
   }
+}
+
+variable "use_exec_plugin_for_auth" {
+  description = "If this variable is set to true, then use an exec-based plugin to authenticate and fetch tokens for EKS. This is useful because EKS clusters use short-lived authentication tokens that can expire in the middle of an 'apply' or 'destroy', and since the native Kubernetes provider in Terraform doesn't have a way to fetch up-to-date tokens, we recommend using an exec-based provider as a workaround. Use the use_kubergrunt_to_fetch_token input variable to control whether kubergrunt or aws is used to fetch tokens."
+  type        = bool
+  default     = true
+}
+
+variable "use_kubergrunt_to_fetch_token" {
+  description = "EKS clusters use short-lived authentication tokens that can expire in the middle of an 'apply' or 'destroy'. To avoid this issue, we use an exec-based plugin to fetch an up-to-date token. If this variable is set to true, we'll use kubergrunt to fetch the token (in which case, kubergrunt must be installed and on PATH); if this variable is set to false, we'll use the aws CLI to fetch the token (in which case, aws must be installed and on PATH). Note this functionality is only enabled if use_exec_plugin_for_auth is set to true."
+  type        = bool
+  default     = true
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

@@ -9,17 +9,14 @@
 # locally, you can use --terragrunt-source /path/to/local/checkout/of/module to override the source parameter to a
 # local check out of the module for faster iteration.
 terraform {
-  # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
-  # to a specific version of the modules, such as the following example:
-  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/landingzone/account-baseline-security?ref=v1.0.8"
-  source = "../../../../../../modules//landingzone/account-baseline-security"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/landingzone/account-baseline-security?ref=v0.34.1"
 
   # This module deploys some resources (e.g., AWS Config) across all AWS regions, each of which needs its own provider,
   # which in Terraform means a separate process. To avoid all these processes thrashing the CPU, which leads to network
   # connectivity issues, we limit the parallelism here.
   extra_arguments "parallelism" {
     commands  = get_terraform_commands_that_need_parallelism()
-    arguments = ["-parallelism=2"]
+    arguments = get_env("TG_DISABLE_PARALLELISM_LIMIT", "false") == "true" ? [] : ["-parallelism=2"]
   }
 }
 
@@ -28,82 +25,113 @@ include {
   path = find_in_parent_folders()
 }
 
+
+
+
+# ---------------------------------------------------------------------------------------------------------------------
 # Locals are named constants that are reusable within the configuration.
+# ---------------------------------------------------------------------------------------------------------------------
 locals {
   # Automatically load common variables shared across all accounts
   common_vars = read_terragrunt_config(find_in_parent_folders("common.hcl"))
 
-  security_full_access_group_name        = "full-access"
-  access_all_accounts_group_name         = "access-all-external-accounts"
-  stage_full_access_group_name           = "_account.stage-full-access"
-  stage_read_only_group_name             = "_account.stage-read-only"
-  prod_full_access_group_name            = "_account.prod-full-access"
-  prod_read_only_group_name              = "_account.prod-read-only"
-  ssh_grunt_sudo_group_name              = "ssh-grunt-sudo-users"
-  ssh_grunt_user_group_name              = "ssh-grunt-users"
-  bastion_only_ssh_grunt_user_group_name = "bastion-only-ssh-grunt-users"
+  # Extract the name prefix for easy access
+  name_prefix = local.common_vars.locals.name_prefix
+
+  # Automatically load account-level variables
+  account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
+
+  # Extract the account_name for easy access
+  account_name = local.account_vars.locals.account_name
+
+  # Automatically load region-level variables
+  region_vars = read_terragrunt_config(find_in_parent_folders("region.hcl"))
+
+  # Extract the region for easy access
+  aws_region = local.region_vars.locals.aws_region
+
+  # A local for more convenient access to the accounts map.
+  accounts = local.common_vars.locals.accounts
+
+  users = yamldecode(file("users.yml"))
+  cross_account_groups = try(
+    yamldecode(
+      templatefile(
+        "cross_account_groups.yml",
+        {
+          accounts = local.accounts
+        },
+      ),
+    ),
+    {},
+  )
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
 # MODULE PARAMETERS
 # These are the variables we have to pass in to use the module specified in the terragrunt configuration above
 # ---------------------------------------------------------------------------------------------------------------------
-
 inputs = {
-  # Prefix all resources with this name
-  name_prefix = "ref-arch-lite"
+  ################################
+  # Parameters for AWS Config
+  ################################
+  # Send Config logs to the common S3 bucket.
+  config_s3_bucket_name = local.common_vars.locals.config_s3_bucket_name
 
-  # Send CloudTrail logs to this bucket
+  # Send Config logs and events to the logs account.
+  config_central_account_id = local.accounts.logs
+
+  # Do not allow objects in the Config S3 bucket to be forcefully removed during destroy operations.
+  config_force_destroy = false
+
+  # This account sends logs to the Logs account.
+  config_aggregate_config_data_in_external_account = true
+
+  # The ID of the Logs account.
+  config_central_account_id = local.accounts.logs
+
+  ################################
+  # Parameters for CloudTrail
+  ################################
+
+  # Send CloudTrail logs to the common S3 bucket.
   cloudtrail_s3_bucket_name = local.common_vars.locals.cloudtrail_s3_bucket_name
 
-  # This IAM group gives access to other AWS accounts
-  iam_groups_for_cross_account_access = [
-    {
-      group_name    = local.stage_full_access_group_name
-      iam_role_arns = ["arn:aws:iam::${local.common_vars.locals.account_ids["stage"]}:role/allow-full-access-from-other-accounts"]
-    },
-    {
-      group_name    = local.stage_read_only_group_name
-      iam_role_arns = ["arn:aws:iam::${local.common_vars.locals.account_ids["stage"]}:role/allow-read-only-access-from-other-accounts"]
-    },
-    {
-      group_name    = local.prod_full_access_group_name
-      iam_role_arns = ["arn:aws:iam::${local.common_vars.locals.account_ids["prod"]}:role/allow-full-access-from-other-accounts"]
-    },
-    {
-      group_name    = local.prod_read_only_group_name
-      iam_role_arns = ["arn:aws:iam::${local.common_vars.locals.account_ids["prod"]}:role/allow-read-only-access-from-other-accounts"]
-    },
-  ]
-  cross_account_access_all_group_name  = local.access_all_accounts_group_name
-  iam_group_names_ssh_grunt_sudo_users = [local.ssh_grunt_sudo_group_name]
-  iam_group_names_ssh_grunt_users = [
-    local.ssh_grunt_user_group_name,
-    local.bastion_only_ssh_grunt_user_group_name,
+  # The CloudTrail bucket is created in the logs account, so don't create it here.
+  cloudtrail_s3_bucket_already_exists = true
+
+  ##################################
+  # Cross-account IAM role permissions
+  ##################################
+
+  # Create groups that allow IAM users in this account to assume roles in your other AWS accounts.
+  iam_groups_for_cross_account_access = local.cross_account_groups.cross_account_groups
+
+  # Allow these accounts to have read access to IAM groups and the public SSH keys of users in the group.
+  allow_ssh_grunt_access_from_other_account_arns = [
+    for name, id in local.accounts :
+    "arn:aws:iam::${id}:root" if name != "security"
   ]
 
-  # The IAM users to create in this account. Since this is the security account, this is where we create all of our
-  # IAM users and add them to IAM groups.
-  users = {
-    alice = {
-      groups               = [local.security_full_access_group_name, local.access_all_accounts_group_name, local.ssh_grunt_sudo_group_name]
-      pgp_key              = "keybase:alice_on_keybase"
-      create_login_profile = true
-      create_access_keys   = false
-    }
+  # A list of account root ARNs that should be able to assume the auto deploy role.
+  allow_auto_deploy_from_other_account_arns = [
+    # External CI/CD systems may use an IAM user in the security account to perform deployments.
+    "arn:aws:iam::${local.accounts.security}:root",
 
-    bob = {
-      groups               = [local.stage_full_access_group_name, local.prod_read_only_group_name, local.ssh_grunt_sudo_group_name]
-      pgp_key              = "keybase:bob_on_keybase"
-      create_login_profile = true
-      create_access_keys   = false
-    }
+    # The shared account contains automation and infrastructure tools, such as CI/CD systems.
+    "arn:aws:iam::${local.accounts.shared}:root",
+  ]
+  auto_deploy_permissions = [
+    "iam:GetRole",
+    "iam:GetRolePolicy",
+  ]
 
-    carol = {
-      groups               = [local.stage_full_access_group_name]
-      pgp_key              = "keybase:carol_on_keybase"
-      create_login_profile = true
-      create_access_keys   = false
-    }
-  }
+  # Configures the auto deploy max session duration to be 4 hours
+  max_session_duration_machine_users = 14400
+
+  # Configures the max session duration for roles that humans use to be 8 hours
+  max_session_duration_human_users = 28800
+  # IAM users
+
+  users = local.users
 }

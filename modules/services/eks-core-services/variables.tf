@@ -55,6 +55,12 @@ variable "fargate_worker_disallowed_availability_zones" {
 
 # Fluent-bit DaemonSet options
 
+variable "enable_fluent_bit" {
+  description = "Whether or not to enable fluent-bit for log aggregation."
+  type        = bool
+  default     = true
+}
+
 variable "fluent_bit_log_group_name" {
   description = "Name of the CloudWatch Log Group fluent-bit should use to stream logs to. When null (default), uses the eks_cluster_name as the Log Group name."
   type        = string
@@ -71,6 +77,12 @@ variable "fluent_bit_log_stream_prefix" {
   description = "Prefix string to use for the CloudWatch Log Stream that gets created for each pod. When null (default), the prefix is set to 'fluentbit'."
   type        = string
   default     = null
+}
+
+variable "fluent_bit_extra_outputs" {
+  description = "Additional output streams that fluent-bit should export logs to. This string should be formatted according to the Fluent-bit docs (https://docs.fluentbit.io/manual/administration/configuring-fluent-bit/configuration-file#config_output)."
+  type        = string
+  default     = ""
 }
 
 variable "fluent_bit_pod_tolerations" {
@@ -130,6 +142,12 @@ variable "fluent_bit_pod_node_affinity" {
 }
 
 # AWS ALB Ingress controller options
+
+variable "enable_alb_ingress_controller" {
+  description = "Whether or not to enable the AWS LB Ingress controller."
+  type        = bool
+  default     = true
+}
 
 variable "schedule_alb_ingress_controller_on_fargate" {
   description = "When true, the ALB ingress controller pods will be scheduled on Fargate."
@@ -194,6 +212,12 @@ variable "alb_ingress_controller_pod_node_affinity" {
 }
 
 # external-dns configuration options
+
+variable "enable_external_dns" {
+  description = "Whether or not to enable external-dns for DNS entry syncing with Route 53 for Services and Ingresses."
+  type        = bool
+  default     = true
+}
 
 variable "schedule_external_dns_on_fargate" {
   description = "When true, the external-dns pods will be scheduled on Fargate."
@@ -296,10 +320,28 @@ variable "external_dns_route53_hosted_zone_domain_filters" {
 
 # Cluster Autoscaler settings
 
+variable "enable_cluster_autoscaler" {
+  description = "Whether or not to enable cluster-autoscaler for Autoscaling EKS worker nodes."
+  type        = bool
+  default     = true
+}
+
 variable "schedule_cluster_autoscaler_on_fargate" {
   description = "When true, the cluster autoscaler pods will be scheduled on Fargate. It is recommended to run the cluster autoscaler on Fargate to avoid the autoscaler scaling down a node where it is running (and thus shutting itself down during a scale down event). However, since Fargate is only supported on a handful of regions, we don't default to true here."
   type        = bool
   default     = false
+}
+
+variable "cluster_autoscaler_pod_annotations" {
+  description = "Annotations to apply to the cluster autoscaler pod(s), as key value pairs."
+  type        = map(string)
+  default     = {}
+}
+
+variable "cluster_autoscaler_pod_labels" {
+  description = "Labels to apply to the cluster autoscaler pod(s), as key value pairs."
+  type        = map(string)
+  default     = {}
 }
 
 variable "cluster_autoscaler_pod_tolerations" {
@@ -391,4 +433,16 @@ variable "service_dns_mappings" {
   }))
 
   default = {}
+}
+
+variable "use_exec_plugin_for_auth" {
+  description = "If this variable is set to true, then use an exec-based plugin to authenticate and fetch tokens for EKS. This is useful because EKS clusters use short-lived authentication tokens that can expire in the middle of an 'apply' or 'destroy', and since the native Kubernetes provider in Terraform doesn't have a way to fetch up-to-date tokens, we recommend using an exec-based provider as a workaround. Use the use_kubergrunt_to_fetch_token input variable to control whether kubergrunt or aws is used to fetch tokens."
+  type        = bool
+  default     = true
+}
+
+variable "use_kubergrunt_to_fetch_token" {
+  description = "EKS clusters use short-lived authentication tokens that can expire in the middle of an 'apply' or 'destroy'. To avoid this issue, we use an exec-based plugin to fetch an up-to-date token. If this variable is set to true, we'll use kubergrunt to fetch the token (in which case, kubergrunt must be installed and on PATH); if this variable is set to false, we'll use the aws CLI to fetch the token (in which case, aws must be installed and on PATH). Note this functionality is only enabled if use_exec_plugin_for_auth is set to true."
+  type        = bool
+  default     = true
 }

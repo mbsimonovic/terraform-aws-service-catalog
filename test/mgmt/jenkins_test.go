@@ -59,6 +59,7 @@ func TestJenkins(t *testing.T) {
 				"aws_region":          awsRegion,
 				"service_catalog_ref": branchName,
 				"version_tag":         branchName,
+				"encrypt_boot":        "false",
 			},
 			RetryableErrors: map[string]string{
 				"Could not connect to pkg.jenkins.io": "The Jenkins Debian repo sometimes has connectivity issues",

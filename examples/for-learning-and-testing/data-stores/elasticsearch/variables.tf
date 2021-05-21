@@ -26,7 +26,7 @@ variable "keypair_name" {
 }
 
 variable "enable_encryption_at_rest" {
-  description = "When true, the Elasticsearch domain storage will be encrypted at rest using the aws/es service KMS key."
+  description = "When true, the Elasticsearch domain storage will be encrypted at rest using the aws/es service KMS key. It defaults to false here for testing purposes and because setting it to true is not available on the free tier. In production, you should set this to true."
   type        = bool
   default     = false
 }

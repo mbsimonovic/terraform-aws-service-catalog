@@ -7,10 +7,10 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This module is now only being tested with Terraform 0.13.x. However, to make upgrading easier, we are setting
-  # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 0.13.x code.
-  required_version = ">= 0.12.26"
+  # This module is now only being tested with Terraform 0.14.x. However, to make upgrading easier, we are setting
+  # 0.13.0 as the minimum version, as that version added support for module for_each, making it forwards compatible with
+  # 0.14.x code.
+  required_version = ">= 0.13.0"
 
   required_providers {
     aws = {
@@ -42,14 +42,48 @@ provider "kubernetes" {
   load_config_file       = false
   host                   = data.aws_eks_cluster.cluster.endpoint
   cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
-  token                  = data.aws_eks_cluster_auth.kubernetes_token.token
+  token                  = var.use_exec_plugin_for_auth ? null : data.aws_eks_cluster_auth.kubernetes_token[0].token
+
+  # EKS clusters use short-lived authentication tokens that can expire in the middle of an 'apply' or 'destroy'. To
+  # avoid this issue, we use an exec-based plugin here to fetch an up-to-date token. Note that this code requires a
+  # binary—either kubergrunt or aws—to be installed and on your PATH.
+  dynamic "exec" {
+    for_each = var.use_exec_plugin_for_auth ? ["once"] : []
+
+    content {
+      api_version = "client.authentication.k8s.io/v1alpha1"
+      command     = var.use_kubergrunt_to_fetch_token ? "kubergrunt" : "aws"
+      args = (
+        var.use_kubergrunt_to_fetch_token
+        ? ["eks", "token", "--cluster-id", var.eks_cluster_name]
+        : ["eks", "get-token", "--cluster-name", var.eks_cluster_name]
+      )
+    }
+  }
 }
 
 provider "helm" {
   kubernetes {
     host                   = data.aws_eks_cluster.cluster.endpoint
     cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
-    token                  = data.aws_eks_cluster_auth.kubernetes_token.token
+    token                  = var.use_exec_plugin_for_auth ? null : data.aws_eks_cluster_auth.kubernetes_token[0].token
+
+    # EKS clusters use short-lived authentication tokens that can expire in the middle of an 'apply' or 'destroy'. To
+    # avoid this issue, we use an exec-based plugin here to fetch an up-to-date token. Note that this code requires a
+    # binary—either kubergrunt or aws—to be installed and on your PATH.
+    dynamic "exec" {
+      for_each = var.use_exec_plugin_for_auth ? ["once"] : []
+
+      content {
+        api_version = "client.authentication.k8s.io/v1alpha1"
+        command     = var.use_kubergrunt_to_fetch_token ? "kubergrunt" : "aws"
+        args = (
+          var.use_kubergrunt_to_fetch_token
+          ? ["eks", "token", "--cluster-id", var.eks_cluster_name]
+          : ["eks", "get-token", "--cluster-name", var.eks_cluster_name]
+        )
+      }
+    }
   }
 }
 
@@ -60,10 +94,14 @@ provider "helm" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "aws_for_fluent_bit" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-container-logs?ref=v0.33.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-container-logs?ref=v0.36.0"
+
+  # The contents of the for each set is irrelevant as it is only used to enable the module.
+  for_each = var.enable_fluent_bit ? { enable = true } : {}
 
   iam_role_for_service_accounts_config = var.eks_iam_role_for_service_accounts_config
   iam_role_name_prefix                 = var.eks_cluster_name
+  extra_outputs                        = var.fluent_bit_extra_outputs
   cloudwatch_configuration = {
     region            = var.aws_region
     log_group_name    = local.maybe_log_group
@@ -74,16 +112,19 @@ module "aws_for_fluent_bit" {
 }
 
 resource "aws_cloudwatch_log_group" "eks_cluster" {
-  count = var.fluent_bit_log_group_already_exists == false ? 1 : 0
+  count = local.create_cloudwatch_log_group ? 1 : 0
   name  = local.log_group_name
 }
 
 locals {
+  create_cloudwatch_log_group = var.enable_fluent_bit && var.fluent_bit_log_group_already_exists == false
   log_group_name = (
     var.fluent_bit_log_group_name != null ? var.fluent_bit_log_group_name : var.eks_cluster_name
   )
   maybe_log_group = (
-    var.fluent_bit_log_group_already_exists ? local.log_group_name : aws_cloudwatch_log_group.eks_cluster[0].name
+    length(aws_cloudwatch_log_group.eks_cluster) > 0
+    ? aws_cloudwatch_log_group.eks_cluster[0].name
+    : local.log_group_name
   )
 }
 
@@ -93,8 +134,11 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "alb_ingress_controller" {
-  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-alb-ingress-controller?ref=v0.33.1"
+  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-alb-ingress-controller?ref=v0.36.0"
   dependencies = aws_eks_fargate_profile.core_services.*.id
+
+  # The contents of the for each set is irrelevant as it is only used to enable the module.
+  for_each = var.enable_alb_ingress_controller ? { enable = true } : {}
 
   aws_region                           = var.aws_region
   eks_cluster_name                     = var.eks_cluster_name
@@ -111,8 +155,11 @@ module "alb_ingress_controller" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "k8s_external_dns" {
-  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-external-dns?ref=v0.33.1"
+  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-external-dns?ref=v0.36.0"
   dependencies = aws_eks_fargate_profile.core_services.*.id
+
+  # The contents of the for each set is irrelevant as it is only used to enable the module.
+  for_each = var.enable_external_dns ? { enable = true } : {}
 
   aws_region                           = var.aws_region
   eks_cluster_name                     = var.eks_cluster_name
@@ -135,12 +182,17 @@ module "k8s_external_dns" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "k8s_cluster_autoscaler" {
-  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-cluster-autoscaler?ref=v0.33.1"
+  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-cluster-autoscaler?ref=v0.36.0"
   dependencies = aws_eks_fargate_profile.core_services.*.id
+
+  # The contents of the for each set is irrelevant as it is only used to enable the module.
+  for_each = var.enable_cluster_autoscaler ? { enable = true } : {}
 
   aws_region                           = var.aws_region
   eks_cluster_name                     = var.eks_cluster_name
   iam_role_for_service_accounts_config = var.eks_iam_role_for_service_accounts_config
+  pod_annotations                      = var.cluster_autoscaler_pod_annotations
+  pod_labels                           = var.cluster_autoscaler_pod_labels
   pod_tolerations                      = var.cluster_autoscaler_pod_tolerations
   pod_node_affinity                    = var.cluster_autoscaler_pod_node_affinity
 
@@ -180,7 +232,11 @@ resource "aws_eks_fargate_profile" "core_services" {
 }
 
 locals {
-  should_create_fargate_profile = var.schedule_alb_ingress_controller_on_fargate || var.schedule_external_dns_on_fargate || var.schedule_cluster_autoscaler_on_fargate
+  should_create_fargate_profile = (
+    (var.enable_alb_ingress_controller && var.schedule_alb_ingress_controller_on_fargate)
+    || (var.enable_external_dns && var.schedule_external_dns_on_fargate)
+    || (var.enable_cluster_autoscaler && var.schedule_cluster_autoscaler_on_fargate)
+  )
 
   # Create a map of all the labels for the fargate profile selectors we need to create in the profile. We use a merge
   # with a conditional expression to conditionally add each entry into the map for for_each purposes.

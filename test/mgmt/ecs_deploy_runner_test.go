@@ -18,7 +18,6 @@ import (
 	"github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/packer"
 	"github.com/gruntwork-io/terratest/modules/random"
-	"github.com/gruntwork-io/terratest/modules/shell"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 	"github.com/stretchr/testify/require"
@@ -98,7 +97,8 @@ func TestEcsDeployRunner(t *testing.T) {
 				"aws_region":          awsRegion,
 				"service_catalog_ref": branchName,
 				"version_tag":         branchName,
-				"instance_type":       "t3.micro",
+				"instance_type":       aws.GetRecommendedInstanceType(t, region, []string{"t2.micro", "t3.micro"}),
+				"encrypt_boot":        "false",
 			},
 			MaxRetries:         3,
 			TimeBetweenRetries: 5 * time.Second,
@@ -170,19 +170,7 @@ func TestEcsDeployRunner(t *testing.T) {
 		edrhelpers.GitCloneAndDockerBuild(t, edrhelpers.ModuleCIRepo, moduleCITag, "modules/ecs-deploy-runner/docker/kaniko", kanikoBuildOpts)
 	})
 	test_structure.RunTestStage(t, "push_docker_image", func() {
-		pushCmd := shell.Command{
-			Command: "bash",
-			Args: []string{
-				"-c",
-				fmt.Sprintf(
-					"eval $(aws ecr get-login --no-include-email --region %s) && docker push %s && docker push %s",
-					region,
-					deployRunnerImg,
-					kanikoImg,
-				),
-			},
-		}
-		shell.RunCommand(t, pushCmd)
+		test.RunCommandWithEcrAuth(t, fmt.Sprintf("docker push %s && docker push %s", deployRunnerImg, kanikoImg), region)
 	})
 
 	// Deploy the ECS deploy runner
@@ -228,6 +216,7 @@ func TestEcsDeployRunner(t *testing.T) {
 				"allowed_repos":                           []string{serviceCatalogRepo},
 				"allowed_repos_regex":                     []string{},
 				"repo_access_ssh_key_secrets_manager_arn": sshSecretsManagerArn,
+				"repo_access_https_tokens":                nil,
 				"secrets_manager_env_vars":                map[string]interface{}{},
 				"environment_vars":                        map[string]interface{}{},
 			},
@@ -240,6 +229,7 @@ func TestEcsDeployRunner(t *testing.T) {
 				"infrastructure_live_repositories":        []string{serviceCatalogRepo, edrhelpers.ModuleCIRepo},
 				"infrastructure_live_repositories_regex":  []string{},
 				"repo_access_ssh_key_secrets_manager_arn": sshSecretsManagerArn,
+				"repo_access_https_tokens":                nil,
 				"secrets_manager_env_vars":                map[string]interface{}{},
 				"environment_vars":                        map[string]interface{}{},
 			},
@@ -258,6 +248,7 @@ func TestEcsDeployRunner(t *testing.T) {
 					"email": gitUserEmail,
 				},
 				"repo_access_ssh_key_secrets_manager_arn": sshSecretsManagerArn,
+				"repo_access_https_tokens":                nil,
 				"secrets_manager_env_vars":                map[string]interface{}{},
 				"environment_vars":                        map[string]interface{}{},
 			},

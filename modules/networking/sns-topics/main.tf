@@ -9,9 +9,9 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This module is now only being tested with Terraform 0.13.x. However, to make upgrading easier, we are setting
+  # This module is now only being tested with Terraform 0.14.x. However, to make upgrading easier, we are setting
   # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 0.13.x code.
+  # forwards compatible with 0.14.x code.
   required_version = ">= 0.12.26"
 
   required_providers {
@@ -28,15 +28,17 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "sns_topic" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-messaging.git//modules/sns?ref=v0.3.4"
+  source = "git::git@github.com:gruntwork-io/package-messaging.git//modules/sns?ref=v0.5.0"
 
   create_resources = var.create_resources
 
   name                      = var.name
   display_name              = var.display_name
   allow_publish_accounts    = var.allow_publish_accounts
+  allow_publish_services    = var.allow_publish_services
   allow_subscribe_accounts  = var.allow_subscribe_accounts
   allow_subscribe_protocols = var.allow_subscribe_protocols
+  kms_master_key_id         = var.kms_master_key_id
 }
 
 
@@ -45,8 +47,7 @@ module "sns_topic" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "sns_to_slack" {
-  # TODO: Update to released version
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/sns-to-slack?ref=v0.24.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/sns-to-slack?ref=v0.26.1"
 
   create_resources = var.create_resources && var.slack_webhook_url != null
 

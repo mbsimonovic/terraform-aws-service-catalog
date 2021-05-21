@@ -138,6 +138,20 @@ variable "ami_builder_config" {
     # git repositories containing packer templates.
     repo_access_ssh_key_secrets_manager_arn = string
 
+    # Configurations for setting up private git repo access to https based git URLs for each supported VCS platform.
+    # The following keys are supported:
+    #
+    # - github_token_secrets_manager_arn    : The ARN of an AWS Secrets Manager entry containing contents of a GitHub
+    #                                         Personal Access Token for accessing git repos over HTTPS.
+    # - gitlab_token_secrets_manager_arn    : The ARN of an AWS Secrets Manager entry containing contents of a GitLab
+    #                                         Personal Access Token for accessing git repos over HTTPS.
+    # - bitbucket_token_secrets_manager_arn : The ARN of an AWS Secrets Manager entry containing contents of a BitBucket
+    #                                         Personal Access Token for accessing git repos over HTTPS.
+    #                                         bitbucket_username is required if this is set.
+    # - bitbucket_username                  : The username of the BitBucket user associated with the bitbucket token
+    #                                         passed in with bitbucket_token_secrets_manager_arn.
+    repo_access_https_tokens = map(string)
+
     # ARNs of AWS Secrets Manager entries that you would like to expose to the packer process as environment
     # variables. For example,
     # secrets_manager_env_vars = {
@@ -201,6 +215,20 @@ variable "terraform_planner_config" {
     # The ARN of a secrets manager entry containing the raw contents of a SSH private key to use when accessing the
     # infrastructure live repository.
     repo_access_ssh_key_secrets_manager_arn = string
+
+    # Configurations for setting up private git repo access to https based git URLs for each supported VCS platform.
+    # The following keys are supported:
+    #
+    # - github_token_secrets_manager_arn    : The ARN of an AWS Secrets Manager entry containing contents of a GitHub
+    #                                         Personal Access Token for accessing git repos over HTTPS.
+    # - gitlab_token_secrets_manager_arn    : The ARN of an AWS Secrets Manager entry containing contents of a GitLab
+    #                                         Personal Access Token for accessing git repos over HTTPS.
+    # - bitbucket_token_secrets_manager_arn : The ARN of an AWS Secrets Manager entry containing contents of a BitBucket
+    #                                         Personal Access Token for accessing git repos over HTTPS.
+    #                                         bitbucket_username is required if this is set.
+    # - bitbucket_username                  : The username of the BitBucket user associated with the bitbucket token
+    #                                         passed in with bitbucket_token_secrets_manager_arn.
+    repo_access_https_tokens = map(string)
 
     # ARNs of AWS Secrets Manager entries that you would like to expose to the terraform/terragrunt process as
     # environment variables. For example,
@@ -282,6 +310,20 @@ variable "terraform_applier_config" {
     # repository containing the live infrastructure configuration. This SSH key should be for a machine user that has write
     # access to the code when using with terraform-update-variable.
     repo_access_ssh_key_secrets_manager_arn = string
+
+    # Configurations for setting up private git repo access to https based git URLs for each supported VCS platform.
+    # The following keys are supported:
+    #
+    # - github_token_secrets_manager_arn    : The ARN of an AWS Secrets Manager entry containing contents of a GitHub
+    #                                         Personal Access Token for accessing git repos over HTTPS.
+    # - gitlab_token_secrets_manager_arn    : The ARN of an AWS Secrets Manager entry containing contents of a GitLab
+    #                                         Personal Access Token for accessing git repos over HTTPS.
+    # - bitbucket_token_secrets_manager_arn : The ARN of an AWS Secrets Manager entry containing contents of a BitBucket
+    #                                         Personal Access Token for accessing git repos over HTTPS.
+    #                                         bitbucket_username is required if this is set.
+    # - bitbucket_username                  : The username of the BitBucket user associated with the bitbucket token
+    #                                         passed in with bitbucket_token_secrets_manager_arn.
+    repo_access_https_tokens = map(string)
 
     # ARNs of AWS Secrets Manager entries that you would like to expose to the terraform/terragrunt process as
     # environment variables. For example,

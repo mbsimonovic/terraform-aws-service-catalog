@@ -36,31 +36,35 @@ func TestElasticsearch(t *testing.T) {
 	preferredRegions := []string{"us-east-1", "us-west-1", "eu-west-1"}
 	excludedRegions := []string{"ap-northeast-2"}
 
-	testFolder := test_structure.CopyTerraformFolderToTemp(t, "../../", "examples/for-learning-and-testing/data-stores/elasticsearch")
-	testFolderPublic := test_structure.CopyTerraformFolderToTemp(t, "../../", "examples/for-learning-and-testing/data-stores/elasticsearch-public")
+	privateExample := "examples/for-learning-and-testing/data-stores/elasticsearch"
+	publicExample := "examples/for-learning-and-testing/data-stores/elasticsearch-public"
 
 	testCases := []struct {
 		name          string
-		testFolder    string
+		exampleFolder string
 		hasKeyPair    bool
 		enableEncrypt bool
+		isPublic      bool
 	}{
 		{
 			"VPC-based Cluster",
-			testFolder,
+			privateExample,
 			true,
+			false,
 			false,
 		},
 		{
 			"Public Access Cluster",
-			testFolderPublic,
+			publicExample,
 			false,
 			false,
+			true,
 		},
 		{
 			"Public Access Cluster (encrypt at rest)",
-			testFolderPublic,
+			publicExample,
 			false,
+			true,
 			true,
 		},
 	}
@@ -69,54 +73,55 @@ func TestElasticsearch(t *testing.T) {
 		// The following is necessary to make sure testCase's values don't
 		// get updated due to concurrency within the scope of t.Run(..) below
 		testCase := testCase
-
 		t.Run(testCase.name, func(t *testing.T) {
 			t.Parallel()
 
+			testFolder := test_structure.CopyTerraformFolderToTemp(t, "../../", testCase.exampleFolder)
+
 			defer test_structure.RunTestStage(t, "cleanup", func() {
-				terraformOptions := test_structure.LoadTerraformOptions(t, testCase.testFolder)
+				terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
 				terraform.Destroy(t, terraformOptions)
 				if testCase.hasKeyPair {
-					awsKeyPair := test_structure.LoadEc2KeyPair(t, testCase.testFolder)
+					awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
 					aws.DeleteEC2KeyPair(t, awsKeyPair)
 				}
 			})
 
 			test_structure.RunTestStage(t, "setup", func() {
 				awsRegion := aws.GetRandomStableRegion(t, preferredRegions, excludedRegions)
-				test_structure.SaveString(t, testCase.testFolder, "region", awsRegion)
+				test_structure.SaveString(t, testFolder, "region", awsRegion)
 
 				uniqueID := strings.ToLower(random.UniqueId())
-				test_structure.SaveString(t, testCase.testFolder, "uniqueID", uniqueID)
+				test_structure.SaveString(t, testFolder, "uniqueID", uniqueID)
 
 				if testCase.hasKeyPair {
 					awsKeyPair := aws.CreateAndImportEC2KeyPair(t, awsRegion, uniqueID)
-					test_structure.SaveEc2KeyPair(t, testCase.testFolder, awsKeyPair)
+					test_structure.SaveEc2KeyPair(t, testFolder, awsKeyPair)
 				}
 			})
 
 			test_structure.RunTestStage(t, "deploy_cluster", func() {
-				awsRegion := test_structure.LoadString(t, testCase.testFolder, "region")
-				uniqueID := test_structure.LoadString(t, testCase.testFolder, "uniqueID")
+				awsRegion := test_structure.LoadString(t, testFolder, "region")
+				uniqueID := test_structure.LoadString(t, testFolder, "uniqueID")
 
 				awsKeyPairName := ""
 				if testCase.hasKeyPair {
-					awsKeyPair := test_structure.LoadEc2KeyPair(t, testCase.testFolder)
+					awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
 					awsKeyPairName = awsKeyPair.Name
 				}
 
-				terraformOptions := createElasticsearchTerraformOptions(t, testCase.testFolder, awsRegion, uniqueID, awsKeyPairName)
+				terraformOptions := createElasticsearchTerraformOptions(t, testFolder, awsRegion, uniqueID, awsKeyPairName)
 				terraformOptions.Vars["enable_encryption_at_rest"] = testCase.enableEncrypt
 
-				test_structure.SaveTerraformOptions(t, testCase.testFolder, terraformOptions)
+				test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
 				terraform.InitAndApply(t, terraformOptions)
 			})
 
 			test_structure.RunTestStage(t, "validate_cluster", func() {
-				if testCase.testFolder == testFolder {
-					validateCluster(t, testCase.testFolder)
+				if testCase.isPublic {
+					validatePublicCluster(t, testFolder)
 				} else {
-					validatePublicCluster(t, testCase.testFolder)
+					validateCluster(t, testFolder)
 				}
 			})
 		})

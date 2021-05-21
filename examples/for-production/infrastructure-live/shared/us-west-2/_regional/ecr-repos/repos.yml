@@ -1,0 +1,38 @@
+# We put this data in a YAML file, rather than directly in an HCL file, as YAML makes it easier for the Gruntwork
+# Architecture Catalog tooling to parse the file and add additional data: e.g., if you add an additional service from
+# the Architecture Catalog, the Architecture Catalog tooling may add a few extra parameters to this file that are used
+# by the new service. It is completely safe for you to add or modify data in this file manually, as the Architecture
+# Catalog tooling will only ever add/merge data. Alternatively, if you do not intend to use the Gruntwork Architecture
+# Catalog in the future, you could move this data directly into an HCL file instead.
+
+ecs-deploy-runner:
+  external_account_ids_with_read_access:
+  # NOTE: we have to comment out the directives so that the python based data merger (see the `merge-data` hook under
+  # blueprints in this repository) can parse this yaml file. This still works when feeding through templatefile, as it
+  # will interleave blank comments with the list items, which yaml handles gracefully.
+  # %{ for account in accounts }
+  - '${account}'
+  # %{ endfor }
+  external_account_ids_with_write_access: []
+  tags: {}
+  enable_automatic_image_scanning: true
+kaniko:
+  external_account_ids_with_read_access:
+  # NOTE: we have to comment out the directives so that the python based data merger (see the `merge-data` hook under
+  # blueprints in this repository) can parse this yaml file. This still works when feeding through templatefile, as it
+  # will interleave blank comments with the list items, which yaml handles gracefully.
+  # %{ for account in accounts }
+  - '${account}'
+  # %{ endfor }
+  external_account_ids_with_write_access: []
+  tags: {}
+  enable_automatic_image_scanning: true
+
+
+# Add each repo you wish to create as a map:
+#
+# NAME:
+#  external_account_ids_with_read_access: []
+#  external_account_ids_with_write_access: []
+#  tags: {}
+#  enable_automatic_image_scanning: true

@@ -14,6 +14,7 @@ import (
 	"github.com/gruntwork-io/terratest/modules/aws"
 	dns_helper "github.com/gruntwork-io/terratest/modules/dns-helper"
 	"github.com/gruntwork-io/terratest/modules/docker"
+	"github.com/gruntwork-io/terratest/modules/files"
 	"github.com/gruntwork-io/terratest/modules/git"
 	http_helper "github.com/gruntwork-io/terratest/modules/http-helper"
 	"github.com/gruntwork-io/terratest/modules/k8s"
@@ -32,7 +33,7 @@ import (
 )
 
 const (
-	// renovate.json auto-update-github-releases: gruntwork-io/terraform-aws-eks
+	// renovate.json auto-update-variable: terraform-aws-eks
 	terraformAWSEKSVersion = "v0.32.4"
 )
 
@@ -68,6 +69,7 @@ func TestEksCluster(t *testing.T) {
 	//os.Setenv("SKIP_build_aws_auth_merger_image", "true")
 	//os.Setenv("SKIP_deploy_terraform", "true")
 	//os.Setenv("SKIP_validate_cluster", "true")
+	//os.Setenv("SKIP_validate_core_services_optionality", "true")
 	//os.Setenv("SKIP_deploy_core_services", "true")
 	//os.Setenv("SKIP_validate_core_services_fargate", "true")
 	//os.Setenv("SKIP_validate_external_dns", "true")
@@ -156,7 +158,8 @@ func TestEksClusterFargateUsEast1(t *testing.T) {
 	})
 
 	test_structure.RunTestStage(t, "deploy_core_services", func() {
-		deployCoreServices(t, workingDir, workingDir, coreServicesRoot)
+		coreServicesTerraformOptions := getCoreServicesTerraformOptions(t, workingDir, workingDir, coreServicesRoot)
+		terraform.InitAndApply(t, coreServicesTerraformOptions)
 	})
 
 	test_structure.RunTestStage(t, "validate_core_services_fargate", func() {
@@ -202,6 +205,14 @@ func testEKSClusterWithCoreServicesAndAuthMerger(t *testing.T, parentWorkingDir 
 	coreServicesRoot := filepath.Join(examplesRoot, "for-learning-and-testing/services/eks-core-services")
 	k8sServiceRoot := filepath.Join(examplesRoot, "for-learning-and-testing/services/k8s-service")
 
+	// We also create a sibling copy of the k8s-service example so that we can test the IngressGroup feature.
+	altK8sServiceRoot := filepath.Join(examplesRoot, "for-learning-and-testing/services/k8s-service-alt")
+	if !files.FileExists(altK8sServiceRoot) {
+		tmpRootFolder, err := files.CopyTerraformFolderToTemp(k8sServiceRoot, "eksclustertest")
+		require.NoError(t, err)
+		require.NoError(t, os.Rename(tmpRootFolder, altK8sServiceRoot))
+	}
+
 	defer test_structure.RunTestStage(t, "cleanup_aws_auth_merger_image", func() {
 		region := test_structure.LoadString(t, parentWorkingDir, "region")
 		repository := test_structure.LoadString(t, workingDir, "ecrRepoName")
@@ -232,8 +243,24 @@ func testEKSClusterWithCoreServicesAndAuthMerger(t *testing.T, parentWorkingDir 
 		terraform.Destroy(t, terraformOptions)
 	})
 
+	test_structure.RunTestStage(t, "validate_core_services_optionality", func() {
+		coreServicesTerraformOptions := getCoreServicesTerraformOptions(t, parentWorkingDir, workingDir, coreServicesRoot)
+
+		// Set up vars to disable all the core services and verify nothing gets deployed.
+		coreServicesTerraformOptions.Vars["enable_fluent_bit"] = false
+		coreServicesTerraformOptions.Vars["enable_alb_ingress_controller"] = false
+		coreServicesTerraformOptions.Vars["enable_external_dns"] = false
+		coreServicesTerraformOptions.Vars["enable_cluster_autoscaler"] = false
+		coreServicesTerraformOptions.Vars["service_dns_mappings"] = map[string]interface{}{}
+		planCounts := terraform.GetResourceCount(t, terraform.InitAndPlan(t, coreServicesTerraformOptions))
+		assert.Equal(t, 0, planCounts.Add)
+		assert.Equal(t, 0, planCounts.Change)
+		assert.Equal(t, 0, planCounts.Destroy)
+	})
+	coreServicesTerraformOptions := test_structure.LoadTerraformOptions(t, coreServicesRoot)
+
 	test_structure.RunTestStage(t, "deploy_core_services", func() {
-		deployCoreServices(t, parentWorkingDir, workingDir, coreServicesRoot)
+		terraform.InitAndApply(t, coreServicesTerraformOptions)
 	})
 
 	test_structure.RunTestStage(t, "validate_core_services_fargate", func() {
@@ -247,14 +274,24 @@ func testEKSClusterWithCoreServicesAndAuthMerger(t *testing.T, parentWorkingDir 
 	defer test_structure.RunTestStage(t, "cleanup_sampleapp", func() {
 		terraformOptions := test_structure.LoadTerraformOptions(t, k8sServiceRoot)
 		terraform.Destroy(t, terraformOptions)
+
+		altTerraformOptions := test_structure.LoadTerraformOptions(t, altK8sServiceRoot)
+		terraform.Destroy(t, altTerraformOptions)
 	})
 
 	test_structure.RunTestStage(t, "deploy_sampleapp", func() {
-		deploySampleApp(t, parentWorkingDir, workingDir, k8sServiceRoot)
+		deploySampleApp(t, parentWorkingDir, workingDir, k8sServiceRoot, "", nil, 1)
+
+		// Make another copy of the sample app that shares the ingress group.
+		deploySampleApp(t, parentWorkingDir, workingDir, altK8sServiceRoot, "alt", awsgo.String("additional app"), 2)
 	})
 
 	test_structure.RunTestStage(t, "validate_sampleapp", func() {
 		validateSampleApp(t, workingDir, k8sServiceRoot)
+		validateSampleApp(t, workingDir, altK8sServiceRoot)
+
+		// We also validate to make sure the two app domains are routing to the same ALB.
+		validateSameALBDomain(t, workingDir, k8sServiceRoot, altK8sServiceRoot)
 	})
 
 }
@@ -270,6 +307,7 @@ func buildWorkerAmi(t *testing.T, testFolder string) {
 			"aws_region":          awsRegion,
 			"service_catalog_ref": branchName,
 			"version_tag":         branchName,
+			"encrypt_boot":        "false",
 		},
 		MaxRetries:         3,
 		TimeBetweenRetries: 5 * time.Second,
@@ -346,19 +384,19 @@ func validateEKSCluster(t *testing.T, workingDir string, expectedEksNodeCount in
 	assert.Equal(t, len(readyNodes), expectedEksNodeCount)
 }
 
-// Deploy the core services module in the test.
+// Setup the core services module terraform options in the test.
 // parentWorkingDir should be the working dir of the overarching test, and is where the global options like region and
 // AMI are stored.
 // workingDir should be the working dir of the subtest, and is where local options like the terraform options are
 // stored.
-func deployCoreServices(t *testing.T, parentWorkingDir string, workingDir string, coreServicesModulePath string) {
+func getCoreServicesTerraformOptions(t *testing.T, parentWorkingDir string, workingDir string, coreServicesModulePath string) *terraform.Options {
 	awsRegion := test_structure.LoadString(t, parentWorkingDir, "region")
 	clusterName := test_structure.LoadString(t, workingDir, "clusterName")
 	terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
 
 	eksClusterIRSAConfig := terraform.OutputMap(t, terraformOptions, "eks_iam_role_for_service_accounts_config")
 	eksClusterVpcID := terraform.Output(t, terraformOptions, "eks_cluster_vpc_id")
-	eksPrivateSubnetIDs := terraform.Output(t, terraformOptions, "private_subnet_ids")
+	eksPrivateSubnetIDs := terraform.OutputList(t, terraformOptions, "private_subnet_ids")
 	eksClusterFargateRole := terraform.Output(t, terraformOptions, "eks_default_fargate_execution_role_arn")
 
 	coreServicesOptions := test.CreateBaseTerraformOptions(t, coreServicesModulePath, awsRegion)
@@ -377,7 +415,7 @@ func deployCoreServices(t *testing.T, parentWorkingDir string, workingDir string
 	}
 	test_structure.SaveTerraformOptions(t, coreServicesModulePath, coreServicesOptions)
 
-	terraform.InitAndApply(t, coreServicesOptions)
+	return coreServicesOptions
 }
 
 // Validate the core services module is running on Fargate.
@@ -452,20 +490,56 @@ func validateExternalDNS(t *testing.T, workingDir string) {
 // AMI are stored.
 // workingDir should be the working dir of the subtest, and is where local options like the terraform options are
 // stored.
-func deploySampleApp(t *testing.T, parentWorkingDir string, workingDir string, k8sServiceModulePath string) {
+func deploySampleApp(
+	t *testing.T,
+	parentWorkingDir string,
+	workingDir string,
+	k8sServiceModulePath string,
+	nameSuffix string,
+	customGreeting *string,
+	ingressOrder int,
+) {
 	uniqueID := test_structure.LoadString(t, parentWorkingDir, "uniqueID")
+	uniqueIDLower := strings.ToLower(uniqueID)
 	awsRegion := test_structure.LoadString(t, parentWorkingDir, "region")
 	clusterName := test_structure.LoadString(t, workingDir, "clusterName")
-	applicationName := fmt.Sprintf("sampleapp-%s", strings.ToLower(uniqueID))
+	applicationName := fmt.Sprintf("sampleapp-%s%s", uniqueIDLower, nameSuffix)
 	test_structure.SaveString(t, k8sServiceModulePath, "applicationName", applicationName)
 
 	k8sServiceOptions := test.CreateBaseTerraformOptions(t, k8sServiceModulePath, awsRegion)
 	k8sServiceOptions.Vars["application_name"] = applicationName
 	k8sServiceOptions.Vars["expose_type"] = "external"
-	k8sServiceOptions.Vars["domain_name"] = fmt.Sprintf("sample-app-%s.%s", clusterName, test.BaseDomainForTest)
+	k8sServiceOptions.Vars["domain_name"] = fmt.Sprintf("%s.%s", applicationName, test.BaseDomainForTest)
 	k8sServiceOptions.Vars["aws_region"] = awsRegion
 	k8sServiceOptions.Vars["kubeconfig_auth_type"] = "eks"
 	k8sServiceOptions.Vars["kubeconfig_eks_cluster_name"] = clusterName
+	k8sServiceOptions.Vars["ingress_group"] = map[string]interface{}{
+		"name":     "aws-sample-app",
+		"priority": ingressOrder,
+	}
+
+	// Make sure we use the same S3 bucket name and prefix so that the ALB can be shared.
+	k8sServiceOptions.Vars["ingress_access_logs_s3_bucket_name"] = fmt.Sprintf("gw-service-catalog-test-%s-alb-access-logs", uniqueIDLower)
+	k8sServiceOptions.Vars["ingress_access_logs_s3_prefix"] = fmt.Sprintf("sampleapp-%s", uniqueIDLower)
+	// Make sure only one of the sample apps manage the access logs bucket. We assume the sample app with no nameSuffix
+	// is the main one to manage the bucket.
+	if nameSuffix == "" {
+		k8sServiceOptions.Vars["ingress_ssl_redirect_rule_already_exists"] = false
+		k8sServiceOptions.Vars["ingress_access_logs_s3_bucket_already_exists"] = false
+	} else {
+		k8sServiceOptions.Vars["ingress_ssl_redirect_rule_already_exists"] = true
+		k8sServiceOptions.Vars["ingress_access_logs_s3_bucket_already_exists"] = true
+	}
+
+	var expectedGreeting string
+	if customGreeting == nil {
+		expectedGreeting = "Hello from the dev config!"
+	} else {
+		expectedGreeting = *customGreeting
+		k8sServiceOptions.Vars["server_greeting"] = expectedGreeting
+	}
+	test_structure.SaveString(t, k8sServiceModulePath, "expectedGreeting", expectedGreeting)
+
 	test_structure.SaveTerraformOptions(t, k8sServiceModulePath, k8sServiceOptions)
 
 	terraform.InitAndApply(t, k8sServiceOptions)
@@ -476,15 +550,15 @@ func deploySampleApp(t *testing.T, parentWorkingDir string, workingDir string, k
 // stored.
 func validateSampleApp(t *testing.T, workingDir string, k8sServiceModulePath string) {
 	terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
-	clusterName := test_structure.LoadString(t, workingDir, "clusterName")
 	eksClusterArn := terraform.OutputRequired(t, terraformOptions, "eks_cluster_arn")
 	applicationName := test_structure.LoadString(t, k8sServiceModulePath, "applicationName")
+	expectedGreeting := test_structure.LoadString(t, k8sServiceModulePath, "expectedGreeting")
 
 	tmpKubeConfigPath := configureKubectlForEKSCluster(t, eksClusterArn)
 	defer os.Remove(tmpKubeConfigPath)
 	options := k8s.NewKubectlOptions("", tmpKubeConfigPath, "default")
 
-	sampleAppValidationFunction := sampleAppValidationWithGreetingFunctionGenerator("Hello from the dev config!")
+	sampleAppValidationFunction := sampleAppValidationWithGreetingFunctionGenerator(expectedGreeting)
 
 	verifyPodsCreatedSuccessfully(t, options, applicationName)
 	verifyAllPodsAvailable(t, options, applicationName, "/greeting", sampleAppValidationFunction)
@@ -493,7 +567,7 @@ func validateSampleApp(t *testing.T, workingDir string, k8sServiceModulePath str
 	// hostname to have propagated through DNS before making requests to it. Otherwise, if we make requests too early,
 	// before DNS has propagated, the missing DNS entry gets recorded in the local cache, and the test will keep
 	// failing, despite retries.
-	hostname := fmt.Sprintf("sample-app-%s.%s", clusterName, test.BaseDomainForTest)
+	hostname := fmt.Sprintf("%s.%s", applicationName, test.BaseDomainForTest)
 	dns_helper.DNSLookupAuthoritativeWithRetry(
 		t,
 		dns_helper.DNSQuery{
@@ -609,16 +683,35 @@ func buildAWSAuthMergerImage(t *testing.T, parentWorkingDir string, workingDir s
 		OtherOptions: []string{"--no-cache"},
 	}
 	docker.Build(t, filepath.Join(repoDir, "modules/eks-aws-auth-merger"), buildOpts)
-	pushCmd := shell.Command{
-		Command: "bash",
-		Args: []string{
-			"-c",
-			fmt.Sprintf(
-				"eval $(aws ecr get-login --no-include-email --region %s) && docker push %s",
-				region,
-				awsAuthMergerDockerRepoTag,
-			),
+	test.RunCommandWithEcrAuth(t, fmt.Sprintf("docker push %s", awsAuthMergerDockerRepoTag), region)
+}
+
+func validateSameALBDomain(t *testing.T, workingDir string, k8sServiceRoot string, altK8sServiceRoot string) {
+	applicationName := test_structure.LoadString(t, k8sServiceRoot, "applicationName")
+	hostname := fmt.Sprintf("%s.%s", applicationName, test.BaseDomainForTest)
+	answers := dns_helper.DNSLookupAuthoritativeWithRetry(
+		t,
+		dns_helper.DNSQuery{
+			Type: "A",
+			Name: hostname,
 		},
-	}
-	shell.RunCommand(t, pushCmd)
+		nil,
+		K8SServiceWaitTimerRetries,
+		K8SIngressWaitTimerSleep,
+	)
+
+	altApplicationName := test_structure.LoadString(t, altK8sServiceRoot, "applicationName")
+	altHostname := fmt.Sprintf("%s.%s", altApplicationName, test.BaseDomainForTest)
+	altAnswers := dns_helper.DNSLookupAuthoritativeWithRetry(
+		t,
+		dns_helper.DNSQuery{
+			Type: "A",
+			Name: altHostname,
+		},
+		nil,
+		K8SServiceWaitTimerRetries,
+		K8SIngressWaitTimerSleep,
+	)
+
+	assert.Equal(t, altAnswers, answers)
 }

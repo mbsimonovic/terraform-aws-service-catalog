@@ -227,8 +227,20 @@ variable "create_route53_entry" {
   default     = false
 }
 
+variable "base_domain_name" {
+  description = "The base domain name to use for the OpenVPN server. Used to lookup the Hosted Zone ID to use for creating the Route 53 domain entry. Only used if var.create_route53_entry is true."
+  type        = string
+  default     = null
+}
+
 variable "domain_name" {
-  description = "The domain name to use for the OpenVPN server. Only used if var.create_route53_entry is true."
+  description = "The domain name to use for the OpenVPN server. Only used if var.create_route53_entry is true. If null, set to <NAME>.<BASE_DOMAIN_NAME>."
+  type        = string
+  default     = null
+}
+
+variable "hosted_zone_id" {
+  description = "The ID of the Route 53 Hosted Zone in which the domain should be created. Only used if var.create_route53_entry is true. If null, lookup the hosted zone ID using the var.base_domain_name."
   type        = string
   default     = null
 }

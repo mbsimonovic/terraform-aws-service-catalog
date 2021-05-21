@@ -3,9 +3,9 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This module is now only being tested with Terraform 0.13.x. However, to make upgrading easier, we are setting
+  # This module is now only being tested with Terraform 0.14.x. However, to make upgrading easier, we are setting
   # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 0.13.x code.
+  # forwards compatible with 0.14.x code.
   required_version = ">= 0.12.26"
 
   required_providers {
@@ -22,7 +22,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "asg" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-asg.git//modules/asg-rolling-deploy?ref=v0.12.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-asg.git//modules/asg-rolling-deploy?ref=v0.14.1"
 
   launch_configuration_name = aws_launch_configuration.launch_configuration.name
   vpc_subnet_ids            = var.subnet_ids
@@ -143,6 +143,8 @@ module "ec2_baseline" {
   external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
   enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
   enable_cloudwatch_metrics           = var.enable_cloudwatch_metrics
+  enable_asg_cloudwatch_alarms        = var.enable_cloudwatch_alarms
+  alarms_sns_topic_arn                = var.alarms_sns_topic_arn
   iam_role_name                       = aws_iam_role.instance_role.name
   asg_names                           = [module.asg.asg_name]
   num_asg_names                       = 1
@@ -234,7 +236,7 @@ data "aws_secretsmanager_secret" "secrets_arn_exchange" {
 resource "aws_alb_target_group" "service" {
   for_each = local.target_groups
 
-  name     = "${var.name}-${each.key}"
+  name     = each.value.target_group_name
   port     = each.value.port
   protocol = each.value.protocol
   vpc_id   = var.vpc_id
@@ -304,7 +306,7 @@ resource "aws_route53_record" "service" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "route53_health_check" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/route53-health-check-alarms?ref=v0.24.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/route53-health-check-alarms?ref=v0.26.1"
 
   create_resources               = var.enable_route53_health_check
   alarm_configs                  = local.route53_alarm_configurations
@@ -386,10 +388,11 @@ locals {
   target_groups = {
     for key, item in var.server_ports :
     key => {
-      port     = item.server_port
-      path     = lookup(item, "health_check_path", null)
-      protocol = lookup(item, "protocol", "HTTP")
-      tags     = lookup(item, "tags", {})
+      target_group_name = lookup(item, "target_group_name", "${var.name}-${key}")
+      port              = item.server_port
+      path              = lookup(item, "health_check_path", null)
+      protocol          = lookup(item, "protocol", "HTTP")
+      tags              = lookup(item, "tags", {})
 
       enable_lb_health_check = lookup(item, "enable_lb_health_check", true)
       healthy_threshold      = lookup(item, "lb_healthy_threshold", 2)

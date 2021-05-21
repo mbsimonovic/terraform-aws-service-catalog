@@ -5,10 +5,10 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This module is now only being tested with Terraform 0.13.x. However, to make upgrading easier, we are setting
-  # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 0.13.x code.
-  required_version = ">= 0.12.26"
+  # This module is now only being tested with Terraform 0.14.x. However, to make upgrading easier, we are setting 0.13.0 as the minimum version. We require at least 0.13 in this module, as
+  # as that version added support for Terraform native variable validation. See:
+  # https://www.terraform.io/docs/language/values/variables.html#custom-validation-rules
+  required_version = ">= 0.13.0"
 
   required_providers {
     aws = {
@@ -26,8 +26,6 @@ terraform {
 module "alb" {
   source = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/alb?ref=v0.23.0"
 
-  # You can find the list of policies here: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html#describe-ssl-policies
-  ssl_policy = "ELBSecurityPolicy-2016-08"
 
   alb_name        = var.alb_name
   is_internal_alb = var.is_internal_alb
@@ -63,6 +61,7 @@ module "alb" {
   default_action_status_code  = var.default_action_status_code
   acm_cert_statuses           = var.acm_cert_statuses
   acm_cert_types              = var.acm_cert_types
+  ssl_policy                  = var.ssl_policy
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -71,7 +70,7 @@ module "alb" {
 
 # Create an S3 Bucket to store ALB access logs.
 module "alb_access_logs_bucket" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/logs/load-balancer-access-logs?ref=v0.24.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/logs/load-balancer-access-logs?ref=v0.26.1"
 
   # Try to do some basic cleanup to get a valid S3 bucket name: the name must be lower case and can only contain
   # lowercase letters, numbers, and hyphens. For the full rules, see:

@@ -23,6 +23,12 @@ variable "aws_account_id" {
 # These variables have reasonable defaults that can be overridden for further customizations.
 # ---------------------------------------------------------------------------------------------------------------------
 
+variable "enable_config" {
+  description = "Set to true to enable AWS Config in the security account. Set to false to disable AWS Config (note: all other AWS config variables will be ignored)."
+  type        = bool
+  default     = true
+}
+
 variable "config_should_create_s3_bucket" {
   description = "Set to true to create an S3 bucket of name var.config_s3_bucket_name in this account for storing AWS Config data. Set to false to assume the bucket specified in var.config_s3_bucket_name already exists in another AWS account. We recommend setting this to false and setting var.config_s3_bucket_name to the name off an S3 bucket that already exists in a separate logs account."
   type        = bool
@@ -221,6 +227,12 @@ variable "additional_config_rules" {
 # OPTIONAL IAM-GROUPS PARAMETERS
 # These variables have defaults, but may be overridden by the operator.
 # ---------------------------------------------------------------------------------------------------------------------
+
+variable "enable_iam_groups" {
+  description = "A feature flag to enable or disable the IAM Groups module."
+  type        = bool
+  default     = true
+}
 
 variable "should_require_mfa" {
   description = "Should we require that all IAM Users use Multi-Factor Authentication for both AWS API calls and the AWS Web Console? (true or false)"
@@ -567,6 +579,12 @@ variable "password_reset_required" {
 # These variables have defaults, but may be overridden by the operator.
 # ---------------------------------------------------------------------------------------------------------------------
 
+variable "enable_iam_cross_account_roles" {
+  description = "A feature flag to enable or disable the Cross Account Iam Roles module."
+  type        = bool
+  default     = true
+}
+
 variable "dev_permitted_services" {
   description = "A list of AWS services for which the developers from the accounts in var.allow_dev_access_from_other_account_arns will receive full permissions. See https://goo.gl/ZyoHlz to find the IAM Service name. For example, to grant developers access only to EC2 and Amazon Machine Learning, use the value [\"ec2\",\"machinelearning\"]. Do NOT add iam to the list of services, or that will grant Developers de facto admin access."
   type        = list(string)
@@ -695,7 +713,7 @@ variable "guardduty_opt_in_regions" {
 # and you can instead inline the values directly in main.tf.
 # ---------------------------------------------------------------------------------------------------------------------
 
-variable enable_cloudtrail {
+variable "enable_cloudtrail" {
   description = "Set to true (default) to enable CloudTrail in the security account. Set to false to disable CloudTrail (note: all other CloudTrail variables will be ignored). Note that if you have enabled organization trail in the root (parent) account, you should set this to false; the organization trail will enable CloudTrail on child accounts by default."
   type        = bool
   default     = true

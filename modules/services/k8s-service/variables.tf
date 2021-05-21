@@ -45,6 +45,12 @@ variable "desired_number_of_pods" {
 
 # Pod container options
 
+variable "min_number_of_pods_available" {
+  description = "The minimum number of pods that should be available at any given point in time. This is used to configure a PodDisruptionBudget for the service, allowing you to achieve a graceful rollout. See https://blog.gruntwork.io/avoiding-outages-in-your-kubernetes-cluster-using-poddisruptionbudgets-ef6a4baa5085 for an introduction to PodDisruptionBudgets."
+  type        = number
+  default     = 0
+}
+
 variable "desired_number_of_canary_pods" {
   description = "The number of canary Pods to run on the Kubernetes cluster for this service. If greater than 0, you must provide var.canary_image."
   type        = number
@@ -84,6 +90,12 @@ variable "ingress_configure_ssl_redirect" {
   default     = true
 }
 
+variable "ingress_ssl_redirect_rule_already_exists" {
+  description = "Set to true if the Ingress SSL redirect rule is managed externally. This is useful when configuring Ingress grouping and you only want one service to be managing the SSL redirect rules. Only used if ingress_configure_ssl_redirect is true."
+  type        = bool
+  default     = false
+}
+
 variable "ingress_listener_protocol_ports" {
   description = "A list of maps of protocols and ports that the ALB should listen on."
   type = list(object({
@@ -114,10 +126,27 @@ variable "ingress_backend_protocol" {
   default     = "HTTP"
 }
 
+variable "ingress_group" {
+  description = "Assign the ingress resource to an IngressGroup. All Ingress rules of the group will be collapsed to a single ALB. The rules will be collapsed in priority order, with lower numbers being evaluated first."
+  type = object({
+    # Ingress group to assign to.
+    name = string
+    # The priority of the rules in this Ingress. Smaller numbers have higher priority.
+    priority = number
+  })
+  default = null
+}
+
 variable "service_port" {
   description = "The port to expose on the Service. This is most useful when addressing the Service internally to the cluster, as it is ignored when connecting from the Ingress resource."
   type        = number
   default     = 80
+}
+
+variable "ingress_access_logs_s3_bucket_already_exists" {
+  description = "Set to true if the S3 bucket to store the Ingress access logs is managed external to this module."
+  type        = bool
+  default     = false
 }
 
 variable "force_destroy_ingress_access_logs" {
@@ -130,6 +159,12 @@ variable "ingress_access_logs_s3_bucket_name" {
   description = "The name to use for the S3 bucket where the Ingress access logs will be stored. If you leave this blank, a name will be generated automatically based on var.application_name."
   type        = string
   default     = ""
+}
+
+variable "ingress_access_logs_s3_prefix" {
+  description = "The prefix to use for ingress access logs associated with the ALB. All logs will be stored in a key with this prefix. If null, the application name will be used."
+  type        = string
+  default     = null
 }
 
 variable "num_days_after_which_archive_ingress_log_data" {

@@ -11,9 +11,9 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This module is now only being tested with Terraform 0.13.x. However, to make upgrading easier, we are setting
+  # This module is now only being tested with Terraform 0.14.x. However, to make upgrading easier, we are setting
   # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 0.13.x code.
+  # forwards compatible with 0.14.x code.
   required_version = ">= 0.12.26"
 
   required_providers {
@@ -29,7 +29,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "jenkins" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/jenkins-server?ref=v0.31.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/jenkins-server?ref=v0.35.0"
 
   name       = var.name
   aws_region = data.aws_region.current.name
@@ -53,6 +53,7 @@ module "jenkins" {
   is_internal_alb                             = var.is_internal_alb
   allow_incoming_http_from_cidr_blocks        = var.allow_incoming_http_from_cidr_blocks
   allow_incoming_http_from_security_group_ids = var.allow_incoming_http_from_security_group_ids
+  redirect_http_to_https                      = true
 
   key_pair_name                     = var.keypair_name
   allow_ssh_from_cidr_blocks        = var.allow_ssh_from_cidr_blocks
@@ -210,7 +211,7 @@ resource "aws_iam_role_policy" "deploy_this_account_permissions" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "auto_deploy_iam_policies" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-policies?ref=v0.46.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-policies?ref=v0.48.2"
 
   aws_account_id = data.aws_caller_identity.current.account_id
 
@@ -234,7 +235,7 @@ resource "aws_iam_role_policy" "deploy_other_account_permissions" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "high_disk_usage_jenkins_volume_alarms" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/asg-disk-alarms?ref=v0.24.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/asg-disk-alarms?ref=v0.26.1"
 
   asg_names            = [module.jenkins.jenkins_asg_name]
   num_asg_names        = 1
@@ -250,7 +251,7 @@ module "high_disk_usage_jenkins_volume_alarms" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "jenkins_backup" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ec2-backup?ref=v0.31.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ec2-backup?ref=v0.35.0"
 
   instance_name = module.jenkins.jenkins_asg_name
 

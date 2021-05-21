@@ -1,3 +1,16 @@
+# ----------------------------------------------------------------------------------------------------------------
+# This is the root configuration for infrastructure-live. Its purpose is to:
+#
+#   - generate a provider block to configure the Terraform provider for AWS
+#   - generate a remote state block for storing state in S3
+#   - define a minimal set of global inputs that may be needed by any file
+#
+# Each module within infrastructure-live includes this file.
+# ----------------------------------------------------------------------------------------------------------------
+
+# ----------------------------------------------------------------------------------------------------------------
+# LOAD COMMON VARIABLES
+# ----------------------------------------------------------------------------------------------------------------
 locals {
   # Automatically load common variables shared across all accounts
   common_vars = read_terragrunt_config(find_in_parent_folders("common.hcl"))
@@ -8,13 +21,16 @@ locals {
   # Automatically load region-level variables
   region_vars = read_terragrunt_config(find_in_parent_folders("region.hcl"))
 
-  # Extract the variables we need for easy access
+  # Extract commonly used variables for easy acess
+  name_prefix  = local.common_vars.locals.name_prefix
   account_name = local.account_vars.locals.account_name
-  account_id   = local.common_vars.locals.account_ids[local.account_name]
+  account_id   = local.common_vars.locals.accounts[local.account_name]
   aws_region   = local.region_vars.locals.aws_region
 }
 
-# Generate an AWS provider block
+# ----------------------------------------------------------------------------------------------------------------
+# GENERATED PROVIDER BLOCK
+# ----------------------------------------------------------------------------------------------------------------
 generate "provider" {
   path      = "provider.tf"
   if_exists = "overwrite_terragrunt"
@@ -27,13 +43,15 @@ provider "aws" {
 }
 EOF
 }
-
-# Generate the Terraform backend config to store state in S3
+# ----------------------------------------------------------------------------------------------------------------
+# GENERATED REMOTE STATE BLOCK
+# ----------------------------------------------------------------------------------------------------------------
+# Generate the Terraform remote state block for storing state in S3
 remote_state {
   backend = "s3"
   config = {
     encrypt        = true
-    bucket         = "gruntwork-ref-arch-lite-${local.account_name}-${local.aws_region}-terraform-state"
+    bucket         = "${local.name_prefix}-${local.account_name}-${local.aws_region}-tf-state"
     key            = "${path_relative_to_include()}/terraform.tfstate"
     region         = local.aws_region
     dynamodb_table = "terraform-locks"
@@ -43,10 +61,13 @@ remote_state {
     if_exists = "overwrite_terragrunt"
   }
 }
-
-# The default set of inputs for all accounts
+# ----------------------------------------------------------------------------------------------------------------
+# DEFAULT INPUTS
+# ----------------------------------------------------------------------------------------------------------------
 inputs = {
+  # Many modules require these two inputs, so we set them globally here to keep all the child terragrunt.hcl
+  # files more DRY
   aws_account_id = local.account_id
   aws_region     = local.aws_region
+  name_prefix    = local.common_vars.locals.name_prefix
 }
-

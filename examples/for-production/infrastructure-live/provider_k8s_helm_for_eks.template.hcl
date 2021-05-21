@@ -2,21 +2,33 @@ data "aws_eks_cluster" "cluster_for_provider" {
   name = "${eks_cluster_name}"
 }
 
-data "aws_eks_cluster_auth" "kubernetes_token_for_provider" {
-  name = "${eks_cluster_name}"
-}
-
 provider "kubernetes" {
   load_config_file       = false
   host                   = data.aws_eks_cluster.cluster_for_provider.endpoint
   cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster_for_provider.certificate_authority.0.data)
-  token                  = data.aws_eks_cluster_auth.kubernetes_token_for_provider.token
+
+  # EKS clusters use short-lived authentication tokens that can expire in the middle of an 'apply' or 'destroy'. To
+  # avoid this issue, we use an exec-based plugin here to fetch an up-to-date token. Note that this code requires the
+  # kubergrunt binary to be installed and on your PATH.
+  exec {
+    api_version = "client.authentication.k8s.io/v1alpha1"
+    command     = "kubergrunt"
+    args        = ["eks", "token", "--cluster-id", "${eks_cluster_name}"]
+  }
 }
 
 provider "helm" {
   kubernetes {
     host                   = data.aws_eks_cluster.cluster_for_provider.endpoint
     cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster_for_provider.certificate_authority.0.data)
-    token                  = data.aws_eks_cluster_auth.kubernetes_token_for_provider.token
+
+    # EKS clusters use short-lived authentication tokens that can expire in the middle of an 'apply' or 'destroy'. To
+    # avoid this issue, we use an exec-based plugin here to fetch an up-to-date token. Note that this code requires the
+    # kubergrunt binary to be installed and on your PATH.
+    exec {
+      api_version = "client.authentication.k8s.io/v1alpha1"
+      command     = "kubergrunt"
+      args        = ["eks", "token", "--cluster-id", "${eks_cluster_name}"]
+    }
   }
 }

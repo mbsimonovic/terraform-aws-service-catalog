@@ -23,6 +23,12 @@ variable "aws_account_id" {
 # These variables have reasonable defaults that can be overridden for further customizations.
 # ---------------------------------------------------------------------------------------------------------------------
 
+variable "enable_config" {
+  description = "Set to true to enable AWS Config in this app account. Set to false to disable AWS Config (note: all other AWS config variables will be ignored)."
+  type        = bool
+  default     = true
+}
+
 variable "config_should_create_s3_bucket" {
   description = "Set to true to create an S3 bucket of name var.config_s3_bucket_name in this account for storing AWS Config data (e.g., if this is the logs account). Set to false to assume the bucket specified in var.config_s3_bucket_name already exists in another AWS account (e.g., if this is the stage or prod account and var.config_s3_bucket_name is the name of a bucket in the logs account)."
   type        = bool
@@ -222,6 +228,12 @@ variable "additional_config_rules" {
 # These variables have defaults, but may be overridden by the operator.
 # ---------------------------------------------------------------------------------------------------------------------
 
+variable "enable_iam_user_password_policy" {
+  description = "Set to true (default) to enable the IAM User Password Policies in this app account. Set to false to disable the policies. (Note: all other IAM User Password Policy variables will be ignored)."
+  type        = bool
+  default     = true
+}
+
 variable "iam_password_policy_require_uppercase_characters" {
   description = "Require at least one uppercase character in password."
   type        = bool
@@ -286,6 +298,12 @@ variable "iam_password_policy_hard_expiry" {
 # OPTIONAL CROSS ACCOUNT IAM ROLES PARAMETERS
 # These variables have defaults, but may be overridden by the operator.
 # ---------------------------------------------------------------------------------------------------------------------
+
+variable "enable_iam_cross_account_roles" {
+  description = "A feature flag to enable or disable this module."
+  type        = bool
+  default     = true
+}
 
 variable "should_require_mfa" {
   description = "Should we require that all IAM Users use Multi-Factor Authentication for both AWS API calls and the AWS Web Console? (true or false)"
@@ -445,7 +463,7 @@ variable "guardduty_opt_in_regions" {
 # and you can instead inline the values directly in main.tf.
 # ---------------------------------------------------------------------------------------------------------------------
 
-variable enable_cloudtrail {
+variable "enable_cloudtrail" {
   description = "Set to true (default) to enable CloudTrail in this app account. Set to false to disable CloudTrail (note: all other CloudTrail variables will be ignored). Note that if you have enabled organization trail in the root (parent) account, you should set this to false; the organization trail will enable CloudTrail on child accounts by default."
   type        = bool
   default     = true
@@ -732,4 +750,33 @@ variable "service_linked_roles" {
   description = "Create service-linked roles for this set of services. You should pass in the URLs of the services, but without the protocol (e.g., http://) in front: e.g., use elasticbeanstalk.amazonaws.com for Elastic Beanstalk or es.amazonaws.com for Amazon Elasticsearch. Service-linked roles are predefined by the service, can typically only be assumed by that service, and include all the permissions that the service requires to call other AWS services on your behalf. You can typically only create one such role per AWS account, which is why this parameter exists in the account baseline. See https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_aws-services-that-work-with-iam.html for the list of services that support service-linked roles."
   type        = set(string)
   default     = []
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# OPTIONAL IAM ACCESS ANALYZER PARAMETERS
+# These variables have defaults, but may be overridden by the operator.
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "enable_iam_access_analyzer" {
+  description = "A feature flag to enable or disable this module."
+  type        = bool
+  default     = false
+}
+
+variable "iam_access_analyzer_type" {
+  description = "If set to ORGANIZATION, the analyzer will be scanning the current organization and any policies that refer to linked resources such as S3, IAM, Lambda and SQS policies."
+  type        = string
+  default     = "ORGANIZATION"
+}
+
+variable "iam_access_analyzer_name" {
+  description = "The name of the IAM Access Analyzer module"
+  type        = string
+  default     = "baseline_app-iam_access_analyzer"
+}
+
+variable "iam_access_analyzer_opt_in_regions" {
+  description = "Enables IAM Access Analyzer defaults in the specified regions. Note that the region must be enabled on your AWS account. Regions that are not enabled are automatically filtered from this list. When null (default), IAM Access Analyzer will be enabled on all regions enabled on the account. Use this list to provide an alternate region list for testing purposes"
+  type        = list(string)
+  default     = null
 }

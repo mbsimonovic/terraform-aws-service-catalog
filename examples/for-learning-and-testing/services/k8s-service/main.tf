@@ -2,6 +2,21 @@
 # DEPLOY SERVICE ON KUBERNETES USING THE K8S-SERVICE HELM CHART
 # ----------------------------------------------------------------------------------------------------------------------
 
+terraform {
+  # This module is now only being tested with Terraform 0.14.x. However, to make upgrading easier, we are setting
+  # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
+  # forwards compatible with 0.14.x code.
+  required_version = ">= 0.12.26"
+
+  required_providers {
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "= 1.10.0"
+    }
+  }
+}
+
+
 provider "aws" {
   region = var.aws_region
 
@@ -15,11 +30,6 @@ provider "aws" {
 
 # Configure the kubernetes and Helm providers based on the requested authentication type.
 provider "kubernetes" {
-  # Pin to this specific version to work around a bug introduced in 1.11.0:
-  # https://github.com/terraform-providers/terraform-provider-kubernetes/issues/759
-  # (Only for EKS)
-  version = "= 1.10.0"
-
   # If using `context`, load the authentication info from the config file and chosen context.
   load_config_file = var.kubeconfig_auth_type == "context"
   config_path      = var.kubeconfig_auth_type == "context" ? var.kubeconfig_path : null
@@ -28,7 +38,24 @@ provider "kubernetes" {
   # If using `eks`, load the authentication info directly from EKS.
   host                   = var.kubeconfig_auth_type == "eks" ? data.aws_eks_cluster.cluster[0].endpoint : null
   cluster_ca_certificate = var.kubeconfig_auth_type == "eks" ? base64decode(data.aws_eks_cluster.cluster[0].certificate_authority.0.data) : null
-  token                  = var.kubeconfig_auth_type == "eks" ? data.aws_eks_cluster_auth.kubernetes_token[0].token : null
+  token                  = var.kubeconfig_auth_type == "eks" && var.use_exec_plugin_for_auth == false ? data.aws_eks_cluster_auth.kubernetes_token[0].token : null
+
+  # EKS clusters use short-lived authentication tokens that can expire in the middle of an 'apply' or 'destroy'. To
+  # avoid this issue, we use an exec-based plugin here to fetch an up-to-date token. Note that this code requires a
+  # binary—either kubergrunt or aws—to be installed and on your PATH.
+  dynamic "exec" {
+    for_each = var.kubeconfig_auth_type == "eks" && var.use_exec_plugin_for_auth ? ["once"] : []
+
+    content {
+      api_version = "client.authentication.k8s.io/v1alpha1"
+      command     = var.use_kubergrunt_to_fetch_token ? "kubergrunt" : "aws"
+      args = (
+        var.use_kubergrunt_to_fetch_token
+        ? ["eks", "token", "--cluster-id", var.kubeconfig_eks_cluster_name]
+        : ["eks", "get-token", "--cluster-name", var.kubeconfig_eks_cluster_name]
+      )
+    }
+  }
 }
 
 provider "helm" {
@@ -40,7 +67,24 @@ provider "helm" {
     # If using `eks`, load the authentication info directly from EKS.
     host                   = var.kubeconfig_auth_type == "eks" ? data.aws_eks_cluster.cluster[0].endpoint : null
     cluster_ca_certificate = var.kubeconfig_auth_type == "eks" ? base64decode(data.aws_eks_cluster.cluster[0].certificate_authority.0.data) : null
-    token                  = var.kubeconfig_auth_type == "eks" ? data.aws_eks_cluster_auth.kubernetes_token[0].token : null
+    token                  = var.kubeconfig_auth_type == "eks" && var.use_exec_plugin_for_auth == false ? data.aws_eks_cluster_auth.kubernetes_token[0].token : null
+
+    # EKS clusters use short-lived authentication tokens that can expire in the middle of an 'apply' or 'destroy'. To
+    # avoid this issue, we use an exec-based plugin here to fetch an up-to-date token. Note that this code requires a
+    # binary—either kubergrunt or aws—to be installed and on your PATH.
+    dynamic "exec" {
+      for_each = var.kubeconfig_auth_type == "eks" && var.use_exec_plugin_for_auth ? ["once"] : []
+
+      content {
+        api_version = "client.authentication.k8s.io/v1alpha1"
+        command     = var.use_kubergrunt_to_fetch_token ? "kubergrunt" : "aws"
+        args = (
+          var.use_kubergrunt_to_fetch_token
+          ? ["eks", "token", "--cluster-id", var.kubeconfig_eks_cluster_name]
+          : ["eks", "get-token", "--cluster-name", var.kubeconfig_eks_cluster_name]
+        )
+      }
+    }
   }
 }
 
@@ -62,6 +106,8 @@ module "application" {
   container_port         = var.container_port
   namespace              = var.namespace
   expose_type            = var.expose_type
+  ingress_path           = var.ingress_path
+  ingress_group          = var.ingress_group
   desired_number_of_pods = 1
 
   domain_name = var.domain_name
@@ -77,19 +123,28 @@ module "application" {
   # IMPORTANT NOTE: Do NOT use this setting for configuring secrets (e.g. database passwords)! Instead, rely on
   # the `secrets_as_env_vars` setting to inject from Kubernetes Secrets, or injecting directly into the app from your
   # preferred secrets management solution!
-  env_vars = {
-    CONFIG_APP_NAME             = "backend"
-    CONFIG_APP_ENVIRONMENT_NAME = "dev"
-    CONFIG_SERVER_HTTP_PORT     = var.container_port
-    CONFIG_SECRETS_DIR          = "/mnt/secrets"
-
-    # Disable HTTPS endpoint for test purposes.
-    NODE_CONFIG = jsonencode({
-      server = {
-        httpsPort = null
+  env_vars = merge(
+    (
+      var.server_greeting != null
+      ? {
+        CONFIG_APP_GREETING = var.server_greeting
       }
-    })
-  }
+      : {}
+    ),
+    {
+      CONFIG_APP_NAME             = "backend"
+      CONFIG_APP_ENVIRONMENT_NAME = "dev"
+      CONFIG_SERVER_HTTP_PORT     = var.container_port
+      CONFIG_SECRETS_DIR          = "/mnt/secrets"
+
+      # Disable HTTPS endpoint for test purposes.
+      NODE_CONFIG = jsonencode({
+        server = {
+          httpsPort = null
+        }
+      })
+    },
+  )
 
   # These variables can be used for configuring dynamic data that is managed separately from the app deployment.
   # ConfigMaps are recommended for configuration data that are not sensitive, while Secrets are recommended for
@@ -115,6 +170,13 @@ module "application" {
 
   # To make it easier to test, we allow force destroying the ALB access logs but in production, you will want to set
   # this to false so that the access logs are not accidentally destroyed permanently.
-  force_destroy_ingress_access_logs  = true
-  ingress_access_logs_s3_bucket_name = "gw-service-catalog-test-${var.application_name}-alb-access-logs"
+  force_destroy_ingress_access_logs = true
+  ingress_access_logs_s3_bucket_name = (
+    var.ingress_access_logs_s3_bucket_name == null
+    ? "gw-service-catalog-test-${var.application_name}-alb-access-logs"
+    : var.ingress_access_logs_s3_bucket_name
+  )
+  ingress_access_logs_s3_prefix                = var.ingress_access_logs_s3_prefix
+  ingress_ssl_redirect_rule_already_exists     = var.ingress_ssl_redirect_rule_already_exists
+  ingress_access_logs_s3_bucket_already_exists = var.ingress_access_logs_s3_bucket_already_exists
 }

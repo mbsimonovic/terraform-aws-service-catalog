@@ -24,8 +24,14 @@ out/
 
 # Terratest
 .test-data
+# Ignore autogen test examples
+k8s-service-alt
 
 # python
 __pycache__
 *.pyc
 .mypy_cache
+
+# Ignore Terraform lock files, as we want to test the Terraform code in these repos with the latest provider
+# versions.
+.terraform.lock.hcl

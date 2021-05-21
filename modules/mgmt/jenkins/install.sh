@@ -8,23 +8,23 @@ readonly JENKINS_USER="jenkins"
 
 # Gruntwork module versions
 # renovate.json auto-update: terraform-aws-ci
-readonly DEFAULT_MODULE_CI_VERSION="v0.31.1"
+readonly DEFAULT_MODULE_CI_VERSION="v0.35.0"
 
 # Build tooling
 # renovate.json auto-update: kubergrunt
-readonly DEFAULT_KUBERGRUNT_VERSION="v0.6.9"
+readonly DEFAULT_KUBERGRUNT_VERSION="v0.6.16"
 # renovate.json auto-update: terragrunt
-readonly DEFAULT_TERRAGRUNT_VERSION="v0.28.18"
+readonly DEFAULT_TERRAGRUNT_VERSION="v0.29.2"
 
 # renovate.json auto-update-github-releases: jenkinsci/jenkins
-readonly DEFAULT_JENKINS_VERSION="2.263.4"
+readonly DEFAULT_JENKINS_VERSION="2.277.2"
 # renovate.json auto-update-github-releases: hashicorp/terraform
-readonly DEFAULT_TERRAFORM_VERSION="0.12.21"
+readonly DEFAULT_TERRAFORM_VERSION="0.13.6"
 # We intentionally do NOT auto update K8S, as it should be tied to EKS versions, and our support for them in
 # terraform-aws-eks, both of which lag behind open source K8S
 readonly DEFAULT_KUBECTL_VERSION="v1.19.1"
 # renovate.json auto-update-github-releases: helm/helm
-readonly DEFAULT_HELM_VERSION="v3.4.1"
+readonly DEFAULT_HELM_VERSION="v3.5.4"
 # renovate.json auto-update-github-releases: hashicorp/packer
 readonly DEFAULT_PACKER_VERSION="1.6.5"
 # renovate.json auto-update-docker-ubuntu

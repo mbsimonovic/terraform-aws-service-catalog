@@ -157,6 +157,7 @@ func buildAmi(t *testing.T, testFolder string) {
 			"aws_region":          awsRegion,
 			"service_catalog_ref": branchName,
 			"version_tag":         branchName,
+			"encrypt_boot":        "false",
 		},
 		MaxRetries:         3,
 		TimeBetweenRetries: 5 * time.Second,

@@ -59,36 +59,38 @@ variable "server_ports" {
   # Each entry in the map supports the following attributes:
   #
   # REQUIRED:
-  # - server_port        [number]      : The port of the endpoint to be checked (e.g. 80).
+  # - server_port        number      : The port of the endpoint to be checked (e.g. 80).
   #
   # OPTIONAL (defaults to value of corresponding module input):
-  # - tags              [map(string)] : A map of tags to apply to the metric alarm. The key is the tag name
-  #                                   and the value is the tag value.
+  # - target_group_name                   string      : A unique name to use for the corresponding target group. If
+  #                                                     omitted, defaults to "SERVICE_NAME-ENTRY_KEY" where SERVICE_NAME
+  #                                                     corresponds to var.name and ENTRY_KEY corresponds to the map key
+  #                                                     for this server port entry.
+  # - tags                                map(string) : A map of tags to apply to the metric alarm. The key is the tag
+  #                                                     name and the value is the tag value.
+  # - protocol                            string      : The protocol to use for health checks. See:
+  #                                                     https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group#protocol
+  # - health_check_path                   string      : The path that the health check should use for requests (e.g. /health or /status).
+  # - r53_health_check_path               string      : The path that you want Amazon Route 53 to request when
+  #                                                       performing health checks (e.g. /status). Defaults to "/".
+  # - r53_health_check_type               string      : The protocol to use when performing health checks. Valid
+  #                                                     values are HTTP, HTTPS, HTTP_STR_MATCH, HTTPS_STR_MATCH,
+  #                                                     TCP, CALCULATED and CLOUDWATCH_METRIC. Defaults to HTTP.
+  # - r53_health_check_failure_threshold  number      : The number of consecutive health checks that must pass
+  #                                                     or fail for the health check to declare your site up or
+  #                                                     down. Defaults to 2.
+  # - r53_health_check_request_interval   number      : The number of seconds between health checks. Defaults to 30.
   #
-  # - protocol                           [string] : The protocol to use for health checks. See:
-  #                                                 https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group#protocol
-  # - health_check_path                  [string] : The path that the health check should use for requests (e.g. /health or /status).
-  #
-  # - r53_health_check_path              [string] : The path that you want Amazon Route 53 to request when
-  #                                                performing health checks (e.g. /status). Defaults to "/".
-  # - r53_health_check_type              [string] : The protocol to use when performing health checks. Valid
-  #                                               values are HTTP, HTTPS, HTTP_STR_MATCH, HTTPS_STR_MATCH,
-  #                                               TCP, CALCULATED and CLOUDWATCH_METRIC. Defaults to HTTP.
-  # - r53_health_check_failure_threshold [number] : The number of consecutive health checks that must pass
-  #                                               or fail for the health check to declare your site up or
-  #                                               down. Defaults to 2.
-  # - r53_health_check_request_interval  [number] : The number of seconds between health checks. Defaults to 30.
-  #
-  # - enable_lb_health_check [bool]   : Set to false if you want to disable Target Group health's check.
-  #                                   Defaults to true.
-  # - lb_healthy_threshold   [number] : The number of consecutive health checks *successes* required before
+  # - enable_lb_health_check  bool   : Set to false if you want to disable Target Group health's check.
+  #                                    Defaults to true.
+  # - lb_healthy_threshold    number : The number of consecutive health checks *successes* required before
   #                                    considering an unhealthy target healthy. Defaults to 3.
-  # - lb_unhealthy_threshold [number] : The number of consecutive health check *failures* required before
+  # - lb_unhealthy_threshold  number : The number of consecutive health check *failures* required before
   #                                    considering the target unhealthy. Defaults to 3.
-  # - lb_request_interval    [number] : The approximate amount of time, in seconds, between health checks
-  #                                   of an individual target. Defaults to 30.
-  # - lb_timeout             [number] : The amount of time, in seconds, during which no response means a
-  #                                   failed health check. Defaults to 10.
+  # - lb_request_interval     number : The approximate amount of time, in seconds, between health checks
+  #                                    of an individual target. Defaults to 30.
+  # - lb_timeout              number : The amount of time, in seconds, during which no response means a
+  #                                    failed health check. Defaults to 10.
 
   # Example:
   #

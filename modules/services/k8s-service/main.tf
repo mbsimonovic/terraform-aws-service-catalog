@@ -3,9 +3,9 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This module is now only being tested with Terraform 0.13.x. However, to make upgrading easier, we are setting
+  # This module is now only being tested with Terraform 0.14.x. However, to make upgrading easier, we are setting
   # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 0.13.x code.
+  # forwards compatible with 0.14.x code.
   required_version = ">= 0.12.26"
 
   required_providers {
@@ -147,8 +147,16 @@ locals {
       # ints
       "alb.ingress.kubernetes.io/listen-ports"             = "[${join(",", data.template_file.ingress_listener_protocol_ports.*.rendered)}]"
       "alb.ingress.kubernetes.io/backend-protocol"         = var.ingress_backend_protocol
-      "alb.ingress.kubernetes.io/load-balancer-attributes" = "access_logs.s3.enabled=true,access_logs.s3.bucket=${module.alb_access_logs_bucket.s3_bucket_name},access_logs.s3.prefix=${var.application_name}"
+      "alb.ingress.kubernetes.io/load-balancer-attributes" = "access_logs.s3.enabled=true,access_logs.s3.bucket=${module.alb_access_logs_bucket.s3_bucket_name},access_logs.s3.prefix=${local.access_logs_s3_prefix}"
     },
+    (
+      var.ingress_group != null
+      ? {
+        "alb.ingress.kubernetes.io/group.name"  = var.ingress_group.name
+        "alb.ingress.kubernetes.io/group.order" = tostring(var.ingress_group.priority)
+      }
+      : {}
+    ),
     (
       var.ingress_configure_ssl_redirect
       ? {
@@ -210,7 +218,8 @@ locals {
         protocol = "TCP"
       }
     }
-    replicaCount = var.desired_number_of_pods
+    replicaCount     = var.desired_number_of_pods
+    minPodsAvailable = var.min_number_of_pods_available
 
     service = {
       # When expose_type is cluster-internal, we do not want to associate an Ingress resource, or allow access
@@ -226,7 +235,7 @@ locals {
     serviceAccount = {
       # Create a new service account if service_account_name is not blank and it is not referring to an existing Service
       # Account
-      create = (! var.service_account_exists) && var.service_account_name != ""
+      create = (!var.service_account_exists) && var.service_account_name != ""
 
       name        = var.service_account_name
       namespace   = var.namespace
@@ -241,7 +250,9 @@ locals {
       annotations = local.ingress_annotations
       # Only configure the redirect path if using ssl redirect
       additionalPathsHigherPriority = (
+        # When in Ingress Group mode, we need to make sure to only define this once per group.
         var.ingress_configure_ssl_redirect
+        && var.ingress_ssl_redirect_rule_already_exists == false
         ? [{
           path        = "/*"
           serviceName = "ssl-redirect"
@@ -304,8 +315,12 @@ data "template_file" "ingress_listener_protocol_ports" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "alb_access_logs_bucket" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/logs/load-balancer-access-logs?ref=v0.24.1"
-  create_resources = var.expose_type != "cluster-internal"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/logs/load-balancer-access-logs?ref=v0.26.1"
+  create_resources = (
+    var.expose_type != "cluster-internal"
+    # Only create access logs if requested
+    && var.ingress_access_logs_s3_bucket_already_exists == false
+  )
 
   s3_bucket_name    = local.access_logs_s3_bucket_name
   s3_logging_prefix = var.application_name
@@ -323,6 +338,7 @@ locals {
   default_access_logs_s3_bucket_name = "alb-${lower(replace(var.application_name, "_", "-"))}-access-logs"
 
   access_logs_s3_bucket_name = length(var.ingress_access_logs_s3_bucket_name) > 0 ? var.ingress_access_logs_s3_bucket_name : local.default_access_logs_s3_bucket_name
+  access_logs_s3_prefix      = var.ingress_access_logs_s3_prefix == null ? var.application_name : var.ingress_access_logs_s3_prefix
 }
 
 
@@ -338,7 +354,7 @@ resource "aws_iam_role" "new_role" {
 }
 
 module "service_account_assume_role_policy" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-iam-role-assume-role-policy-for-service-account?ref=v0.33.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-iam-role-assume-role-policy-for-service-account?ref=v0.36.0"
 
   eks_openid_connect_provider_arn = var.eks_iam_role_for_service_accounts_config.openid_connect_provider_arn
   eks_openid_connect_provider_url = var.eks_iam_role_for_service_accounts_config.openid_connect_provider_url

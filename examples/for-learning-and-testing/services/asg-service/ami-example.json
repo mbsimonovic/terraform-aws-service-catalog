@@ -7,7 +7,7 @@
     "module_aws_monitoring_version": "",
     "bash_commons_version": "",
     "ami_name": "asg-example",
-    "encrypt_boot": "false",
+    "encrypt_boot": "true",
     "github_auth_token": "{{env `GITHUB_OAUTH_TOKEN`}}",
     "enable_ssh_grunt": "true",
     "enable_cloudwatch_metrics": "true",

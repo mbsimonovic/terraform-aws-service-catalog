@@ -24,3 +24,12 @@ variable "aws_region" {
   type        = string
   default     = "eu-west-1"
 }
+
+variable "allow_publish_services" {
+  description = "A list of AWS services that will be given the rights to publish to the SNS topic."
+  type        = list(string)
+  default = [
+    "events.amazonaws.com",
+    "cloudwatch.amazonaws.com"
+  ]
+}
