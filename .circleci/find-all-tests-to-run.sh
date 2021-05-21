@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Add a comment to a PR.
+# Find all the tests to run and add a comment to the PR.
 
 test_regex=""
 if [[ "$CIRCLE_BRANCH" == "master" ]]; then
