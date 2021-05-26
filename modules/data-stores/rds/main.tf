@@ -8,10 +8,9 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This module is now only being tested with Terraform 0.15.x. However, to make upgrading easier, we are setting
-  # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 0.15.x code.
-  required_version = ">= 0.12.26"
+  # This module is now only being tested with Terraform 0.15.x. We also make 0.15 the minimum version, as we need it
+  # for features related to marking outputs as sensitive or nonsensitive.
+  required_version = ">= 0.15.0"
 
   required_providers {
     aws = {
@@ -101,10 +100,10 @@ locals {
   #
   #
   db_config       = var.db_config_secrets_manager_id != null ? jsondecode(data.aws_secretsmanager_secret_version.db_config[0].secret_string) : null
-  engine          = var.engine != null ? var.engine : local.db_config.engine
-  port            = var.port != null ? var.port : local.db_config.port
-  db_name         = var.db_name != null ? var.db_name : local.db_config.dbname
-  master_username = var.master_username != null ? var.master_username : local.db_config.username
+  engine          = var.engine != null ? var.engine : nonsensitive(local.db_config.engine)
+  port            = var.port != null ? var.port : nonsensitive(local.db_config.port)
+  db_name         = var.db_name != null ? var.db_name : nonsensitive(local.db_config.dbname)
+  master_username = var.master_username != null ? var.master_username : nonsensitive(local.db_config.username)
   master_password = var.master_password != null ? var.master_password : local.db_config.password
 }
 
