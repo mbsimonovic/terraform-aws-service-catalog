@@ -46,6 +46,11 @@ output "port" {
   value       = module.database.port
 }
 
+output "security_group_id" {
+  description = "The ID of the Security Group that controls access to the RDS DB instance."
+  value       = module.database.security_group_id
+}
+
 output "name" {
   description = "The name of the RDS DB instance."
   value       = var.name
