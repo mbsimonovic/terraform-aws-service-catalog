@@ -15,11 +15,11 @@ locals {
 
   # All accounts use the ECR repo in the shared account for the ecs-deploy-runner docker image.
   deploy_runner_ecr_uri             = "${local.accounts.shared}.dkr.ecr.${local.default_region}.amazonaws.com/ecs-deploy-runner"
-  deploy_runner_container_image_tag = "v0.29.14"
+  deploy_runner_container_image_tag = "v0.35.1"
 
   # All accounts use the ECR repo in the shared account for the Kaniko docker image.
   kaniko_ecr_uri             = "${local.accounts.shared}.dkr.ecr.${local.default_region}.amazonaws.com/kaniko"
-  kaniko_container_image_tag = "v0.29.14"
+  kaniko_container_image_tag = "v0.35.1"
 
   # The infastructure-live repository on which the deploy runner operates.
   infra_live_repo_https = "https://github.com/gruntwork-io/infrastructure-live"
@@ -58,10 +58,9 @@ locals {
 
   # Map of account name to VPC CIDR blocks to use for the app VPC.
   app_vpc_cidrs = {
-    dev    = "10.6.0.0/16"
-    prod   = "10.2.0.0/16"
-    shared = "10.4.0.0/16"
-    stage  = "10.0.0.0/16"
+    dev   = "10.0.0.0/16"
+    prod  = "10.4.0.0/16"
+    stage = "10.2.0.0/16"
   }
 
   # List of known static CIDR blocks for the organization. Administrative access (e.g., VPN, SSH,

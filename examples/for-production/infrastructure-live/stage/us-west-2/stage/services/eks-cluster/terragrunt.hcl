@@ -9,7 +9,10 @@
 # locally, you can use --terragrunt-source /path/to/local/checkout/of/module to override the source parameter to a
 # local check out of the module for faster iteration.
 terraform {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/services/eks-cluster?ref=v0.34.1"
+  # We're using a local file path here just so our automated tests run against the absolute latest code. However, when
+  # using these modules in your code, you should use a Git URL with a ref attribute that pins you to a specific version:
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/services/eks-cluster?ref=v0.36.1"
+  source = "${get_parent_terragrunt_dir()}/../../..//modules/services/eks-cluster"
 }
 
 # Include all settings from the root terragrunt.hcl file
@@ -31,7 +34,7 @@ dependency "baseline" {
   config_path = "${get_terragrunt_dir()}/../../../../_global/account-baseline"
 
   mock_outputs = {
-    allow_full_access_from_other_accounts_iam_role_arn = "arn:aws:iam:us-east-1:123456789012:full-access-NZJ5JSMVGFIE"
+    allow_dev_access_from_other_accounts_iam_role_arn = "arn:aws:iam:us-east-1:123456789012:dev-access-NZJ5JSMVGFIE"
   }
   mock_outputs_allowed_terraform_commands = ["validate", ]
 }
@@ -112,7 +115,7 @@ inputs = {
     filters = [
       {
         name   = "name"
-        values = ["eks-workers-v0.34.1-*"]
+        values = ["eks-workers-v0.36.1-*"]
       },
     ]
   }
@@ -141,7 +144,7 @@ inputs = {
 
   iam_role_to_rbac_group_mapping = {
     "arn:aws:iam::${local.common_vars.locals.accounts[local.account_name]}:role/GruntworkAccountAccessRole" = ["system:masters"]
-    (dependency.baseline.outputs.allow_full_access_from_other_accounts_iam_role_arn)                        = ["system:masters"]
+    (dependency.baseline.outputs.allow_dev_access_from_other_accounts_iam_role_arn)                         = ["system:masters"]
     (dependency.ecs_deploy_runner.outputs.ecs_task_iam_roles["terraform-planner"]["arn"])                   = ["system:masters"]
     (dependency.ecs_deploy_runner.outputs.ecs_task_iam_roles["terraform-applier"]["arn"])                   = ["system:masters"]
   }

@@ -10,7 +10,10 @@
 # locally, you can use --terragrunt-source /path/to/local/checkout/of/module to override the source parameter to a
 # local check out of the module for faster iteration.
 terraform {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/networking/route53?ref=v0.34.1"
+  # We're using a local file path here just so our automated tests run against the absolute latest code. However, when
+  # using these modules in your code, you should use a Git URL with a ref attribute that pins you to a specific version:
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/networking/route53?ref=v0.36.1"
+  source = "${get_parent_terragrunt_dir()}/../../..//modules/networking/route53"
 }
 
 # Include all settings from the root terragrunt.hcl file
@@ -55,10 +58,11 @@ locals {
 inputs = {
   public_zones = {
     "${local.account_vars.locals.domain_name.name}" = {
-      comment                   = ""
-      tags                      = {}
-      force_destroy             = false
-      base_domain_name_tags     = {}
+      comment       = ""
+      tags          = {}
+      force_destroy = false
+      base_domain_name_tags = {
+      }
       created_outside_terraform = true
       subject_alternative_names = ["*.${local.account_vars.locals.domain_name.name}"]
       hosted_zone_domain_name   = "${local.account_vars.locals.domain_name.name}"

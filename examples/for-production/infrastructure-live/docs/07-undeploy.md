@@ -180,11 +180,3 @@ There are a few reasons your call to `destroy` may fail:
     1. Run `apply` to temporarily bring back the dependencies.
     1. Update the code to temporarily remove the dependencies and replace them with some mock data.
 
-
-
-
-
-## Next steps
-
-Now that you know how to undeploy the Reference Architecture, let's take a look at [how to deploy it from
-scratch](07-deploy-from-scratch.md).

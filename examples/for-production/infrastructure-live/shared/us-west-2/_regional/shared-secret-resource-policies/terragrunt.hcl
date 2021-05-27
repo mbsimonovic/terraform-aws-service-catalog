@@ -9,7 +9,10 @@
 # locally, you can use --terragrunt-source /path/to/local/checkout/of/module to override the source parameter to a
 # local check out of the module for faster iteration.
 terraform {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/secrets-manager-resource-policies?ref=v0.41.3"
+  # We're using a local file path here just so our automated tests run against the absolute latest code. However, when
+  # using these modules in your code, you should use a Git URL with a ref attribute that pins you to a specific version:
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/secrets-manager-resource-policies?ref=v0.48.4"
+  source = "${get_parent_terragrunt_dir()}/../../..//modules/secrets-manager-resource-policies"
 }
 
 # Include all settings from the root terragrunt.hcl file
@@ -70,4 +73,5 @@ inputs = {
       iam_entities_with_full_access = []
       policy_statement_json         = ""
     },
-} }
+  }
+}

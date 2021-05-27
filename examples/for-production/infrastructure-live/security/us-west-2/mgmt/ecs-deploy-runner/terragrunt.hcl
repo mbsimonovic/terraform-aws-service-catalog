@@ -9,7 +9,10 @@
 # locally, you can use --terragrunt-source /path/to/local/checkout/of/module to override the source parameter to a
 # local check out of the module for faster iteration.
 terraform {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/mgmt/ecs-deploy-runner?ref=v0.34.1"
+  # We're using a local file path here just so our automated tests run against the absolute latest code. However, when
+  # using these modules in your code, you should use a Git URL with a ref attribute that pins you to a specific version:
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/mgmt/ecs-deploy-runner?ref=v0.36.1"
+  source = "${get_parent_terragrunt_dir()}/../../..//modules/mgmt/ecs-deploy-runner"
 }
 
 # Include all settings from the root terragrunt.hcl file
@@ -72,9 +75,8 @@ locals {
 
   state_bucket = local.region_vars.locals.state_bucket
 
-  git_ssh_private_key_secrets_manager_arn      = "arn:aws:secretsmanager:us-west-2:234567890123:secret:GitSSHPrivateKey"
-  github_pat_secrets_manager_arn               = ""
-  docker_image_builder_pat_secrets_manager_arn = "arn:aws:secretsmanager:us-west-2:234567890123:secret:MachineUserGitHubPAT-abcdef"
+  git_ssh_private_key_secrets_manager_arn = "arn:aws:secretsmanager:us-west-2:234567890123:secret:GitSSHPrivateKey"
+  github_pat_secrets_manager_arn          = ""
 
 }
 
@@ -104,6 +106,9 @@ inputs = {
     )
     infrastructure_live_repositories_regex  = []
     repo_access_ssh_key_secrets_manager_arn = local.git_ssh_private_key_secrets_manager_arn
+    repo_access_https_tokens = {
+      github_token_secrets_manager_arn = local.github_pat_secrets_manager_arn
+    }
     secrets_manager_env_vars = {
       GITHUB_OAUTH_TOKEN = local.github_pat_secrets_manager_arn
     }
@@ -128,6 +133,9 @@ inputs = {
       email = "gruntbot@gruntwork.io"
     }
     repo_access_ssh_key_secrets_manager_arn = local.git_ssh_private_key_secrets_manager_arn
+    repo_access_https_tokens = {
+      github_token_secrets_manager_arn = local.github_pat_secrets_manager_arn
+    }
     secrets_manager_env_vars = {
       GITHUB_OAUTH_TOKEN = local.github_pat_secrets_manager_arn
     }
@@ -138,6 +146,6 @@ inputs = {
   # A list of role names that should be given permissions to invoke the infrastructure CI/CD pipeline.
   iam_roles = ["allow-auto-deploy-from-other-accounts", ]
 
-  container_cpu    = 2048
-  container_memory = 8192
+  container_cpu    = 4096
+  container_memory = 16384
 }

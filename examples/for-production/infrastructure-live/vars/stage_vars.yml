@@ -1,0 +1,7 @@
+AMIEncryptionKMSKeyARN: ""
+AWSAccountName: stage
+AccountDomainName: gruntwork-stage.com
+DBSecretsManagerArn: arn:aws:secretsmanager:us-west-2:456789012345:secret:RDSDBConfig-abcd1234
+IncludeAccountBaselineApp: true
+asg-sample-app-backend.TLSSecretsManagerArn: arn:aws:secretsmanager:us-west-2:456789012345:secret:TLSBackEndSecretsManagerArn-abcd1234
+asg-sample-app-frontend.TLSSecretsManagerArn: arn:aws:secretsmanager:us-west-2:456789012345:secret:TLSFrontEndSecretsManagerArn-abcd1234

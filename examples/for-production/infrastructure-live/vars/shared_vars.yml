@@ -1,0 +1,12 @@
+AMIEncryptionKMSKeyARN: ""
+AWSAccountName: shared
+IncludeAccountBaselineApp: true
+IncludeAlarmSNSTopic: false
+IncludeBastionHost: false
+IncludeBastionHostAMIBuildScript: false
+IncludeECSClusterInstanceAMIBuildScript: false
+IncludeEKSClusterInstanceAMIBuildScript: false
+IncludeOpenVPNAMIBuildScript: false
+IncludeOpenVPNServer: false
+IncludeVPCApp: false
+infrastructure-live-account-baseline-app.AMIEncryptionKMSKeyARN: ""

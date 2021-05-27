@@ -1,0 +1,96 @@
+AMIUserAccounts:
+    - prod
+    - dev
+    - stage
+AWSAccounts:
+    dev: "345678901234"
+    logs: "012345678901"
+    prod: "567890123456"
+    security: "123456789012"
+    shared: "234567890123"
+    stage: "456789012345"
+AWSDefaultRegion: us-west-2
+AWSRegion: us-west-2
+AdditionalDockerImageRepos:
+    - https://github.com/gruntwork-io/terraform-aws-ci.git
+AdditionalPlanAndApplyRepos:
+    - git@github.com:gruntwork-clients/infrastructure-live-gruntwork.git
+AllowedApplyGitRefs:
+    - main
+AppServerClusterType: asg
+AppVPCCIDRBlock: ""
+AppVPCCIDRMap:
+    dev: 10.0.0.0/16
+    prod: 10.4.0.0/16
+    stage: 10.2.0.0/16
+AuroraEngine: aurora-postgresql
+AutoDeployRoleNames:
+    - allow-auto-deploy-from-other-accounts
+CACertFields:
+    ca_country: US
+    ca_email: support@gruntwork.io
+    ca_locality: Phoenix
+    ca_org: Gruntwork
+    ca_org_unit: IT
+    ca_state: AZ
+CIServer: circleci
+CacheEngine: memcached
+CloudTrailKMSKeyARN: ""
+CompanyName: Gruntwork
+CompanyVCSPlatform: github
+DeployRunnerImageTag: v0.35.1
+DockerImageBuildPATSecretsManagerARN: arn:aws:secretsmanager:us-west-2:234567890123:secret:MachineUserGitHubPAT-abcdef
+ECSDeployRunnerRegion: us-west-2
+EncryptBoot: true
+GitHubPATSecretsManagerARN: ""
+GitSSHPrivateKeySecretsManagerARN: arn:aws:secretsmanager:us-west-2:234567890123:secret:GitSSHPrivateKey
+IAMUsers:
+    ci-machine-user:
+        create_access_keys: false
+        create_login_profile: false
+        groups:
+            - _account.prod-auto-deploy
+            - _account.logs-auto-deploy
+            - _account.shared-auto-deploy
+            - _account.security-auto-deploy
+            - _account.dev-auto-deploy
+            - _account.stage-auto-deploy
+    gruntwork:
+        create_access_keys: false
+        create_login_profile: true
+        groups:
+            - ssh-grunt-sudo-users
+            - _all-accounts
+            - full-access
+        pgp_key: keybase:gruntwork
+IPAllowList:
+    - 0.0.0.0/0
+IncludeASGCluster: true
+IncludeAurora: true
+IncludeBastionHost: false
+IncludeECSCluster: false
+IncludeEKSCluster: false
+IncludeElasticache: true
+IncludeOpenVPN: false
+IncludeRDS: false
+IncludeServiceQuotas: false
+InfraLiveRepoSSHURL: git@github.com:gruntwork-io/infrastructure-live.git
+InfraLiveRepoURL: https://github.com/gruntwork-io/infrastructure-live
+IsExample: true
+KanikoImageTag: v0.35.1
+MachineUserGitEmail: gruntbot@gruntwork.io
+MachineUserGitUsername: gruntbot
+MgmtVPCCIDRBlock: ""
+MgmtVPCCIDRMap:
+    dev: 172.31.80.0/20
+    logs: 172.31.80.0/20
+    prod: 172.31.80.0/20
+    security: 172.31.80.0/20
+    shared: 172.31.80.0/20
+    stage: 172.31.80.0/20
+PrimaryIAMEmail: info@gruntwork.io
+PrimaryIAMUsername: gruntwork
+ResourceNamePrefix: gruntwork
+SharedSecretsKMSKeyARN: ""
+TerraformVersion: 0.14.8
+UsingCISCompliance: false
