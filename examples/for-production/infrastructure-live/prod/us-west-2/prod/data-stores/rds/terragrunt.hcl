@@ -9,7 +9,10 @@
 # locally, you can use --terragrunt-source /path/to/local/checkout/of/module to override the source parameter to a
 # local check out of the module for faster iteration.
 terraform {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/data-stores/rds?ref=v0.34.1"
+  # We're using a local file path here just so our automated tests run against the absolute latest code. However, when
+  # using these modules in your code, you should use a Git URL with a ref attribute that pins you to a specific version:
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/data-stores/rds?ref=v0.36.1"
+  source = "${get_parent_terragrunt_dir()}/../../..//modules/data-stores/rds"
 }
 
 # Include all settings from the root terragrunt.hcl file

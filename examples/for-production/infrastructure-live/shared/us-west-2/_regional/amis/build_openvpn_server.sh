@@ -7,13 +7,13 @@
 # the Shared Services AWS account.
 #
 # This is the build script for the OpenVPN Server AMI. You can view the packer template at the following URL:
-# https://github.com/gruntwork-io/terraform-aws-service-catalog/blob/v0.34.1/modules/mgmt/openvpn-server/openvpn-server.json
+# https://github.com/gruntwork-io/terraform-aws-service-catalog/blob/v0.36.1/modules/mgmt/openvpn-server/openvpn-server.json
 
 set -e
 
 readonly PACKER_TEMPLATE_REPO="git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/mgmt/openvpn-server/openvpn-server.json"
-readonly PACKER_TEMPLATE_REPO_REF="v0.34.1"
-readonly SERVICE_CATALOG_REF="v0.34.1"
+readonly PACKER_TEMPLATE_REPO_REF="v0.36.1"
+readonly SERVICE_CATALOG_REF="v0.36.1"
 readonly DEPLOY_RUNNER_REGION="us-west-2"
 readonly REGION="us-west-2"
 
@@ -38,6 +38,10 @@ function run {
   # NOTE: The ECS deploy runner will inject the following parameters automatically:
   # - "--idempotent 'true'"
   # - "--ssh-key-secrets-manager-arn $ARN"
+  # - "--github-token-secrets-manager-arn" (When using GitHub as a VCS.)
+  # - "--gitlab-token-secrets-manager-arn" (When using GitLab as a VCS.)
+  # - "--bitbucket-token-secrets-manager-arn" (When using Bitbucket as a VCS.)
+  # - "--bitbucket-username" (When using Bitbucket as a VCS.)
   infrastructure-deployer --aws-region "$DEPLOY_RUNNER_REGION" -- ami-builder build-packer-artifact \
     --packer-template-path "git::$PACKER_TEMPLATE_REPO?ref=$PACKER_TEMPLATE_REPO_REF" \
     --var service_catalog_ref="$SERVICE_CATALOG_REF" \

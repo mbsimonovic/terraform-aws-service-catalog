@@ -9,7 +9,10 @@
 # locally, you can use --terragrunt-source /path/to/local/checkout/of/module to override the source parameter to a
 # local check out of the module for faster iteration.
 terraform {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/services/asg-service?ref=v0.34.1"
+  # We're using a local file path here just so our automated tests run against the absolute latest code. However, when
+  # using these modules in your code, you should use a Git URL with a ref attribute that pins you to a specific version:
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/services/asg-service?ref=v0.36.1"
+  source = "${get_parent_terragrunt_dir()}/../../..//modules/services/asg-service"
 }
 
 # Include all settings from the root terragrunt.hcl file
@@ -63,8 +66,8 @@ dependency "alb_internal" {
   mock_outputs = {
     alb_security_group_id = "sg-abcd1234"
     listener_arns = {
-      80  = "mock-listener"
-      443 = "mock-listener"
+      80  = "arn:aws:elasticloadbalancing:us-east-1:123456789012:listener/app/mock-alb/50dc6c495c0c9188/f2f7dc8efc522ab2"
+      443 = "arn:aws:elasticloadbalancing:us-east-1:123456789012:listener/app/mock-alb/50dc6c495c0c9188/f2f7dc8efc522ab2"
     }
   }
   mock_outputs_allowed_terraform_commands = ["validate", ]
@@ -109,6 +112,9 @@ locals {
 
   external_account_ssh_grunt_role_arn = "arn:aws:iam::${local.common_vars.locals.accounts.security}:role/allow-ssh-grunt-access-from-other-accounts"
 
+  # Specify the AMI version here so that it can be overridden in a CI/CD pipeline.
+  ami_version = "v0.0.2"
+
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -123,7 +129,7 @@ inputs = {
     filters = [
       {
         name   = "name"
-        values = ["aws-sample-app-v0.0.2-*"]
+        values = ["aws-sample-app-${local.ami_version}-*"]
       },
     ]
   }

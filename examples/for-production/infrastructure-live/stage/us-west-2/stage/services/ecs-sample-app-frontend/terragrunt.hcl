@@ -10,7 +10,10 @@
 # locally, you can use --terragrunt-source /path/to/local/checkout/of/module to override the source parameter to a
 # local check out of the module for faster iteration.
 terraform {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/services/ecs-service?ref=v0.34.1"
+  # We're using a local file path here just so our automated tests run against the absolute latest code. However, when
+  # using these modules in your code, you should use a Git URL with a ref attribute that pins you to a specific version:
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/services/ecs-service?ref=v0.36.1"
+  source = "${get_parent_terragrunt_dir()}/../../..//modules/services/ecs-service"
 }
 
 # Include all settings from the root terragrunt.hcl file
@@ -55,8 +58,8 @@ dependency "alb" {
 
   mock_outputs = {
     listener_arns = {
-      80  = "mock-listener"
-      443 = "mock-listener"
+      80  = "arn:aws:elasticloadbalancing:us-east-1:123456789012:listener/app/mock-alb/50dc6c495c0c9188/f2f7dc8efc522ab2"
+      443 = "arn:aws:elasticloadbalancing:us-east-1:123456789012:listener/app/mock-alb/50dc6c495c0c9188/f2f7dc8efc522ab2"
     }
   }
   mock_outputs_allowed_terraform_commands = ["validate", ]
@@ -90,6 +93,9 @@ locals {
 
   service_name            = "sample-app-frontend"
   tls_secrets_manager_arn = "arn:aws:secretsmanager:us-west-2:456789012345:secret:TLSFrontEndSecretsManagerArn-abcd1234"
+
+  # Specify the app image tag here so that it can be overridden in a CI/CD pipeline.
+  tag = "v0.0.4"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -115,7 +121,7 @@ inputs = {
   # https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html
   container_definitions = [{
     name      = local.service_name
-    image     = "gruntwork/aws-sample-app:v0.0.2"
+    image     = "gruntwork/aws-sample-app:${local.tag}"
     cpu       = 512
     memory    = 256
     essential = true

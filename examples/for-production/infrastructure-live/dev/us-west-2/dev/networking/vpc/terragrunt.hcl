@@ -9,7 +9,10 @@
 # locally, you can use --terragrunt-source /path/to/local/checkout/of/module to override the source parameter to a
 # local check out of the module for faster iteration.
 terraform {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/networking/vpc?ref=v0.34.1"
+  # We're using a local file path here just so our automated tests run against the absolute latest code. However, when
+  # using these modules in your code, you should use a Git URL with a ref attribute that pins you to a specific version:
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/networking/vpc?ref=v0.36.1"
+  source = "${get_parent_terragrunt_dir()}/../../..//modules/networking/vpc"
 }
 
 # Include all settings from the root terragrunt.hcl file
@@ -55,5 +58,6 @@ inputs = {
   kms_key_user_iam_arns = [
     "arn:aws:iam::${local.common_vars.locals.accounts[local.account_name]}:root",
   ]
-  eks_cluster_names = ["${local.name_prefix}-${local.account_name}"]
-tag_for_use_with_eks = true }
+  eks_cluster_names    = ["${local.name_prefix}-${local.account_name}"]
+  tag_for_use_with_eks = true
+}
