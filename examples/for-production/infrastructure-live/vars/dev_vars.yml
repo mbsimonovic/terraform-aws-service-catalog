@@ -1,7 +1,0 @@
-AMIEncryptionKMSKeyARN: ""
-AWSAccountName: dev
-AccountDomainName: gruntwork-dev.com
-DBSecretsManagerArn: arn:aws:secretsmanager:us-west-2:345678901234:secret:RDSDBConfig-abcd1234
-IncludeAccountBaselineApp: true
-asg-sample-app-backend.TLSSecretsManagerArn: arn:aws:secretsmanager:us-west-2:345678901234:secret:TLSBackEndSecretsManagerArn-abcd1234
-asg-sample-app-frontend.TLSSecretsManagerArn: arn:aws:secretsmanager:us-west-2:345678901234:secret:TLSFrontEndSecretsManagerArn-abcd1234
