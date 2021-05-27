@@ -39,7 +39,7 @@ func TestSmokeForProductionExamples(t *testing.T) {
 				TerraformBinary: "terragrunt",
 				TerraformDir:    account,
 			}
-			_, err := terraform.RunTerraformCommandE(t, opts, terraform.FormatArgs(opts, "validate-all")...)
+			_, err := terraform.RunTerraformCommandE(t, opts, terraform.FormatArgs(opts, "run-all", "validate")...)
 			require.NoError(t, err)
 		})
 	}
