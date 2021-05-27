@@ -13,7 +13,7 @@ import (
 )
 
 // Folders in infrastructure live that are not terragrunt examples.
-var notTerragruntExamples = []string{"docs", "_ci"}
+var notTerragruntExamples = []string{"docs", "_ci", "vars"}
 
 func TestSmokeForProductionExamples(t *testing.T) {
 	t.Parallel()
