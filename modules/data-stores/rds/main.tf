@@ -48,9 +48,10 @@ module "database" {
   allow_connections_from_cidr_blocks     = var.allow_connections_from_cidr_blocks
   allow_connections_from_security_groups = var.allow_connections_from_security_groups
 
-  instance_type     = var.instance_type
-  allocated_storage = var.allocated_storage
-  num_read_replicas = var.num_read_replicas
+  instance_type         = var.instance_type
+  allocated_storage     = var.allocated_storage
+  max_allocated_storage = var.max_allocated_storage
+  num_read_replicas     = var.num_read_replicas
 
   enabled_cloudwatch_logs_exports = var.enabled_cloudwatch_logs_exports
 

@@ -287,6 +287,12 @@ variable "num_read_replicas" {
   default     = 0
 }
 
+variable "max_allocated_storage" {
+  description = "When configured, the upper limit to which Amazon RDS can automatically scale the storage of the DB instance. Configuring this will automatically ignore differences to allocated_storage. Must be greater than or equal to allocated_storage or 0 to disable Storage Autoscaling."
+  type        = number
+  default     = 0
+}
+
 # Note: you cannot enable encryption on an existing DB, so you have to enable it for the very first deployment. If you
 # already created the DB unencrypted, you'll have to create a new one with encryption enabled and migrate your data to
 # it. For more info on RDS encryption, see: http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.Encryption.html
