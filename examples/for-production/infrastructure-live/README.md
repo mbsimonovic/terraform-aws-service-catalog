@@ -12,7 +12,7 @@ AWS Service Catalog](https://github.com/gruntwork-io/terraform-aws-service-catal
 
 ### Core concepts
 
-* [Reference Architecture Walkthrough Documentation](/docs): Comprehensive documentation that walks through all
+* [Reference Architecture Walkthrough Documentation](docs): Comprehensive documentation that walks through all
   aspects of this architecture, including what's deployed, how the code is organized, how to run the code in dev,
   how the CI / CD pipeline works, how to access metrics and logs, how to connect via VPN and SSH, and much more.
 * [How to Build an End to End Production-Grade Architecture on AWS](https://blog.gruntwork.io/how-to-build-an-end-to-end-production-grade-architecture-on-aws-part-1-eae8eeb41fec):
@@ -24,7 +24,7 @@ AWS Service Catalog](https://github.com/gruntwork-io/terraform-aws-service-catal
 * [How to configure a production-grade CI-CD workflow for infrastructure code](https://gruntwork.io/guides/automations/how-to-configure-a-production-grade-ci-cd-setup-for-apps-and-infrastructure-code/): A comprehensive guide on the Gruntwork Continuous Integration and Continuous Delivery pipeline for infrastructure code.
 * [Gruntwork Production Deployment Guides](https://gruntwork.io/guides/): Additional step-by-step guides that show you how to go
   to production on top of AWS.
-* [Overview](/docs/01-overview.md): An overview of what this repository is.
+* [Overview](docs/01-overview.md): An overview of what this repository is.
 
 
 
@@ -34,9 +34,9 @@ AWS Service Catalog](https://github.com/gruntwork-io/terraform-aws-service-catal
 
 If you want to deploy updates to this infrastructure, check out the following resources:
 
-* [Deploying app changes](/docs/03-deploy-apps.md): Instructions on how to deploy changes to an app, such as a Java/Ruby/Python web service packaged with Docker or Packer.
-* [Deploying infrastructure changes](/docs/04-configure-ci-cd.md): Instructions on how to deploy changes to infrastructure code, such as Terraform modules that configure your VPCs, databases, DNS settings, etc.
-* [Undeploying the Reference Architecture](/docs/06-undeploy.md): Instructions on how to
+* [Deploying app changes](docs/03-deploy-apps.md): Instructions on how to deploy changes to an app, such as a Java/Ruby/Python web service packaged with Docker or Packer.
+* [Deploying infrastructure changes](docs/04-configure-ci-cd.md): Instructions on how to deploy changes to infrastructure code, such as Terraform modules that configure your VPCs, databases, DNS settings, etc.
+* [Undeploying the Reference Architecture](docs/06-undeploy.md): Instructions on how to
   undeploy the Reference Architecture completely.
 
 
@@ -45,8 +45,8 @@ If you want to deploy updates to this infrastructure, check out the following re
 ### Day-to-day operations
 
 * [How to authenticate to AWS](docs/02-authenticate.md)
-* [How to connect via VPN](/docs/02-authenticate.md#authenticate-to-the-vpn-server)
-* [How to view metrics, logs, and alerts](/docs/05-monitoring-alerting-logging.md)
+* [How to connect via VPN](docs/02-authenticate.md#authenticate-to-the-vpn-server)
+* [How to view metrics, logs, and alerts](docs/05-monitoring-alerting-logging.md)
 
 
 
