@@ -10,7 +10,10 @@
 # locally, you can use --terragrunt-source /path/to/local/checkout/of/module to override the source parameter to a
 # local check out of the module for faster iteration.
 terraform {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/networking/alb?ref=v0.34.1"
+  # We're using a local file path here just so our automated tests run against the absolute latest code. However, when
+  # using these modules in your code, you should use a Git URL with a ref attribute that pins you to a specific version:
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/networking/alb?ref=v0.36.1"
+  source = "${get_parent_terragrunt_dir()}/../../..//modules/networking/alb"
 }
 
 # Include all settings from the root terragrunt.hcl file
@@ -72,7 +75,7 @@ locals {
 # These are the variables we have to pass in to use the module specified in the terragrunt configuration above
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
-  alb_name = "sample-app-public"
+  alb_name = "grunt-sample-pub-stage"
 
   # Since this is an external public facing ALB, we deploy it into the app VPC, inside the public tier.
   is_internal_alb = false
@@ -86,7 +89,7 @@ inputs = {
   https_listener_ports_and_acm_ssl_certs = [
     {
       port            = 443
-      tls_domain_name = "*.${local.account_vars.locals.domain_name.name}"
+      tls_domain_name = "${local.account_vars.locals.domain_name.name}"
     }
   ]
 

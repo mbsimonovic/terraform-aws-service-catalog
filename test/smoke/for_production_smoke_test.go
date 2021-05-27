@@ -13,7 +13,7 @@ import (
 )
 
 // Folders in infrastructure live that are not terragrunt examples.
-var notTerragruntExamples = []string{"docs", "_ci"}
+var notTerragruntExamples = []string{"docs", "_ci", "vars"}
 
 func TestSmokeForProductionExamples(t *testing.T) {
 	t.Parallel()
@@ -39,7 +39,7 @@ func TestSmokeForProductionExamples(t *testing.T) {
 				TerraformBinary: "terragrunt",
 				TerraformDir:    account,
 			}
-			_, err := terraform.RunTerraformCommandE(t, opts, terraform.FormatArgs(opts, "validate-all")...)
+			_, err := terraform.RunTerraformCommandE(t, opts, terraform.FormatArgs(opts, "run-all", "validate")...)
 			require.NoError(t, err)
 		})
 	}

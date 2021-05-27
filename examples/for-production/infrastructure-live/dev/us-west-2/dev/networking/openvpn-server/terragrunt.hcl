@@ -10,7 +10,10 @@
 # locally, you can use --terragrunt-source /path/to/local/checkout/of/module to override the source parameter to a
 # local check out of the module for faster iteration.
 terraform {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/mgmt/openvpn-server?ref=v0.34.1"
+  # We're using a local file path here just so our automated tests run against the absolute latest code. However, when
+  # using these modules in your code, you should use a Git URL with a ref attribute that pins you to a specific version:
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/mgmt/openvpn-server?ref=v0.36.1"
+  source = "${get_parent_terragrunt_dir()}/../../..//modules/mgmt/openvpn-server"
 }
 
 # Include all settings from the root terragrunt.hcl file
@@ -81,7 +84,7 @@ inputs = {
     filters = [
       {
         name   = "name"
-        values = ["openvpn-server-v0.34.1-*"]
+        values = ["openvpn-server-v0.36.1-*"]
       },
     ]
   }
@@ -108,8 +111,9 @@ inputs = {
 
   keypair_name = "openvpn-admin-v1"
 
+  create_route53_entry = true
   # The primary domain name for the environment - the openvpn server will prepend "vpn." to this
   # domain name and create a route 53 A record in the correct hosted zone so that the vpn server is
   # publicly addressable
-  domain_name = local.account_vars.locals.domain_name.name
+  base_domain_name = local.account_vars.locals.domain_name.name
 }

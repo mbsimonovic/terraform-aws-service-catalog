@@ -9,9 +9,9 @@
 # The following pipeline is implemented in this configuration:
 #
 # - For any commit on any branch, detect all the terragrunt modules that changed between the `HEAD` of the branch and
-#  `master` and run `terragrunt plan` on each of those modules.
-# - For commits to master:
-#     - Run `plan` as above, only instead of comparing the `HEAD` of the branch to `master`, this will only look at the
+#  `main` and run `terragrunt plan` on each of those modules.
+# - For commits to main:
+#     - Run `plan` as above, only instead of comparing the `HEAD` of the branch to `main`, this will only look at the
 #       last commit that triggered the build. Note that this will include all the changes that were merged in from the
 #       branch as the last commit is a merge commit containing all the changes.
 #     - Hold for approval.
@@ -40,7 +40,7 @@ defaults: &defaults
   environment:
     GRUNTWORK_INSTALLER_VERSION: v0.0.30
     MODULE_CI_VERSION: v0.29.1
-    MODULE_SECURITY_VERSION: v0.41.3
+    MODULE_SECURITY_VERSION: v0.48.4
 
 
 # This common step is used to determine the user friendly Git Ref name of the build, either the branch or tag.
@@ -59,17 +59,17 @@ set_friendly_git_ref: &set_friendly_git_ref
 
 # This is used to determine what to use as the base comparison point for determining what modules to deploy. The logic
 # is as follows:
-#   - If we are on the master branch, the comparison is only the current commit.
-#   - If we are not on master, the comparison is to the current state of the master branch.
+#   - If we are on the main branch, the comparison is only the current commit.
+#   - If we are not on main, the comparison is to the current state of the main branch.
 set_source_ref: &set_source_ref
   run:
     name: set source ref
     command: |
-      if [[ "$CIRCLE_BRANCH" == "master" ]]; then
+      if [[ "$CIRCLE_BRANCH" == "main" ]]; then
         echo 'export SOURCE_REF=HEAD^' >> $BASH_ENV
       else
-        # We have to use origin/master because the checkout routine in CircleCI sets the local master to HEAD.
-        echo 'export SOURCE_REF=origin/master' >> $BASH_ENV
+        # We have to use origin/main because the checkout routine in CircleCI sets the local main to HEAD.
+        echo 'export SOURCE_REF=origin/main' >> $BASH_ENV
       fi
 
 # This trick allows us to use custom Slack notifications.
@@ -145,10 +145,10 @@ jobs:
 
 
 workflows:
-  # This workflow is triggered on all branches and master.
+  # This workflow is triggered on all branches and main.
   continuous-deploy:
     jobs:
-      # Infra Deploy: always run plan, and on master, notify and hold for approval before continuing on to deploy.
+      # Infra Deploy: always run plan, and on main, notify and hold for approval before continuing on to deploy.
       - plan
 
       - notify:
@@ -156,7 +156,7 @@ workflows:
             - plan
           filters:
             branches:
-              only: master
+              only: main
 
       - hold:
           type: approval
@@ -164,11 +164,11 @@ workflows:
             - notify
           filters:
             branches:
-              only: master
+              only: main
 
       - deploy:
           requires:
             - hold
           filters:
             branches:
-              only: master
+              only: main

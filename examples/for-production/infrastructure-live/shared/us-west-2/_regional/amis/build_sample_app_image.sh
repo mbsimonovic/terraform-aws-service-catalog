@@ -6,23 +6,23 @@
 # This script is intended to be run on a CI server that has the necessary credentials to invoke the ECS Deploy Runner in
 # the Shared Services AWS account.
 #
-# This is the build script for the ECS Cluster Instance AMI. You can view the packer template at the following URL:
-# https://github.com/gruntwork-io/terraform-aws-service-catalog/blob/v0.36.1/modules/services/ecs-cluster/ecs-node-al2.json
+# This is the build script for the Gruntwork Sample App AMI. You can view the packer template at the following URL:
+# https://github.com/gruntwork-io/aws-sample-app/blob/v0.0.4/packer/build.json
 
 set -e
 
-readonly PACKER_TEMPLATE_REPO="git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/services/ecs-cluster/ecs-node-al2.json"
-readonly PACKER_TEMPLATE_REPO_REF="v0.36.1"
+readonly PACKER_TEMPLATE_REPO="git@github.com:gruntwork-io/aws-sample-app.git//packer/build.json"
+readonly PACKER_TEMPLATE_REPO_REF="v0.0.4"
 readonly SERVICE_CATALOG_REF="v0.36.1"
 readonly DEPLOY_RUNNER_REGION="us-west-2"
 readonly REGION="us-west-2"
 
 # The account IDs where the AMI should be shared.
 git_repo_root="$(git rev-parse --show-toplevel)"
+prod_account_id="$(jq -r '.prod' "$git_repo_root/accounts.json")"
 dev_account_id="$(jq -r '.dev' "$git_repo_root/accounts.json")"
 stage_account_id="$(jq -r '.stage' "$git_repo_root/accounts.json")"
-prod_account_id="$(jq -r '.prod' "$git_repo_root/accounts.json")"
-ami_account_ids="$dev_account_id,$stage_account_id,$prod_account_id"
+ami_account_ids="$prod_account_id,$dev_account_id,$stage_account_id"
 
 function run {
   # Validate that the AMI is being built in the Shared Services account.
