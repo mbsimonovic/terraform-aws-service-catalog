@@ -143,6 +143,24 @@ variable "create_network_acls" {
   default     = true
 }
 
+variable "create_public_subnet_nacls" {
+  description = "If set to false, this module will NOT create the NACLs for the public subnet tier. This is useful for VPCs that only need private subnets."
+  type        = bool
+  default     = true
+}
+
+variable "create_private_app_subnet_nacls" {
+  description = "If set to false, this module will NOT create the NACLs for the private app subnet tier."
+  type        = bool
+  default     = true
+}
+
+variable "create_private_persistence_subnet_nacls" {
+  description = "If set to false, this module will NOT create the NACLs for the private persistence subnet tier."
+  type        = bool
+  default     = true
+}
+
 # ----------------------------------------------------------------------------------------------------------------------
 # OPTIONAL PARAMETERS FOR DEFAULT SECURITY GROUP AND DEFAULT NACL
 # ----------------------------------------------------------------------------------------------------------------------
