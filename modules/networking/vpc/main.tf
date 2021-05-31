@@ -181,9 +181,9 @@ locals {
 module "vpc_network_acls" {
   source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-app-network-acls?ref=v0.15.2"
 
-  create_resources = var.create_network_acls
-  create_public_subnet_nacls = var.create_public_subnets && var.create_public_subnet_nacls
-  create_private_app_subnet_nacls = var.create_private_app_subnets && var.create_private_app_subnet_nacls
+  create_resources                        = var.create_network_acls
+  create_public_subnet_nacls              = var.create_public_subnets && var.create_public_subnet_nacls
+  create_private_app_subnet_nacls         = var.create_private_app_subnets && var.create_private_app_subnet_nacls
   create_private_persistence_subnet_nacls = var.create_private_persistence_subnets && var.create_private_persistence_subnet_nacls
 
   vpc_id      = module.vpc.vpc_id
