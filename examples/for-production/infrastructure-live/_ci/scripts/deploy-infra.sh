@@ -70,7 +70,7 @@ function invoke_infrastructure_deployer {
     args+=(terraform-applier infrastructure-deploy-script)
   fi
   # Determine args for infrastructure-deploy-script and invoke it
-  args+=(--ref "$ref" --binary "terragrunt" --command "$command" --deploy-path "$updated_folder" --repo "$repo_url")
+  args+=(--ref "$ref" --binary "terragrunt" --command "$command" --deploy-path "$updated_folder" --repo "$repo_url" --force-https true)
 
   (eval "$assume_role_exports" && infrastructure-deployer "${args[@]}")
 }

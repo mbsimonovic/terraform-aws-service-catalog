@@ -3,9 +3,9 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This module is now only being tested with Terraform 0.14.x. However, to make upgrading easier, we are setting
+  # This module is now only being tested with Terraform 0.15.x. However, to make upgrading easier, we are setting
   # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 0.14.x code.
+  # forwards compatible with 0.15.x code.
   required_version = ">= 0.12.26"
 
   required_providers {
@@ -144,8 +144,8 @@ locals {
     domain => {
       tags                       = zone.tags
       subject_alternative_names  = zone.subject_alternative_names
-      create_verification_record = true
-      verify_certificate         = true
+      create_verification_record = lookup(zone, "create_verification_record", true)
+      verify_certificate         = lookup(zone, "verify_certificate", true)
       # If the created_outside_terraform attribute is set to true, the zone ID will be looked up dynamically
       hosted_zone_id = zone.created_outside_terraform ? (zone.hosted_zone_domain_name != "" ? data.aws_route53_zone.selected[zone.hosted_zone_domain_name].zone_id : data.aws_route53_zone.selected[domain].zone_id) : ""
     }
@@ -160,8 +160,8 @@ locals {
     domain => {
       tags                       = {}
       subject_alternative_names  = config.subject_alternative_names
-      create_verification_record = true
-      verify_certificate         = true
+      create_verification_record = lookup(config, "create_verification_record", true)
+      verify_certificate         = lookup(config, "verify_certificate", true)
       hosted_zone_id             = config.created_outside_terraform ? data.aws_route53_zone.selected[config.hosted_zone_domain_name].zone_id : ""
     }
   }

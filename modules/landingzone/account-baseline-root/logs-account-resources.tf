@@ -59,10 +59,12 @@ locals {
   # If the user marks one of the child accountss as the "logs" account, we create an S3 bucket in it for AWS Config and
   # an S3 bucket and KMS CMK in it for AWS CloudTrail, and configure the root account to send all AWS Config and
   # CloudTrail data to that account.
-  logs_account_name_array = [for name, account in var.child_accounts : name if lookup(account, "is_logs_account", false)]
-  has_logs_account        = length(local.logs_account_name_array) > 0
-  logs_account_name       = local.has_logs_account ? local.logs_account_name_array[0] : null
-  logs_account_role_name  = local.has_logs_account ? lookup(var.child_accounts[local.logs_account_name], "role_name", var.organizations_default_role_name) : null
+  logs_account_name_array  = [for name, account in var.child_accounts : name if lookup(account, "is_logs_account", false)]
+  has_logs_account         = length(local.logs_account_name_array) > 0
+  logs_account_name        = local.has_logs_account ? local.logs_account_name_array[0] : null
+  logs_account_email_array = [for name, account in var.child_accounts : account.email if lookup(account, "is_logs_account", false)]
+  logs_account_email       = local.has_logs_account ? local.logs_account_email_array[0] : null
+  logs_account_role_name   = local.has_logs_account ? lookup(var.child_accounts[local.logs_account_name], "role_name", var.organizations_default_role_name) : null
 
   # First, find out if the logs account already exists
   existing_logs_account_list = (
@@ -70,7 +72,7 @@ locals {
       [
         for account in data.aws_organizations_organization.logs_account_id_exists[0].non_master_accounts
         : account.id
-        if account.name == local.logs_account_name
+        if account.email == local.logs_account_email
       ]
     )
     : []
@@ -85,7 +87,7 @@ locals {
       [
         for account in data.aws_organizations_organization.logs_account_id_does_not_exist[0].non_master_accounts
         : account.id
-        if account.name == local.logs_account_name
+        if account.email == local.logs_account_email
       ][0]
     )
     : var.config_central_account_id
@@ -102,7 +104,7 @@ locals {
     local.has_logs_account
     ? [
       for account in module.organization.child_accounts
-      : account.id if account.name != local.logs_account_name
+      : account.id if account.email != local.logs_account_email
     ]
     : [
       for account in module.organization.child_accounts
@@ -136,7 +138,7 @@ provider "aws" {
 }
 
 module "config_bucket" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/aws-config-bucket?ref=v0.48.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/aws-config-bucket?ref=v0.48.3"
 
   providers = {
     aws = aws.logs
@@ -159,7 +161,7 @@ module "config_bucket" {
 }
 
 module "cloudtrail_bucket" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/cloudtrail-bucket?ref=v0.48.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/cloudtrail-bucket?ref=v0.48.3"
 
   providers = {
     aws = aws.logs
@@ -169,6 +171,7 @@ module "cloudtrail_bucket" {
 
   # Create the S3 bucket and allow all the other accounts (or entire organization) to write to this bucket
   s3_bucket_name                             = local.cloudtrail_s3_bucket_name_base
+  enable_s3_server_access_logging            = var.enable_cloudtrail_s3_server_access_logging
   external_aws_account_ids_with_write_access = local.all_non_logs_account_ids
   cloudtrail_trail_name                      = var.name_prefix
   organization_id = (

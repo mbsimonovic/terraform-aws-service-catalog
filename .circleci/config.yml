@@ -1,9 +1,7 @@
 version: 2.1
-
 # ---------------------------------------------------------------------------------------------------------------------
 # REUSABLE ALIASES
 # ---------------------------------------------------------------------------------------------------------------------
-
 env: &env
   environment:
     # renovate.json auto-update: gruntwork-installer
@@ -15,9 +13,9 @@ env: &env
     # renovate.json auto-update: terraform-aws-ci
     MODULE_CI_VERSION: v0.35.0
     # renovate.json auto-update: terragrunt
-    TERRAGRUNT_VERSION: v0.29.2
+    TERRAGRUNT_VERSION: v0.29.6
     # renovate.json auto-update-github-releases: hashicorp/terraform
-    TERRAFORM_VERSION: 0.14.8
+    TERRAFORM_VERSION: 0.15.2
     # We intentionally do NOT auto update K8S, as it should be tied to EKS versions, and our support for them in
     # terraform-aws-eks, both of which lag behind open source K8S
     K8S_VERSION: v1.15.0
@@ -35,14 +33,12 @@ env: &env
     # (not available publicly) and should therefore not use the proxy or checksum database.
     # Without this, tests fail with a "410 Gone" error
     GOPRIVATE: github.com/gruntwork-io
-
 defaults: &defaults
   resource_class: large
   machine:
     enabled: true
-    image: "ubuntu-1604:201903-01"
+    image: ubuntu-1604:201903-01
   <<: *env
-
 install_gruntwork_utils: &install_gruntwork_utils
   name: install gruntwork utils
   command: |
@@ -55,7 +51,6 @@ install_gruntwork_utils: &install_gruntwork_utils
       --terragrunt-version ${TERRAGRUNT_VERSION} \
       --packer-version ${PACKER_VERSION} \
       --go-version ${GOLANG_VERSION}
-
 install_kube_utils: &install_kube_utils
   name: install kubernetes utilities
   command: |
@@ -73,7 +68,6 @@ install_kube_utils: &install_kube_utils
 
     # Install and boot up minikube
     setup-minikube --minikube-version "${MINIKUBE_VERSION}" --k8s-version "${K8S_VERSION}"
-
 install_hub_cli: &install_hub_cli
   name: install hub CLI
   command: |
@@ -82,7 +76,6 @@ install_hub_cli: &install_hub_cli
     sudo mv "hub-linux-amd64-${HUB_VERSION}/bin/hub" /usr/local/bin
     sudo chmod +x /usr/local/bin/hub
     echo 'export GITHUB_TOKEN="$GITHUB_OAUTH_TOKEN"' >> $BASH_ENV
-
 run_pre_commit: &run_pre_commit
   # Fail the build if the pre-commit hooks don't pass. Note: if you run pre-commit install locally, these hooks will
   # execute automatically every time before you commit, ensuring the build never fails at this step!
@@ -91,31 +84,27 @@ run_pre_commit: &run_pre_commit
     pip install pre-commit
     pre-commit install
     pre-commit run --all-files
-
 run_circleci_unit_tests: &run_circleci_unit_tests
   name: run circleci unit tests
   command: python ./.circleci/run_tests_unit_tests.py
-
 run_tests: &run_tests
   name: run tests
   command: |
     TEST_REGEX=$(cat /home/circleci/.terraform-aws-service-catalog/test-regex.txt)
     run-go-tests --path ./test --timeout 2h --packages "./$TEST_PACKAGE -run '$TEST_REGEX'" | tee /tmp/logs/all.log
   no_output_timeout: 3600s
-
 # ---------------------------------------------------------------------------------------------------------------------
 # REUSABLE STEPS
 # ---------------------------------------------------------------------------------------------------------------------
-
 commands:
   prepare_environment:
-    description: "Prepare the environment by installing necessary tools, and run preflight checks before main tests"
+    description: Prepare the environment by installing necessary tools, and run preflight checks before main tests
     steps:
       - run:
           <<: *install_gruntwork_utils
       - run: mkdir -p /tmp/logs
   store_results:
-    description: "Store test results for easy viewing."
+    description: Store test results for easy viewing.
     steps:
       - run:
           command: terratest_log_parser --testlog /tmp/logs/all.log --outputdir /tmp/logs
@@ -124,11 +113,9 @@ commands:
           path: /tmp/logs
       - store_test_results:
           path: /tmp/logs
-
 # ---------------------------------------------------------------------------------------------------------------------
 # BUILD JOBS
 # ---------------------------------------------------------------------------------------------------------------------
-
 jobs:
   precommit:
     <<: *env
@@ -142,7 +129,6 @@ jobs:
           <<: *run_pre_commit
       - run:
           <<: *run_circleci_unit_tests
-
   find_tests_to_run:
     <<: *env
     docker:
@@ -154,31 +140,11 @@ jobs:
           <<: *install_hub_cli
       - run:
           name: find all tests to run
-          command: |
-            test_regex=""
-            if [[ "$CIRCLE_BRANCH" == "master" ]]; then
-              # On master, the last commit is the merge commit which contains all the changes
-              test_regex="$(python ./.circleci/run_tests.py --source-ref 'HEAD^' 2> debug.log)"
-            else
-              test_regex="$(python ./.circleci/run_tests.py 2> debug.log)"
-            fi
-            cat debug.log
-
-            # Store the tests to run in a folder which we will write to the CircleCi cache
-            mkdir -p /home/circleci/.terraform-aws-service-catalog
-            echo "$test_regex" >> /home/circleci/.terraform-aws-service-catalog/test-regex.txt
-
-            # Comment the debug log on GitHub if there is a PR number
-            CIRCLE_PR_NUMBER="${CIRCLE_PR_NUMBER:-${CIRCLE_PULL_REQUEST##*/}}"
-            if [[ -n "$CIRCLE_PR_NUMBER" ]]; then
-              echo -e "Tests run for build [$CIRCLE_BUILD_NUM]($CIRCLE_BUILD_URL)\n\`\`\`\n$(cat debug.log)\n\`\`\`" \
-                | hub api repos/{owner}/{repo}/issues/"$CIRCLE_PR_NUMBER"/comments --field body=@-
-            fi
+          command: ./.circleci/find-all-tests-to-run.sh
       - persist_to_workspace:
           root: /home/circleci
           paths:
             - .terraform-aws-service-catalog
-
 # ---------------------------------------------------------------------------------------------------------------------
 # TEST BUILD JOBS
 # These jobs run tests in the test folder. The jobs are all identical, except for which package in the test folder they
@@ -188,7 +154,6 @@ jobs:
 # won't have any tests to run. That's OK; they should just exit gracefully in that case. Unfortunately, CircleCi does
 # not yet have a way to do dynamic jobs / workflows, so this is as close as we can come.
 # ---------------------------------------------------------------------------------------------------------------------
-
   test_data_stores:
     <<: *defaults
     steps:
@@ -200,7 +165,6 @@ jobs:
       - run:
           <<: *run_tests
       - store_results
-
   test_landingzone:
     <<: *defaults
     steps:
@@ -212,7 +176,6 @@ jobs:
       - run:
           <<: *run_tests
       - store_results
-
   test_mgmt:
     <<: *defaults
     steps:
@@ -224,7 +187,6 @@ jobs:
       - run:
           <<: *run_tests
       - store_results
-
   test_networking:
     <<: *defaults
     steps:
@@ -236,7 +198,6 @@ jobs:
       - run:
           <<: *run_tests
       - store_results
-
   test_services:
     <<: *defaults
     steps:
@@ -250,7 +211,6 @@ jobs:
       - run:
           <<: *run_tests
       - store_results
-
   test_smoke:
     <<: *defaults
     steps:
@@ -262,7 +222,6 @@ jobs:
       - run:
           <<: *run_tests
       - store_results
-
   test_tls_scripts:
     <<: *defaults
     steps:
@@ -274,11 +233,9 @@ jobs:
       - run:
           <<: *run_tests
       - store_results
-
 # ---------------------------------------------------------------------------------------------------------------------
 # WORKFLOWS
 # ---------------------------------------------------------------------------------------------------------------------
-
 workflows:
   version: 2
   build-and-test:

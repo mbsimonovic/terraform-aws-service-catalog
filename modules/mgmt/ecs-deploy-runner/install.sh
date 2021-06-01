@@ -4,7 +4,7 @@
 set -e
 
 # renovate.json auto-update: terraform-aws-ecs
-readonly DEFAULT_MODULE_ECS_VERSION="v0.28.1"
+readonly DEFAULT_MODULE_ECS_VERSION="v0.29.0"
 
 function include_ec2_baseline {
   if [[ "$1" ]]; then

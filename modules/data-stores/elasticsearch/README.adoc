@@ -25,7 +25,7 @@ endif::[]
 = Amazon Elasticsearch Service
 
 image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
-image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
+image:https://img.shields.io/badge/tf-%3E%3D0.15.0-blue.svg[Terraform version]
 
 This folder contains code to deploy an Amazon Elasticsearch Service cluster. See the http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide/what-is-amazon-elasticsearch-service.html[Amazon Elasticsearch Service documentation] and the https://aws.amazon.com/elasticsearch-service/getting-started/[Getting Started] page for more information.
 

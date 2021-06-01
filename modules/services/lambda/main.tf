@@ -3,9 +3,8 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This module is now only being tested with Terraform 0.14.x. However, to make upgrading easier, we are setting
-  # 0.13.0 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 0.14.x code.
+  # This module is now only being tested with Terraform 0.15.x. However, to make upgrading easier, we are setting
+  # 0.13 as the minimum version, as this code uses for_each on modules.
   required_version = ">= 0.13.0"
 
   required_providers {
@@ -89,7 +88,7 @@ module "scheduled_job" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "lambda_alarm" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/lambda-alarms?ref=v0.26.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/lambda-alarms?ref=v0.27.0"
 
   function_name        = module.lambda_function.function_name
   alarm_sns_topic_arns = var.alarm_sns_topic_arns

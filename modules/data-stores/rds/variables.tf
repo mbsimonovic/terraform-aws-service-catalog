@@ -73,6 +73,7 @@ variable "master_password" {
   description = "The value to use for the master password of the database. This can also be provided via AWS Secrets Manager. See the description of db_config_secrets_manager_id."
   type        = string
   default     = null
+  sensitive   = true
 }
 
 variable "db_config_secrets_manager_id" {
@@ -283,6 +284,12 @@ variable "apply_immediately" {
 
 variable "num_read_replicas" {
   description = "The number of read replicas to deploy"
+  type        = number
+  default     = 0
+}
+
+variable "max_allocated_storage" {
+  description = "When configured, the upper limit to which Amazon RDS can automatically scale the storage of the DB instance. Configuring this will automatically ignore differences to allocated_storage. Must be greater than or equal to allocated_storage or 0 to disable Storage Autoscaling."
   type        = number
   default     = 0
 }
