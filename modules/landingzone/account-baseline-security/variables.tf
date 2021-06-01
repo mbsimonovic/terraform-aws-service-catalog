@@ -830,6 +830,12 @@ variable "kms_customer_master_keys" {
   #                                                                   read-only (decrypt-only) permissions to use this CMK (e.g.
   #                                                                   arn:aws:iam::<aws-account-id>:user/<iam-user-arn>).
   # - cmk_external_user_iam_arns              list(string)          : A list of IAM ARNs for users from external AWS accounts
+  # - cmk_describe_only_user_iam_arns         list(object[CMKUser]) : A list of IAM ARNs for users who should be given
+  #                                                                   describe-only (kms:DescribeKey) permissions to use this CMK (e.g.
+  #                                                                   arn:aws:iam::<aws-account-id>:user/<iam-user-arn>). This is
+  #                                                                   useful for deploying services that depend on the
+  #                                                                   key (e.g., Cloudtrail) in other accounts, to trade
+  #                                                                   key aliases for CMK ARNs.
   #                                                                   who should be given permissions to use this CMK (e.g.
   #                                                                   arn:aws:iam::<aws-account-id>:root).
   # - allow_manage_key_permissions_with_iam   bool                  : If true, both the CMK's Key Policy and IAM Policies
@@ -884,6 +890,12 @@ variable "kms_customer_master_keys" {
   #       }
   #     ]
   #     cmk_read_only_user_iam_arns           = [
+  #       {
+  #         name = ["arn:aws:iam::0000000000:user/qa"]
+  #         conditions = []
+  #       }
+  #     ]
+  #     cmk_describe_only_user_iam_arns       = [
   #       {
   #         name = ["arn:aws:iam::0000000000:user/qa"]
   #         conditions = []
@@ -1002,15 +1014,15 @@ variable "enable_iam_access_analyzer" {
 }
 
 variable "iam_access_analyzer_type" {
-  description = "If set to ORGANIZATION, the analyzer will be scanning the current organization and any policies that refer to linked resources such as S3, IAM, Lambda and SQS policies."
+  description = "If set to ACCOUNT, the analyzer will only be scanning the current AWS account it's in. If set to ORGANIZATION - will scan the organization AWS account and the child accounts."
   type        = string
-  default     = "ORGANIZATION"
+  default     = "ACCOUNT"
 }
 
 variable "iam_access_analyzer_name" {
   description = "The name of the IAM Access Analyzer module"
   type        = string
-  default     = "baseline_root-iam_access_analyzer"
+  default     = "baseline_security-iam_access_analyzer"
 }
 
 variable "iam_access_analyzer_opt_in_regions" {

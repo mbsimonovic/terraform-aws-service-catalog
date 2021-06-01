@@ -7,9 +7,8 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This module is now only being tested with Terraform 0.14.x. However, to make upgrading easier, we are setting
-  # 0.13.0 as the minimum version, as that version added support for module for_each, making it forwards compatible with
-  # 0.14.x code.
+  # This module is now only being tested with Terraform 0.15.x. However, to make upgrading easier, we are setting
+  # 0.13.0 as the minimum version, as that version added support for module for_each.
   required_version = ">= 0.13.0"
 
   required_providers {
@@ -94,7 +93,7 @@ provider "helm" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "aws_for_fluent_bit" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-container-logs?ref=v0.36.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-container-logs?ref=v0.37.0"
 
   # The contents of the for each set is irrelevant as it is only used to enable the module.
   for_each = var.enable_fluent_bit ? { enable = true } : {}
@@ -134,7 +133,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "alb_ingress_controller" {
-  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-alb-ingress-controller?ref=v0.36.0"
+  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-alb-ingress-controller?ref=v0.37.0"
   dependencies = aws_eks_fargate_profile.core_services.*.id
 
   # The contents of the for each set is irrelevant as it is only used to enable the module.
@@ -155,7 +154,7 @@ module "alb_ingress_controller" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "k8s_external_dns" {
-  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-external-dns?ref=v0.36.0"
+  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-external-dns?ref=v0.37.0"
   dependencies = aws_eks_fargate_profile.core_services.*.id
 
   # The contents of the for each set is irrelevant as it is only used to enable the module.
@@ -182,7 +181,7 @@ module "k8s_external_dns" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "k8s_cluster_autoscaler" {
-  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-cluster-autoscaler?ref=v0.36.0"
+  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-cluster-autoscaler?ref=v0.37.0"
   dependencies = aws_eks_fargate_profile.core_services.*.id
 
   # The contents of the for each set is irrelevant as it is only used to enable the module.

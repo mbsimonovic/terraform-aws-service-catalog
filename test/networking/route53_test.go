@@ -70,7 +70,7 @@ func TestRoute53(t *testing.T) {
 				// This public zone should result in a single ACM cert that covers the apex and *.{uniqueID}.gruntwork.in
 				"subject_alternative_names": []string{fmt.Sprintf("*.%s", publicZoneName)},
 				"created_outside_terraform": true,
-				"base_domain_name_tags":     map[string]interface{}{},
+				"base_domain_name_tags":     map[string]interface{}{"original": "true"},
 				"hosted_zone_domain_name":   "gruntwork.in",
 			},
 			publicZoneName2: map[string]interface{}{
@@ -245,6 +245,7 @@ func TestRoute53CloudMap(t *testing.T) {
 				"created_outside_terraform": true,
 				"hosted_zone_domain_name":   "gruntwork.in",
 				"hosted_zone_id":            "Z2AJ7S3R6G9UYJ",
+				"base_domain_name_tags":     map[string]interface{}{"original": "true"},
 			},
 		}
 

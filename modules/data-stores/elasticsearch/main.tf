@@ -7,9 +7,9 @@
 # ---------------------------------------------------------------------------------------------------------------------
 
 terraform {
-  # This module is now only being tested with Terraform 0.14.x. However, to make upgrading easier, we are setting
+  # This module is now only being tested with Terraform 0.15.x. However, to make upgrading easier, we are setting
   # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 0.14.x code.
+  # forwards compatible with 0.15.x code.
   required_version = ">= 0.12.26"
 
   required_providers {
@@ -45,7 +45,7 @@ resource "aws_elasticsearch_domain" "cluster" {
   }
 
   dynamic "vpc_options" {
-    for_each = (var.is_public ? [] : list(var.is_public))
+    for_each = (var.is_public ? [] : [var.is_public])
     # Elasticsearch lets you specify 2 or 3 availability zones, if zone awareness is enabled.
     # NOTE: This will produce an error if the length of subnet_ids is less than var.availability_zone_count.
     content {

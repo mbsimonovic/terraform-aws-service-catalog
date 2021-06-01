@@ -26,7 +26,7 @@ endif::[]
 = Account Baseline for root account
 
 image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_security"]
-image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
+image:https://img.shields.io/badge/tf-%3E%3D0.15.0-blue.svg[Terraform version]
 
 A security baseline for AWS Landing Zone for configuring the root account (AKA master account) of an AWS Organization, including setting up
 child accounts, AWS Config, AWS CloudTrail, Amazon Guard Duty, IAM users, IAM groups, IAM password policy, and more.

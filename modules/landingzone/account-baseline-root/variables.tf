@@ -754,6 +754,12 @@ variable "cloudtrail_s3_bucket_name" {
   default     = null
 }
 
+variable "enable_cloudtrail_s3_server_access_logging" {
+  description = "Enables S3 server access logging which sends detailed records for the requests that are made to the bucket. Defaults to false."
+  type        = bool
+  default     = false
+}
+
 variable "cloudtrail_num_days_after_which_archive_log_data" {
   description = "After this number of days, log files should be transitioned from S3 to Glacier. Enter 0 to never archive log data."
   type        = number
