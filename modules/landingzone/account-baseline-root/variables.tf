@@ -168,13 +168,13 @@ variable "organizations_default_tags" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "enable_config" {
-  description = "Set to true to enable AWS Config in the root account. Set to false to disable AWS Config (note: all other AWS config variables will be ignored). Note that if you want to aggregate AWS Config data in an S3 bucket in a child account (e.g., a logs account), you MUST: (1) set this variable to false initially, as that S3 bucket doesn't exist yet in the child account, (2) run 'apply' to create the child account, (3) go to the child account and create the S3 bucket, e.g., by deploying a security baseline in that account, (4) come back to this root account and set this variable to true, and (5) run 'apply' again to enable AWS Config."
+  description = "Set to true to enable AWS Config in the root account. Set to false to disable AWS Config (note: all other AWS config variables will be ignored). In case you want to disable the CloudTrail module and the S3 bucket, you need to set both var.enable_cloudtrail and cloudtrail_should_create_s3_bucket to false."
   type        = bool
   default     = true
 }
 
 variable "config_should_create_s3_bucket" {
-  description = "If true, create an S3 bucket of name var.config_s3_bucket_name for AWS Config data, either in the logs account—the account in var.child_accounts that has is_logs_account set to true (this is the recommended approach!)—or in this account if none of the child accounts are marked as a logs account. If false, assume var.config_s3_bucket_name is an S3 bucket that already exists. We recommend setting this to true and setting is_logs_account to true on one of the accounts in var.child_accounts to use that account as a logs account where you aggregate all your AWS Config data."
+  description = "If true, create an S3 bucket of name var.config_s3_bucket_name for AWS Config data, either in the logs account—the account in var.child_accounts that has is_logs_account set to true (this is the recommended approach!)—or in this account if none of the child accounts are marked as a logs account. If false, assume var.config_s3_bucket_name is an S3 bucket that already exists. We recommend setting this to true and setting is_logs_account to true on one of the accounts in var.child_accounts to use that account as a logs account where you aggregate all your AWS Config data. In case you want to disable the AWS Config module and the S3 bucket, you need to set both var.enable_config and config_should_create_s3_bucket to false."
   type        = bool
   default     = true
 }
@@ -743,7 +743,7 @@ variable "guardduty_opt_in_regions" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "enable_cloudtrail" {
-  description = "Set to true to enable CloudTrail in the root account. Set to false to disable CloudTrail (note: all other CloudTrail variables will be ignored). Note that if you want to aggregate CloudTrail logs in an S3 bucket in a child account (e.g., a logs account), you MUST: (1) set this variable to false initially, as that S3 bucket doesn't exist yet in the child account, (2) run 'apply' to create the child account, (3) go to the child account and create the S3 bucket, e.g., by deploying a security baseline in that account, (4) come back to this root account and set this variable to true, and (5) run 'apply' again to enable CloudTrail."
+  description = "Set to true to enable CloudTrail in the root account. Set to false to disable CloudTrail (note: all other CloudTrail variables will be ignored). In case you want to disable the CloudTrail module and the S3 bucket, you need to set both var.enable_cloudtrail and cloudtrail_should_create_s3_bucket to false."
   type        = bool
   default     = true
 }
@@ -792,10 +792,10 @@ variable "allow_cloudtrail_access_with_iam" {
   default     = true
 }
 
-variable "cloudtrail_s3_bucket_already_exists" {
-  description = "If false, create an S3 bucket of name var.cloudtrail_s3_bucket_name for CloudTrail logs, either in the logs account—the account in var.child_accounts that has is_logs_account set to true (this is the recommended approach!)—or in this account if none of the child accounts are marked as a logs account. If true, assume var.cloudtrail_s3_bucket_name is an S3 bucket that already exists. We recommend setting this to false and setting is_logs_account to true on one of the accounts in var.child_accounts to use that account as a logs account where you aggregate all your CloudTrail data."
+variable "cloudtrail_should_create_s3_bucket" {
+  description = "If true, create an S3 bucket of name var.cloudtrail_s3_bucket_name for CloudTrail logs, either in the logs account—the account in var.child_accounts that has is_logs_account set to true (this is the recommended approach!)—or in this account if none of the child accounts are marked as a logs account. If false, assume var.cloudtrail_s3_bucket_name is an S3 bucket that already exists. We recommend setting this to true and setting is_logs_account to true on one of the accounts in var.child_accounts to use that account as a logs account where you aggregate all your CloudTrail data. In case you want to disable the CloudTrail module and the S3 bucket, you need to set both var.enable_cloudtrail and cloudtrail_should_create_s3_bucket to false."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "cloudtrail_tags" {

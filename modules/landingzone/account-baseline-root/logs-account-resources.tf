@@ -56,7 +56,7 @@ resource "null_resource" "wait_for_creation" {
 }
 
 locals {
-  # If the user marks one of the child accountss as the "logs" account, we create an S3 bucket in it for AWS Config and
+  # If the user marks one of the child accounts as the "logs" account, we create an S3 bucket in it for AWS Config and
   # an S3 bucket and KMS CMK in it for AWS CloudTrail, and configure the root account to send all AWS Config and
   # CloudTrail data to that account.
   logs_account_name_array  = [for name, account in var.child_accounts : name if lookup(account, "is_logs_account", false)]
@@ -144,7 +144,7 @@ module "config_bucket" {
     aws = aws.logs
   }
 
-  create_resources = var.enable_config && var.config_should_create_s3_bucket
+  create_resources = var.config_should_create_s3_bucket
 
   # Create the S3 bucket and allow all the other accounts to write to this bucket
   s3_bucket_name  = local.config_s3_bucket_name_base
@@ -167,7 +167,7 @@ module "cloudtrail_bucket" {
     aws = aws.logs
   }
 
-  create_resources = var.enable_cloudtrail && var.cloudtrail_s3_bucket_already_exists == false
+  create_resources = var.cloudtrail_should_create_s3_bucket
 
   # Create the S3 bucket and allow all the other accounts (or entire organization) to write to this bucket
   s3_bucket_name                             = local.cloudtrail_s3_bucket_name_base
@@ -216,11 +216,11 @@ locals {
 }
 
 data "aws_arn" "config_s3_bucket" {
-  count = local.has_logs_account && var.enable_config ? 1 : 0
+  count = var.config_should_create_s3_bucket ? 1 : 0
   arn   = module.config_bucket.s3_bucket_arn
 }
 
 data "aws_arn" "cloudtrail_s3_bucket" {
-  count = local.has_logs_account && var.enable_cloudtrail ? 1 : 0
+  count = var.cloudtrail_should_create_s3_bucket ? 1 : 0
   arn   = module.cloudtrail_bucket.s3_bucket_arn
 }

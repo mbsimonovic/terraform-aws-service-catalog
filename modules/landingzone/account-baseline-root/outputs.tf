@@ -7,6 +7,11 @@ output "config_s3_bucket_name" {
   value       = module.config_bucket.s3_bucket_name
 }
 
+output "config_s3_bucket_name_with_dependency" {
+  description = "The name of the S3 bucket used by AWS Config to store configuration items, sources from 'data'."
+  value       = local.config_s3_bucket_name_with_dependency
+}
+
 output "config_s3_bucket_arn" {
   description = "The ARN of the S3 bucket used by AWS Config to store configuration items."
   value       = module.config_bucket.s3_bucket_arn
@@ -80,6 +85,11 @@ output "cloudtrail_s3_bucket_name" {
   value       = module.cloudtrail_bucket.s3_bucket_name
 }
 
+output "cloudtrail_s3_bucket_name_with_dependency" {
+  description = "The name of the S3 bucket where cloudtrail logs are delivered. Sources from 'data'."
+  value       = local.cloudtrail_s3_bucket_name_with_dependency
+}
+
 output "cloudtrail_s3_bucket_arn" {
   description = "The ARN of the S3 bucket where cloudtrail logs are delivered."
   value       = module.cloudtrail_bucket.s3_bucket_arn
@@ -98,6 +108,11 @@ output "cloudtrail_s3_access_logging_bucket_arn" {
 output "cloudtrail_kms_key_arn" {
   description = "The ARN of the KMS key used by the S3 bucket to encrypt cloudtrail logs."
   value       = module.cloudtrail_bucket.kms_key_arn
+}
+
+output "cloudtrail_kms_key_arn_with_dependency" {
+  description = "The ARN of the KMS key used by the S3 bucket to encrypt cloudtrail logs."
+  value       = local.cloudtrail_kms_key_arn_with_dependency
 }
 
 output "cloudtrail_kms_key_alias_name" {
