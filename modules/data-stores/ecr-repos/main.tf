@@ -23,8 +23,10 @@ terraform {
 
 resource "aws_ecr_repository" "repos" {
   for_each = local.repositories_with_defaults
-  name     = each.key
-  tags     = each.value.tags
+
+  name                 = each.key
+  image_tag_mutability = each.value.image_tag_mutability
+  tags                 = each.value.tags
 
   image_scanning_configuration {
     scan_on_push = each.value.enable_automatic_image_scanning
@@ -49,6 +51,7 @@ locals {
       external_account_ids_with_write_access = lookup(user_config, "external_account_ids_with_write_access", var.default_external_account_ids_with_write_access)
       enable_automatic_image_scanning        = lookup(user_config, "enable_automatic_image_scanning", var.default_automatic_image_scanning)
       encryption_config                      = lookup(user_config, "encryption_config", var.default_encryption_config)
+      image_tag_mutability                   = lookup(user_config, "image_tag_mutability", var.default_image_tag_mutability)
       tags = merge(
         lookup(user_config, "tags", {}),
         var.global_tags,
