@@ -304,7 +304,7 @@ locals {
 module "kms_cmk" {
   source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-master-key?ref=v0.48.2"
   customer_master_keys = (
-    var.create_custom_kms_key == true
+    var.create_custom_kms_key
     ? {
       (var.name) = {
         cmk_administrator_iam_arns = local.cmk_administrator_iam_arns
@@ -320,7 +320,7 @@ module "kms_cmk" {
 }
 
 locals {
-  kms_key_arn                = var.create_custom_kms_key == false ? var.kms_key_arn : module.kms_cmk.key_arn[var.name]
+  kms_key_arn                = var.create_custom_kms_key ? module.kms_cmk.key_arn[var.name] : var.kms_key_arn
   cmk_administrator_iam_arns = length(var.cmk_administrator_iam_arns) == 0 ? [data.aws_caller_identity.current.arn] : var.cmk_administrator_iam_arns
   cmk_user_iam_arns          = length(var.cmk_user_iam_arns) == 0 ? [{ name = [data.aws_caller_identity.current.arn], conditions = [] }] : var.cmk_user_iam_arns
 }

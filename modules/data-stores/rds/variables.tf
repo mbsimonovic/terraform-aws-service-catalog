@@ -347,7 +347,7 @@ variable "kms_key_arn" {
 }
 
 variable "create_custom_kms_key" {
-  description = "Determines whether a custom KMS CMK will be created with permissions assigned by the following variables: cmk_administrator_iam_arns, cmk_user_iam_arns, cmk_external_user_iam_arns, allow_manage_key_permissions."
+  description = "If set to true, create a KMS CMK and use it to encrypt data on disk in the database. The permissions for this CMK will be assigned by the following variables: cmk_administrator_iam_arns, cmk_user_iam_arns, cmk_external_user_iam_arns, allow_manage_key_permissions."
   type        = bool
   default     = false
 }
