@@ -25,7 +25,7 @@ endif::[]
 = Management VPC
 
 image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
-image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
+image:https://img.shields.io/badge/tf-%3E%3D0.15.0-blue.svg[Terraform version]
 
 This folder contains code to deploy a link:https://aws.amazon.com/vpc/[Virtual Private Cloud (VPC)] on AWS that can be
 used for administrative and management purposes, such as CI/CD services. The primary difference between this and the

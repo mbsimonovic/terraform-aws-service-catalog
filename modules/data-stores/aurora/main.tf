@@ -8,10 +8,9 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This module is now only being tested with Terraform 0.14.x. However, to make upgrading easier, we are setting
-  # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 0.14.x code.
-  required_version = ">= 0.12.26"
+  # This module is now only being tested with Terraform 0.15.x. We also make 0.15 the minimum version, as we need it
+  # for features related to marking outputs as sensitive or nonsensitive.
+  required_version = ">= 0.15.0"
 
   required_providers {
     aws = {
@@ -26,7 +25,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "database" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/aurora?ref=v0.18.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/aurora?ref=v0.20.0"
 
   name           = var.name
   port           = local.port
@@ -122,10 +121,10 @@ locals {
   #
   #
   db_config       = var.db_config_secrets_manager_id != null ? jsondecode(data.aws_secretsmanager_secret_version.db_config[0].secret_string) : null
-  engine          = var.engine != null ? var.engine : local.db_config.engine
-  port            = var.port != null ? var.port : local.db_config.port
-  db_name         = var.db_name != null ? var.db_name : local.db_config.dbname
-  master_username = var.master_username != null ? var.master_username : local.db_config.username
+  engine          = var.engine != null ? var.engine : nonsensitive(local.db_config.engine)
+  port            = var.port != null ? var.port : nonsensitive(local.db_config.port)
+  db_name         = var.db_name != null ? var.db_name : nonsensitive(local.db_config.dbname)
+  master_username = var.master_username != null ? var.master_username : nonsensitive(local.db_config.username)
   master_password = var.master_password != null ? var.master_password : local.db_config.password
 }
 
@@ -171,7 +170,7 @@ module "rds_alarms" {
 
 # Lambda function that runs on a specified schedule to manually create the DB snapshot.
 module "create_snapshot" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/lambda-create-snapshot?ref=v0.18.1"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/lambda-create-snapshot?ref=v0.20.0"
   create_resources = var.share_snapshot_with_another_account
 
   rds_db_identifier        = module.database.cluster_id
@@ -194,7 +193,7 @@ module "create_snapshot" {
 
 # Lambda function that will share the snapshots made using `create_snapshot`.
 module "share_snapshot" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/lambda-share-snapshot?ref=v0.18.1"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/lambda-share-snapshot?ref=v0.20.0"
   create_resources = var.share_snapshot_with_another_account
 
   rds_db_arn = module.database.cluster_arn
@@ -203,7 +202,7 @@ module "share_snapshot" {
 
 # Lambda function that periodically culls old snapshots.
 module "cleanup_snapshots" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/lambda-cleanup-snapshots?ref=v0.18.1"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/lambda-cleanup-snapshots?ref=v0.20.0"
   create_resources = var.share_snapshot_with_another_account
 
   rds_db_identifier        = module.database.cluster_id

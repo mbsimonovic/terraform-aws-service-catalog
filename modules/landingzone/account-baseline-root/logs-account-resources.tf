@@ -138,7 +138,7 @@ provider "aws" {
 }
 
 module "config_bucket" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/aws-config-bucket?ref=v0.48.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/aws-config-bucket?ref=v0.48.3"
 
   providers = {
     aws = aws.logs
@@ -161,7 +161,7 @@ module "config_bucket" {
 }
 
 module "cloudtrail_bucket" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/cloudtrail-bucket?ref=v0.48.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/cloudtrail-bucket?ref=v0.48.3"
 
   providers = {
     aws = aws.logs
@@ -171,6 +171,7 @@ module "cloudtrail_bucket" {
 
   # Create the S3 bucket and allow all the other accounts (or entire organization) to write to this bucket
   s3_bucket_name                             = local.cloudtrail_s3_bucket_name_base
+  enable_s3_server_access_logging            = var.enable_cloudtrail_s3_server_access_logging
   external_aws_account_ids_with_write_access = local.all_non_logs_account_ids
   cloudtrail_trail_name                      = var.name_prefix
   organization_id = (

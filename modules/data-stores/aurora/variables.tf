@@ -45,6 +45,7 @@ variable "master_password" {
   description = "The value to use for the master password of the database. This can also be provided via AWS Secrets Manager. See the description of db_config_secrets_manager_id. A value here overrides the value in db_config_secrets_manager_id."
   type        = string
   default     = null
+  sensitive   = true
 }
 
 variable "db_config_secrets_manager_id" {
