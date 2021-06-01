@@ -165,6 +165,12 @@ variable "create_private_persistence_subnet_nacls" {
 # OPTIONAL PARAMETERS FOR DEFAULT SECURITY GROUP AND DEFAULT NACL
 # ----------------------------------------------------------------------------------------------------------------------
 
+variable "enable_default_security_group" {
+  description = "If set to false, the default security groups will NOT be created."
+  type        = bool
+  default     = true
+}
+
 variable "default_security_group_ingress_rules" {
   description = "The ingress rules to apply to the default security group in the VPC. This is the security group that is used by any resource that doesn't have its own security group attached. The value for this variable must be a map where the keys are a unique name for each rule and the values are objects with the same fields as the ingress block in the aws_default_security_group resource: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/default_security_group#ingress-block."
   # Ideally, we'd have a more specific type here, but neither the 'map' nor 'object' type has support for optional
