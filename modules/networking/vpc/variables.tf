@@ -161,6 +161,42 @@ variable "create_private_persistence_subnet_nacls" {
   default     = true
 }
 
+variable "subnet_spacing" {
+  description = "The amount of spacing between the different subnet types"
+  type        = number
+  default     = 10
+}
+
+variable "private_subnet_spacing" {
+  description = "The amount of spacing between private app subnets."
+  type        = number
+  default     = null
+}
+
+variable "persistence_subnet_spacing" {
+  description = "The amount of spacing between the private persistence subnets. Default: 2 times the value of private_subnet_spacing."
+  type        = number
+  default     = null
+}
+
+variable "public_subnet_bits" {
+  description = "Takes the CIDR prefix and adds these many bits to it for calculating subnet ranges.  MAKE SURE if you change this you also change the CIDR spacing or you may hit errors.  See cidrsubnet interpolation in terraform config for more information."
+  type        = number
+  default     = 5
+}
+
+variable "private_subnet_bits" {
+  description = "Takes the CIDR prefix and adds these many bits to it for calculating subnet ranges.  MAKE SURE if you change this you also change the CIDR spacing or you may hit errors.  See cidrsubnet interpolation in terraform config for more information."
+  type        = number
+  default     = 5
+}
+
+variable "persistence_subnet_bits" {
+  description = "Takes the CIDR prefix and adds these many bits to it for calculating subnet ranges.  MAKE SURE if you change this you also change the CIDR spacing or you may hit errors.  See cidrsubnet interpolation in terraform config for more information."
+  type        = number
+  default     = 5
+}
+
 # ----------------------------------------------------------------------------------------------------------------------
 # OPTIONAL PARAMETERS FOR DEFAULT SECURITY GROUP AND DEFAULT NACL
 # ----------------------------------------------------------------------------------------------------------------------
