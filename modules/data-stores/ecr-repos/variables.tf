@@ -25,6 +25,8 @@ variable "repositories" {
   #                                                                      the container images, and how to encrypt. If
   #                                                                      omitted, use var.default_encryption_config. See
   #                                                                      below for the type schema.
+  # - image_tag_mutability                    string                   : The tag mutability setting for the repo. If
+  #                                                                      omitted use var.default_image_tag_mutability.
   # - tags                                    map(string)              : Map of tags (where the key and value correspond
   #                                                                      to tag keys and values) that should be assigned
   #                                                                      to the ECR repository. Merged with
@@ -80,6 +82,12 @@ variable "default_encryption_config" {
     encryption_type = "AES256"
     kms_key         = null
   }
+}
+
+variable "default_image_tag_mutability" {
+  description = "The tag mutability setting for all the repos. Must be one of: MUTABLE or IMMUTABLE. Can be overridden on a per repo basis by the image_tag_mutability property in the repositories map."
+  type        = string
+  default     = "MUTABLE"
 }
 
 variable "global_tags" {
