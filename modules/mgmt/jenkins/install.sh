@@ -28,7 +28,7 @@ readonly DEFAULT_HELM_VERSION="v3.5.4"
 # renovate.json auto-update-github-releases: hashicorp/packer
 readonly DEFAULT_PACKER_VERSION="1.6.5"
 # renovate.json auto-update-docker-ubuntu
-readonly DEFAULT_DOCKER_VERSION="18.06.1~ce~3-0~ubuntu"
+readonly DEFAULT_DOCKER_VERSION="5:20.10.7~3-0~ubuntu-focal"
 
 # You can set the version of the build tooling to this value to skip installing it
 readonly SKIP_INSTALL_VERSION="NONE"
