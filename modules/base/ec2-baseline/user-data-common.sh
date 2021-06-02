@@ -78,8 +78,13 @@ function attach_eip {
 function start_cloudwatch_logs_agent {
   local -r log_group_name="$1"
 
-  echo "Starting CloudWatch Logs Agent in VPC"
-  /etc/user-data/cloudwatch-log-aggregation/run-cloudwatch-logs-agent.sh --log-group-name "$log_group_name"
+  echo "Configuring CloudWatch Agent"
+  /etc/user-data/cloudwatch-agent/configure-cloudwatch-agent.sh \
+    --syslog --authlog --log-file /var/log/kern.log \
+    --log-group-name "$log_group_name" --log-stream-name '{instance_id}-syslog'
+
+  echo "Starting CloudWatch Agent"
+  /etc/user-data/cloudwatch-agent/restart-cloudwatch-agent.sh
 }
 
 function start_ssh_grunt {
