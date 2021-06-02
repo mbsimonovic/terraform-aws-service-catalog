@@ -61,13 +61,10 @@ func buildASGAmi(t *testing.T, testFolder string) {
 	packerOptions := &packer.Options{
 		Template: "../../examples/for-learning-and-testing/services/asg-service/ami-example.json",
 		Vars: map[string]string{
-			"aws_region":                    awsRegion,
-			"version_tag":                   branchName,
-			"service_catalog_ref":           branchName,
-			"bash_commons_version":          "v0.1.2",
-			"module_aws_monitoring_version": "v0.19.0",
-			"module_security_version":       "v0.25.1",
-			"encrypt_boot":                  "false",
+			"aws_region":          awsRegion,
+			"version_tag":         branchName,
+			"service_catalog_ref": branchName,
+			"encrypt_boot":        "false",
 		},
 		MaxRetries:         3,
 		TimeBetweenRetries: 5 * time.Second,
