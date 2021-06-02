@@ -342,9 +342,15 @@ variable "enable_share_snapshot_cloudwatch_alarms" {
 }
 
 variable "kms_key_arn" {
-  description = "The Amazon Resource Name (ARN) of an existing KMS customer master key (CMK) that will be used to encrypt/decrypt backup files. If null, a key will be created with permissions assigned by the following variables: cmk_administrator_iam_arns, cmk_user_iam_arns, cmk_external_user_iam_arns, allow_manage_key_permissions."
+  description = "The Amazon Resource Name (ARN) of an existing KMS customer master key (CMK) that will be used to encrypt/decrypt backup files. If you leave this blank, the default RDS KMS key for the account will be used. If you set var.create_custom_kms_key to true, this value will be ignored and a custom key will be created and used instead."
   type        = string
   default     = null
+}
+
+variable "create_custom_kms_key" {
+  description = "If set to true, create a KMS CMK and use it to encrypt data on disk in the database. The permissions for this CMK will be assigned by the following variables: cmk_administrator_iam_arns, cmk_user_iam_arns, cmk_external_user_iam_arns, allow_manage_key_permissions."
+  type        = bool
+  default     = false
 }
 
 variable "cmk_administrator_iam_arns" {
