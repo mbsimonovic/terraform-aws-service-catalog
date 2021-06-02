@@ -65,6 +65,7 @@ module "vpc" {
   nat_gateway_custom_tags = var.nat_gateway_custom_tags
 
   # Params for the Default Security Group and Default NACL
+  enable_default_security_group        = var.enable_default_security_group
   default_security_group_ingress_rules = var.default_security_group_ingress_rules
   default_security_group_egress_rules  = var.default_security_group_egress_rules
   default_nacl_ingress_rules           = var.default_nacl_ingress_rules
@@ -181,7 +182,10 @@ locals {
 module "vpc_network_acls" {
   source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-app-network-acls?ref=v0.15.2"
 
-  create_resources = var.create_network_acls
+  create_resources                        = var.create_network_acls
+  create_public_subnet_nacls              = var.create_public_subnets && var.create_public_subnet_nacls
+  create_private_app_subnet_nacls         = var.create_private_app_subnets && var.create_private_app_subnet_nacls
+  create_private_persistence_subnet_nacls = var.create_private_persistence_subnets && var.create_private_persistence_subnet_nacls
 
   vpc_id      = module.vpc.vpc_id
   vpc_name    = module.vpc.vpc_name
