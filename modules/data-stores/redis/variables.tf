@@ -146,3 +146,9 @@ variable "sns_topic_for_notifications" {
   type        = string
   default     = ""
 }
+
+variable "tags" {
+  description = "A set of tags to set for the ElastiCache Replication Group."
+  type        = map(string)
+  default     = {}
+}
