@@ -36,13 +36,6 @@ function assert_env_var_not_empty {
   fi
 }
 
-# Returns true (0) if this is an Ubuntu server at the given version or false (1) otherwise. The version number
-# can use regex. If you don't care about the version, leave it unspecified.
-function os_is_ubuntu {
-  local readonly version="$1"
-  grep -q "Ubuntu $version" /etc/*-release
-}
-
 function install_bash_commons {
   local -r bash_commons_version="$1"
 
@@ -145,20 +138,8 @@ function install_stateful_server_packages {
 
 function install_aws_cli {
   echo "Installing AWS CLI"
-
-  local packages="jq unzip"
-  local pip_exec=""
-
-  if os_is_ubuntu "20.04"; then
-    packages+=" python3-pip"
-    pip_exec="pip3"
-  else
-    packages+=" python-pip"
-    pip_exec="pip"
-  fi
-
-  sudo apt-get install -y $packages
-  sudo $pip_exec install awscli
+  sudo apt-get install -y jq python3-pip unzip
+  sudo pip3 install awscli
 }
 
 function install_user_data {
