@@ -54,6 +54,8 @@ module "redis" {
   enable_at_rest_encryption = var.enable_at_rest_encryption
   enable_transit_encryption = var.enable_transit_encryption
   cluster_mode              = var.cluster_mode
+
+  tags = var.tags
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
