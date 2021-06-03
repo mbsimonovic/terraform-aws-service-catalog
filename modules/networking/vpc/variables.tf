@@ -168,7 +168,7 @@ variable "subnet_spacing" {
 }
 
 variable "private_subnet_spacing" {
-  description = "The amount of spacing between private app subnets."
+  description = "The amount of spacing between private app subnets. Defaults to subnet_spacing in vpc-app module in not set."
   type        = number
   default     = null
 }
