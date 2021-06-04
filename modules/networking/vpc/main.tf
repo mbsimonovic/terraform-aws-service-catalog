@@ -75,6 +75,15 @@ module "vpc" {
   create_public_subnets              = var.create_public_subnets
   create_private_app_subnets         = var.create_private_app_subnets
   create_private_persistence_subnets = var.create_private_persistence_subnets
+
+  # Params configuring subnet CIDR spacing
+  subnet_spacing             = var.subnet_spacing
+  private_subnet_spacing     = var.private_subnet_spacing
+  persistence_subnet_spacing = var.persistence_subnet_spacing
+  public_subnet_bits         = var.public_subnet_bits
+  private_subnet_bits        = var.private_subnet_bits
+  persistence_subnet_bits    = var.persistence_subnet_bits
+
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
