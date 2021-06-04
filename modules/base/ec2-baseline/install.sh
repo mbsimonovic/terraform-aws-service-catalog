@@ -107,7 +107,7 @@ function install_monitoring_packages {
       aws_region=$(aws_get_instance_region)
     fi
 
-    gruntwork-install --module-name 'logs/cloudwatch-log-aggregation-scripts' --repo https://github.com/gruntwork-io/terraform-aws-monitoring --tag "$module_aws_monitoring_version" --module-param aws-region="$aws_region"
+    gruntwork-install --module-name 'agents/cloudwatch-agent' --repo https://github.com/gruntwork-io/terraform-aws-monitoring --tag "$module_aws_monitoring_version" --module-param aws-region="$aws_region"
   fi
 
   gruntwork-install --module-name 'logs/syslog' --repo https://github.com/gruntwork-io/terraform-aws-monitoring --tag "$module_aws_monitoring_version"
@@ -138,8 +138,8 @@ function install_stateful_server_packages {
 
 function install_aws_cli {
   echo "Installing AWS CLI"
-  sudo apt-get install -y jq python-pip unzip
-  sudo pip install awscli
+  sudo apt-get install -y jq python3-pip unzip
+  sudo pip3 install awscli
 }
 
 function install_user_data {
