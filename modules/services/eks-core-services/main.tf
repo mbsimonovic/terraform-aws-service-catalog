@@ -171,6 +171,7 @@ module "k8s_external_dns" {
   route53_hosted_zone_id_filters     = var.external_dns_route53_hosted_zone_id_filters
   route53_hosted_zone_tag_filters    = var.external_dns_route53_hosted_zone_tag_filters
   route53_hosted_zone_domain_filters = var.external_dns_route53_hosted_zone_domain_filters
+  sources                            = var.external_dns_sources
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

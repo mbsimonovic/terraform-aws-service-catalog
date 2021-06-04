@@ -318,6 +318,16 @@ variable "external_dns_route53_hosted_zone_domain_filters" {
   default     = []
 }
 
+variable "external_dns_sources" {
+  description = "K8s resources type to be observed for new DNS entries by ExternalDNS."
+  type        = list(string)
+
+  # NOTE ON ISTIO: By default, external-dns will listen for "ingress" and "service" events. To use it with Istio, make
+  # sure to include the "istio-gateway" events here. See the docs for more details:
+  # https://github.com/kubernetes-incubator/external-dns/blob/master/docs/tutorials/istio.md
+  default = ["ingress", "service"]
+}
+
 # Cluster Autoscaler settings
 
 variable "enable_cluster_autoscaler" {
