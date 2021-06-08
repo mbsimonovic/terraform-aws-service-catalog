@@ -54,6 +54,20 @@ function include_ec2_baseline {
 }
 
 
+function install_ecs_scripts {
+  local -r ecs_cluster_version="$1"
+
+  # Install aws CLI
+  echo 'Installing AWS CLI'
+  sudo yum --setopt=tsflags=noscripts remove microcode_ctl -y        # Based on https://forums.aws.amazon.com/thread.jspa?messageID=924216&tstart=0
+  sudo yum update -y && sudo yum install -y aws-cli bind-utils
+
+  # Install ecs-scripts module which allows for configuring an EC2 instance to join an existing ECS cluster
+  # See: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/bootstrap_container_instance.html for more information
+  gruntwork-install --module-name 'ecs-scripts' --repo https://github.com/gruntwork-io/terraform-aws-ecs --tag "$ecs_cluster_version"
+}
+
+
 function install_ecs_cluster {
   # Read from env vars to make it easy to set these in a Packer template (without super-wide --module-param foo=bar code).
   # Fallback to default version if the env var is not set.
@@ -124,12 +138,10 @@ function install_ecs_cluster {
     "$enable_cloudwatch_metrics" \
     "$enable_cloudwatch_log_aggregation"
 
-  # install ecs-scripts module which allows for configuring an EC2 instance to join an existing ECS cluster
-  # See: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/bootstrap_container_instance.html for more information
-  gruntwork-install --module-name 'ecs-scripts' --repo https://github.com/gruntwork-io/terraform-aws-ecs --tag "$ecs_cluster_version"
-
   install_user_data \
     "${EC2_BASELINE_PATH}/user-data-common.sh"
+
+  install_ecs_scripts "$ecs_cluster_version"
 }
 
 # Determine which version of the EC2 baseline module to install.

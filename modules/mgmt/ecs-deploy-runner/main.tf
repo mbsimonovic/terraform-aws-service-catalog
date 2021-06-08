@@ -27,7 +27,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_deploy_runner" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner?ref=v0.35.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner?ref=v0.37.0"
 
   name                          = var.name
   container_images              = module.standard_config.container_images
@@ -44,7 +44,7 @@ module "ecs_deploy_runner" {
 }
 
 module "standard_config" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner-standard-configuration?ref=v0.35.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner-standard-configuration?ref=v0.37.0"
 
   docker_image_builder = (
     var.docker_image_builder_config != null
@@ -606,7 +606,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "invoke_policy" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner-invoke-iam-policy?ref=v0.35.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner-invoke-iam-policy?ref=v0.37.0"
 
   name                                      = "invoke-${var.name}"
   deploy_runner_invoker_lambda_function_arn = module.ecs_deploy_runner.invoker_function_arn

@@ -41,7 +41,7 @@
       "filters": {
         "virtualization-type": "hvm",
         "architecture": "x86_64",
-        "name": "amzn2-ami-ecs*",
+        "name": "*amzn2-ami-ecs-hvm*",
         "block-device-mapping.volume-type": "gp2",
         "root-device-type": "ebs"
       },
