@@ -459,7 +459,7 @@ data "aws_iam_policy_document" "terraform_applier" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "shared_secrets_kms_grants" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-grant-multi-region?ref=v0.48.3"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-grant-multi-region?ref=v0.49.1"
 
   aws_account_id    = data.aws_caller_identity.current.account_id
   kms_grant_regions = local.shared_secrets_kms_grant_regions
@@ -536,7 +536,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "kms_grants" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-grant-multi-region?ref=v0.48.3"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-grant-multi-region?ref=v0.49.1"
 
   aws_account_id    = data.aws_caller_identity.current.account_id
   kms_grant_regions = local.kms_grant_regions
