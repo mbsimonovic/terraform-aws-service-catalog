@@ -10,7 +10,7 @@ readonly DEFAULT_ECS_CLUSTER_VERSION="v0.29.0"
 # renovate.json auto-update: terraform-aws-ecs
 readonly DEFAULT_ECS_SCRIPTS_VERSION="v0.29.0"
 # renovate.json auto-update: gruntkms
-readonly DEFAULT_GRUNT_KMS_VERSION="v0.0.9"
+readonly DEFAULT_GRUNT_KMS_VERSION="v0.0.10"
 
 # You can set the version of the build tooling to this value to skip installing it
 readonly SKIP_INSTALL_VERSION="NONE"
