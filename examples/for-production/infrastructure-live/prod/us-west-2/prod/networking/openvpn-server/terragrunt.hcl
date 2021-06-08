@@ -12,7 +12,7 @@
 terraform {
   # We're using a local file path here just so our automated tests run against the absolute latest code. However, when
   # using these modules in your code, you should use a Git URL with a ref attribute that pins you to a specific version:
-  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/mgmt/openvpn-server?ref=v0.36.1"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/mgmt/openvpn-server?ref=v0.38.1"
   source = "${get_parent_terragrunt_dir()}/../../..//modules/mgmt/openvpn-server"
 }
 
@@ -84,7 +84,7 @@ inputs = {
     filters = [
       {
         name   = "name"
-        values = ["openvpn-server-v0.36.1-*"]
+        values = ["openvpn-server-v0.38.1-*"]
       },
     ]
   }

@@ -44,6 +44,9 @@ In addition, all account access is managed by a central `security` account where
 you to manage access to accounts from a central location, and your users only need to manage a single set of AWS
 credentials when accessing the environment.
 
+If you are sharing encrypted AMIs, then you will also need to ensure the new account has access to the KMS key that
+encrypts the AMI root device. This is managed in the `shared` account baseline module.
+
 Finally, for the [ECS Deploy
 Runner](https://github.com/gruntwork-io/terraform-aws-ci/tree/master/modules/ecs-deploy-runner) to work, the new account
 needs to be able to access the secrets for accessing the remote repositories and the docker images that back the build
@@ -55,12 +58,13 @@ to be made aware of the new account. This is handled through the [accounts.json]
 
 Once the `accounts.json` file is updated with the new account, you will want to grant the permissions for the new
 account to access the shared resources. This can be done by running `terragrunt apply` in the `account-baseline` module
-for the `logs` and `security` account, and the `ecr-repos` and `shared-secret-resource-policies` modules in the `shared`
+for the `logs`, `shared`, and `security` account, and the `ecr-repos` and `shared-secret-resource-policies` modules in the `shared`
 account:
 
 ```
 (cd logs/_global/account-baseline && terragrunt apply)
 (cd security/_global/account-baseline && terragrunt apply)
+(cd shared/_global/account-baseline && terragrunt apply)
 (cd shared/us-west-2/_regional/ecr-repos && terragrunt apply)
 (cd shared/us-west-2/_regional/shared-secret-resource-policies && terragrunt apply)
 ```

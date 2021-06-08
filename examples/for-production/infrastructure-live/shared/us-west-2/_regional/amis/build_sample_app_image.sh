@@ -13,16 +13,16 @@ set -e
 
 readonly PACKER_TEMPLATE_REPO="git@github.com:gruntwork-io/aws-sample-app.git//packer/build.json"
 readonly PACKER_TEMPLATE_REPO_REF="v0.0.4"
-readonly SERVICE_CATALOG_REF="v0.36.1"
+readonly SERVICE_CATALOG_REF="v0.38.1"
 readonly DEPLOY_RUNNER_REGION="us-west-2"
 readonly REGION="us-west-2"
 
 # The account IDs where the AMI should be shared.
 git_repo_root="$(git rev-parse --show-toplevel)"
-prod_account_id="$(jq -r '.prod' "$git_repo_root/accounts.json")"
 dev_account_id="$(jq -r '.dev' "$git_repo_root/accounts.json")"
 stage_account_id="$(jq -r '.stage' "$git_repo_root/accounts.json")"
-ami_account_ids="$prod_account_id,$dev_account_id,$stage_account_id"
+prod_account_id="$(jq -r '.prod' "$git_repo_root/accounts.json")"
+ami_account_ids="$dev_account_id,$stage_account_id,$prod_account_id"
 
 function run {
   # Validate that the AMI is being built in the Shared Services account.
@@ -49,7 +49,7 @@ function run {
     --var aws_region="$REGION" \
     --var ami_users="$ami_account_ids" \
     --var encrypt_boot=true \
-    --var encrypt_kms_key_id=""
+    --var encrypt_kms_key_id="arn:aws:kms:us-east-1:234567890123:alias/ExampleAMIEncryptionKMSKeyArn"
 }
 
 # Run the main function if this script is called directly, instead of being sourced.

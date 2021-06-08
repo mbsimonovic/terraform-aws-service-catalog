@@ -9,7 +9,7 @@
 # locally, you can use --terragrunt-source /path/to/local/checkout/of/module to override the source parameter to a
 # local check out of the module for faster iteration.
 terraform {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/secrets-manager-resource-policies?ref=v0.48.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/secrets-manager-resource-policies?ref=v0.48.5"
 }
 
 # Include all settings from the root terragrunt.hcl file
