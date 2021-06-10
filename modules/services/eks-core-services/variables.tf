@@ -410,6 +410,14 @@ variable "cluster_autoscaler_pod_node_affinity" {
   #         - another-node-label-value
 }
 
+variable "cluster_autoscaler_version" {
+  description = "Which version of the cluster autoscaler to install."
+  type        = string
+  default     = "v1.19.1"
+  # NOTE: should match the major/minor version of your Kubernetes installation.
+  # See https://github.com/kubernetes/autoscaler/tree/master/cluster-autoscaler#releases
+}
+
 # Scale down parameters for autoscaler. See
 # https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/FAQ.md#i-have-a-couple-of-nodes-with-low-utilization-but-they-are-not-scaled-down-why
 # for more info on how to set these values.

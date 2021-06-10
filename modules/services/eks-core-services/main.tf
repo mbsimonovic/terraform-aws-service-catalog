@@ -195,6 +195,7 @@ module "k8s_cluster_autoscaler" {
   pod_labels                           = var.cluster_autoscaler_pod_labels
   pod_tolerations                      = var.cluster_autoscaler_pod_tolerations
   pod_node_affinity                    = var.cluster_autoscaler_pod_node_affinity
+  cluster_autoscaler_version           = var.cluster_autoscaler_version
 
   container_extra_args = {
     scale-down-unneeded-time   = var.autoscaler_scale_down_unneeded_time
