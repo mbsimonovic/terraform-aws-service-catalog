@@ -34,7 +34,7 @@ import (
 
 const (
 	// renovate.json auto-update-variable: terraform-aws-eks
-	terraformAWSEKSVersion = "v0.32.4"
+	terraformAWSEKSVersion = "v0.41.0"
 )
 
 var defaultDomainTagFilterForTest = []map[string]string{
@@ -52,10 +52,10 @@ var eksFargateRegions = []string{
 }
 
 const (
-	// 1 worker + 2 fargate pods for coredns
-	expectedEksNodeCountWithoutAuthMerger = 3
-	// 1 worker + 2 fargate pods for coredns + 1 fargate pod for aws-auth-merger
-	expectedEksNodeCountWithAuthMerger = 4
+	// 2 worker + 2 fargate pods for coredns
+	expectedEksNodeCountWithoutAuthMerger = 4
+	// 2 worker + 2 fargate pods for coredns + 1 fargate pod for aws-auth-merger
+	expectedEksNodeCountWithAuthMerger = 5
 	// 2 fargate pods for coredns
 	expectedEksNodeCountFargateOnly = 2
 )
@@ -67,6 +67,7 @@ func TestEksCluster(t *testing.T) {
 	//os.Setenv("TERRATEST_REGION", "eu-west-1")
 	//os.Setenv("SKIP_build_ami", "true")
 	//os.Setenv("SKIP_build_aws_auth_merger_image", "true")
+	//os.Setenv("SKIP_setup_deploy_terraform", "true")
 	//os.Setenv("SKIP_deploy_terraform", "true")
 	//os.Setenv("SKIP_validate_cluster", "true")
 	//os.Setenv("SKIP_validate_core_services_optionality", "true")
@@ -121,10 +122,11 @@ func TestEksClusterFargateUsEast1(t *testing.T) {
 
 	// Uncomment the items below to skip certain parts of the test
 	//os.Setenv("TERRATEST_REGION", "eu-west-1")
+	//os.Setenv("SKIP_setup_deploy_terraform", "true")
 	//os.Setenv("SKIP_deploy_terraform", "true")
 	//os.Setenv("SKIP_validate_cluster", "true")
 	//os.Setenv("SKIP_deploy_core_services", "true")
-	//os.Setenv("SKIP_validate_external_dns", "true")
+	//os.Setenv("SKIP_validate_core_services_fargate", "true")
 	//os.Setenv("SKIP_cleanup_core_services", "true")
 	//os.Setenv("SKIP_cleanup", "true")
 
@@ -143,9 +145,15 @@ func TestEksClusterFargateUsEast1(t *testing.T) {
 		os.Remove(kubectlOptions.ConfigPath)
 	})
 
+	test_structure.RunTestStage(t, "setup_deploy_terraform", func() {
+		uniqueID := strings.ToLower(random.UniqueId())
+		test_structure.SaveString(t, workingDir, "uniqueID", uniqueID)
+	})
+	uniqueID := test_structure.LoadString(t, workingDir, "uniqueID")
+
 	test_structure.RunTestStage(t, "deploy_terraform", func() {
 		test_structure.SaveString(t, workingDir, "region", "us-east-1")
-		deployEKSCluster(t, workingDir, workingDir, eksClusterRoot, false, true)
+		deployEKSCluster(t, workingDir, workingDir, uniqueID, eksClusterRoot, false, true)
 	})
 
 	test_structure.RunTestStage(t, "validate_cluster", func() {
@@ -186,8 +194,14 @@ func testEKSClusterWithoutAuthMerger(t *testing.T, parentWorkingDir string) {
 		os.Remove(kubectlOptions.ConfigPath)
 	})
 
+	test_structure.RunTestStage(t, "setup_deploy_terraform", func() {
+		uniqueID := strings.ToLower(random.UniqueId())
+		test_structure.SaveString(t, workingDir, "uniqueID", uniqueID)
+	})
+	uniqueID := test_structure.LoadString(t, workingDir, "uniqueID")
+
 	test_structure.RunTestStage(t, "deploy_terraform", func() {
-		deployEKSCluster(t, parentWorkingDir, workingDir, eksClusterRoot, false, false)
+		deployEKSCluster(t, parentWorkingDir, workingDir, uniqueID, eksClusterRoot, false, false)
 	})
 
 	test_structure.RunTestStage(t, "validate_cluster", func() {
@@ -230,8 +244,14 @@ func testEKSClusterWithCoreServicesAndAuthMerger(t *testing.T, parentWorkingDir 
 		terraform.Destroy(t, terraformOptions)
 	})
 
+	test_structure.RunTestStage(t, "setup_deploy_terraform", func() {
+		uniqueID := strings.ToLower(random.UniqueId())
+		test_structure.SaveString(t, workingDir, "uniqueID", uniqueID)
+	})
+	uniqueID := test_structure.LoadString(t, workingDir, "uniqueID")
+
 	test_structure.RunTestStage(t, "deploy_terraform", func() {
-		deployEKSCluster(t, parentWorkingDir, workingDir, eksClusterRoot, true, false)
+		deployEKSCluster(t, parentWorkingDir, workingDir, uniqueID, eksClusterRoot, true, false)
 	})
 
 	test_structure.RunTestStage(t, "validate_cluster", func() {
@@ -302,7 +322,7 @@ func buildWorkerAmi(t *testing.T, testFolder string) {
 
 	branchName := git.GetCurrentBranchName(t)
 	packerOptions := &packer.Options{
-		Template: "../../modules/services/eks-cluster/eks-node-al2.json",
+		Template: "../../modules/services/eks-workers/eks-node-al2.json",
 		Vars: map[string]string{
 			"aws_region":          awsRegion,
 			"service_catalog_ref": branchName,
@@ -332,6 +352,7 @@ func deployEKSCluster(
 	t *testing.T,
 	parentWorkingDir string,
 	workingDir string,
+	uniqueID string,
 	modulePath string,
 	enableAWSAuthMerger bool,
 	fargateOnly bool,
@@ -339,7 +360,7 @@ func deployEKSCluster(
 	branchName := git.GetCurrentBranchName(t)
 	awsRegion := test_structure.LoadString(t, parentWorkingDir, "region")
 
-	clusterName := fmt.Sprintf("eks-service-catalog-%s", strings.ToLower(random.UniqueId()))
+	clusterName := fmt.Sprintf("eks-service-catalog-%s", uniqueID)
 	test_structure.SaveString(t, workingDir, "clusterName", clusterName)
 
 	terraformOptions := test.CreateBaseTerraformOptions(t, modulePath, awsRegion)
@@ -430,7 +451,7 @@ func validateCoreServicesOnFargate(t *testing.T, workingDir string) {
 	ingressControllerLabelSelector := "app.kubernetes.io/instance=aws-alb-ingress-controller,app.kubernetes.io/name=aws-load-balancer-controller"
 	assertFargate(t, kubectlOptions, ingressControllerLabelSelector)
 
-	clusterAutoscalerLabelSelector := "app.kubernetes.io/instance=cluster-autoscaler,app.kubernetes.io/name=aws-cluster-autoscaler-chart"
+	clusterAutoscalerLabelSelector := "app.kubernetes.io/instance=cluster-autoscaler,app.kubernetes.io/name=aws-cluster-autoscaler"
 	assertFargate(t, kubectlOptions, clusterAutoscalerLabelSelector)
 
 	externalDNSLabelSelector := "app.kubernetes.io/instance=external-dns,app.kubernetes.io/name=external-dns"

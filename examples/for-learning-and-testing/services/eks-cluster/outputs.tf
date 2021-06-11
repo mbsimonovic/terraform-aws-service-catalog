@@ -23,19 +23,29 @@ output "eks_worker_asg_names" {
   value       = module.eks_cluster.eks_worker_asg_names
 }
 
-output "eks_worker_security_group_id" {
-  description = "The ID of the AWS Security Group associated with the EKS workers."
-  value       = module.eks_cluster.eks_worker_security_group_id
+output "self_managed_worker_security_group_id" {
+  description = "The ID of the AWS Security Group associated with the self-managed EKS workers."
+  value       = module.eks_cluster.self_managed_worker_security_group_id
 }
 
-output "eks_worker_iam_role_arn" {
-  description = "The ARN of the IAM role associated with the EKS workers."
-  value       = module.eks_cluster.eks_worker_iam_role_arn
+output "self_managed_worker_iam_role_arn" {
+  description = "The ARN of the IAM role associated with the self-managed EKS workers."
+  value       = module.eks_cluster.self_managed_worker_iam_role_arn
 }
 
-output "eks_worker_iam_role_name" {
-  description = "The name of the IAM role associated with the EKS workers."
-  value       = module.eks_cluster.eks_worker_iam_role_name
+output "self_managed_worker_iam_role_name" {
+  description = "The name of the IAM role associated with the self-managed EKS workers."
+  value       = module.eks_cluster.self_managed_worker_iam_role_name
+}
+
+output "managed_node_group_worker_iam_role_arn" {
+  description = "The ARN of the IAM role associated with the Managed Node Group EKS workers."
+  value       = module.eks_cluster.managed_node_group_worker_iam_role_arn
+}
+
+output "managed_node_group_worker_iam_role_name" {
+  description = "The name of the IAM role associated with the Managed Node Group EKS workers."
+  value       = module.eks_cluster.managed_node_group_worker_iam_role_name
 }
 
 output "eks_iam_role_for_service_accounts_config" {

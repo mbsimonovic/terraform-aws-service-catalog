@@ -93,7 +93,7 @@ provider "helm" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "aws_for_fluent_bit" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-container-logs?ref=v0.37.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-container-logs?ref=v0.41.0"
 
   # The contents of the for each set is irrelevant as it is only used to enable the module.
   for_each = var.enable_fluent_bit ? { enable = true } : {}
@@ -133,7 +133,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "alb_ingress_controller" {
-  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-alb-ingress-controller?ref=v0.37.0"
+  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-alb-ingress-controller?ref=v0.41.0"
   dependencies = aws_eks_fargate_profile.core_services.*.id
 
   # The contents of the for each set is irrelevant as it is only used to enable the module.
@@ -154,7 +154,7 @@ module "alb_ingress_controller" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "k8s_external_dns" {
-  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-external-dns?ref=v0.37.0"
+  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-external-dns?ref=v0.41.0"
   dependencies = aws_eks_fargate_profile.core_services.*.id
 
   # The contents of the for each set is irrelevant as it is only used to enable the module.
@@ -182,7 +182,7 @@ module "k8s_external_dns" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "k8s_cluster_autoscaler" {
-  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-cluster-autoscaler?ref=v0.37.0"
+  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-cluster-autoscaler?ref=v0.41.0"
   dependencies = aws_eks_fargate_profile.core_services.*.id
 
   # The contents of the for each set is irrelevant as it is only used to enable the module.
@@ -195,7 +195,11 @@ module "k8s_cluster_autoscaler" {
   pod_labels                           = var.cluster_autoscaler_pod_labels
   pod_tolerations                      = var.cluster_autoscaler_pod_tolerations
   pod_node_affinity                    = var.cluster_autoscaler_pod_node_affinity
-  cluster_autoscaler_version           = var.cluster_autoscaler_version
+  release_name                         = var.cluster_autoscaler_release_name
+
+  cluster_autoscaler_version    = var.cluster_autoscaler_version
+  cluster_autoscaler_repository = var.cluster_autoscaler_repository
+  scaling_strategy              = var.cluster_autoscaler_scaling_strategy
 
   container_extra_args = {
     scale-down-unneeded-time   = var.autoscaler_scale_down_unneeded_time
@@ -271,7 +275,7 @@ locals {
       var.schedule_cluster_autoscaler_on_fargate
       ? {
         cluster-autoscaler = {
-          "app.kubernetes.io/name"     = "aws-cluster-autoscaler-chart"
+          "app.kubernetes.io/name"     = "aws-cluster-autoscaler"
           "app.kubernetes.io/instance" = "cluster-autoscaler"
         }
       }

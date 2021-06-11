@@ -10,22 +10,32 @@ output "eks_cluster_name" {
 
 output "eks_worker_asg_names" {
   description = "The list of names of the ASGs that were deployed to act as EKS workers."
-  value       = module.eks_workers.eks_worker_asg_names
+  value       = length(module.eks_workers) > 0 ? module.eks_workers["enabled"].worker_asg_names : null
 }
 
-output "eks_worker_security_group_id" {
-  description = "The ID of the AWS Security Group associated with the EKS workers."
-  value       = module.eks_workers.eks_worker_security_group_id
+output "self_managed_worker_security_group_id" {
+  description = "The ID of the AWS Security Group associated with the self-managed EKS workers."
+  value       = length(module.eks_workers) > 0 ? module.eks_workers["enabled"].self_managed_worker_security_group_id : null
 }
 
-output "eks_worker_iam_role_arn" {
-  description = "The ARN of the IAM role associated with the EKS workers."
-  value       = module.eks_workers.eks_worker_iam_role_arn
+output "self_managed_worker_iam_role_arn" {
+  description = "The ARN of the IAM role associated with the self-managed EKS workers."
+  value       = length(module.eks_workers) > 0 ? module.eks_workers["enabled"].self_managed_worker_iam_role_arn : null
 }
 
-output "eks_worker_iam_role_name" {
-  description = "The name of the IAM role associated with the EKS workers."
-  value       = module.eks_workers.eks_worker_iam_role_name
+output "self_managed_worker_iam_role_name" {
+  description = "The name of the IAM role associated with the self-managed EKS workers."
+  value       = length(module.eks_workers) > 0 ? module.eks_workers["enabled"].self_managed_worker_iam_role_name : null
+}
+
+output "managed_node_group_worker_iam_role_arn" {
+  description = "The ARN of the IAM role associated with the Managed Node Group EKS workers."
+  value       = length(module.eks_workers) > 0 ? module.eks_workers["enabled"].managed_node_group_worker_iam_role_arn : null
+}
+
+output "managed_node_group_worker_iam_role_name" {
+  description = "The name of the IAM role associated with the Managed Node Group EKS workers."
+  value       = length(module.eks_workers) > 0 ? module.eks_workers["enabled"].managed_node_group_worker_iam_role_name : null
 }
 
 output "eks_iam_role_for_service_accounts_config" {
@@ -54,16 +64,16 @@ output "eks_kubeconfig" {
 # CloudWatch Dashboard Widgets
 
 output "metric_widget_worker_cpu_usage" {
-  description = "A CloudWatch Dashboard widget that graphs CPU usage (percentage) of the EKS workers."
+  description = "A CloudWatch Dashboard widget that graphs CPU usage (percentage) of the EKS workers (self-managed and managed node groups)."
   value       = module.metric_widget_worker_cpu_usage.widget
 }
 
 output "metric_widget_worker_memory_usage" {
-  description = "A CloudWatch Dashboard widget that graphs memory usage (percentage) of the EKS workers."
+  description = "A CloudWatch Dashboard widget that graphs memory usage (percentage) of the EKS workers (self-managed and managed node groups)."
   value       = module.metric_widget_worker_memory_usage.widget
 }
 
 output "metric_widget_worker_disk_usage" {
-  description = "A CloudWatch Dashboard widget that graphs disk usage (percentage) of the EKS workers."
+  description = "A CloudWatch Dashboard widget that graphs disk usage (percentage) of the EKS workers (self-managed and managed node groups)."
   value       = module.metric_widget_worker_disk_usage.widget
 }

@@ -342,6 +342,25 @@ variable "schedule_cluster_autoscaler_on_fargate" {
   default     = false
 }
 
+variable "cluster_autoscaler_version" {
+  description = "Which version of the cluster autoscaler to install. This should match the major/minor version (e.g., v1.20) of your Kubernetes Installation. See https://github.com/kubernetes/autoscaler/tree/master/cluster-autoscaler#releases for a list of versions."
+  type        = string
+  default     = "v1.20.0"
+}
+
+variable "cluster_autoscaler_repository" {
+  description = "Which docker repository to use to install the cluster autoscaler. Check the following link for valid repositories to use https://github.com/kubernetes/autoscaler/releases"
+  type        = string
+  default     = "us.gcr.io/k8s-artifacts-prod/autoscaling/cluster-autoscaler"
+}
+
+variable "cluster_autoscaler_scaling_strategy" {
+  description = "Specifies an 'expander' for the cluster autoscaler. This helps determine which ASG to scale when additional resource capacity is needed."
+  type        = string
+  default     = "least-waste"
+  # See https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/FAQ.md#what-are-expanders
+}
+
 variable "cluster_autoscaler_pod_annotations" {
   description = "Annotations to apply to the cluster autoscaler pod(s), as key value pairs."
   type        = map(string)
@@ -410,12 +429,10 @@ variable "cluster_autoscaler_pod_node_affinity" {
   #         - another-node-label-value
 }
 
-variable "cluster_autoscaler_version" {
-  description = "Which version of the cluster autoscaler to install."
+variable "cluster_autoscaler_release_name" {
+  description = "The name to use for the helm release for cluster-autoscaler. This is useful to force a redeployment of the cluster-autoscaler component."
   type        = string
-  default     = "v1.19.1"
-  # NOTE: should match the major/minor version of your Kubernetes installation.
-  # See https://github.com/kubernetes/autoscaler/tree/master/cluster-autoscaler#releases
+  default     = "cluster-autoscaler"
 }
 
 # Scale down parameters for autoscaler. See

@@ -39,6 +39,7 @@ DIRECT_TEST_MAP = {
     'test_helpers.go': ['.*'],
     'data_store_test_helpers.go': ['TestAurora', 'TestRds'],
     'k8s_test_helpers.go': ['TestK8SNamespace', 'TestK8SService', 'TestEksCluster'],
+    'eks-workers': ['TestEksCluster'],
     'for_production_smoke_test.go': [TERRAGRUNT_SMOKE_TEST],
     'ecs_deploy_runner_test_helpers.go': ['TestEcsDeployRunner'],
     'ecs-service': ['TestEcsCluster'],

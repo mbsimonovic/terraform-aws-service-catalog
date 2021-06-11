@@ -72,6 +72,18 @@ module "eks_cluster" {
       }
     }
   )
+  managed_node_group_configurations = (
+    var.fargate_only
+    ? {}
+    : {
+      node_group = {
+        min_size       = 1
+        max_size       = 2
+        subnet_ids     = [module.vpc.public_subnet_ids[0]]
+        instance_types = ["t3.small"]
+      }
+    }
+  )
 
   # To keep this example simple, we make the Control Plane public and allow incoming API calls and SSH connections from
   # anywhere. In production, you'll want to make the Control Plane private and limit access to trusted servers only

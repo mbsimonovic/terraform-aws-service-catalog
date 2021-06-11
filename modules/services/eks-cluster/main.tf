@@ -10,19 +10,15 @@
 
 terraform {
   # This module is now only being tested with Terraform 0.15.x. However, to make upgrading easier, we are setting
-  # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 0.15.x code.
-  required_version = ">= 0.12.26"
+  # 0.13.0 as the minimum version, as that version added support for module for_each.
+  required_version = ">= 0.13.0"
 
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = ">= 2.6"
+      version = ">= 3.0"
     }
 
-    # Pin to this specific version to work around a bug introduced in 1.11.0:
-    # https://github.com/terraform-providers/terraform-provider-kubernetes/issues/759
-    # (Only for EKS)
     kubernetes = {
       source  = "hashicorp/kubernetes"
       version = "~> 1.12.0"
@@ -86,7 +82,7 @@ data "aws_eks_cluster_auth" "kubernetes_token" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "eks_cluster" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.37.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.41.0"
 
   cluster_name = var.cluster_name
 
@@ -120,64 +116,98 @@ module "eks_cluster" {
 }
 
 module "eks_workers" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.37.0"
-  create_resources = local.has_self_managed_workers
+  source = "../eks-workers"
+  # The contents of the for_each is irrelevant, as it is only used to enable or disable the module.
+  for_each = local.has_workers ? { enabled = true } : {}
 
-  name_prefix = var.worker_name_prefix
+  # We must wait for the aws-auth-merger to be available in order to start provisioning the workers.
+  depends_on = [module.eks_aws_auth_merger]
 
   # Use the output from control plane module as the cluster name to ensure the module only looks up the information
   # after the cluster is provisioned.
-  cluster_name = module.eks_cluster.eks_cluster_name
+  eks_cluster_name = module.eks_cluster.eks_cluster_name
 
-  autoscaling_group_configurations  = var.autoscaling_group_configurations
-  include_autoscaler_discovery_tags = var.autoscaling_group_include_autoscaler_discovery_tags
+  # Self-managed workers settings
+  autoscaling_group_configurations                     = var.autoscaling_group_configurations
+  autoscaling_group_include_autoscaler_discovery_tags  = var.autoscaling_group_include_autoscaler_discovery_tags
+  asg_iam_role_already_exists                          = true
+  asg_custom_iam_role_name                             = length(aws_iam_role.self_managed_worker) > 0 ? aws_iam_role.self_managed_worker[0].name : null
+  asg_default_min_size                                 = var.asg_default_min_size
+  asg_default_max_size                                 = var.asg_default_max_size
+  asg_default_instance_type                            = var.asg_default_instance_type
+  asg_default_tags                                     = var.asg_default_tags
+  asg_default_instance_root_volume_size                = var.asg_default_instance_root_volume_size
+  asg_default_instance_root_volume_type                = var.asg_default_instance_root_volume_type
+  asg_default_instance_root_volume_encryption          = var.asg_default_instance_root_volume_encryption
+  asg_default_use_multi_instances_policy               = var.asg_default_use_multi_instances_policy
+  asg_default_on_demand_allocation_strategy            = var.asg_default_on_demand_allocation_strategy
+  asg_default_on_demand_base_capacity                  = var.asg_default_on_demand_base_capacity
+  asg_default_on_demand_percentage_above_base_capacity = var.asg_default_on_demand_percentage_above_base_capacity
+  asg_default_spot_allocation_strategy                 = var.asg_default_spot_allocation_strategy
+  asg_default_spot_instance_pools                      = var.asg_default_spot_instance_pools
+  asg_default_spot_max_price                           = var.asg_default_spot_max_price
+  allow_inbound_ssh_from_cidr_blocks                   = var.allow_inbound_ssh_from_cidr_blocks
+  tenancy                                              = var.tenancy
 
-  asg_default_min_size                        = var.asg_default_min_size
-  asg_default_max_size                        = var.asg_default_max_size
-  asg_default_instance_type                   = var.asg_default_instance_type
-  asg_default_tags                            = var.asg_default_tags
-  asg_default_instance_spot_price             = var.asg_default_instance_spot_price
-  asg_default_instance_root_volume_size       = var.asg_default_instance_root_volume_size
-  asg_default_instance_root_volume_type       = var.asg_default_instance_root_volume_type
-  asg_default_instance_root_volume_encryption = var.asg_default_instance_root_volume_encryption
+  # Managed Node Groups settings
+  # We want to make sure the role mapping config map is created before the Managed Node Groups to avoid conflicts with
+  # EKS automatically updating the auth config map with the IAM role. To do this, we add an artificial dependency here
+  # using a tautology. Note that we can't use module depends_on because the IAM role used in the role mapping is created
+  # within this module block.
+  managed_node_group_configurations = (
+    module.eks_k8s_role_mapping.aws_auth_config_map_name == null
+    ? var.managed_node_group_configurations
+    : var.managed_node_group_configurations
+  )
+  # Since managed_node_group_configurations now depends on a resources (the aws-auth ConfigMap), we need to assist the
+  # module for_each calculation by providing values that are only derived from variables.
+  node_group_names = [for name, config in var.managed_node_group_configurations : name]
+  # The rest configure the defaults for the node group configurations.
+  managed_node_group_iam_role_already_exists = true
+  managed_node_group_custom_iam_role_name    = length(aws_iam_role.managed_node_group) > 0 ? aws_iam_role.managed_node_group[0].name : null
+  node_group_default_subnet_ids              = var.node_group_default_subnet_ids
+  node_group_default_min_size                = var.node_group_default_min_size
+  node_group_default_max_size                = var.node_group_default_max_size
+  node_group_default_desired_size            = var.node_group_default_desired_size
+  node_group_default_instance_types          = var.node_group_default_instance_types
+  node_group_default_capacity_type           = var.node_group_default_capacity_type
+  node_group_default_tags                    = var.node_group_default_tags
+  node_group_default_labels                  = var.node_group_default_labels
 
-  # The following are not yet supported to accept multiple, but in a future version, we will support extracting
-  # additional user data and AMI configurations from each ASG entry.
-  asg_default_instance_ami              = module.ec2_baseline.existing_ami
-  asg_default_instance_user_data_base64 = module.ec2_baseline.cloud_init_rendered
+  # The rest of the block specifies settings that are common to both worker groups
 
-  cluster_instance_keypair_name = var.cluster_instance_keypair_name
+  worker_name_prefix        = var.worker_name_prefix
+  aws_auth_merger_namespace = var.enable_aws_auth_merger ? var.aws_auth_merger_namespace : null
 
-  tenancy = var.tenancy
+  # - AMI settings
+  cluster_instance_ami         = var.cluster_instance_ami
+  cluster_instance_ami_filters = var.cluster_instance_ami_filters
+  cloud_init_parts             = var.cloud_init_parts
+
+  # - SSH settings
+  cluster_instance_keypair_name          = var.cluster_instance_keypair_name
+  allow_inbound_ssh_from_security_groups = var.allow_inbound_ssh_from_security_groups
+  external_account_ssh_grunt_role_arn    = var.external_account_ssh_grunt_role_arn
+  ssh_grunt_iam_group                    = var.ssh_grunt_iam_group
+  ssh_grunt_iam_group_sudo               = var.ssh_grunt_iam_group_sudo
+  enable_fail2ban                        = var.enable_fail2ban
+
+  # - Monitoring settings
+  enable_cloudwatch_metrics = var.enable_cloudwatch_metrics
+  enable_cloudwatch_alarms  = var.enable_cloudwatch_alarms
+  alarms_sns_topic_arn      = var.alarms_sns_topic_arn
+
+  # - Dashboard widget settings
+  dashboard_cpu_usage_widget_parameters    = var.dashboard_cpu_usage_widget_parameters
+  dashboard_memory_usage_widget_parameters = var.dashboard_memory_usage_widget_parameters
+  dashboard_disk_usage_widget_parameters   = var.dashboard_disk_usage_widget_parameters
+
+  # - Kubernetes provider configuration parameters
+  use_exec_plugin_for_auth      = var.use_exec_plugin_for_auth
+  use_kubergrunt_to_fetch_token = var.use_kubergrunt_to_fetch_token
 
   # These are dangerous variables that are exposed to make testing easier, but should be left untouched.
   cluster_instance_associate_public_ip_address = var.cluster_instance_associate_public_ip_address
-}
-
-resource "aws_security_group_rule" "allow_inbound_ssh_from_security_groups" {
-  for_each = (
-    local.has_self_managed_workers
-    ? { for group_id in var.allow_inbound_ssh_from_security_groups : group_id => group_id }
-    : {}
-  )
-
-  type                     = "ingress"
-  from_port                = 22
-  to_port                  = 22
-  protocol                 = "tcp"
-  security_group_id        = module.eks_workers.eks_worker_security_group_id
-  source_security_group_id = each.key
-}
-
-resource "aws_security_group_rule" "allow_inbound_ssh_from_cidr_blocks" {
-  count = local.has_self_managed_workers && length(var.allow_inbound_ssh_from_cidr_blocks) > 0 ? 1 : 0
-
-  type              = "ingress"
-  from_port         = 22
-  to_port           = 22
-  protocol          = "tcp"
-  security_group_id = module.eks_workers.eks_worker_security_group_id
-  cidr_blocks       = var.allow_inbound_ssh_from_cidr_blocks
 }
 
 resource "aws_security_group_rule" "allow_private_endpoint_from_security_groups" {
@@ -202,10 +232,52 @@ resource "aws_security_group_rule" "allow_private_endpoint_from_cidr_blocks" {
   cidr_blocks       = var.allow_inbound_ssh_from_cidr_blocks
 }
 
-locals {
-  has_self_managed_workers = length(var.autoscaling_group_configurations) > 0
+# Precreate the IAM roles for workers to avoid cyclic dependencies between the role mapping ConfigMap and ASGs/Node
+# Groups. This avoids a dependency chain that crosses module boundaries, which can lead to weird bugs in terraform.
+# Without this, you end up with the following dependency chain (note how the modules have interdependencies between each
+# other):
+#
+# - ConfigMap in module.eks_k8s_role_mapping depends on IAM role in module.eks_workers
+# - Node Group and ASG in module.eks_workers depends on ConfigMap in module.eks_k8s_role_mapping
+#
+# By introducing the aws_iam_role here, the dependency flattens to:
+#
+# - Node Group and ASG depends on aws_iam_role that is passed in.
+# - ConfigMap in module.eks_k8s_role_mapping depends on aws_iam_role that is passed in.
+#
+resource "aws_iam_role" "self_managed_worker" {
+  count              = local.has_self_managed_workers ? 1 : 0
+  name               = local.asg_iam_role_name
+  assume_role_policy = data.aws_iam_policy_document.allow_ec2_instances_to_assume_role.json
 }
 
+resource "aws_iam_role" "managed_node_group" {
+  count              = local.has_managed_node_groups ? 1 : 0
+  name               = local.managed_node_group_iam_role_name
+  assume_role_policy = data.aws_iam_policy_document.allow_ec2_instances_to_assume_role.json
+}
+
+data "aws_iam_policy_document" "allow_ec2_instances_to_assume_role" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+  }
+}
+
+locals {
+  has_workers              = local.has_self_managed_workers || local.has_managed_node_groups
+  has_self_managed_workers = length(var.autoscaling_group_configurations) > 0
+  has_managed_node_groups  = length(var.managed_node_group_configurations) > 0
+
+  # Use a different IAM role name for each worker type to avoid conflicting.
+  managed_node_group_iam_role_name = "${var.worker_name_prefix}${var.cluster_name}-mng"
+  asg_iam_role_name                = "${var.worker_name_prefix}${var.cluster_name}-asg"
+}
 
 # ---------------------------------------------------------------------------------------------------------------------
 # CONFIGURE EKS IAM ROLE MAPPINGS
@@ -232,7 +304,7 @@ resource "kubernetes_namespace" "aws_auth_merger" {
 }
 
 module "eks_aws_auth_merger" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-aws-auth-merger?ref=v0.37.0"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-aws-auth-merger?ref=v0.41.0"
   create_resources = var.enable_aws_auth_merger
 
   create_namespace       = false
@@ -248,19 +320,29 @@ module "eks_aws_auth_merger" {
 }
 
 module "eks_k8s_role_mapping" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.37.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.41.0"
 
   # Configure to create this in the merger namespace if using the aws-auth-merger. Otherwise create it as the main
   # config.
-  # NOTE: the hardcoded strings used when aws-auth-merger is disabled is important as that is what AWS expects this
+  # NOTE: the hardcoded strings used when aws-auth-merger is disabled are important as that is what AWS expects this
   # ConfigMap to be named. The mapping and authentication will not work if you use a different Namespace or name.
   name      = var.enable_aws_auth_merger ? var.aws_auth_merger_default_configmap_name : "aws-auth"
   namespace = local.aws_auth_merger_namespace_name == null ? "kube-system" : local.aws_auth_merger_namespace_name
 
-  eks_worker_iam_role_arns = (
-    length(var.autoscaling_group_configurations) > 0
-    ? [module.eks_workers.eks_worker_iam_role_arn]
-    : []
+  # Combine the default worker pool IAM role ARNs with the user provided IAM role ARNs.
+  eks_worker_iam_role_arns = concat(
+    # If aws-auth-merger is enabled and the user has requested workers, the worker IAM role mappings will be managed
+    # within eks-workers module as separate ConfigMaps, so we don't need to manage the worker IAM role arns in the main
+    # ConfigMap.
+    (
+      var.enable_aws_auth_merger == false
+      ? concat(
+        aws_iam_role.self_managed_worker[*].arn,
+        aws_iam_role.managed_node_group[*].arn,
+      )
+      : []
+    ),
+    var.worker_iam_role_arns_for_k8s_role_mapping,
   )
 
   # Include the fargate executor IAM roles if we aren't using the aws-auth-merger.
@@ -295,135 +377,7 @@ locals {
     ? kubernetes_namespace.aws_auth_merger[0].metadata[0].name
     : null
   )
-
 }
-
-
-# ---------------------------------------------------------------------------------------------------------------------
-# SET UP WIDGETS FOR CLOUDWATCH DASHBOARD
-# ---------------------------------------------------------------------------------------------------------------------
-
-module "metric_widget_worker_cpu_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.27.0"
-
-  title = "${var.cluster_name} EKSWorker CPUUtilization"
-  stat  = "Average"
-
-  period = var.dashboard_cpu_usage_widget_parameters.period
-  width  = var.dashboard_cpu_usage_widget_parameters.width
-  height = var.dashboard_cpu_usage_widget_parameters.height
-
-  metrics = [
-    for name in module.eks_workers.eks_worker_asg_names : ["AWS/EC2", "CPUUtilization", "AutoScalingGroupName", name]
-  ]
-}
-
-module "metric_widget_worker_memory_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.27.0"
-
-  title = "${var.cluster_name} EKSWorker MemoryUtilization"
-  stat  = "Average"
-
-  period = var.dashboard_memory_usage_widget_parameters.period
-  width  = var.dashboard_memory_usage_widget_parameters.width
-  height = var.dashboard_memory_usage_widget_parameters.height
-
-  metrics = [
-    for name in module.eks_workers.eks_worker_asg_names : ["System/Linux", "MemoryUtilization", "AutoScalingGroupName", name]
-  ]
-}
-
-module "metric_widget_worker_disk_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.27.0"
-
-  title = "${var.cluster_name} EKSWorker DiskUtilization"
-  stat  = "Average"
-
-  period = var.dashboard_disk_usage_widget_parameters.period
-  width  = var.dashboard_disk_usage_widget_parameters.width
-  height = var.dashboard_disk_usage_widget_parameters.height
-
-  metrics = [
-    for name in module.eks_workers.eks_worker_asg_names : ["System/Linux", "DiskSpaceUtilization", "AutoScalingGroupName", name, "MountPath", "/"]
-  ]
-}
-
-
-# ---------------------------------------------------------------------------------------------------------------------
-# BASE RESOURCES
-# Includes resources common to all EC2 instances in the Service Catalog, including permissions
-# for ssh-grunt, CloudWatch Logs aggregation, CloudWatch metrics, and CloudWatch alarms
-# ---------------------------------------------------------------------------------------------------------------------
-
-module "ec2_baseline" {
-  source = "../../base/ec2-baseline"
-
-  name                                = var.cluster_name
-  external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
-  enable_ssh_grunt                    = local.enable_ssh_grunt
-  iam_role_name                       = module.eks_workers.eks_worker_iam_role_name
-  enable_cloudwatch_metrics           = local.has_self_managed_workers && var.enable_cloudwatch_metrics
-  enable_asg_cloudwatch_alarms        = local.has_self_managed_workers && var.enable_cloudwatch_alarms
-  asg_names                           = module.eks_workers.eks_worker_asg_names
-  num_asg_names                       = length(var.autoscaling_group_configurations)
-  alarms_sns_topic_arn                = var.alarms_sns_topic_arn
-  cloud_init_parts                    = local.cloud_init_parts
-  ami                                 = var.cluster_instance_ami
-  ami_filters                         = var.cluster_instance_ami_filters
-
-  // CloudWatch log aggregation is handled separately in EKS
-  enable_cloudwatch_log_aggregation = false
-}
-
-# ---------------------------------------------------------------------------------------------------------------------
-# CREATE THE USER DATA SCRIPT TO RUN ON EKS WORKERS WHEN IT BOOTS
-# ---------------------------------------------------------------------------------------------------------------------
-
-locals {
-  # Default cloud init script for this module
-  cloud_init = {
-    filename     = "eks-worker-default-cloud-init"
-    content_type = "text/x-shellscript"
-    content      = local.base_user_data
-  }
-
-  # Merge in all the cloud init scripts the user has passed in
-  cloud_init_parts = merge({ default : local.cloud_init }, var.cloud_init_parts)
-  enable_ssh_grunt = (
-    var.ssh_grunt_iam_group == "" && var.ssh_grunt_iam_group_sudo == ""
-    ? false
-    : local.has_self_managed_workers
-  )
-
-  base_user_data = templatefile(
-    "${path.module}/user-data.sh",
-    {
-      aws_region                = data.aws_region.current.name
-      eks_cluster_name          = var.cluster_name
-      eks_endpoint              = module.eks_cluster.eks_cluster_endpoint
-      eks_certificate_authority = module.eks_cluster.eks_cluster_certificate_authority
-
-      enable_ssh_grunt                    = local.enable_ssh_grunt
-      enable_fail2ban                     = var.enable_fail2ban
-      ssh_grunt_iam_group                 = var.ssh_grunt_iam_group
-      ssh_grunt_iam_group_sudo            = var.ssh_grunt_iam_group_sudo
-      external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
-
-      # We disable CloudWatch logs at the VM level as this is handled internally in k8s.
-      enable_cloudwatch_log_aggregation = false
-      log_group_name                    = ""
-
-      # TODO: investigate if IP lockdown can now be enabled due to IRSA
-      enable_ip_lockdown = false
-    },
-  )
-}
-
-# ---------------------------------------------------------------------------------------------------------------------
-# GET INFO ABOUT CURRENT USER/ACCOUNT
-# ---------------------------------------------------------------------------------------------------------------------
-
-data "aws_region" "current" {}
 
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -452,4 +406,65 @@ locals {
     for subnet in data.aws_subnet.provided_for_fargate_workers :
     subnet.id if contains(var.fargate_worker_disallowed_availability_zones, subnet.availability_zone) == false
   ]
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# SET UP WIDGETS FOR CLOUDWATCH DASHBOARD
+# ---------------------------------------------------------------------------------------------------------------------
+
+module "metric_widget_worker_cpu_usage" {
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.27.0"
+
+  title = "${var.cluster_name} EKSWorker CPUUtilization"
+  stat  = "Average"
+
+  period = var.dashboard_cpu_usage_widget_parameters.period
+  width  = var.dashboard_cpu_usage_widget_parameters.width
+  height = var.dashboard_cpu_usage_widget_parameters.height
+
+  metrics = (
+    local.has_workers
+    ? [
+      for name in module.eks_workers["enabled"].worker_asg_names : ["AWS/EC2", "CPUUtilization", "AutoScalingGroupName", name]
+    ]
+    : []
+  )
+}
+
+module "metric_widget_worker_memory_usage" {
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.27.0"
+
+  title = "${var.cluster_name} EKSWorker MemoryUtilization"
+  stat  = "Average"
+
+  period = var.dashboard_memory_usage_widget_parameters.period
+  width  = var.dashboard_memory_usage_widget_parameters.width
+  height = var.dashboard_memory_usage_widget_parameters.height
+
+  metrics = (
+    local.has_workers
+    ? [
+      for name in module.eks_workers["enabled"].worker_asg_names : ["System/Linux", "MemoryUtilization", "AutoScalingGroupName", name]
+    ]
+    : []
+  )
+}
+
+module "metric_widget_worker_disk_usage" {
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.27.0"
+
+  title = "${var.cluster_name} EKSWorker DiskUtilization"
+  stat  = "Average"
+
+  period = var.dashboard_disk_usage_widget_parameters.period
+  width  = var.dashboard_disk_usage_widget_parameters.width
+  height = var.dashboard_disk_usage_widget_parameters.height
+
+  metrics = (
+    local.has_workers
+    ? [
+      for name in module.eks_workers["enabled"].worker_asg_names : ["System/Linux", "DiskSpaceUtilization", "AutoScalingGroupName", name, "MountPath", "/"]
+    ]
+    : []
+  )
 }
