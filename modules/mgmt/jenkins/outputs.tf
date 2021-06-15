@@ -72,3 +72,7 @@ output "jenkins_domain_name" {
   value       = module.jenkins.jenkins_domain_name
   description = "The public domain name configured for Jenkins"
 }
+
+output "backup_lambda_function_name" {
+  value = var.backup_using_lambda ? module.jenkins_backup[0].backup_lambda_function_name : null
+}

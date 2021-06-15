@@ -49,3 +49,40 @@ variable "base_domain_name_tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "backup_using_lambda" {
+  description = "Set to true to backup the Jenkins Server using a Scheduled Lambda Function. If this variable is true, var.lambda_backup_schedule is required."
+  type        = bool
+  default     = true
+}
+
+variable "lambda_backup_schedule" {
+  description = "An object representing the schedule for the execution of the Scheduled Lambda Function. Required when var.backup_using_lambda is true."
+  type = object({
+    # An expression that defines the schedule for how often to run the backup
+    # lambda function. For example, cron(0 20 * * ? *) or rate(1 day).
+    schedule_expression = string
+
+    # How often, in seconds, the backup lambda function is expected to run.
+    # This is the same as 'schedule_expression', but unfortunately, Terraform
+    # offers no way to convert rate expressions to seconds. We add a CloudWatch
+    # alarm that triggers if the value of 'metric_name' and
+    # 'metric_namespace' isn't updated within this time period, as
+    # that indicates the backup failed to run.
+    alarm_period = number
+
+    # The name for the CloudWatch Metric the AWS lambda backup function will
+    # increment every time the job completes successfully.
+    metric_name = string
+
+    # The namespace for the CloudWatch Metric the AWS lambda backup function
+    # will increment every time the job completes successfully.
+    metric_namespace = string
+  })
+  default = {
+    schedule_expression = "rate(1 day)"
+    alarm_period        = 86400
+    metric_name         = "jenkins-backup-job"
+    metric_namespace    = "Custom/Jenkins"
+  }
+}

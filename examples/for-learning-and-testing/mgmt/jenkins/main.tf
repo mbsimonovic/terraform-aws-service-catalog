@@ -60,4 +60,8 @@ module "jenkins" {
   is_internal_alb                      = false
   allow_incoming_http_from_cidr_blocks = ["0.0.0.0/0"]
   allow_ssh_from_cidr_blocks           = ["0.0.0.0/0"]
+
+  # Jenkins server backup configuration
+  backup_using_lambda    = var.backup_using_lambda
+  lambda_backup_schedule = var.lambda_backup_schedule
 }
