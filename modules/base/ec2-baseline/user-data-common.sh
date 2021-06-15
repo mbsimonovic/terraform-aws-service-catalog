@@ -78,10 +78,18 @@ function attach_eip {
 function start_cloudwatch_logs_agent {
   local -r log_group_name="$1"
 
+  source "$BASH_COMMONS_DIR/os.sh"
+
   echo "Configuring CloudWatch Agent"
   /etc/user-data/cloudwatch-agent/configure-cloudwatch-agent.sh \
-    --syslog --authlog --log-file /var/log/kern.log \
-    --log-group-name "$log_group_name" --log-stream-name '{instance_id}-syslog'
+    --syslog --log-group-name "$log_group_name" --log-stream-name '{instance_id}-syslog'
+  /etc/user-data/cloudwatch-agent/configure-cloudwatch-agent.sh \
+    --authlog --log-group-name "$log_group_name" --log-stream-name '{instance_id}-auth'
+
+  if os_is_ubuntu; then
+    /etc/user-data/cloudwatch-agent/configure-cloudwatch-agent.sh \
+      --log-file /var/log/kern.log --log-group-name "$log_group_name" --log-stream-name '{instance_id}-kern'
+  fi
 
   echo "Starting CloudWatch Agent"
   /etc/user-data/cloudwatch-agent/restart-cloudwatch-agent.sh
@@ -108,10 +116,10 @@ function start_ssh_grunt {
     args+=("--role-arn" "$external_account_ssh_grunt_role_arn")
   fi
 
-  # Call 'sync-users' to sync IAM users the first time during boot. 
+  # Call 'sync-users' to sync IAM users the first time during boot.
   sudo /usr/local/bin/ssh-grunt iam sync-users "${args[@]}"
 
-  # Call 'install' to add a cron job that will set up ssh-grunt and re-run 'sync-users' on a schedule. 
+  # Call 'install' to add a cron job that will set up ssh-grunt and re-run 'sync-users' on a schedule.
   sudo /usr/local/bin/ssh-grunt iam install "${args[@]}"
 
   # Restart sshd so that the changes to sshd_config to take effect
