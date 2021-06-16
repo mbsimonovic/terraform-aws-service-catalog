@@ -248,7 +248,7 @@ variable "replica_bucket_ownership" {
 }
 
 variable "bucket_sse_algorithm" {
-  description = "The server-side encryption algorithm to use on the bucket. Valid values are AES256 and aws:kms."
+  description = "The server-side encryption algorithm to use on the bucket. Valid values are AES256 and aws:kms. Set to null to disable encryption."
   type        = string
   default     = "aws:kms"
 }
@@ -282,4 +282,3 @@ variable "force_destroy_replica" {
   type        = bool
   default     = false
 }
-
