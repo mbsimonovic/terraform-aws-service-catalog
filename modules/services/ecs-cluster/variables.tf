@@ -93,6 +93,12 @@ variable "enable_cloudwatch_log_aggregation" {
   default     = true
 }
 
+variable "cloudwatch_log_group_name" {
+  description = "The name of the log group to create in CloudWatch. Defaults to `var.cluster_name-logs`."
+  type        = string
+  default     = ""
+}
+
 variable "tenancy" {
   description = "The tenancy of this server. Must be one of: default, dedicated, or host."
   type        = string
@@ -123,34 +129,6 @@ variable "enable_ip_lockdown" {
   default     = true
 }
 
-# For info on how ECS authenticates to private Docker registries, see:
-# http://docs.aws.amazon.com/AmazonECS/latest/developerguide/private-auth.html
-variable "docker_repo_auth" {
-  description = "The Docker auth value, encrypted with a KMS master key, that can be used to download your private images from Docker Hub. This is not your password! To get the auth value, run 'docker login', enter a machine user's credentials, and when you're done, copy the 'auth' value from ~/.docker/config.json. To encrypt the value with KMS, use gruntkms with a master key. Note that these instances will use gruntkms to decrypt the data, so the IAM role of these instances must be granted permission to access the KMS master key you use to encrypt this data! Used if var.docker_auth_type is set to docker-hub, docker-gitlab or docker-other"
-  type        = string
-  default     = null
-}
-
-variable "docker_registry_url" {
-  description = "The URL of your Docker Registry. Only used if var.docker_auth_type is set to docker-gitlab"
-  type        = string
-  default     = null
-}
-
-
-variable "docker_auth_type" {
-  description = "The docker authentication strategy to use for pulling Docker images. MUST be one of: (docker-hub, docker-other, docker-gitlab)"
-  type        = string
-  default     = null
-}
-
-# For info on how ECS authenticates to private Docker registries, see:
-# http://docs.aws.amazon.com/AmazonECS/latest/developerguide/private-auth.html
-variable "docker_repo_email" {
-  description = "The Docker email address that can be used used to download your private images from Docker Hub. Only used if var.docker_auth_type is set to docker-hub or docker-other"
-  type        = string
-  default     = null
-}
 
 variable "capacity_provider_enabled" {
   description = "Enable a capacity provider to autoscale the EC2 ASG created for this ECS cluster"

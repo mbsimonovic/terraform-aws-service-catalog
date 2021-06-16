@@ -71,6 +71,8 @@ locals {
     [for user in local.ip_lockdown_users : "'${user}'"],
   )
 
+  log_group = var.cloudwatch_log_group_name != "" ? var.cloudwatch_log_group_name : "${var.cluster_name}-logs"
+
   base_user_data = templatefile(
     "${path.module}/user-data.sh",
     {
@@ -80,7 +82,7 @@ locals {
       enable_ssh_grunt                    = var.enable_ssh_grunt
       ssh_grunt_iam_group                 = var.ssh_grunt_iam_group
       ssh_grunt_iam_group_sudo            = var.ssh_grunt_iam_group_sudo
-      log_group_name                      = "${var.cluster_name}-logs"
+      log_group_name                      = local.log_group
       external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
       enable_fail2ban                     = var.enable_fail2ban
       enable_ip_lockdown                  = var.enable_ip_lockdown
