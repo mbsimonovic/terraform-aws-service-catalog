@@ -76,3 +76,7 @@ output "jenkins_domain_name" {
 output "backup_lambda_function_name" {
   value = var.backup_using_lambda ? module.jenkins_backup[0].backup_lambda_function_name : null
 }
+
+output "backup_lambda_function_arn" {
+  value = var.backup_using_lambda ? module.jenkins_backup[0].backup_lambda_function_arn : null
+}

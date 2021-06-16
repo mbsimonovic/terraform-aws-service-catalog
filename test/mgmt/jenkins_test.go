@@ -97,6 +97,7 @@ func TestJenkins(t *testing.T) {
 		// takes approximately 15~20 minutes, the teardown process timed out.
 		// So, in tests, we disable the backup routines due to this.
 		terraformOptions.Vars["backup_using_lambda"] = false
+		terraformOptions.Vars["backup_using_dlm"] = false
 
 		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
 		terraform.InitAndApply(t, terraformOptions)
