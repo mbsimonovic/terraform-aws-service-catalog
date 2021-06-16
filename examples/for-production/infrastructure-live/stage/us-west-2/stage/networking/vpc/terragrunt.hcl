@@ -45,6 +45,8 @@ locals {
   # Extract the region for easy access
   aws_region = local.region_vars.locals.aws_region
 
+  cidr_block = local.common_vars.locals.app_vpc_cidrs[local.account_name]
+
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -54,7 +56,7 @@ locals {
 inputs = {
   vpc_name         = "app"
   num_nat_gateways = 1
-  cidr_block       = local.common_vars.locals.app_vpc_cidrs[local.account_name]
+  cidr_block       = local.cidr_block
   kms_key_user_iam_arns = [
     "arn:aws:iam::${local.common_vars.locals.accounts[local.account_name]}:root",
   ]

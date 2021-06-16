@@ -5,9 +5,8 @@ This documentation contains an overview of the architecture deployed and managed
 First, the short version:
 
 - This is an end-to-end tech stack for [Amazon Web Services (AWS)](https://aws.amazon.com/) that incluldes all the
-  basic infrastructure a company needs, including the network topology, orchestration tools (e.g., Kubernetes or ECS), databases, caches, load balancers, CI / CD pipeline, monitoring, alerting, log aggregation, etc.
+  basic infrastructure a company needs, including the network topology, orchestration tools (e.g., Kubernetes or ECS), databases, caches, load balancers, CI / CD pipeline, monitoring, alerting, log aggregation, etc.- It's built on top of the [Gruntwork Service Catalog](https://github.com/gruntwork-io/terraform-aws-service-catalog).
 - It's all defined and managed as code using tools such as [Terraform](https://www.terraform.io/), [Packer](https://www.packer.io/), and [Docker](https://www.docker.com/).
-- It's built on top of the [Gruntwork Service Catalog](https://github.com/gruntwork-io/terraform-aws-service-catalog).
 
 Here's a diagram that shows a rough overview of what the Reference Architecture looks like:
 

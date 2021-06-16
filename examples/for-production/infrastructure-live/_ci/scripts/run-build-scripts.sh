@@ -31,7 +31,7 @@ function get_updated_build_scripts {
   local -r ref="$2"
 
   # Assume any script named build_*.sh is a CI server build script that needs to be run.
-  local -r build_script_regex="build_[^\\s]+\\.sh$"
+  local -r build_script_regex="build_[^/[:space:]]+\\.sh$"
 
   local repo_root
   repo_root="$(get_git_root)"

@@ -34,7 +34,8 @@ dependency "baseline" {
   config_path = "${get_terragrunt_dir()}/../../../../_global/account-baseline"
 
   mock_outputs = {
-    allow_dev_access_from_other_accounts_iam_role_arn = "arn:aws:iam:us-east-1:123456789012:dev-access-NZJ5JSMVGFIE"
+    allow_full_access_from_other_accounts_iam_role_arn = "arn:aws:iam:us-east-1:123456789012:full-access-NZJ5JSMVGFIE"
+    allow_dev_access_from_other_accounts_iam_role_arn  = "arn:aws:iam:us-east-1:123456789012:dev-access-NZJ5JSMVGFIE"
   }
   mock_outputs_allowed_terraform_commands = ["validate", ]
 }
@@ -144,6 +145,7 @@ inputs = {
 
   iam_role_to_rbac_group_mapping = {
     "arn:aws:iam::${local.common_vars.locals.accounts[local.account_name]}:role/GruntworkAccountAccessRole" = ["system:masters"]
+    (dependency.baseline.outputs.allow_full_access_from_other_accounts_iam_role_arn)                        = ["system:masters"]
     (dependency.baseline.outputs.allow_dev_access_from_other_accounts_iam_role_arn)                         = ["system:masters"]
     (dependency.ecs_deploy_runner.outputs.ecs_task_iam_roles["terraform-planner"]["arn"])                   = ["system:masters"]
     (dependency.ecs_deploy_runner.outputs.ecs_task_iam_roles["terraform-applier"]["arn"])                   = ["system:masters"]

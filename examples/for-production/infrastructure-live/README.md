@@ -1,11 +1,11 @@
 # Live infrastructure
 
-This repository contains code to deploy infrastructure across all live environments in AWS. This code implements the
+
+This repository contains code to deploy  infrastructure across all live environments in AWS. This code implements the
 [Gruntwork Reference Architecture](https://gruntwork.io/reference-architecture/) using services from the [Gruntwork
 AWS Service Catalog](https://github.com/gruntwork-io/terraform-aws-service-catalog).
 
 ![Reference Architecture](docs/images/landing-zone-ref-arch.png?raw=true)
-
 
 
 ## Learn

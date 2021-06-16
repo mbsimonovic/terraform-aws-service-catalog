@@ -58,9 +58,9 @@ locals {
 
   # Map of account name to VPC CIDR blocks to use for the app VPC.
   app_vpc_cidrs = {
-    dev   = "10.0.0.0/16"
-    prod  = "10.4.0.0/16"
-    stage = "10.2.0.0/16"
+    dev   = "10.4.0.0/16"
+    prod  = "10.2.0.0/16"
+    stage = "10.0.0.0/16"
   }
 
   # List of known static CIDR blocks for the organization. Administrative access (e.g., VPN, SSH,

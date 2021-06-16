@@ -3,6 +3,15 @@
 *.tfstate
 *.tfstate.backup
 
+# Ignore the terraform lock file to ensure cross platform compatibility. If you wish to track the terraform lock file in
+# version control, be sure to generate one that works for all operator platforms in your team using the providers lock
+# command. Refer to https://www.terraform.io/docs/cli/commands/providers/lock.html for more info. For example, to
+# generate a lock file that is compatible with Intel based MacBooks and ECS Deploy Runner:
+#
+#   terragrunt run-all providers lock -platform=darwin_amd64 -platform=linux_amd64
+#
+.terraform.lock.hcl
+
 # OS X
 .history
 .DS_Store
@@ -20,5 +29,5 @@ out/
 # Terragrunt
 .terragrunt-cache
 
-# Gruntwork Reference Architecture Deployer state 
+# Gruntwork Reference Architecture Deployer state
 *state_machine.json

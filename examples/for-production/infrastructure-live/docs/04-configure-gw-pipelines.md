@@ -22,6 +22,7 @@ This diagram shows a rough overview of the Gruntwork Pipelines architecture:
 
 The Gruntwork Pipelines workflow, defined in [`.circleci/config.yml`](/.circleci/config.yml), works like this:
 
+
 - A CI server is hooked up to watch for changes in your `infrastructure-live` repository.
 - Every time a new commit is pushed, the CI server looks for modules that have changed in the repository.
 - For each module that changed, trigger a `plan` action on the module by invoking the ECS deploy runner.
@@ -129,6 +130,7 @@ approval.
 1. You should also get a Slack notification that the apply succeeded.
 
    ![Slack Apply Notification](images/circleci-setup/circleci_slack_apply.png)
+
 
 
 

@@ -89,7 +89,8 @@ inputs = {
   vpc_id             = dependency.vpc_mgmt.outputs.vpc_id
   private_subnet_ids = dependency.vpc_mgmt.outputs.private_subnet_ids
 
-
+  shared_secrets_enabled     = true
+  shared_secrets_kms_cmk_arn = "arn:aws:kms:us-east-1:234567890123:alias/shared-secrets"
 
   # We don't need to build images in this account.
   docker_image_builder_config = null
@@ -127,7 +128,7 @@ inputs = {
     )
     infrastructure_live_repositories_regex = []
     allowed_update_variable_names          = ["tag", "ami", "docker_tag", "ami_version_tag", ]
-    allowed_apply_git_refs                 = ["main", ]
+    allowed_apply_git_refs                 = ["main", "origin/main", ]
     machine_user_git_info = {
       name  = "gruntbot"
       email = "gruntbot@gruntwork.io"

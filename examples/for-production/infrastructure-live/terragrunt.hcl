@@ -65,8 +65,7 @@ remote_state {
 # DEFAULT INPUTS
 # ----------------------------------------------------------------------------------------------------------------
 inputs = {
-  # Many modules require these two inputs, so we set them globally here to keep all the child terragrunt.hcl
-  # files more DRY
+  # Set globally used inputs here to keep all the child terragrunt.hcl files more DRY.
   aws_account_id = local.account_id
   aws_region     = local.aws_region
   name_prefix    = local.common_vars.locals.name_prefix

@@ -11,7 +11,7 @@
 
 set -e
 
-readonly PACKER_TEMPLATE_REPO="git@github.com:gruntwork-io/aws-sample-app.git//packer/build.json"
+readonly PACKER_TEMPLATE_REPO="https://github.com/gruntwork-io/aws-sample-app.git//packer/build.json"
 readonly PACKER_TEMPLATE_REPO_REF="v0.0.4"
 readonly SERVICE_CATALOG_REF="v0.38.1"
 readonly DEPLOY_RUNNER_REGION="us-west-2"

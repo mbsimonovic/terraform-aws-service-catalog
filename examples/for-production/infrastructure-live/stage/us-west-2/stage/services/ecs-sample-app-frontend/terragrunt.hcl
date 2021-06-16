@@ -95,7 +95,7 @@ locals {
   tls_secrets_manager_arn = "arn:aws:secretsmanager:us-west-2:456789012345:secret:TLSFrontEndSecretsManagerArn-abcd1234"
 
   # Specify the app image tag here so that it can be overridden in a CI/CD pipeline.
-  tag = "v0.0.4"
+  tag = "v0.0.2"
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

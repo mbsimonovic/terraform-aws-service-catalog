@@ -153,7 +153,7 @@ inputs = {
   # from DockerHub.
   container_image = {
     repository  = "gruntwork/aws-sample-app"
-    tag         = "v0.0.4"
+    tag         = "v0.0.2"
     pull_policy = "IfNotPresent"
   }
 
