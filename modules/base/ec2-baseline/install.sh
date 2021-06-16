@@ -7,7 +7,7 @@ readonly DEFAULT_BASH_COMMONS_VERSION="v0.1.7"
 # renovate.json auto-update: terraform-aws-security
 readonly DEFAULT_MODULE_SECURITY_VERSION="v0.49.1"
 # renovate.json auto-update: terraform-aws-monitoring
-readonly DEFAULT_MODULE_AWS_MONITORING_VERSION="v0.27.0"
+readonly DEFAULT_MODULE_AWS_MONITORING_VERSION="v0.28.0"
 # renovate.json auto-update: terraform-aws-server
 readonly DEFAULT_MODULE_STATEFUL_SERVER_VERSION="v0.12.1"
 
@@ -94,11 +94,7 @@ function install_monitoring_packages {
 
   echo "Installing Gruntwork Monitoring Modules"
 
-  if [[ "$enable_cloudwatch_metrics" == "true" ]]; then
-    gruntwork-install --module-name 'metrics/cloudwatch-memory-disk-metrics-scripts' --repo https://github.com/gruntwork-io/terraform-aws-monitoring --tag "$module_aws_monitoring_version"
-  fi
-
-  if [[ "$enable_cloudwatch_log_aggregation" == "true" ]]; then
+  if [[ "$enable_cloudwatch_metrics" == "true" ]] || [[ "$enable_cloudwatch_log_aggregation" == "true" ]]; then
     # Allow the region to be passed in by env var
     local aws_region="$AWS_REGION"
     if [[ -z "$aws_region" ]]; then

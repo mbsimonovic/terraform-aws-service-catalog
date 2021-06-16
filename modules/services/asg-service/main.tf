@@ -306,7 +306,7 @@ resource "aws_route53_record" "service" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "route53_health_check" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/route53-health-check-alarms?ref=v0.27.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/route53-health-check-alarms?ref=v0.28.0"
 
   create_resources               = var.enable_route53_health_check
   alarm_configs                  = local.route53_alarm_configurations
@@ -333,9 +333,6 @@ locals {
   ip_lockdown_users = compact(flatten([
     var.default_user,
     var.metadata_users,
-    # User used to push cloudwatch metrics from the server. This should only be included in the ip-lockdown list if
-    # reporting cloudwatch metrics is enabled.
-    var.enable_cloudwatch_metrics ? "cwmonitoring" : ""
   ]))
   # We want a space separated list of the users, quoted with ''
   ip_lockdown_users_bash_array = join(

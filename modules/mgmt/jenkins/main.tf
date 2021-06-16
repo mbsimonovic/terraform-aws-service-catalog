@@ -111,9 +111,6 @@ locals {
   ip_lockdown_users = compact([
     var.default_user,
     var.jenkins_user,
-    # User used to push cloudwatch metrics from the server. This should only be included in the ip-lockdown list if
-    # reporting cloudwatch metrics is enabled.
-    var.enable_cloudwatch_metrics ? "cwmonitoring" : ""
   ])
   # We want a space separated list of the users, quoted with ''
   ip_lockdown_users_bash_array = join(
@@ -235,7 +232,7 @@ resource "aws_iam_role_policy" "deploy_other_account_permissions" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "high_disk_usage_jenkins_volume_alarms" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/asg-disk-alarms?ref=v0.27.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/asg-disk-alarms?ref=v0.28.0"
 
   asg_names            = [module.jenkins.jenkins_asg_name]
   num_asg_names        = 1

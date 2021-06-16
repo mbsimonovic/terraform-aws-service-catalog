@@ -60,9 +60,11 @@ Scaling Group (ASG). Each instance:
    used to encrypt the data.
 *  Runs the link:http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/QuickStartEC2Instance.html[CloudWatch Logs Agent]
    to send all logs in syslog to link:http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/WhatIsCloudWatchLogs.html[CloudWatch Logs].
-   This is configured using the link:https://github.com/gruntwork-io/terraform-aws-monitoring/tree/master/modules/logs/cloudwatch-log-aggregation-scripts[cloudwatch-log-aggregation-scripts module].
+   This is configured using the
+   link:https://github.com/gruntwork-io/terraform-aws-monitoring/tree/master/modules/agents/cloudwatch-agent[cloudwatch-agent].
 *  Emits custom metrics that are not available by default in CloudWatch, including memory and disk usage. This is
-   configured using the link:https://github.com/gruntwork-io/terraform-aws-monitoring/tree/master/modules/metrics/cloudwatch-memory-disk-metrics-scripts[cloudwatch-memory-disk-metrics-scripts module].
+   configured using the
+   link:https://github.com/gruntwork-io/terraform-aws-monitoring/tree/master/modules/agents/cloudwatch-agent[cloudwatch-agent module].
 *  Runs the link:https://github.com/gruntwork-io/terraform-aws-monitoring/tree/master/modules/logs/syslog[syslog module] to
    automatically rotate and rate limit syslog so that your instances don't run out of disk space from large volumes of
    logs.
@@ -100,10 +102,8 @@ group rules, how to handle IAM policies, and more, check out the
 link:https://github.com/gruntwork-io/terraform-aws-ecs/tree/master/modules/ecs-cluster[ecs-cluster documentation] in the
 link:https://github.com/gruntwork-io/terraform-aws-ecs[terraform-aws-ecs repo].
 
-For info on finding your Docker container logs in CloudWatch, check out the
-link:https://github.com/gruntwork-io/terraform-aws-monitoring/tree/master/modules/logs/cloudwatch-log-aggregation-scripts[cloudwatch-log-aggregation-scripts documentation].
-For info on viewing the custom metrics in CloudWatch, check out the
-link:https://github.com/gruntwork-io/terraform-aws-monitoring/tree/master/modules/metrics/cloudwatch-memory-disk-metrics-scripts[cloudwatch-memory-disk-metrics-scripts documentation].
+For info on finding your Docker container logs and custom metrics in CloudWatch, check out the
+link:https://github.com/gruntwork-io/terraform-aws-monitoring/tree/master/modules/agents/cloudwatch-agent[cloudwatch-agent documentation].
 
 === Repo organization
 

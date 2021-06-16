@@ -315,7 +315,7 @@ data "template_file" "ingress_listener_protocol_ports" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "alb_access_logs_bucket" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/logs/load-balancer-access-logs?ref=v0.27.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/logs/load-balancer-access-logs?ref=v0.28.0"
   create_resources = (
     var.expose_type != "cluster-internal"
     # Only create access logs if requested

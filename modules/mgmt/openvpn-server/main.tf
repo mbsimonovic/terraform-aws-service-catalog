@@ -73,12 +73,7 @@ locals {
     )
   )
 
-  ip_lockdown_users = compact([
-    var.default_user,
-    # User used to push cloudwatch metrics from the server. This should only be included in the ip-lockdown list if
-    # reporting cloudwatch metrics is enabled.
-    var.enable_cloudwatch_metrics ? "cwmonitoring" : ""
-  ])
+  ip_lockdown_users = [var.default_user]
   # We want a space separated list of the users, quoted with ''
   ip_lockdown_users_bash_array = join(
     " ",
