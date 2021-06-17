@@ -425,6 +425,7 @@ module "metric_widget_worker_cpu_usage" {
   metrics = (
     local.has_workers
     ? [
+      # The metric namespace and name come from EC2
       for name in module.eks_workers["enabled"].worker_asg_names : ["AWS/EC2", "CPUUtilization", "AutoScalingGroupName", name]
     ]
     : []
@@ -444,7 +445,8 @@ module "metric_widget_worker_memory_usage" {
   metrics = (
     local.has_workers
     ? [
-      for name in module.eks_workers["enabled"].worker_asg_names : ["System/Linux", "MemoryUtilization", "AutoScalingGroupName", name]
+      # The metric namespace and name come from cloudwatch-agent
+      for name in module.eks_workers["enabled"].worker_asg_names : ["CWAgent", "mem_used_percent", "AutoScalingGroupName", name]
     ]
     : []
   )
@@ -463,7 +465,8 @@ module "metric_widget_worker_disk_usage" {
   metrics = (
     local.has_workers
     ? [
-      for name in module.eks_workers["enabled"].worker_asg_names : ["System/Linux", "DiskSpaceUtilization", "AutoScalingGroupName", name, "MountPath", "/"]
+      # The metric namespace and name come from cloudwatch-agent
+      for name in module.eks_workers["enabled"].worker_asg_names : ["CWAgent", "disk_used_percent", "AutoScalingGroupName", name, "MountPath", "/"]
     ]
     : []
   )

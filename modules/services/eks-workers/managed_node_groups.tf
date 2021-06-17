@@ -160,6 +160,7 @@ module "metric_widget_managed_node_group_worker_cpu_usage" {
   height = var.dashboard_cpu_usage_widget_parameters.height
 
   metrics = [
+    # The metric namespace and name come from EC2
     for name in local.managed_node_group_asg_names : ["AWS/EC2", "CPUUtilization", "AutoScalingGroupName", name]
   ]
 }
@@ -175,7 +176,8 @@ module "metric_widget_managed_node_group_worker_memory_usage" {
   height = var.dashboard_memory_usage_widget_parameters.height
 
   metrics = [
-    for name in local.managed_node_group_asg_names : ["System/Linux", "MemoryUtilization", "AutoScalingGroupName", name]
+    # The metric namespace and name come from cloudwatch-agent
+    for name in local.managed_node_group_asg_names : ["CWAgent", "mem_used_percent", "AutoScalingGroupName", name]
   ]
 }
 
@@ -190,6 +192,7 @@ module "metric_widget_managed_node_group_worker_disk_usage" {
   height = var.dashboard_disk_usage_widget_parameters.height
 
   metrics = [
-    for name in local.managed_node_group_asg_names : ["System/Linux", "DiskSpaceUtilization", "AutoScalingGroupName", name, "MountPath", "/"]
+    # The metric namespace and name come from cloudwatch-agent
+    for name in local.managed_node_group_asg_names : ["CWAgent", "disk_used_percent", "AutoScalingGroupName", name, "MountPath", "/"]
   ]
 }
