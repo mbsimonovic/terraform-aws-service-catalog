@@ -62,11 +62,11 @@ module "jenkins" {
   allow_ssh_from_cidr_blocks           = ["0.0.0.0/0"]
 
   # Jenkins server backup configuration
-  backup_using_lambda         = var.backup_using_lambda
-  backup_job_alarm_period     = var.backup_job_alarm_period
-  backup_job_metric_name      = var.backup_job_metric_name
-  backup_job_metric_namespace = var.backup_job_metric_namespace
-  backup_schedule_expression  = var.backup_schedule_expression
+  backup_using_lambda            = var.backup_using_lambda
+  backup_job_alarm_period        = var.backup_job_alarm_period
+  backup_job_metric_name         = var.backup_job_metric_name
+  backup_job_metric_namespace    = var.backup_job_metric_namespace
+  backup_job_schedule_expression = var.backup_job_schedule_expression
 
   # DLM backup configuration
   backup_using_dlm                                      = var.backup_using_dlm

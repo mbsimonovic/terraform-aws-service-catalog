@@ -291,14 +291,14 @@ module "jenkins_backup" {
 
   instance_name = module.jenkins.jenkins_asg_name
 
-  backup_job_schedule_expression = var.lambda_backup_schedule.schedule_expression
-  backup_job_alarm_period        = var.lambda_backup_schedule.alarm_period
+  backup_job_schedule_expression = var.backup_job_schedule_expression
+  backup_job_alarm_period        = var.backup_job_alarm_period
 
   delete_older_than = "15d"
   require_at_least  = 15
 
-  cloudwatch_metric_name      = var.lambda_backup_schedule.metric_name
-  cloudwatch_metric_namespace = var.lambda_backup_schedule.metric_namespace
+  cloudwatch_metric_name      = var.backup_job_metric_name
+  cloudwatch_metric_namespace = var.backup_job_metric_namespace
 
   alarm_sns_topic_arns = var.alarms_sns_topic_arn
 }

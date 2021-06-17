@@ -141,14 +141,14 @@ variable "backup_job_metric_name" {
   default     = "jenkins-backup-job"
 }
 
-variable "backup_schedule_expression" {
+variable "backup_job_schedule_expression" {
   description = "A cron or rate expression that specifies how often to take a snapshot of the Jenkins server for backup purposes. See https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html for syntax details."
   type        = string
   default     = "rate(1 day)"
 }
 
 variable "backup_job_alarm_period" {
-  description = "How often, in seconds, the backup job is expected to run. This is the same as var.backup_schedule_expression, but unfortunately, Terraform offers no way to convert rate expressions to seconds. We add a CloudWatch alarm that triggers if the value of var.backup_job_metric_name and var.backup_job_metric_namespace isn't updated within this time period, as that indicates the backup failed to run."
+  description = "How often, in seconds, the backup job is expected to run. This is the same as var.backup_job_schedule_expression, but unfortunately, Terraform offers no way to convert rate expressions to seconds. We add a CloudWatch alarm that triggers if the value of var.backup_job_metric_name and var.backup_job_metric_namespace isn't updated within this time period, as that indicates the backup failed to run."
   type        = number
 
   # One day in seconds
