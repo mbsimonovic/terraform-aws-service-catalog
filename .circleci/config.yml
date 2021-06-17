@@ -235,6 +235,7 @@ jobs:
       - run:
           <<: *run_tests
       - store_results
+    parallelism: 4
   test_tls_scripts:
     <<: *defaults
     steps:
