@@ -55,7 +55,7 @@ variable "base_domain_name_tags" {
 variable "backup_using_lambda" {
   description = "Set to true to backup the Jenkins Server using a Scheduled Lambda Function."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "backup_job_metric_namespace" {
