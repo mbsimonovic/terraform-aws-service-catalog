@@ -147,15 +147,15 @@ jobs:
           root: /home/circleci
           paths:
             - .terraform-aws-service-catalog
-# ---------------------------------------------------------------------------------------------------------------------
-# TEST BUILD JOBS
-# These jobs run tests in the test folder. The jobs are all identical, except for which package in the test folder they
-# execute; I've tried to keep the copy/paste to a minimum, but there's no easy way to merge arrays in YAML, so a little
-# bit remains. We run in separate jobs so (a) they run faster and (b) they don't overload a single CircleCI server
-# with too much CPU usage and network calls. Note that, based on what find_tests_to_run returns, some of these jobs
-# won't have any tests to run. That's OK; they should just exit gracefully in that case. Unfortunately, CircleCi does
-# not yet have a way to do dynamic jobs / workflows, so this is as close as we can come.
-# ---------------------------------------------------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------------------------------------------------
+  # TEST BUILD JOBS
+  # These jobs run tests in the test folder. The jobs are all identical, except for which package in the test folder they
+  # execute; I've tried to keep the copy/paste to a minimum, but there's no easy way to merge arrays in YAML, so a little
+  # bit remains. We run in separate jobs so (a) they run faster and (b) they don't overload a single CircleCI server
+  # with too much CPU usage and network calls. Note that, based on what find_tests_to_run returns, some of these jobs
+  # won't have any tests to run. That's OK; they should just exit gracefully in that case. Unfortunately, CircleCi does
+  # not yet have a way to do dynamic jobs / workflows, so this is as close as we can come.
+  # ---------------------------------------------------------------------------------------------------------------------
   test_data_stores:
     <<: *defaults
     steps:
@@ -221,6 +221,17 @@ jobs:
       - checkout
       - prepare_environment
       - run: echo "export TEST_PACKAGE='smoke'" >> $BASH_ENV
+      - run:
+          <<: *run_tests
+      - store_results
+  test_validation:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: /home/circleci
+      - checkout
+      - prepare_environment
+      - run: echo "export TEST_PACKAGE='validation'" >> $BASH_ENV
       - run:
           <<: *run_tests
       - store_results
@@ -298,6 +309,14 @@ workflows:
             tags:
               only: /^v.*/
       - test_smoke:
+          context:
+            - Gruntwork Admin
+          requires:
+            - find_tests_to_run
+          filters:
+            tags:
+              only: /^v.*/
+      - test_validation:
           context:
             - Gruntwork Admin
           requires:
