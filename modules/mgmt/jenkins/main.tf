@@ -28,11 +28,22 @@ terraform {
 # LAUNCH JENKINS
 # ---------------------------------------------------------------------------------------------------------------------
 
+locals {
+  # We tag all jenkins resources with a static, known tag, so that all jenkins deployments (even when the name changes)
+  # can be logically grouped as one. For example, this allows you to logically group all snapshots together under one
+  # backup policy by using this tag as opposed to the name, which may change when employing a blue-green rollout strategy.
+  server_group_tags = {
+    service = "jenkins"
+  }
+}
+
 module "jenkins" {
   source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/jenkins-server?ref=v0.37.0"
 
   name       = var.name
   aws_region = data.aws_region.current.name
+
+  custom_tags = local.server_group_tags
 
   ami_id        = module.ec2_baseline.existing_ami
   instance_type = var.instance_type
@@ -243,23 +254,48 @@ module "high_disk_usage_jenkins_volume_alarms" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# RUN A SCHEDULED LAMBDA FUNCTION TO PERIODICALLY BACK UP THE JENKINS SERVER
-# The lambda function uses a tool called ec2-snapper to take a snapshot of the Jenkins EBS volume
+# CONFIGURE BACKUP POLICIES FOR JENKINS SERVER
+#
+# Here we show two different ways to configure backups for your jenkins server: AWS Data Lifecycle Management Policies,
+# and scheduled Lambda functions. There are tradeoffs to consider between the two approaches. Refer to the
+# documentation for more information.
+# ---------------------------------------------------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------------------------------------------------
+# AWS Data Lifecycle Management Policies Backup
+# ---------------------------------------------------------------------------------------------------------------------
+module "jenkins_backup_dlm" {
+  source = "git::git@github.com:gruntwork-io/terraform-aws-server.git//modules/ec2-backup?ref=v0.8.5"
+  count  = var.backup_using_dlm ? 1 : 0
+
+  target_tags = local.server_group_tags
+
+  dlm_role_name                 = "${var.name}-dlm-role"
+  schedule_name                 = var.dlm_backup_job_schedule_name
+  interval                      = var.dlm_backup_job_schedule_interval
+  times                         = var.dlm_backup_job_schedule_times
+  number_of_snapshots_to_retain = var.dlm_backup_job_schedule_number_of_snapshots_to_retain
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# Scheduled lambda function to periodically back up the jenkins server.
+# The lambda function uses a tool called ec2-snapper to take a snapshot of the Jenkins EBS volume.
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "jenkins_backup" {
   source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ec2-backup?ref=v0.37.0"
+  count  = var.backup_using_lambda ? 1 : 0
 
   instance_name = module.jenkins.jenkins_asg_name
 
-  backup_job_schedule_expression = var.backup_schedule_expression
+  backup_job_schedule_expression = var.backup_job_schedule_expression
   backup_job_alarm_period        = var.backup_job_alarm_period
 
   delete_older_than = "15d"
   require_at_least  = 15
 
-  cloudwatch_metric_name      = var.backup_job_metric_namespace
-  cloudwatch_metric_namespace = var.backup_job_metric_name
+  cloudwatch_metric_name      = var.backup_job_metric_name
+  cloudwatch_metric_namespace = var.backup_job_metric_namespace
 
   alarm_sns_topic_arns = var.alarms_sns_topic_arn
 }

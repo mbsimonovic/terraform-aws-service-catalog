@@ -123,6 +123,12 @@ variable "jenkins_user" {
   default     = "jenkins"
 }
 
+variable "backup_using_lambda" {
+  description = "Set to true to backup the Jenkins Server using a Scheduled Lambda Function."
+  type        = bool
+  default     = false
+}
+
 variable "backup_job_metric_namespace" {
   description = "The namespace for the CloudWatch Metric the AWS lambda backup job will increment every time the job completes successfully."
   type        = string
@@ -135,18 +141,48 @@ variable "backup_job_metric_name" {
   default     = "jenkins-backup-job"
 }
 
-variable "backup_schedule_expression" {
+variable "backup_job_schedule_expression" {
   description = "A cron or rate expression that specifies how often to take a snapshot of the Jenkins server for backup purposes. See https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html for syntax details."
   type        = string
   default     = "rate(1 day)"
 }
 
 variable "backup_job_alarm_period" {
-  description = "How often, in seconds, the backup job is expected to run. This is the same as var.backup_schedule_expression, but unfortunately, Terraform offers no way to convert rate expressions to seconds. We add a CloudWatch alarm that triggers if the value of var.backup_job_metric_name and var.backup_job_metric_namespace isn't updated within this time period, as that indicates the backup failed to run."
+  description = "How often, in seconds, the backup job is expected to run. This is the same as var.backup_job_schedule_expression, but unfortunately, Terraform offers no way to convert rate expressions to seconds. We add a CloudWatch alarm that triggers if the value of var.backup_job_metric_name and var.backup_job_metric_namespace isn't updated within this time period, as that indicates the backup failed to run."
   type        = number
 
   # One day in seconds
   default = 86400
+}
+
+variable "backup_using_dlm" {
+  description = "Set to true to backup the Jenkins Server using AWS Data Lifecycle Management Policies."
+  type        = bool
+  default     = true
+}
+
+variable "dlm_backup_job_schedule_name" {
+  description = "The name of the data lifecyle management schedule"
+  type        = string
+  default     = "daily-last-two-weeks"
+}
+
+variable "dlm_backup_job_schedule_interval" {
+  description = "How often this lifecycle policy should be evaluated, in hours."
+  type        = number
+  default     = 24
+}
+
+variable "dlm_backup_job_schedule_times" {
+  description = "A list of times in 24 hour clock format that sets when the lifecyle policy should be evaluated. Max of 1."
+  type        = list(string)
+  default     = ["03:00"]
+}
+
+variable "dlm_backup_job_schedule_number_of_snapshots_to_retain" {
+  type        = number
+  description = "How many snapshots to keep. Must be an integer between 1 and 1000."
+  default     = 15
 }
 
 variable "skip_health_check" {

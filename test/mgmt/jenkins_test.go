@@ -90,6 +90,14 @@ func TestJenkins(t *testing.T) {
 		terraformOptions.Vars["acm_ssl_certificate_domain"] = test.AcmDomainForTest
 		terraformOptions.Vars["base_domain_name_tags"] = test.DomainNameTagsForTest
 		terraformOptions.Vars["keypair_name"] = awsKeyPair.Name
+		// As our tests execute super fast, they sometimes failed as the volumes
+		// snapshot was triggered as soon as the backup lambda function was created
+		// (this is the default behavior of Lambdas) and the teardown process was
+		// initiated right after it. Given that the volumes snapshotting usually
+		// takes approximately 15~20 minutes, the teardown process timed out.
+		// So, in tests, we disable the backup routines due to this.
+		terraformOptions.Vars["backup_using_lambda"] = false
+		terraformOptions.Vars["backup_using_dlm"] = false
 
 		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
 		terraform.InitAndApply(t, terraformOptions)
