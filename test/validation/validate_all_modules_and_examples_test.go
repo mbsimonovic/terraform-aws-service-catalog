@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestValidateAllTerraformModulesAndExamples recursively finds all modules and examples (by default) subdirectories in
+// TestValidateAllModulesAndExamples recursively finds all modules and examples (by default) subdirectories in
 // the repo and runs Terraform InitAndValidate on them to flush out missing variables, typos, unused vars, etc
-func TestValidateAllTerraformModulesAndExamples(t *testing.T) {
+func TestValidateAllModulesAndExamples(t *testing.T) {
 	t.Parallel()
 
 	cwd, err := os.Getwd()
