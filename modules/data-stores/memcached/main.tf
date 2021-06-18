@@ -47,7 +47,7 @@ module "memcached" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "memcached_alarms" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/elasticache-memcached-alarms?ref=v0.28.0"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/elasticache-memcached-alarms?ref=v0.29.1"
   create_resources = var.enable_cloudwatch_alarms
 
   cache_cluster_id     = module.memcached.cache_cluster_id

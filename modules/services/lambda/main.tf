@@ -88,7 +88,7 @@ module "scheduled_job" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "lambda_alarm" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/lambda-alarms?ref=v0.28.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/lambda-alarms?ref=v0.29.1"
 
   function_name        = module.lambda_function.function_name
   alarm_sns_topic_arns = var.alarm_sns_topic_arns
