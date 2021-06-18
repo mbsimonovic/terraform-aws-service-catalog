@@ -13,6 +13,11 @@ output "vpc_cidr_block" {
   value       = module.vpc.vpc_cidr_block
 }
 
+output "default_security_group_id" {
+  description = "The default security group of this VPC."
+  value       = module.vpc.default_security_group_id
+}
+
 output "public_subnet_cidr_blocks" {
   description = "The public IP address range of the VPC in CIDR notation."
   value       = module.vpc.public_subnet_cidr_blocks
