@@ -20,9 +20,9 @@ readonly REGION="us-west-2"
 # The account IDs where the AMI should be shared.
 git_repo_root="$(git rev-parse --show-toplevel)"
 dev_account_id="$(jq -r '.dev' "$git_repo_root/accounts.json")"
-stage_account_id="$(jq -r '.stage' "$git_repo_root/accounts.json")"
 prod_account_id="$(jq -r '.prod' "$git_repo_root/accounts.json")"
-ami_account_ids="$dev_account_id,$stage_account_id,$prod_account_id"
+stage_account_id="$(jq -r '.stage' "$git_repo_root/accounts.json")"
+ami_account_ids="$dev_account_id,$prod_account_id,$stage_account_id"
 
 function run {
   # Validate that the AMI is being built in the Shared Services account.
