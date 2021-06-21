@@ -230,4 +230,5 @@ module "vpc_flow_logs" {
   kms_key_users             = var.kms_key_user_iam_arns
   kms_key_arn               = var.kms_key_arn
   create_resources          = var.create_flow_logs
+  traffic_type              = var.flow_logs_traffic_type
 }
