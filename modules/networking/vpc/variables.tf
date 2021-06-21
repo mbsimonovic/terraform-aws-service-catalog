@@ -34,6 +34,12 @@ variable "create_flow_logs" {
   default     = true
 }
 
+variable "flow_logs_traffic_type" {
+  description = "The type of traffic to capture in the VPC flow log. Valid values include ACCEPT, REJECT, or ALL. Defaults to REJECT. Only used if create_flow_logs is true."
+  type        = string
+  default     = "REJECT"
+}
+
 variable "tenancy" {
   description = "The allowed tenancy of instances launched into the selected VPC. Must be one of: default, dedicated, or host."
   type        = string
