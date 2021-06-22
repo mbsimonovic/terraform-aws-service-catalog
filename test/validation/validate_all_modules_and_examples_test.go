@@ -1,4 +1,4 @@
-package testvalidate
+package validation
 
 import (
 	"os"
