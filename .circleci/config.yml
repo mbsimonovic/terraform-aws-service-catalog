@@ -231,7 +231,7 @@ jobs:
           at: /home/circleci
       - checkout
       - prepare_environment
-      - run: echo "export TEST_PACKAGE='testvalidate'" >> $BASH_ENV
+      - run: echo "export TEST_PACKAGE='validation'" >> $BASH_ENV
       - run:
           <<: *run_tests
       - store_results
