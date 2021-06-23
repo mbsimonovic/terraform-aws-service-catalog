@@ -237,7 +237,15 @@ module "cloudtrail" {
   external_aws_account_ids_with_write_access = var.cloudtrail_external_aws_account_ids_with_write_access
 
   # Also configure the trail to publish logs to a CloudWatch Logs group within the current account.
-  cloudwatch_logs_group_name = var.cloudtrail_cloudwatch_logs_group_name
+  cloudwatch_logs_group_name         = var.cloudtrail_cloudwatch_logs_group_name
+  num_days_to_retain_cloudwatch_logs = var.cloudtrail_num_days_to_retain_cloudwatch_logs
+
+  # Optionally configure logging of data events
+  data_logging_enabled                   = var.cloudtrail_data_logging_enabled
+  data_logging_read_write_type           = var.cloudtrail_data_logging_read_write_type
+  data_logging_include_management_events = var.cloudtrail_data_logging_include_management_events
+  data_logging_resource_type             = var.cloudtrail_data_logging_resource_type
+  data_logging_resource_values           = var.cloudtrail_data_logging_resource_values
 
   force_destroy = var.cloudtrail_force_destroy
 }

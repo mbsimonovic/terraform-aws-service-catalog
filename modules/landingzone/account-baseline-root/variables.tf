@@ -846,6 +846,12 @@ variable "cloudtrail_cloudwatch_logs_group_name" {
   default     = "cloudtrail-logs"
 }
 
+variable "cloudtrail_num_days_to_retain_cloudwatch_logs" {
+  description = "After this number of days, logs stored in CloudWatch will be deleted. Possible values are: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653, and 0 (default). When set to 0, logs will be retained indefinitely."
+  type        = number
+  default     = 0
+}
+
 variable "cloudtrail_is_organization_trail" {
   description = "Specifies whether the trail is an AWS Organizations trail. Organization trails log events for the root account and all member accounts. Can only be created in the organization root account. (true or false)"
   type        = bool

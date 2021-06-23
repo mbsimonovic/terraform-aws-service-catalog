@@ -142,7 +142,8 @@ module "cloudtrail" {
   allow_cloudtrail_access_with_iam = false
 
   # Configure the trail to publish logs to a CloudWatch Logs group within the current account.
-  cloudwatch_logs_group_name = var.cloudtrail_cloudwatch_logs_group_name
+  cloudwatch_logs_group_name         = var.cloudtrail_cloudwatch_logs_group_name
+  num_days_to_retain_cloudwatch_logs = var.cloudtrail_num_days_to_retain_cloudwatch_logs
 
   # Optionally configure the trail to be organization wide, in order to collect trails from all child accounts.
   is_organization_trail = var.cloudtrail_is_organization_trail

@@ -799,6 +799,42 @@ variable "cloudtrail_cloudwatch_logs_group_name" {
   default     = "cloudtrail-logs"
 }
 
+variable "cloudtrail_num_days_to_retain_cloudwatch_logs" {
+  description = "After this number of days, logs stored in CloudWatch will be deleted. Possible values are: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653, and 0 (default). When set to 0, logs will be retained indefinitely."
+  type        = number
+  default     = 0
+}
+
+variable "cloudtrail_data_logging_enabled" {
+  description = "If true, logging of data events will be enabled."
+  type        = bool
+  default     = false
+}
+
+variable "cloudtrail_data_logging_read_write_type" {
+  description = "Specify if you want your trail to log read-only events, write-only events, or all. Possible values are: ReadOnly, WriteOnly, All."
+  type        = string
+  default     = "All"
+}
+
+variable "cloudtrail_data_logging_include_management_events" {
+  description = "Specify if you want your event selector to include management events for your trail."
+  type        = bool
+  default     = true
+}
+
+variable "cloudtrail_data_logging_resource_type" {
+  description = "The resource type in which you want to log data events. Possible values are: AWS::S3::Object and AWS::Lambda::Function."
+  type        = string
+  default     = "AWS::S3::Object"
+}
+
+variable "cloudtrail_data_logging_resource_values" {
+  description = "A list of resource ARNs for data event logging."
+  type        = list(string)
+  default     = []
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL KMS PARAMETERS
 # These variables must be passed in by the operator. In a real-world usage, some of these variables might not be needed
