@@ -127,6 +127,7 @@ module "cloudtrail" {
   source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/cloudtrail?ref=v0.49.1"
 
   create_resources      = var.enable_cloudtrail
+  is_multi_region_trail = var.is_multi_region_trail
   cloudtrail_trail_name = var.name_prefix
   tags                  = var.cloudtrail_tags
 
@@ -145,6 +146,13 @@ module "cloudtrail" {
 
   # Optionally configure the trail to be organization wide, in order to collect trails from all child accounts.
   is_organization_trail = var.cloudtrail_is_organization_trail
+
+  # Optionally configure logging of data events
+  data_logging_enabled                   = var.cloudtrail_data_logging_enabled
+  data_logging_read_write_type           = var.cloudtrail_data_logging_read_write_type
+  data_logging_include_management_events = var.cloudtrail_data_logging_include_management_events
+  data_logging_resource_type             = var.cloudtrail_data_logging_resource_type
+  data_logging_resource_values           = var.cloudtrail_data_logging_resource_values
 
   force_destroy = var.cloudtrail_force_destroy
 }

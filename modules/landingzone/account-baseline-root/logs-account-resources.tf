@@ -183,6 +183,7 @@ module "cloudtrail_bucket" {
 
   kms_key_already_exists                          = var.cloudtrail_kms_key_arn != null
   kms_key_arn                                     = var.cloudtrail_kms_key_arn
+  enable_key_rotation                             = var.cloudtrail_enable_key_rotation
   kms_key_administrator_iam_arns                  = local.cloudtrail_kms_key_administrator_iam_arns
   kms_key_user_iam_arns                           = var.cloudtrail_kms_key_user_iam_arns
   allow_kms_describe_key_to_external_aws_accounts = var.cloudtrail_allow_kms_describe_key_to_external_aws_accounts
