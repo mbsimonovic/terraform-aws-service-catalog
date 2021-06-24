@@ -7,13 +7,13 @@
 # the Shared Services AWS account.
 #
 # This is the build script for the ECS Cluster Instance AMI. You can view the packer template at the following URL:
-# https://github.com/gruntwork-io/terraform-aws-service-catalog/blob/v0.38.1/modules/services/ecs-cluster/ecs-node-al2.json
+# https://github.com/gruntwork-io/terraform-aws-service-catalog/blob/v0.44.2/modules/services/ecs-cluster/ecs-node-al2.json
 
 set -e
 
 readonly PACKER_TEMPLATE_REPO="https://github.com/gruntwork-io/terraform-aws-service-catalog.git//modules/services/ecs-cluster/ecs-node-al2.json"
-readonly PACKER_TEMPLATE_REPO_REF="v0.38.1"
-readonly SERVICE_CATALOG_REF="v0.38.1"
+readonly PACKER_TEMPLATE_REPO_REF="v0.44.2"
+readonly SERVICE_CATALOG_REF="v0.44.2"
 readonly DEPLOY_RUNNER_REGION="us-west-2"
 readonly REGION="us-west-2"
 

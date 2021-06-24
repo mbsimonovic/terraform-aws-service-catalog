@@ -28,7 +28,7 @@ locals {
   # These repos will be allowed for plan and apply operations in the CI/CD pipeline in addition to the value
   # provided in infra_live_repo_https
   additional_plan_and_apply_repos = [
-    "git@github.com:gruntwork-clients/infrastructure-live-gruntwork.git",
+    "https://github.com/gruntwork-clients/infrastructure-live.git",
   ]
 
   # The name of the S3 bucket in the Logs account where AWS Config will report its findings.
