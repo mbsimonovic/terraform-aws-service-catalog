@@ -79,6 +79,10 @@ variable "public_zones" {
   #
   # Whether or not to attempt to verify the issued certificate via DNS entries automatically created via Route 53 records. You may want to set this to false on your certificate inputs if you are not using Route 53 as your DNS provider.
   #  verify_certificate = bool
+  #
+  # Whether or not to create ACM TLS certificates for the domain. When true, Route53 certificates will automatically be
+  # created for the root domain. Defaults to true.
+  #  provision_certificates = bool
 
   # Allow empty maps to be passed by default - since we sometimes define only public zones or only private zones in a given module call
   default = {}
@@ -162,6 +166,10 @@ variable "service_discovery_public_namespaces" {
   #
   # Whether or not to attempt to verify the issued certificate via DNS entries automatically created via Route 53 records. You may want to set this to false on your certificate inputs if you are not using Route 53 as your DNS provider.
   #  verify_certificate = bool
+  #
+  # Whether or not to create ACM TLS certificates for the domain. When true, Route53 certificates will automatically be
+  # created for the root domain. Defaults to true.
+  #  provision_certificates = bool
 
   # Default to empty map so that public namespaces are only created when requested.
   default = {}

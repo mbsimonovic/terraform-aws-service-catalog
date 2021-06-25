@@ -149,6 +149,7 @@ locals {
       # If the created_outside_terraform attribute is set to true, the zone ID will be looked up dynamically
       hosted_zone_id = zone.created_outside_terraform ? (zone.hosted_zone_domain_name != "" ? data.aws_route53_zone.selected[zone.hosted_zone_domain_name].zone_id : data.aws_route53_zone.selected[domain].zone_id) : ""
     }
+    if lookup(zone, "provision_certificates", true)
   }
   # Build a map of objects representing ACM certificates to request, which will be merged together with
   # route53_acm_tls_certificates and provided as input to the acm-tls-certificates module
@@ -164,6 +165,7 @@ locals {
       verify_certificate         = lookup(config, "verify_certificate", true)
       hosted_zone_id             = config.created_outside_terraform ? data.aws_route53_zone.selected[config.hosted_zone_domain_name].zone_id : ""
     }
+    if lookup(config, "provision_certificates", true)
   }
   acm_tls_certificates = merge(local.route53_acm_tls_certificates, local.service_discovery_namespace_acm_tls_certificates)
 
