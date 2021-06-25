@@ -748,6 +748,12 @@ variable "enable_cloudtrail" {
   default     = true
 }
 
+variable "is_multi_region_trail" {
+  description = "Specifies whether CloudTrail will log only API calls in the current region or in all regions. (true or false)"
+  type        = bool
+  default     = true
+}
+
 variable "cloudtrail_s3_bucket_name" {
   description = "The name of the S3 Bucket where CloudTrail logs will be stored. This could be a bucket in this AWS account or the name of a bucket in another AWS account where CloudTrail logs should be sent. If you set is_logs_account on one of the accounts in var.child_accounts, the S3 bucket will be created in that account (this is the recommended approach!)."
   type        = string
@@ -816,6 +822,12 @@ variable "cloudtrail_kms_key_arn" {
   default     = null
 }
 
+variable "cloudtrail_enable_key_rotation" {
+  description = "Whether or not to enable automatic annual rotation of the KMS key. Defaults to true."
+  type        = bool
+  default     = true
+}
+
 variable "cloudtrail_allow_kms_describe_key_to_external_aws_accounts" {
   description = "Whether or not to allow kms:DescribeKey to external AWS accounts with write access to the CloudTrail bucket. This is useful during deployment so that you don't have to pass around the KMS key ARN."
   type        = bool
@@ -834,6 +846,12 @@ variable "cloudtrail_cloudwatch_logs_group_name" {
   default     = "cloudtrail-logs"
 }
 
+variable "cloudtrail_num_days_to_retain_cloudwatch_logs" {
+  description = "After this number of days, logs stored in CloudWatch will be deleted. Possible values are: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653, and 0 (default). When set to 0, logs will be retained indefinitely."
+  type        = number
+  default     = 0
+}
+
 variable "cloudtrail_is_organization_trail" {
   description = "Specifies whether the trail is an AWS Organizations trail. Organization trails log events for the root account and all member accounts. Can only be created in the organization root account. (true or false)"
   type        = bool
@@ -844,6 +862,36 @@ variable "cloudtrail_organization_id" {
   description = "The ID of the organization. Required only if an organization wide CloudTrail is being setup and `create_organization` is set to false. The organization ID is required to ensure that the entire organization is whitelisted in the CloudTrail bucket write policy."
   type        = string
   default     = null
+}
+
+variable "cloudtrail_data_logging_enabled" {
+  description = "If true, logging of data events will be enabled."
+  type        = bool
+  default     = false
+}
+
+variable "cloudtrail_data_logging_read_write_type" {
+  description = "Specify if you want your trail to log read-only events, write-only events, or all. Possible values are: ReadOnly, WriteOnly, All."
+  type        = string
+  default     = "All"
+}
+
+variable "cloudtrail_data_logging_include_management_events" {
+  description = "Specify if you want your event selector to include management events for your trail."
+  type        = bool
+  default     = true
+}
+
+variable "cloudtrail_data_logging_resource_type" {
+  description = "The resource type in which you want to log data events. Possible values are: AWS::S3::Object and AWS::Lambda::Function."
+  type        = string
+  default     = "AWS::S3::Object"
+}
+
+variable "cloudtrail_data_logging_resource_values" {
+  description = "A list of resource ARNs for data event logging."
+  type        = list(string)
+  default     = []
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
