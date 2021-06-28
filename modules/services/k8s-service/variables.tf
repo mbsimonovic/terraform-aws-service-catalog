@@ -401,6 +401,25 @@ variable "scratch_paths" {
   # }
 }
 
+variable "custom_resources" {
+  description = "The map that lets you define Kubernetes resources you want installed and configured as part of the chart."
+  type        = map(string)
+  default     = {}
+
+  # Example: the following example creates a custom ConfigMap from a string and a Secret from a file.
+  # {
+  #   custom_configmap = <<EOF
+  # apiVersion: v1
+  # kind: ConfigMap
+  # metadata:
+  #   name: example
+  # stringData:
+  #   key: value
+  # EOF
+  #   custom_secret = file("${path.module}/secret.yaml")
+  # }
+}
+
 # IAM role for IRSA
 
 variable "iam_role_exists" {

@@ -296,6 +296,11 @@ locals {
       : tomap(false),
       {},
     )
+
+    customResources = {
+      enabled   = var.custom_resources != {}
+      resources = var.custom_resources
+    }
   }
 }
 
