@@ -130,7 +130,7 @@ module "eks_workers" {
   # Self-managed workers settings
   autoscaling_group_configurations                     = var.autoscaling_group_configurations
   autoscaling_group_include_autoscaler_discovery_tags  = var.autoscaling_group_include_autoscaler_discovery_tags
-  asg_iam_role_already_exists                          = true
+  asg_iam_role_already_exists                          = local.has_self_managed_workers
   asg_custom_iam_role_name                             = length(aws_iam_role.self_managed_worker) > 0 ? aws_iam_role.self_managed_worker[0].name : null
   asg_default_min_size                                 = var.asg_default_min_size
   asg_default_max_size                                 = var.asg_default_max_size
@@ -163,7 +163,7 @@ module "eks_workers" {
   # module for_each calculation by providing values that are only derived from variables.
   node_group_names = [for name, config in var.managed_node_group_configurations : name]
   # The rest configure the defaults for the node group configurations.
-  managed_node_group_iam_role_already_exists = true
+  managed_node_group_iam_role_already_exists = local.has_managed_node_groups
   managed_node_group_custom_iam_role_name    = length(aws_iam_role.managed_node_group) > 0 ? aws_iam_role.managed_node_group[0].name : null
   node_group_default_subnet_ids              = var.node_group_default_subnet_ids
   node_group_default_min_size                = var.node_group_default_min_size
