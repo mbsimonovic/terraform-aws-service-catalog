@@ -5,7 +5,11 @@
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "self_managed_workers" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.41.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.41.0"
+
+  # Ideally, we can use module count to drive this resource creation, but using module counts and for_each adds a
+  # limitation where dependency chains apply at the module level, not the individual resources. This causes a cyclic
+  # dependency in `eks-cluster` module as there is a back and forth dependency chain due to the aws-auth ConfigMap.
   create_resources = local.has_self_managed_workers
 
   cluster_name = var.eks_cluster_name
