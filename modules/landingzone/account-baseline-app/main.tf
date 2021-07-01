@@ -21,7 +21,7 @@ terraform {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "config" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/aws-config-multi-region?ref=v0.49.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/aws-config-multi-region?ref=v0.50.0"
 
   create_resources       = var.enable_config
   aws_account_id         = var.aws_account_id
@@ -84,7 +84,7 @@ module "config" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "iam_cross_account_roles" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/cross-account-iam-roles?ref=v0.49.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/cross-account-iam-roles?ref=v0.50.0"
 
   create_resources = var.enable_iam_cross_account_roles
 
@@ -111,7 +111,7 @@ module "iam_cross_account_roles" {
 }
 
 module "iam_user_password_policy" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-user-password-policy?ref=v0.49.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-user-password-policy?ref=v0.50.0"
 
   create_resources = var.enable_iam_user_password_policy
 
@@ -132,7 +132,7 @@ module "iam_user_password_policy" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "guardduty" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/guardduty-multi-region?ref=v0.49.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/guardduty-multi-region?ref=v0.50.0"
 
   aws_account_id = var.aws_account_id
   seed_region    = var.aws_region
@@ -149,7 +149,7 @@ module "guardduty" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "cloudtrail" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/cloudtrail?ref=v0.49.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/cloudtrail?ref=v0.50.0"
 
   create_resources      = var.enable_cloudtrail
   is_multi_region_trail = true
@@ -194,7 +194,7 @@ module "cloudtrail" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "customer_master_keys" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-master-key-multi-region?ref=v0.49.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-master-key-multi-region?ref=v0.50.0"
 
   aws_account_id = var.aws_account_id
   seed_region    = var.aws_region
@@ -205,7 +205,7 @@ module "customer_master_keys" {
 }
 
 module "kms_grants" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-grant-multi-region?ref=v0.49.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-grant-multi-region?ref=v0.50.0"
 
   aws_account_id    = var.aws_account_id
   seed_region       = var.aws_region
@@ -229,7 +229,7 @@ module "kms_grants" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "ebs_encryption" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/ebs-encryption-multi-region?ref=v0.49.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/ebs-encryption-multi-region?ref=v0.50.0"
 
   aws_account_id = var.aws_account_id
   seed_region    = var.aws_region
@@ -259,7 +259,7 @@ resource "aws_iam_service_linked_role" "role" {
 # IAM ACCESS ANALYZER DEFAULTS
 # ----------------------------------------------------------------------------------------------------------------------
 module "iam_access_analyzer" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-access-analyzer-multi-region?ref=v0.49.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-access-analyzer-multi-region?ref=v0.50.0"
 
   aws_account_id = var.aws_account_id
 
