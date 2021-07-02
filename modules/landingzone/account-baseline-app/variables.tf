@@ -41,6 +41,12 @@ variable "config_s3_bucket_name" {
   default     = null
 }
 
+variable "config_s3_mfa_delete" {
+  description = "Enable MFA delete for either 'Change the versioning state of your bucket' or 'Permanently delete an object version'. This setting only applies to the bucket used to storage AWS Config data. This cannot be used to toggle this setting but is available to allow managed buckets to reflect the state in AWS. CIS v1.4 requires this variable to be true. If you do not wish to be CIS-compliant, you can set it to false."
+  type        = bool
+  default     = true
+}
+
 variable "config_should_create_sns_topic" {
   description = "set to true to create an sns topic in this account for sending aws config notifications (e.g., if this is the logs account). set to false to assume the topic specified in var.config_sns_topic_name already exists in another aws account (e.g., if this is the stage or prod account and var.config_sns_topic_name is the name of an sns topic in the logs account)."
   type        = bool
@@ -465,6 +471,12 @@ variable "guardduty_opt_in_regions" {
 
 variable "enable_cloudtrail" {
   description = "Set to true (default) to enable CloudTrail in this app account. Set to false to disable CloudTrail (note: all other CloudTrail variables will be ignored). Note that if you have enabled organization trail in the root (parent) account, you should set this to false; the organization trail will enable CloudTrail on child accounts by default."
+  type        = bool
+  default     = true
+}
+
+variable "cloudtrail_s3_mfa_delete" {
+  description = "Enable MFA delete for either 'Change the versioning state of your bucket' or 'Permanently delete an object version'. This setting only applies to the bucket used to storage Cloudtrail data. This cannot be used to toggle this setting but is available to allow managed buckets to reflect the state in AWS. CIS v1.4 requires this variable to be true. If you do not wish to be CIS-compliant, you can set it to false."
   type        = bool
   default     = true
 }

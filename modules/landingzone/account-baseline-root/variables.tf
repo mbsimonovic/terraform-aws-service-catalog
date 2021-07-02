@@ -185,6 +185,12 @@ variable "config_s3_bucket_name" {
   default     = null
 }
 
+variable "config_s3_mfa_delete" {
+  description = "Enable MFA delete for either 'Change the versioning state of your bucket' or 'Permanently delete an object version'. This setting only applies to the bucket used to storage AWS Config data. This cannot be used to toggle this setting but is available to allow managed buckets to reflect the state in AWS. CIS v1.4 requires this variable to be true. If you do not wish to be CIS-compliant, you can set it to false."
+  type        = bool
+  default     = true
+}
+
 variable "config_should_create_sns_topic" {
   description = "Set to true to create an SNS topic in this account for sending AWS Config notifications. Set to false to assume the topic specified in var.config_sns_topic_name already exists in another AWS account (e.g the logs account)."
   type        = bool
@@ -758,6 +764,12 @@ variable "cloudtrail_s3_bucket_name" {
   description = "The name of the S3 Bucket where CloudTrail logs will be stored. This could be a bucket in this AWS account or the name of a bucket in another AWS account where CloudTrail logs should be sent. If you set is_logs_account on one of the accounts in var.child_accounts, the S3 bucket will be created in that account (this is the recommended approach!)."
   type        = string
   default     = null
+}
+
+variable "cloudtrail_s3_mfa_delete" {
+  description = "Enable MFA delete for either 'Change the versioning state of your bucket' or 'Permanently delete an object version'. This setting only applies to the bucket used to storage Cloudtrail data. This cannot be used to toggle this setting but is available to allow managed buckets to reflect the state in AWS. CIS v1.4 requires this variable to be true. If you do not wish to be CIS-compliant, you can set it to false."
+  type        = bool
+  default     = true
 }
 
 variable "enable_cloudtrail_s3_server_access_logging" {
