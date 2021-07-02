@@ -31,3 +31,15 @@ variable "replica_aws_region" {
   type        = string
   default     = "eu-west-1"
 }
+
+variable "enable_versioning" {
+  description = "Set to true to enable versioning for this bucket. If enabled, instead of overriding objects, the S3 bucket will always create a new version of each object, so all the old values are retained."
+  type        = bool
+  default     = true
+}
+
+variable "mfa_delete" {
+  description = "Enable MFA delete for either 'Change the versioning state of your bucket' or 'Permanently delete an object version'. This cannot be used to toggle this setting but is available to allow managed buckets to reflect the state in AWS. Only used if enable_versioning is true. CIS v1.4 requires this variable to be true. If you do not wish to be CIS-compliant, you can set it to false."
+  type        = bool
+  default     = true
+}
