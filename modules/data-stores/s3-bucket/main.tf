@@ -63,6 +63,8 @@ module "s3_bucket_logs" {
   name                     = var.access_logging_bucket
   acl                      = "log-delivery-write"
   bucket_policy_statements = var.access_logging_bucket_policy_statements
+  enable_versioning        = var.enable_versioning
+  mfa_delete               = var.mfa_delete
   sse_algorithm            = "AES256" # For access logging buckets, only AES256 encryption is supported
   bucket_ownership         = var.access_logging_bucket_ownership
   tags                     = var.tags
