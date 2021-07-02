@@ -56,6 +56,7 @@ func TestS3Bucket(t *testing.T) {
 		terraformOptions.Vars["access_logging_bucket"] = "test-bucket-logs-" + uuid
 		terraformOptions.Vars["replica_bucket"] = "test-bucket-replica-" + uuid
 		terraformOptions.Vars["replica_aws_region"] = replicaRegion
+		terraformOptions.Vars["mfa_delete"] = false
 
 		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
 		terraform.InitAndApply(t, terraformOptions)

@@ -153,7 +153,7 @@ variable "enable_versioning" {
 variable "mfa_delete" {
   description = "Enable MFA delete for either 'Change the versioning state of your bucket' or 'Permanently delete an object version'. This cannot be used to toggle this setting but is available to allow managed buckets to reflect the state in AWS. Only used if enable_versioning is true."
   type        = bool
-  default     = null
+  default     = true
 }
 
 variable "access_logging_prefix" {
