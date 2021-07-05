@@ -2,6 +2,7 @@ repos:
   - repo: https://github.com/gruntwork-io/pre-commit
     rev: v0.1.5
     hooks:
+      - id: goimports
       - id: terraform-fmt
       - id: terragrunt-hclfmt
       - id: check-terratest-skip-env
