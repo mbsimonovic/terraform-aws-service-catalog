@@ -29,6 +29,9 @@ module "s3_bucket" {
   replica_bucket        = var.replica_bucket
   replica_region        = var.replica_aws_region
 
+  enable_versioning = var.enable_versioning
+  mfa_delete        = var.mfa_delete
+
   # Grant read and write access to the current IAM user running this module
   bucket_policy_statements = {
     AllowCurrentUserReadWriteAccess = {
