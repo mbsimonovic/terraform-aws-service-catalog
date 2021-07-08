@@ -58,7 +58,7 @@ Service Catalog]!
 * link:core-concepts.md#how-do-i-use-user-data[How do I use User Data?]
 * link:core-concepts.md#how-do-i-mount-an-ebs-volume[How do I mount an EBS volume?]
 
-=== The EC2 Instace AMI
+=== The EC2 Instance AMI
 
 The EC2 Instance AMI is defined using the https://www.packer.io/[Packer] template at `ec2-instance.json`.
 This template configures the AMI to:
