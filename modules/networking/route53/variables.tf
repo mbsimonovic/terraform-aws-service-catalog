@@ -67,7 +67,7 @@ variable "public_zones" {
   # and DNS validation records required for certificate validation will be written to it
   #  created_outside_terraform = bool
   #
-  # If created_outside_terraform is true, look up the existing hosted zone uising this domain name. If not specified, uses the key in this map as the domain name.
+  # If created_outside_terraform is true, look up the existing hosted zone using this domain name. If not specified, uses the key in this map as the domain name.
   # This var is useful when the domain in the cert is different than the domain in the hosted zone.
   #  hosted_zone_domain_name = string
   #
