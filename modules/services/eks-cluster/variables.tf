@@ -296,6 +296,36 @@ variable "allow_inbound_ssh_from_cidr_blocks" {
   default     = []
 }
 
+variable "custom_worker_ingress_security_group_rules" {
+  description = "A map of unique identifiers to ingress security group rules to attach to the worker groups."
+  type = map(object({
+    # The network ports and protocol (tcp, udp, all) for which the security group rule applies to.
+    from_port = number
+    to_port   = number
+    protocol  = string
+
+    # The source of the traffic. Only one of the following can be defined; the others must be configured to null.
+    source_security_group_id = string       # The ID of the security group from which the traffic originates from.
+    cidr_blocks              = list(string) # The list of IP CIDR blocks from which the traffic originates from.
+  }))
+  default = {}
+}
+
+variable "custom_worker_egress_security_group_rules" {
+  description = "A map of unique identifiers to egress security group rules to attach to the worker groups."
+  type = map(object({
+    # The network ports and protocol (tcp, udp, all) for which the security group rule applies to.
+    from_port = number
+    to_port   = number
+    protocol  = string
+
+    # The target of the traffic. Only one of the following can be defined; the others must be configured to null.
+    target_security_group_id = string       # The ID of the security group to which the traffic goes to.
+    cidr_blocks              = list(string) # The list of IP CIDR blocks to which the traffic goes to.
+  }))
+  default = {}
+}
+
 variable "cluster_instance_keypair_name" {
   description = "The name of the Key Pair that can be used to SSH to each instance in the EKS cluster"
   type        = string

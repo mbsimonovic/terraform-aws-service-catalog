@@ -146,7 +146,6 @@ module "eks_workers" {
   asg_default_spot_allocation_strategy                 = var.asg_default_spot_allocation_strategy
   asg_default_spot_instance_pools                      = var.asg_default_spot_instance_pools
   asg_default_spot_max_price                           = var.asg_default_spot_max_price
-  allow_inbound_ssh_from_cidr_blocks                   = var.allow_inbound_ssh_from_cidr_blocks
   tenancy                                              = var.tenancy
 
   # Managed Node Groups settings
@@ -184,13 +183,18 @@ module "eks_workers" {
   cluster_instance_ami_filters = var.cluster_instance_ami_filters
   cloud_init_parts             = var.cloud_init_parts
 
-  # - SSH settings
-  cluster_instance_keypair_name          = var.cluster_instance_keypair_name
+  # - Security group settings
+  allow_inbound_ssh_from_cidr_blocks     = var.allow_inbound_ssh_from_cidr_blocks
   allow_inbound_ssh_from_security_groups = var.allow_inbound_ssh_from_security_groups
-  external_account_ssh_grunt_role_arn    = var.external_account_ssh_grunt_role_arn
-  ssh_grunt_iam_group                    = var.ssh_grunt_iam_group
-  ssh_grunt_iam_group_sudo               = var.ssh_grunt_iam_group_sudo
-  enable_fail2ban                        = var.enable_fail2ban
+  custom_ingress_security_group_rules    = var.custom_worker_ingress_security_group_rules
+  custom_egress_security_group_rules     = var.custom_worker_egress_security_group_rules
+
+  # - SSH settings
+  cluster_instance_keypair_name       = var.cluster_instance_keypair_name
+  external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
+  ssh_grunt_iam_group                 = var.ssh_grunt_iam_group
+  ssh_grunt_iam_group_sudo            = var.ssh_grunt_iam_group_sudo
+  enable_fail2ban                     = var.enable_fail2ban
 
   # - Monitoring settings
   enable_cloudwatch_metrics = var.enable_cloudwatch_metrics
