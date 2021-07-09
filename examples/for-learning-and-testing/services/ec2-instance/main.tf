@@ -47,6 +47,9 @@ module "ec2_instance" {
   create_dns_record     = var.create_dns_record
   base_domain_name_tags = var.base_domain_name_tags
 
+  # We set the root volume size to be the default value in this example
+  root_volume_size = var.root_volume_size
+
   # To keep this example simple, we create a single EBS volume
   ebs_volumes = {
     "demo-volume" = {

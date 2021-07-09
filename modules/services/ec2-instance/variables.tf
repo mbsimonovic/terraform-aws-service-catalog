@@ -209,7 +209,6 @@ variable "allow_ssh_from_security_group_ids" {
   type        = list(string)
 }
 
-
 variable "dns_zone_is_private" {
   description = "Specify whether we're selecting a private or public Route 53 DNS Zone"
   type        = bool
@@ -228,4 +227,22 @@ variable "route53_zone_id" {
 
 variable "route53_lookup_domain_name" {
   description = "The domain name to use to look up the Route 53 hosted zone. Will be a subset of fully_qualified_domain_name: e.g., my-company.com. Only one of route53_lookup_domain_name or route53_zone_id should be used."
+}
+
+variable "root_volume_type" {
+  description = "The root volume type. Must be one of: standard, gp2, io1."
+  type        = string
+  default     = "standard"
+}
+
+variable "root_volume_size" {
+  description = "The size of the root volume, in gigabytes."
+  type        = number
+  default     = 8
+}
+
+variable "root_volume_delete_on_termination" {
+  description = "If set to true, the root volume will be deleted when the Instance is terminated."
+  type        = bool
+  default     = true
 }

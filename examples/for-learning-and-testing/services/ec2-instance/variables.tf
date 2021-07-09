@@ -45,3 +45,9 @@ variable "domain_name" {
   type        = string
   default     = ""
 }
+
+variable "root_volume_size" {
+  description = "The size of the root volume, in gigabytes."
+  type        = number
+  default     = 8
+}

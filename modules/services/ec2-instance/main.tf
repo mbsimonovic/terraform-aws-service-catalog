@@ -40,6 +40,10 @@ module "ec2_instance" {
   allow_ssh_from_cidr_list          = var.allow_ssh_from_cidr_blocks
   allow_ssh_from_security_group_ids = var.allow_ssh_from_security_group_ids
 
+  root_volume_type                  = var.root_volume_type
+  root_volume_size                  = var.root_volume_size
+  root_volume_delete_on_termination = var.root_volume_delete_on_termination
+
   # We want to set the name of the resource with var.name, but all other tags should be settable with var.tags.
   tags = merge(
     { "Name" = var.name },
