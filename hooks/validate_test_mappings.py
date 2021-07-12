@@ -61,6 +61,7 @@ IGNORE_SUFFIX_LIST = [
 
     # Ignore test helpers changes, as that will trigger all tests and thus defeats the purpose of this pre-commit hook.
     'test_helpers.go',
+    'validate_all_modules_and_examples_test.go',
 
     # Ignore html files
     '.html',

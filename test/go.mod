@@ -7,7 +7,7 @@ require (
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gruntwork-io/gruntwork-cli v0.7.0
 	github.com/gruntwork-io/module-ci/test/edrhelpers v0.0.0-20200930113208-063f02f8ef67
-	github.com/gruntwork-io/terratest v0.35.5
+	github.com/gruntwork-io/terratest v0.36.2
 	github.com/mattn/go-zglob v0.0.2-0.20190814121620-e3c945676326
 	github.com/stretchr/testify v1.6.1
 	k8s.io/api v0.19.3
