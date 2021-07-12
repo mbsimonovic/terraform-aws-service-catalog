@@ -1,7 +1,7 @@
 // Front matter so this file shows up in the Gruntwork Service Catalog
 :type: service
-:name: AWS Security Account baseline wrapper
-:description: A security baseline for AWS Landing Zone for configuring the security account (the one where all your IAM users and IAM groups are defined), including setting up AWS Config, AWS CloudTrail, Amazon Guard Duty, IAM users, IAM groups, IAM password policy, and more.
+:name: IAM Users and IAM Groups
+:description: Convenient module to manage best practices set of IAM Groups for permissions management, and configuring IAM Users that take advantage of those groups.
 :icon: ../../../_docs/aws-organizations-icon.png
 :category: Landing Zone
 :cloud: aws
@@ -23,30 +23,37 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
-= Account Baseline for security account
+= IAM Users and IAM Groups
 
 image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_security"]
 image:https://img.shields.io/badge/tf-%3E%3D0.15.0-blue.svg[Terraform version]
 
-A security baseline for AWS Landing Zone for configuring the security account (the one where all your IAM users and IAM groups are defined), including setting up
-AWS Config, AWS CloudTrail, Amazon Guard Duty, IAM users, IAM groups, IAM password policy, and more.
+This folder contains https://www.terraform.io[Terraform] code to provision and manage best practices set of IAM Groups
+for permissions management, and configuring IAM Users that take advantage of those groups.
 
-For large scale organizations that frequently onboard and offboard new users, consider taking a look at
-link:../iam-users-and-groups[the iam-users-and-groups module] for managing IAM Users and Groups.
+This feature exists in `account-baseline-security`, but having a separate module to manage IAM Users and Groups is
+useful for large scale organizations that frequently:
+
+- Onboard and offboard new users
+- Add and remove AWS accounts in their org
+
+The rationale behind this change comes from addressing two issues:
+
+- The cadence of changes for IAM users and groups in the security account is considerably higher than the other things
+  that are managed in `account-baseline-security` (e.g., consider CloudTrail, which should only be configured once in
+  the lifetime of the account).
+- `account-baseline-security` is, by nature, a heavy module that manages tons of resources. Having to go through the
+  `plan` and `apply` cycle for all those resources can be very painful, especially for large orgs that need to
+  onboard/offboard user frequently.
+
 
 toc::[]
 
 == Features
 
-Get a secure baseline for the security account of your AWS Organization that includes:
-
-* https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/aws-config-multi-region[aws-config-multi-region]
-* https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/cloudtrail[cloudtrail]
-* https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/cross-account-iam-roles[cross-account-iam-roles]
-* https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/guardduty-multi-region[guardduty-multi-region]
-* https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/iam-groups[iam-groups]
-* https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/iam-users[iam-users]
-* https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/iam-user-password-policy[iam-user-password-policy]
+* Provision IAM users with default set of IAM Groups, passwords, and access keys.
+* Manage a best practices set of IAM Groups for managing different permissions levels in your AWS Account.
+* Provision IAM Groups that manage cross account IAM Role access to other accounts in your AWS Organization.
 
 
 == Learn
@@ -58,7 +65,10 @@ sure to read link:/core-concepts.md[How to use the Gruntwork Service Catalog]!
 
 === Core concepts
 
-* Learn more about each individual module, click the link in the link:#features[Features] section.
+* https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/iam-users[iam-users module documentation]:
+  Underlying module used to manage the IAM Users from this module.
+* https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/iam-groups[iam-groups module documentation]:
+  Underlying module used to manage the IAM Groups from this module.
 * link:https://gruntwork.io/guides/foundations/how-to-configure-production-grade-aws-account-structure/[How to configure a production-grade AWS account structure]
 
 

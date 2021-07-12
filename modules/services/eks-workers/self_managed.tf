@@ -75,6 +75,32 @@ resource "aws_security_group_rule" "allow_inbound_ssh_from_cidr_blocks" {
   cidr_blocks       = var.allow_inbound_ssh_from_cidr_blocks
 }
 
+resource "aws_security_group_rule" "custom_ingress_security_group_rules_asg" {
+  for_each = local.has_self_managed_workers ? var.custom_ingress_security_group_rules : {}
+
+  type              = "ingress"
+  security_group_id = module.self_managed_workers.eks_worker_security_group_id
+
+  from_port                = each.value.from_port
+  to_port                  = each.value.to_port
+  protocol                 = each.value.protocol
+  source_security_group_id = each.value.source_security_group_id
+  cidr_blocks              = each.value.cidr_blocks
+}
+
+resource "aws_security_group_rule" "custom_egress_security_group_rules_asg" {
+  for_each = local.has_self_managed_workers ? var.custom_egress_security_group_rules : {}
+
+  type              = "egress"
+  security_group_id = module.self_managed_workers.eks_worker_security_group_id
+
+  from_port                = each.value.from_port
+  to_port                  = each.value.to_port
+  protocol                 = each.value.protocol
+  source_security_group_id = each.value.target_security_group_id
+  cidr_blocks              = each.value.cidr_blocks
+}
+
 locals {
   asg_iam_role_name = (
     var.asg_custom_iam_role_name == null

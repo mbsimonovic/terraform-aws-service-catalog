@@ -12,7 +12,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ssh_grunt_policies" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-policies?ref=v0.49.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-policies?ref=v0.50.0"
 
   aws_account_id = data.aws_caller_identity.current.account_id
 
@@ -151,8 +151,26 @@ data "template_cloudinit_config" "cloud_init" {
   gzip          = true
   base64_encode = true
 
+  # NOTE: We extract out the default cloud init part first, and then render the rest. This ensures the default cloud
+  # init configuration always runs first.
   dynamic "part" {
-    for_each = var.cloud_init_parts
+    # The contents of the final list don't matter, as this is only used to determine if this section needs to be
+    # rendered or not.
+    for_each = local.maybe_default_cloudinit == null ? [] : ["enable_default_cloudinit"]
+
+    content {
+      filename     = local.maybe_default_cloudinit.filename
+      content_type = local.maybe_default_cloudinit.content_type
+      content      = local.maybe_default_cloudinit.content
+    }
+  }
+
+  dynamic "part" {
+    # We filter out the default cloud init part since we already rendered that above.
+    for_each = {
+      for k, v in var.cloud_init_parts :
+      k => v if k != "default"
+    }
 
     content {
       filename     = part.value.filename
@@ -160,6 +178,10 @@ data "template_cloudinit_config" "cloud_init" {
       content      = part.value.content
     }
   }
+}
+
+locals {
+  maybe_default_cloudinit = lookup(var.cloud_init_parts, "default", null)
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

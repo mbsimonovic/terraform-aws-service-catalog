@@ -145,6 +145,33 @@ resource "aws_security_group_rule" "allow_inbound_ssh_from_cidr_blocks_mng" {
   cidr_blocks       = var.allow_inbound_ssh_from_cidr_blocks
 }
 
+resource "aws_security_group_rule" "custom_ingress_security_group_rules_mng" {
+  for_each = local.has_managed_node_groups ? var.custom_ingress_security_group_rules : {}
+
+  type              = "ingress"
+  security_group_id = aws_security_group.managed_node_group[0].id
+
+  from_port                = each.value.from_port
+  to_port                  = each.value.to_port
+  protocol                 = each.value.protocol
+  source_security_group_id = each.value.source_security_group_id
+  cidr_blocks              = each.value.cidr_blocks
+}
+
+resource "aws_security_group_rule" "custom_egress_security_group_rules_mng" {
+  for_each = local.has_managed_node_groups ? var.custom_egress_security_group_rules : {}
+
+  type              = "egress"
+  security_group_id = aws_security_group.managed_node_group[0].id
+
+  from_port                = each.value.from_port
+  to_port                  = each.value.to_port
+  protocol                 = each.value.protocol
+  source_security_group_id = each.value.target_security_group_id
+  cidr_blocks              = each.value.cidr_blocks
+}
+
+
 # ---------------------------------------------------------------------------------------------------------------------
 # SET UP WIDGETS FOR CLOUDWATCH DASHBOARD
 # ---------------------------------------------------------------------------------------------------------------------

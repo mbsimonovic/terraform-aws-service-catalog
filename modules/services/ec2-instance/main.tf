@@ -40,6 +40,10 @@ module "ec2_instance" {
   allow_ssh_from_cidr_list          = var.allow_ssh_from_cidr_blocks
   allow_ssh_from_security_group_ids = var.allow_ssh_from_security_group_ids
 
+  root_volume_type                  = var.root_volume_type
+  root_volume_size                  = var.root_volume_size
+  root_volume_delete_on_termination = var.root_volume_delete_on_termination
+
   # We want to set the name of the resource with var.name, but all other tags should be settable with var.tags.
   tags = merge(
     { "Name" = var.name },
@@ -76,12 +80,7 @@ locals {
   # Merge in all the cloud init scripts the user has passed in
   cloud_init_parts = merge({ default : local.cloud_init }, var.cloud_init_parts)
 
-  ip_lockdown_users = compact([
-    var.default_user,
-    # User used to push cloudwatch metrics from the isntance. This should only be included in the ip-lockdown list if
-    # reporting cloudwatch metrics is enabled.
-    var.enable_cloudwatch_metrics ? "cwmonitoring" : ""
-  ])
+  ip_lockdown_users = compact([var.default_user])
   # We want a space separated list of the users, quoted with ''
   ip_lockdown_users_bash_array = join(
     " ",

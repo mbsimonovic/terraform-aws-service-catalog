@@ -209,7 +209,7 @@ resource "aws_iam_role_policy" "deploy_this_account_permissions" {
   count  = length(var.build_permission_actions) > 0 ? 1 : 0
   name   = "deploy-this-account-permissions"
   role   = module.jenkins.jenkins_iam_role_id
-  policy = module.auto_deploy_iam_policies.allow_access_to_all_other_accounts
+  policy = data.aws_iam_policy_document.build_permissions.json
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -219,7 +219,7 @@ resource "aws_iam_role_policy" "deploy_this_account_permissions" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "auto_deploy_iam_policies" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-policies?ref=v0.49.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-policies?ref=v0.50.0"
 
   aws_account_id = data.aws_caller_identity.current.account_id
 
