@@ -82,7 +82,7 @@ data "aws_eks_cluster_auth" "kubernetes_token" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "eks_cluster" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.41.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.42.1"
 
   cluster_name = var.cluster_name
 
@@ -146,6 +146,7 @@ module "eks_workers" {
   asg_default_spot_allocation_strategy                 = var.asg_default_spot_allocation_strategy
   asg_default_spot_instance_pools                      = var.asg_default_spot_instance_pools
   asg_default_spot_max_price                           = var.asg_default_spot_max_price
+  asg_default_multi_instance_overrides                 = var.asg_default_multi_instance_overrides
   tenancy                                              = var.tenancy
 
   # Managed Node Groups settings
@@ -308,7 +309,7 @@ resource "kubernetes_namespace" "aws_auth_merger" {
 }
 
 module "eks_aws_auth_merger" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-aws-auth-merger?ref=v0.41.0"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-aws-auth-merger?ref=v0.42.1"
   create_resources = var.enable_aws_auth_merger
 
   create_namespace       = false
@@ -324,7 +325,7 @@ module "eks_aws_auth_merger" {
 }
 
 module "eks_k8s_role_mapping" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.41.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.42.1"
 
   # Configure to create this in the merger namespace if using the aws-auth-merger. Otherwise create it as the main
   # config.

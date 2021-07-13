@@ -408,6 +408,10 @@ variable "autoscaling_group_configurations" {
   #                                            object type of each entry in the list.
   # - use_multi_instances_policy   bool       : (Defaults to value from var.asg_default_use_multi_instances_policy)
   #                                             Whether or not to use a multi_instances_policy for the ASG.
+  # - multi_instance_overrides     list(MultiInstanceOverride) : (Defaults to value from var.asg_default_multi_instance_overrides)
+  #                                             List of multi instance overrides to apply. Each element in the list is
+  #                                             an object that specifies the instance_type to use for the override, and
+  #                                             the weighted_capacity.
   # - on_demand_allocation_strategy   string  : (Defaults to value from var.asg_default_on_demand_allocation_strategy)
   #                                             When using a multi_instances_policy the strategy to use when launching on-demand instances. Valid values: prioritized.
   # - on_demand_base_capacity   number        : (Defaults to value from var.asg_default_on_demand_base_capacity)
@@ -541,6 +545,27 @@ variable "asg_default_spot_max_price" {
   description = "Default value for the spot_max_price field of autoscaling_group_configurations. Any map entry that does not specify spot_max_price will use this value. Set to empty string (default) to mean on-demand price."
   type        = string
   default     = null
+}
+
+variable "asg_default_multi_instance_overrides" {
+  description = "Default value for the multi_instance_overrides field of autoscaling_group_configurations. Any map entry that does not specify multi_instance_overrides will use this value."
+  default     = []
+
+  # Ideally, we would use a concrete type here, but terraform doesn't support optional attributes yet, so we have to
+  # resort to the untyped any.
+  type = any
+
+  # Example:
+  # [
+  #   {
+  #     instance_type = "t3.micro"
+  #     weighted_capacity = 2
+  #   },
+  #   {
+  #     instance_type = "t3.medium"
+  #     weighted_capacity = 1
+  #   },
+  # ]
 }
 
 variable "autoscaling_group_include_autoscaler_discovery_tags" {

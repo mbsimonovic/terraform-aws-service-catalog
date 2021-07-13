@@ -5,7 +5,7 @@
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "self_managed_workers" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.41.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.42.1"
 
   # Ideally, we can use module count to drive this resource creation, but using module counts and for_each adds a
   # limitation where dependency chains apply at the module level, not the individual resources. This causes a cyclic
@@ -35,6 +35,7 @@ module "self_managed_workers" {
   asg_default_spot_allocation_strategy                 = var.asg_default_spot_allocation_strategy
   asg_default_spot_instance_pools                      = var.asg_default_spot_instance_pools
   asg_default_spot_max_price                           = var.asg_default_spot_max_price
+  asg_default_multi_instance_overrides                 = var.asg_default_multi_instance_overrides
 
   # The following are not yet supported to accept multiple, but in a future version, we will support extracting
   # additional user data and AMI configurations from each ASG entry.
