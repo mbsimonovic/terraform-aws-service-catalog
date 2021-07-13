@@ -128,10 +128,21 @@ module "eks_workers" {
   eks_cluster_name = module.eks_cluster.eks_cluster_name
 
   # Self-managed workers settings
-  autoscaling_group_configurations                     = var.autoscaling_group_configurations
-  autoscaling_group_include_autoscaler_discovery_tags  = var.autoscaling_group_include_autoscaler_discovery_tags
-  asg_iam_role_already_exists                          = local.has_self_managed_workers
-  asg_custom_iam_role_name                             = length(aws_iam_role.self_managed_worker) > 0 ? aws_iam_role.self_managed_worker[0].name : null
+  autoscaling_group_configurations                    = var.autoscaling_group_configurations
+  autoscaling_group_include_autoscaler_discovery_tags = var.autoscaling_group_include_autoscaler_discovery_tags
+  asg_iam_role_already_exists                         = local.has_self_managed_workers
+  asg_custom_iam_role_name = (
+    length(aws_iam_role.self_managed_worker) > 0
+    ? (
+      # We add a tautology here to force terraform to wait for the IAM role to be created. Otherwise, terraform
+      # optimizes this expression because the name attribute is an input that is set on the resource, and resolves this
+      # BEFORE the IAM role is actually created.
+      aws_iam_role.self_managed_worker[0].arn == null
+      ? aws_iam_role.self_managed_worker[0].name
+      : aws_iam_role.self_managed_worker[0].name
+    )
+    : null
+  )
   asg_default_min_size                                 = var.asg_default_min_size
   asg_default_max_size                                 = var.asg_default_max_size
   asg_default_instance_type                            = var.asg_default_instance_type
@@ -164,15 +175,26 @@ module "eks_workers" {
   node_group_names = [for name, config in var.managed_node_group_configurations : name]
   # The rest configure the defaults for the node group configurations.
   managed_node_group_iam_role_already_exists = local.has_managed_node_groups
-  managed_node_group_custom_iam_role_name    = length(aws_iam_role.managed_node_group) > 0 ? aws_iam_role.managed_node_group[0].name : null
-  node_group_default_subnet_ids              = var.node_group_default_subnet_ids
-  node_group_default_min_size                = var.node_group_default_min_size
-  node_group_default_max_size                = var.node_group_default_max_size
-  node_group_default_desired_size            = var.node_group_default_desired_size
-  node_group_default_instance_types          = var.node_group_default_instance_types
-  node_group_default_capacity_type           = var.node_group_default_capacity_type
-  node_group_default_tags                    = var.node_group_default_tags
-  node_group_default_labels                  = var.node_group_default_labels
+  managed_node_group_custom_iam_role_name = (
+    length(aws_iam_role.managed_node_group) > 0
+    ? (
+      # We add a tautology here to force terraform to wait for the IAM role to be created. Otherwise, terraform
+      # optimizes this expression because the name attribute is an input that is set on the resource, and resolves this
+      # BEFORE the IAM role is actually created.
+      aws_iam_role.managed_node_group[0].arn == null
+      ? aws_iam_role.managed_node_group[0].name
+      : aws_iam_role.managed_node_group[0].name
+    )
+    : null
+  )
+  node_group_default_subnet_ids     = var.node_group_default_subnet_ids
+  node_group_default_min_size       = var.node_group_default_min_size
+  node_group_default_max_size       = var.node_group_default_max_size
+  node_group_default_desired_size   = var.node_group_default_desired_size
+  node_group_default_instance_types = var.node_group_default_instance_types
+  node_group_default_capacity_type  = var.node_group_default_capacity_type
+  node_group_default_tags           = var.node_group_default_tags
+  node_group_default_labels         = var.node_group_default_labels
 
   # The rest of the block specifies settings that are common to both worker groups
 
