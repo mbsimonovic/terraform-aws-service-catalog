@@ -7,8 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gruntwork-io/terratest/modules/shell"
-
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/retry"
