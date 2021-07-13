@@ -65,7 +65,8 @@ function include_ec2_baseline {
 
 function install_ci_packages {
   local -r module_ci_version="$1"
-  local -r jenkins_version="$2"
+  local -r module_security_version="$2"
+  local -r jenkins_version="$3"
 
   echo "Installing Gruntwork CI Modules"
 
@@ -73,6 +74,7 @@ function install_ci_packages {
   gruntwork-install --module-name 'build-helpers' --repo 'https://github.com/gruntwork-io/terraform-aws-ci' --tag "$module_ci_version"
   gruntwork-install --module-name 'git-helpers' --repo 'https://github.com/gruntwork-io/terraform-aws-ci' --tag "$module_ci_version"
   gruntwork-install --module-name 'terraform-helpers' --repo 'https://github.com/gruntwork-io/terraform-aws-ci' --tag "$module_ci_version"
+  gruntwork-install --module-name 'aws-auth' --repo 'https://github.com/gruntwork-io/terraform-aws-security' --tag "$module_security_version"
 }
 
 function install_kubergrunt {
@@ -217,11 +219,12 @@ function install_modules_for_ci {
   local -r jenkins_version="$1"
   local -r module_stateful_server_version="$2"
   local -r module_ci_version="$3"
-  local -r kubergrunt_version="$4"
+  local -r module_security_version="$4"
+  local -r kubergrunt_version="$5"
 
   install_aws_cli
   install_stateful_server_packages "$module_stateful_server_version"
-  install_ci_packages "$module_ci_version" "$jenkins_version"
+  install_ci_packages "$module_ci_version" "$module_security_version" "$jenkins_version"
   install_kubergrunt "$kubergrunt_version"
 }
 
@@ -349,6 +352,7 @@ function install_jenkins {
     "$jenkins_version" \
     "$module_stateful_server_version" \
     "$module_ci_version" \
+    "$module_security_version" \
     "$kubergrunt_version" \
 
   install_build_dependencies \
