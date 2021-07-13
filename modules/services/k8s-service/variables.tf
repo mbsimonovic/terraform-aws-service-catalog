@@ -420,6 +420,33 @@ variable "custom_resources" {
   # }
 }
 
+variable "sidecar_containers" {
+  description = "Map of keys to container definitions that allow you to manage additional side car containers that should be included in the Pod. Note that the values are injected directly into the container list for the Pod Spec."
+
+  # Ideally we would define a concrete type here, but since the container spec for Pods have dynamic optional values, we
+  # can't use a concrete object type for Terraform.
+  type = any
+
+  default = {}
+
+  # Example:
+  # sidecar_containers = {
+  #   datadog = {
+  #     image = "datadog/agent:latest"
+  #     env = [
+  #       {
+  #         name = "DD_API_KEY"
+  #         value = "ASDF-1234"
+  #       },
+  #       {
+  #         name = "SD_BACKEND"
+  #         value = "docker"
+  #       },
+  #     ]
+  #   }
+  # }
+}
+
 # IAM role for IRSA
 
 variable "iam_role_exists" {

@@ -301,6 +301,7 @@ locals {
       enabled   = var.custom_resources != {}
       resources = var.custom_resources
     }
+    sideCarContainers = var.sidecar_containers
   }
 }
 
