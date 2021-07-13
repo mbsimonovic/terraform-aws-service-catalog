@@ -138,7 +138,7 @@ provider "aws" {
 }
 
 module "config_bucket" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/aws-config-bucket?ref=v0.50.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/aws-config-bucket?ref=v0.50.1"
 
   providers = {
     aws = aws.logs
@@ -162,7 +162,7 @@ module "config_bucket" {
 }
 
 module "cloudtrail_bucket" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/cloudtrail-bucket?ref=v0.50.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/cloudtrail-bucket?ref=v0.50.1"
 
   providers = {
     aws = aws.logs
