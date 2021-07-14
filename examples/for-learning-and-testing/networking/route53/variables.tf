@@ -12,35 +12,50 @@ variable "aws_region" {
 variable "private_zones" {
   description = "A map of private Route 53 Hosted Zones. In this map, the key should be the domain name. See examples below."
   type = map(object({
-    # An arbitrary comment to attach to the private Hosted Zone
+    # An optional, arbitrary comment to attach to the private Hosted Zone
     comment = string
-    # The ID of the VPC to associate with the private Hosted Zone
-    vpc_id = string
+    # The list of VPCs to associate with the private Hosted Zone. You must provide at least one VPC in this list.
+    vpcs = list(object({
+      # The ID of the VPC.
+      id = string
+      # The region of the VPC. If null, defaults to the region configured on the provider.
+      region = string
+    }))
     # A mapping of tags to assign to the private Hosted Zone
     tags = map(string)
     # Whether to destroy all records (possibly managed ouside of Terraform) in the zone when destroying the zone
     force_destroy = bool
   }))
+  # Allow empty maps to be passed by default - since we sometimes define only public zones or only private zones in a given module call
+  default = {}
+
   # Example:
+  #
   # private_zones = {
-  #  "backend.com" = {
-  #      comment = "Use for arbitrary comments"
-  #      vpc_id = 19233983937
-  #      tags = {
-  #          CanDelete = true
-  #      }
-  #      force_destroy = true
-  #  }
-  #  "database.com" = {
-  #      comment = "This is prod - don't delete!"
-  #      vpc_id = 129734967447
-  #      tags = {
-  #          Application = "redis"
-  #          Team = "apps"
-  #      }
-  #      force_destroy = false
-  #  }
-  #}
+  #     "backend.com" = {
+  #         comment = "Use for arbitrary comments"
+  #         vpcs = [{
+  #           id = "19233983937"
+  #           region = null
+  #         }]
+  #         tags = {
+  #             CanDelete = true
+  #         }
+  #         force_destroy = true
+  #     }
+  #     "database.com" = {
+  #         comment = "This is prod - don't delete!"
+  #         vpcs = [{
+  #           id = "129734967447"
+  #           region = null
+  #         }]
+  #         tags = {
+  #             Application = "redis"
+  #             Team = "apps"
+  #         }
+  #         force_destroy = false
+  #     }
+  # }
 }
 
 variable "public_zones" {

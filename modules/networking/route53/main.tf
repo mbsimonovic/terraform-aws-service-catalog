@@ -33,11 +33,14 @@ resource "aws_route53_zone" "private_zones" {
 
   # The presence of the VPC association here signifies that this zone will be private.
   # Public zones do not require a VPC association
-
   # See https://www.terraform.io/docs/providers/aws/r/route53_zone.html#private-zone
   # for more information
-  vpc {
-    vpc_id = each.value.vpc_id
+  dynamic "vpc" {
+    for_each = each.value.vpcs
+    content {
+      vpc_id     = vpc.value.id
+      vpc_region = vpc.value.region
+    }
   }
 
   tags = each.value.tags

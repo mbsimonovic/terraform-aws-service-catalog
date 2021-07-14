@@ -2,6 +2,7 @@ package networking
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -56,7 +57,12 @@ func TestRoute53(t *testing.T) {
 		var privateZones = map[string]interface{}{
 			privateZoneName: map[string]interface{}{
 				"comment": "This is a test comment",
-				"vpc_id":  aws.GetDefaultVpc(t, awsRegion).Id,
+				"vpcs": []interface{}{
+					map[string]interface{}{
+						"id":     aws.GetDefaultVpc(t, awsRegion).Id,
+						"region": nil,
+					},
+				},
 				"tags": map[string]interface{}{
 					"Application": "redis",
 					"Env":         "dev",
@@ -200,6 +206,75 @@ func TestRoute53ProvisionWildcardCertPlan(t *testing.T) {
 		assert.Equal(t, resourceCount.Add, 5)
 		assert.Equal(t, resourceCount.Change, 0)
 		assert.Equal(t, resourceCount.Destroy, 0)
+	})
+}
+
+func TestRoute53MultipleVPC(t *testing.T) {
+	t.Parallel()
+
+	// Uncomment the items below to skip certain parts of the test
+	//os.Setenv("SKIP_setup_keypair", "true")
+	//os.Setenv("SKIP_setup", "true")
+	//os.Setenv("SKIP_deploy_terraform", "true")
+	//os.Setenv("SKIP_validate", "true")
+	//os.Setenv("SKIP_cleanup", "true")
+
+	testFolder := "../../examples/for-learning-and-testing/networking/route53-multiple-vpcs"
+
+	defer test_structure.RunTestStage(t, "cleanup", func() {
+		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
+		terraform.Destroy(t, terraformOptions)
+
+		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
+		aws.DeleteEC2KeyPair(t, awsKeyPair)
+	})
+
+	test_structure.RunTestStage(t, "setup_keypair", func() {
+		awsRegion := aws.GetRandomStableRegion(t, nil, nil)
+		test_structure.SaveString(t, testFolder, "region", awsRegion)
+
+		uniqueID := random.UniqueId()
+		test_structure.SaveString(t, testFolder, "uniqueID", uniqueID)
+
+		awsKeyPair := aws.CreateAndImportEC2KeyPair(t, awsRegion, uniqueID)
+		test_structure.SaveEc2KeyPair(t, testFolder, awsKeyPair)
+	})
+
+	test_structure.RunTestStage(t, "setup", func() {
+		awsRegion := test_structure.LoadString(t, testFolder, "region")
+		uniqueID := test_structure.LoadString(t, testFolder, "uniqueID")
+		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
+
+		privateDomainName := fmt.Sprintf("gruntwork-test-%s.xyz", uniqueID)
+
+		terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, awsRegion)
+		terraformOptions.Vars = map[string]interface{}{
+			"aws_region":                    awsRegion,
+			"domain_name":                   privateDomainName,
+			"vpc_name":                      fmt.Sprintf("gruntwork-test-%s", uniqueID),
+			"example_instance_keypair_name": awsKeyPair.Name,
+		}
+		test_structure.SaveTerraformOptions(t, testFolder, terraformOptions)
+	})
+
+	test_structure.RunTestStage(t, "deploy_terraform", func() {
+		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
+		terraform.InitAndApply(t, terraformOptions)
+	})
+
+	test_structure.RunTestStage(t, "validate", func() {
+		terraformOptions := test_structure.LoadTerraformOptions(t, testFolder)
+		awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
+
+		nsRecords := terraform.OutputList(t, terraformOptions, "private_zone_name_servers")
+		sort.Strings(nsRecords)
+
+		domain := terraform.Output(t, terraformOptions, "private_domain_name")
+		mgmtInstanceIP := terraform.Output(t, terraformOptions, "mgmt_instance_ip")
+		assert.Equal(t, nsRecords, getNSRecords(t, awsKeyPair, mgmtInstanceIP, domain))
+		appInstanceIP := terraform.Output(t, terraformOptions, "app_instance_ip")
+		assert.Equal(t, nsRecords, getNSRecords(t, awsKeyPair, appInstanceIP, domain))
+
 	})
 }
 
@@ -358,4 +433,26 @@ func serviceDiscoveryClient(t *testing.T, region string) *servicediscovery.Servi
 	sess, err := aws.NewAuthenticatedSession(region)
 	require.NoError(t, err)
 	return servicediscovery.New(sess)
+}
+
+func getNSRecords(t *testing.T, keypair *aws.Ec2Keypair, ip string, domain string) []string {
+	publicHost := ssh.Host{
+		Hostname:    ip,
+		SshKeyPair:  keypair.KeyPair,
+		SshUserName: "ubuntu",
+	}
+	// We wrap the SSH call in a retry to account for delays in SSH bootup on the instance. Try for up to 2 minutes.
+	maxRetries := 60
+	timeBetweenRetries := 2 * time.Second
+	nsRecordsRaw := retry.DoWithRetry(
+		t,
+		fmt.Sprintf("get NS records on instance %s", ip),
+		maxRetries, timeBetweenRetries,
+		func() (string, error) {
+			return ssh.CheckSshCommandE(t, publicHost, fmt.Sprintf("dig +short NS %s", domain))
+		},
+	)
+	nsRecords := strings.Split(strings.TrimSpace(nsRecordsRaw), "\n")
+	sort.Strings(nsRecords)
+	return nsRecords
 }

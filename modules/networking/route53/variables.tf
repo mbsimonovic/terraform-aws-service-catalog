@@ -8,8 +8,13 @@ variable "private_zones" {
   type = map(object({
     # An optional, arbitrary comment to attach to the private Hosted Zone
     comment = string
-    # The ID of the VPC to associate with the private Hosted Zone
-    vpc_id = string
+    # The list of VPCs to associate with the private Hosted Zone. You must provide at least one VPC in this list.
+    vpcs = list(object({
+      # The ID of the VPC.
+      id = string
+      # The region of the VPC. If null, defaults to the region configured on the provider.
+      region = string
+    }))
     # A mapping of tags to assign to the private Hosted Zone
     tags = map(string)
     # Whether to destroy all records (possibly managed ouside of Terraform) in the zone when destroying the zone
@@ -23,7 +28,10 @@ variable "private_zones" {
   # private_zones = {
   #     "backend.com" = {
   #         comment = "Use for arbitrary comments"
-  #         vpc_id = 19233983937
+  #         vpcs = [{
+  #           id = "19233983937"
+  #           region = null
+  #         }]
   #         tags = {
   #             CanDelete = true
   #         }
@@ -31,7 +39,10 @@ variable "private_zones" {
   #     }
   #     "database.com" = {
   #         comment = "This is prod - don't delete!"
-  #         vpc_id = 129734967447
+  #         vpcs = [{
+  #           id = "129734967447"
+  #           region = null
+  #         }]
   #         tags = {
   #             Application = "redis"
   #             Team = "apps"
@@ -39,7 +50,6 @@ variable "private_zones" {
   #         force_destroy = false
   #     }
   # }
-
 }
 
 variable "public_zones" {
