@@ -39,15 +39,14 @@ data "aws_ami" "ubuntu" {
   }
 }
 
-data "template_file" "user_data" {
-  template = <<EOF
+locals {
+  alb_entry_port    = 443
+  default_http_port = 8080
+
+  user_data = <<EOF
 #!/bin/bash
 echo "Hello, World!" > index.html
-nohup busybox httpd -f -p "8080" 2>&1 | logger &
+nohup busybox httpd -f -p "${local.default_http_port}" 2>&1 | logger &
 EOF
 
-}
-
-locals {
-  default_http_port = 8080
 }
