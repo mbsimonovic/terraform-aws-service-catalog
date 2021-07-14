@@ -59,7 +59,10 @@ sure to read link:/core-concepts.md[How to use the Gruntwork Service Catalog]!
 
 * Learn more about each individual module, click the link in the link:#features[Features] section.
 * link:https://gruntwork.io/guides/foundations/how-to-configure-production-grade-aws-account-structure/[How to configure a production-grade AWS account structure]
-
+* link:/core-concepts.md#creating-child-accounts[How to create child accounts]
+* link:/core-concepts.md#aggregating-aws-config-and-cloudtrail-data-in-a-logs-account[How to aggregate AWS Config and CloudTrail data in a logs account]
+* link:/core-concepts.md#why-does-this-module-use-account-level-aws-config-rules[Why does this module use account-level AWS Config Rules?]
+* link:/core-concepts.md#how-to-use-multi-region-services[How to use multi-region services]
 
 === Repo organization
 
