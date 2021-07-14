@@ -89,6 +89,29 @@ data "aws_route53_zone" "selected" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
+# CREATE NS RECORDS FOR NESTED ROUTE 53 ZONES
+# ---------------------------------------------------------------------------------------------------------------------
+
+resource "aws_route53_record" "ns" {
+  for_each = local.delegated_domains
+  zone_id  = each.value.parent_hosted_zone_id
+
+  type            = "NS"
+  name            = each.key
+  allow_overwrite = true
+  records         = aws_route53_zone.public_zones[each.key].name_servers
+
+  # Common TTL for NS records, as documented by AWS:
+  # https://aws.amazon.com/premiumsupport/knowledge-center/create-subdomain-route-53/
+  ttl = 172800
+}
+
+data "aws_route53_zone" "parent_hosted_zone" {
+  for_each = local.delegated_domains
+  zone_id  = each.value.parent_hosted_zone_id
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
 # CREATE AWS CLOUD MAP NAMESPACES
 # ---------------------------------------------------------------------------------------------------------------------
 
@@ -125,6 +148,7 @@ module "acm-tls-certificates" {
   dependencies = flatten(concat([
     values(aws_route53_zone.public_zones).*.name_servers,
     values(aws_service_discovery_public_dns_namespace.namespaces).*.id,
+    values(aws_route53_record.ns).*.id,
   ]))
 }
 
@@ -133,6 +157,12 @@ module "acm-tls-certificates" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 locals {
+  # Build a map of objects representing public zones that are delegated (subdomains of existing hosted zones). This map
+  # will be used to determine which domains need to create NS records in the parent hosted zone.
+  delegated_domains = {
+    for domain, zone in var.public_zones :
+    domain => zone if !zone.created_outside_terraform && lookup(zone, "parent_hosted_zone_id", null) != null
+  }
 
   # Build a map of objects representing ACM certificates to request, which will be merged together with
   # service_discovery_namespace_acml_tls_certificates and provided as input to the acm-tls-certificates module

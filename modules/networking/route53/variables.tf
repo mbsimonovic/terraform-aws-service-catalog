@@ -83,6 +83,13 @@ variable "public_zones" {
   # Whether or not to create ACM TLS certificates for the domain. When true, Route53 certificates will automatically be
   # created for the root domain. Defaults to true.
   #  provision_certificates = bool
+  #
+  # If this is a subdomain of an existing hosted zone, set this value to the ID of the public hosted zone for the parent
+  # domain. When this value is set, this module will create the NS records in the parent hosted zone for this subdomain
+  # so that the newly created hosted zone will be used to resolve domains for the subdomain. Note that the records are
+  # only created if created_outside_terraform is false.
+  #  parent_hosted_zone_id = string
+  #
 
   # Allow empty maps to be passed by default - since we sometimes define only public zones or only private zones in a given module call
   default = {}

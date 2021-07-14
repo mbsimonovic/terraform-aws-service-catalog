@@ -2,6 +2,7 @@ package networking
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -19,6 +20,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const (
+	gruntworkINHostedZoneID = "Z2AJ7S3R6G9UYJ"
+)
+
 func TestRoute53(t *testing.T) {
 	t.Parallel()
 
@@ -28,7 +33,6 @@ func TestRoute53(t *testing.T) {
 	//os.Setenv("SKIP_validate", "true")
 	//os.Setenv("SKIP_cleanup", "true")
 
-	uniqueID := random.UniqueId()
 	testFolder := "../../examples/for-learning-and-testing/networking/route53"
 
 	defer test_structure.RunTestStage(t, "cleanup", func() {
@@ -43,8 +47,10 @@ func TestRoute53(t *testing.T) {
 
 		test_structure.SaveString(t, testFolder, "region", awsRegion)
 
+		uniqueID := strings.ToLower(random.UniqueId())
 		publicZoneName := fmt.Sprintf("%s.gruntwork.in", uniqueID)
 		publicZoneName2 := fmt.Sprintf("%s.gruntwork-dev.io", uniqueID)
+		publicZoneName3 := fmt.Sprintf("%s-new.gruntwork.in", uniqueID)
 		privateZoneName := fmt.Sprintf("gruntwork-test-%s.xyz", uniqueID)
 
 		var privateZones = map[string]interface{}{
@@ -85,7 +91,20 @@ func TestRoute53(t *testing.T) {
 				"created_outside_terraform": true,
 				"base_domain_name_tags":     map[string]interface{}{},
 				"hosted_zone_domain_name":   "gruntwork-dev.io",
-			}}
+			},
+			publicZoneName3: map[string]interface{}{
+				"comment": "This is a delegated domain.",
+				"tags": map[string]interface{}{
+					"Application": "redis",
+					"Env":         "dev",
+				},
+				"force_destroy":             true,
+				"created_outside_terraform": false,
+				"parent_hosted_zone_id":     gruntworkINHostedZoneID,
+				// This public zone should result in a single ACM cert that covers the apex and *.{uniqueID}-new.gruntwork.in
+				"subject_alternative_names": []string{fmt.Sprintf("*.%s", publicZoneName3)},
+			},
+		}
 
 		terraformOptions := test.CreateBaseTerraformOptions(t, testFolder, awsRegion)
 		terraformOptions.Vars["private_zones"] = privateZones
@@ -157,7 +176,7 @@ func TestRoute53ProvisionWildcardCertPlan(t *testing.T) {
 				"created_outside_terraform": true,
 				"base_domain_name_tags":     map[string]interface{}{"original": "true"},
 				"hosted_zone_domain_name":   "gruntwork.in",
-				"hosted_zone_id":            "Z2AJ7S3R6G9UYJ",
+				"hosted_zone_id":            gruntworkINHostedZoneID,
 			},
 		}
 
@@ -244,7 +263,7 @@ func TestRoute53CloudMap(t *testing.T) {
 				"subject_alternative_names": []string{fmt.Sprintf("*.%s", publicDomainName)},
 				"created_outside_terraform": true,
 				"hosted_zone_domain_name":   "gruntwork.in",
-				"hosted_zone_id":            "Z2AJ7S3R6G9UYJ",
+				"hosted_zone_id":            gruntworkINHostedZoneID,
 				"base_domain_name_tags":     map[string]interface{}{"original": "true"},
 			},
 		}
