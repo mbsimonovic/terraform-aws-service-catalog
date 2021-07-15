@@ -4,6 +4,7 @@
     "version_tag": null,
     "aws_region": "eu-west-1",
     "ami_name": "ec2-instance",
+    "instance_type": "t3.micro",
     "copy_to_regions": "",
     "github_auth_token": "{{env `GITHUB_OAUTH_TOKEN`}}",
     "encrypt_boot": "false",
@@ -29,7 +30,7 @@
     "ami_name": "{{user `ami_name`}}-{{user `version_tag`}}-{{isotime | clean_resource_name}}",
     "ami_description": "An Ubuntu AMI that is meant to be run as an EC2 instance.",
     "region": "{{user `aws_region`}}",
-    "instance_type": "t3.micro",
+    "instance_type": "{{user `instance_type`}}",
     "type": "amazon-ebs",
     "source_ami_filter": {
       "filters": {
