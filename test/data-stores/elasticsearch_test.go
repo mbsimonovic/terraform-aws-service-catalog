@@ -16,6 +16,7 @@ import (
 	"github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/shell"
+	"github.com/gruntwork-io/terratest/modules/ssh"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 	"github.com/stretchr/testify/require"
@@ -138,15 +139,14 @@ func validateCluster(t *testing.T, testFolder string) {
 	ip := terraform.OutputRequired(t, terraformOptions, "aws_instance_public_ip")
 
 	awsKeyPair := test_structure.LoadEc2KeyPair(t, testFolder)
-	curlResponse := test.TestSSHCommand(
+	curlResponse := ssh.CheckSshCommandWithRetry(
 		t,
-		ip,
-		"ubuntu",
-		awsKeyPair,
+		ssh.Host{Hostname: ip, SshUserName: "ubuntu", SshKeyPair: awsKeyPair.KeyPair},
 		fmt.Sprintf(
 			"curl --silent --location --fail --show-error -XGET %s/_cluster/settings?pretty=true",
 			fmt.Sprintf("https://%s", endpoint),
 		),
+		10, 30*time.Second,
 	)
 	logger.Logf(t, "%s", curlResponse)
 }

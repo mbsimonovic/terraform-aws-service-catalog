@@ -23,7 +23,6 @@ import (
 )
 
 func waitUntilSSHAvailable(t *testing.T, host ssh.Host, maxRetries int, timeBetweenRetries time.Duration) {
-
 	retry.DoWithRetry(
 		t,
 		fmt.Sprintf("SSH to public host %s", host.Hostname),
@@ -178,7 +177,7 @@ func testEc2InstanceHelper(t *testing.T, parentWorkingDir string, branchName str
 		terraformOptions := test_structure.LoadTerraformOptions(t, childWorkingDir)
 		awsKeyPair := test_structure.LoadEc2KeyPair(t, childWorkingDir)
 		ip := terraform.OutputRequired(t, terraformOptions, "ec2_instance_public_ip")
-		test.TestSSH(t, ip, "ubuntu", awsKeyPair)
+		waitUntilSSHAvailable(t, ssh.Host{Hostname: ip, SshUserName: "ubuntu", SshKeyPair: awsKeyPair.KeyPair}, 10, 30*time.Second)
 	})
 
 	test_structure.RunTestStage(t, "validate", func() {

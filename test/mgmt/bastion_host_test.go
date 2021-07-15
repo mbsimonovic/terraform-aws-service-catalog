@@ -12,6 +12,7 @@ import (
 	"github.com/gruntwork-io/terratest/modules/git"
 	"github.com/gruntwork-io/terratest/modules/packer"
 	"github.com/gruntwork-io/terratest/modules/random"
+	"github.com/gruntwork-io/terratest/modules/ssh"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 )
@@ -115,6 +116,10 @@ func testBastionHelper(t *testing.T, parentWorkingDir string, branchName string,
 		terraformOptions := test_structure.LoadTerraformOptions(t, childWorkingDir)
 		awsKeyPair := test_structure.LoadEc2KeyPair(t, childWorkingDir)
 		ip := terraform.OutputRequired(t, terraformOptions, "bastion_host_public_ip")
-		test.TestSSH(t, ip, "ubuntu", awsKeyPair)
+		ssh.CheckSshConnectionWithRetry(
+			t,
+			ssh.Host{Hostname: ip, SshUserName: "ubuntu", SshKeyPair: awsKeyPair.KeyPair},
+			10, 30*time.Second,
+		)
 	})
 }
