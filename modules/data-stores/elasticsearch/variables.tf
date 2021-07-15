@@ -139,6 +139,24 @@ variable "tls_security_policy" {
   default     = "Policy-Min-TLS-1-2-2019-07"
 }
 
+variable "custom_endpoint_enabled" {
+  description = "Whether to enable custom endpoint for the Elasticsearch domain."
+  type        = bool
+  default     = false
+}
+
+variable "custom_endpoint" {
+  description = "Fully qualified domain for your custom endpoint."
+  type        = string
+  default     = null
+}
+
+variable "custom_endpoint_certificate_arn" {
+  description = "ACM certificate ARN for your custom endpoint."
+  type        = string
+  default     = null
+}
+
 variable "automated_snapshot_start_hour" {
   description = "Hour during which the service takes an automated daily snapshot of the indices in the domain. This setting has no effect on Elasticsearch 5.3 and later."
   type        = number
