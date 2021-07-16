@@ -25,7 +25,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "database" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/rds?ref=v0.20.3"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/rds?ref=v0.20.4"
 
   name                 = var.name
   db_name              = local.db_name
@@ -58,9 +58,10 @@ module "database" {
   iam_database_authentication_enabled = var.iam_database_authentication_enabled
   kms_key_arn                         = local.kms_key_arn
 
-  multi_az                = var.multi_az
-  backup_retention_period = var.backup_retention_period
-  apply_immediately       = var.apply_immediately
+  multi_az                        = var.multi_az
+  backup_retention_period         = var.backup_retention_period
+  replica_backup_retention_period = var.replica_backup_retention_period
+  apply_immediately               = var.apply_immediately
 
   # These are dangerous variables that exposed to make testing easier, but should be left untouched.
   publicly_accessible = var.publicly_accessible
@@ -237,7 +238,7 @@ locals {
 
 # Lambda function that runs on a specified schedule to manually create the DB snapshot.
 module "create_snapshot" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/lambda-create-snapshot?ref=v0.20.3"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/lambda-create-snapshot?ref=v0.20.4"
   create_resources = var.share_snapshot_with_another_account
 
   rds_db_identifier        = module.database.primary_id
@@ -260,7 +261,7 @@ module "create_snapshot" {
 
 # Lambda function that will share the snapshots made using `create_snapshot`.
 module "share_snapshot" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/lambda-share-snapshot?ref=v0.20.3"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/lambda-share-snapshot?ref=v0.20.4"
   create_resources = var.share_snapshot_with_another_account
 
   rds_db_arn = module.database.primary_arn
@@ -269,7 +270,7 @@ module "share_snapshot" {
 
 # Lambda function that periodically culls old snapshots.
 module "cleanup_snapshots" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/lambda-cleanup-snapshots?ref=v0.20.3"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/lambda-cleanup-snapshots?ref=v0.20.4"
   create_resources = var.share_snapshot_with_another_account
 
   rds_db_identifier        = module.database.primary_id

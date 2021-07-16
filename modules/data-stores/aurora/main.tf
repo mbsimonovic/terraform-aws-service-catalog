@@ -25,7 +25,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "database" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/aurora?ref=v0.20.3"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/aurora?ref=v0.20.4"
 
   name           = var.name
   port           = local.port
@@ -170,7 +170,7 @@ module "rds_alarms" {
 
 # Lambda function that runs on a specified schedule to manually create the DB snapshot.
 module "create_snapshot" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/lambda-create-snapshot?ref=v0.20.3"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/lambda-create-snapshot?ref=v0.20.4"
   create_resources = var.share_snapshot_with_another_account
 
   rds_db_identifier        = module.database.cluster_id
@@ -193,7 +193,7 @@ module "create_snapshot" {
 
 # Lambda function that will share the snapshots made using `create_snapshot`.
 module "share_snapshot" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/lambda-share-snapshot?ref=v0.20.3"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/lambda-share-snapshot?ref=v0.20.4"
   create_resources = var.share_snapshot_with_another_account
 
   rds_db_arn = module.database.cluster_arn
@@ -202,7 +202,7 @@ module "share_snapshot" {
 
 # Lambda function that periodically culls old snapshots.
 module "cleanup_snapshots" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/lambda-cleanup-snapshots?ref=v0.20.3"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/lambda-cleanup-snapshots?ref=v0.20.4"
   create_resources = var.share_snapshot_with_another_account
 
   rds_db_identifier        = module.database.cluster_id
