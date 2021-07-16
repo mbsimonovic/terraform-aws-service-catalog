@@ -9,7 +9,6 @@ terraform {
   required_version = ">= 0.12.26"
 }
 
-
 provider "aws" {
   region = var.aws_region
 }
@@ -30,11 +29,11 @@ module "route53" {
       vpcs = [
         {
           id     = module.mgmt_vpc.vpc_id
-          region = null
+          region = null # null means use the region that is configured in the AWS provider.
         },
         {
           id     = module.app_vpc.vpc_id
-          region = null
+          region = null # null means use the region that is configured in the AWS provider.
         },
       ]
       tags          = {}
