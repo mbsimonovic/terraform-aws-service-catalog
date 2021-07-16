@@ -80,6 +80,9 @@ module "ecs_service" {
   custom_task_execution_name_prefix = var.custom_task_execution_iam_role_name_prefix
   custom_ecs_service_role_name      = var.custom_ecs_service_role_name
 
+  volumes     = var.volumes
+  efs_volumes = var.efs_volumes
+
   dependencies = var.dependencies
 }
 

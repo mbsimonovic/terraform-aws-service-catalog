@@ -746,6 +746,64 @@ variable "custom_ecs_service_role_name" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
+# VOLUMES
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "volumes" {
+  description = "(Optional) A map of volume blocks that containers in your task may use. The key should be the name of the volume and the value should be a map compatible with https://www.terraform.io/docs/providers/aws/r/ecs_task_definition.html#volume-block-arguments, but not including the name parameter."
+  # Ideally, this would be a map of (string, object), but object does not support optional properties, whereas the
+  # volume definition supports a number of optional properties. We can't use a map(any) either, as that would require
+  # the values to all have the same type, and due to optional parameters, that wouldn't work either. So, we have to
+  # lamely fall back to any.
+  type    = any
+  default = {}
+
+  # Example:
+  # volumes = {
+  #   datadog = {
+  #     host_path = "/var/run/datadog"
+  #   }
+  #
+  #   logs = {
+  #     host_path = "/var/log"
+  #     docker_volume_configuration = {
+  #       scope         = "shared"
+  #       autoprovision = true
+  #       driver        = "local"
+  #     }
+  #   }
+  # }
+}
+
+variable "efs_volumes" {
+  description = "(Optional) A map of EFS volumes that containers in your task may use. Each item in the list should be a map compatible with https://www.terraform.io/docs/providers/aws/r/ecs_task_definition.html#efs-volume-configuration-arguments."
+  type = map(object({
+    file_system_id          = string # required
+    container_path          = string # required
+    root_directory          = string
+    transit_encryption      = string
+    transit_encryption_port = number
+    access_point_id         = string
+    iam                     = string
+  }))
+  default = {}
+
+  # Example:
+  # efs_volumes = {
+  #   jenkins = {
+  #     file_system_id          = "fs-a1bc234d"
+  #     container_path          = "/efs"
+  #     root_directory          = "/jenkins"
+  #     transit_encryption      = "ENABLED"
+  #     transit_encryption_port = 2999
+  #     access_point_id         = "fsap-123a4b5c5d7891234"
+  #     iam                     = "ENABLED"
+  #   }
+  # }
+}
+
+
+# ---------------------------------------------------------------------------------------------------------------------
 # ROUTE 53 RECORD
 # ---------------------------------------------------------------------------------------------------------------------
 
