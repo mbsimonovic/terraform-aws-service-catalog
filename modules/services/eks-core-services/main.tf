@@ -93,7 +93,7 @@ provider "helm" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "aws_for_fluent_bit" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-container-logs?ref=v0.42.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-container-logs?ref=v0.42.2"
 
   # The contents of the for each set is irrelevant as it is only used to enable the module.
   for_each = var.enable_fluent_bit ? { enable = true } : {}
@@ -133,7 +133,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "alb_ingress_controller" {
-  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-alb-ingress-controller?ref=v0.42.1"
+  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-alb-ingress-controller?ref=v0.42.2"
   dependencies = aws_eks_fargate_profile.core_services.*.id
 
   # The contents of the for each set is irrelevant as it is only used to enable the module.
@@ -154,7 +154,7 @@ module "alb_ingress_controller" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "k8s_external_dns" {
-  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-external-dns?ref=v0.42.1"
+  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-external-dns?ref=v0.42.2"
   dependencies = aws_eks_fargate_profile.core_services.*.id
 
   # The contents of the for each set is irrelevant as it is only used to enable the module.
@@ -182,7 +182,7 @@ module "k8s_external_dns" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "k8s_cluster_autoscaler" {
-  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-cluster-autoscaler?ref=v0.42.1"
+  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-cluster-autoscaler?ref=v0.42.2"
   dependencies = aws_eks_fargate_profile.core_services.*.id
 
   # The contents of the for each set is irrelevant as it is only used to enable the module.

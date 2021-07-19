@@ -5,7 +5,7 @@
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "self_managed_workers" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.42.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.42.2"
 
   # Ideally, we can use module count to drive this resource creation, but using module counts and for_each adds a
   # limitation where dependency chains apply at the module level, not the individual resources. This causes a cyclic
@@ -17,6 +17,7 @@ module "self_managed_workers" {
 
   iam_role_already_exists = var.asg_iam_role_already_exists
   iam_role_name           = local.asg_iam_role_name
+  iam_role_arn            = var.asg_iam_role_arn
 
   autoscaling_group_configurations  = var.autoscaling_group_configurations
   include_autoscaler_discovery_tags = var.autoscaling_group_include_autoscaler_discovery_tags
@@ -103,10 +104,15 @@ resource "aws_security_group_rule" "custom_egress_security_group_rules_asg" {
 }
 
 locals {
+  # IAM role name should be null if IAM role arn is passed in.
   asg_iam_role_name = (
-    var.asg_custom_iam_role_name == null
-    ? "${var.worker_name_prefix}${var.eks_cluster_name}-asg"
-    : var.asg_custom_iam_role_name
+    var.asg_iam_role_arn != null
+    ? null
+    : (
+      var.asg_custom_iam_role_name == null
+      ? "${var.worker_name_prefix}${var.eks_cluster_name}-asg"
+      : var.asg_custom_iam_role_name
+    )
   )
 }
 

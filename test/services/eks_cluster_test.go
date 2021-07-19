@@ -34,7 +34,7 @@ import (
 
 const (
 	// renovate.json auto-update-variable: terraform-aws-eks
-	terraformAWSEKSVersion = "v0.41.0"
+	terraformAWSEKSVersion = "v0.42.2"
 )
 
 var defaultDomainTagFilterForTest = []map[string]string{
@@ -204,6 +204,10 @@ func testEKSClusterWithoutAuthMerger(t *testing.T, parentWorkingDir string) {
 		deployEKSCluster(t, parentWorkingDir, workingDir, uniqueID, eksClusterRoot, false, false)
 	})
 
+	test_structure.RunTestStage(t, "check_perpetual_diff", func() {
+		checkEKSClusterPerpetualDiff(t, workingDir)
+	})
+
 	test_structure.RunTestStage(t, "validate_cluster", func() {
 		validateEKSCluster(t, workingDir, expectedEksNodeCountWithoutAuthMerger)
 	})
@@ -252,6 +256,10 @@ func testEKSClusterWithCoreServicesAndAuthMerger(t *testing.T, parentWorkingDir 
 
 	test_structure.RunTestStage(t, "deploy_terraform", func() {
 		deployEKSCluster(t, parentWorkingDir, workingDir, uniqueID, eksClusterRoot, true, false)
+	})
+
+	test_structure.RunTestStage(t, "check_perpetual_diff", func() {
+		checkEKSClusterPerpetualDiff(t, workingDir)
 	})
 
 	test_structure.RunTestStage(t, "validate_cluster", func() {
@@ -386,6 +394,15 @@ func deployEKSCluster(
 
 	test_structure.SaveTerraformOptions(t, workingDir, terraformOptions)
 	terraform.InitAndApply(t, terraformOptions)
+}
+
+// checkEKSClusterPerpetualDiff makes sure that there is no perpetual diff in the eks-cluster module after deployment.
+func checkEKSClusterPerpetualDiff(t *testing.T, workingDir string) {
+	terraformOptions := test_structure.LoadTerraformOptions(t, workingDir)
+	counts := terraform.GetResourceCount(t, terraform.InitAndPlan(t, terraformOptions))
+	assert.Equal(t, 0, counts.Add)
+	assert.Equal(t, 0, counts.Change)
+	assert.Equal(t, 0, counts.Destroy)
 }
 
 // Validate the deployed EKS cluster has the requisite number of workers.
