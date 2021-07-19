@@ -275,7 +275,6 @@ variable "replica_backup_retention_period" {
   default     = 0
 }
 
-
 # Create DB instance from a snapshot backup
 variable "snapshot_identifier" {
   description = "If non-null, the RDS Instance will be restored from the given Snapshot ID. This is the Snapshot ID you'd find in the RDS console, e.g: rds:production-2015-06-26-06-05."
