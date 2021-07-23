@@ -2,6 +2,7 @@ package landingzone
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/gruntwork-io/aws-service-catalog/test"
 
+	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
@@ -113,7 +115,7 @@ func TestAccountBaseline(t *testing.T) {
 			test_structure.RunTestStage(t, "bootstrap", func() {
 				logger.Logf(t, "Bootstrapping variables")
 
-				awsRegion := test.PickAwsRegion(t)
+				awsRegion := aws.GetRandomStableRegion(t, nil, nil)
 
 				terraformOptions := test.CreateBaseTerraformOptions(t, exampleDir, awsRegion)
 
@@ -167,7 +169,7 @@ func TestAccountBaseline(t *testing.T) {
 
 				// We're testing against a separate account and need to connect to root account
 				// Just storing the env vars in the in-memory map
-				test.ConfigureTerraformForOrgTestAccount(t, terraformOptions)
+				ConfigureTerraformForOrgTestAccount(t, terraformOptions)
 
 				// NOTE: Do *NOT* run apply for this test because destroy will not delete the child account,
 				// so eventually we'd be left with hundreds of unusable accounts.
@@ -201,4 +203,19 @@ func TestAccountBaseline(t *testing.T) {
 			})
 		})
 	}
+}
+
+// PlanWithParallelismE runs terraform plan with the given options including the parallelism flag and returns stdout/stderr.
+// This will fail the test if there is an error in the command.
+func PlanWithParallelismE(t *testing.T, options *terraform.Options) (string, error) {
+	return terraform.RunTerraformCommandE(t, options, terraform.FormatArgs(options, "plan", "-parallelism=2", "-input=false", "-lock=false")...)
+}
+
+// Some of the tests need to run against Organization root account. This method overrides the default AWS_* environment variables
+func ConfigureTerraformForOrgTestAccount(t *testing.T, terraformOptions *terraform.Options) {
+	if terraformOptions.EnvVars == nil {
+		terraformOptions.EnvVars = map[string]string{}
+	}
+	terraformOptions.EnvVars["AWS_ACCESS_KEY_ID"] = os.Getenv("AWS_ORGTEST_ACCESS_KEY_ID")
+	terraformOptions.EnvVars["AWS_SECRET_ACCESS_KEY"] = os.Getenv("AWS_ORGTEST_SECRET_ACCESS_KEY")
 }

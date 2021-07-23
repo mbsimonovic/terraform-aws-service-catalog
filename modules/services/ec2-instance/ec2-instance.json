@@ -4,6 +4,7 @@
     "version_tag": null,
     "aws_region": "eu-west-1",
     "ami_name": "ec2-instance",
+    "instance_type": "t3.micro",
     "copy_to_regions": "",
     "github_auth_token": "{{env `GITHUB_OAUTH_TOKEN`}}",
     "encrypt_boot": "false",
@@ -12,6 +13,7 @@
     "vpc_filter_value": "true",
     "vpc_subnet_filter_key": "default-for-az",
     "vpc_subnet_filter_value": "true",
+    "availability_zone": "",
     "gruntwork_installer_version": "v0.0.34",
     "ami_users": "",
     "bash_commons_version": "",
@@ -29,7 +31,7 @@
     "ami_name": "{{user `ami_name`}}-{{user `version_tag`}}-{{isotime | clean_resource_name}}",
     "ami_description": "An Ubuntu AMI that is meant to be run as an EC2 instance.",
     "region": "{{user `aws_region`}}",
-    "instance_type": "t3.micro",
+    "instance_type": "{{user `instance_type`}}",
     "type": "amazon-ebs",
     "source_ami_filter": {
       "filters": {
@@ -53,6 +55,7 @@
       },
       "most_free": "true"
     },
+    "availability_zone": "{{user `availability_zone`}}",
     "ssh_username": "ubuntu",
     "encrypt_boot": "{{user `encrypt_boot`}}",
     "kms_key_id": "{{user `encrypt_kms_key_id`}}",

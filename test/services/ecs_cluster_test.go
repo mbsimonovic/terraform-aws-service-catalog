@@ -226,14 +226,6 @@ func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestF
 
 	ecsClusterTerraformOptions := test_structure.LoadTerraformOptions(t, ecsClusterTestFolder)
 
-	ecsServiceTerraformOptions := &terraform.Options{
-		TerraformDir:             ecsServiceTestFolder,
-		Vars:                     map[string]interface{}{},
-		RetryableTerraformErrors: test.RetryableTerraformErrors,
-		MaxRetries:               test.MaxTerraformRetries,
-		TimeBetweenRetries:       test.SleepBetweenTerraformRetries,
-	}
-
 	ecsClusterArn := terraform.OutputRequired(t, ecsClusterTerraformOptions, "ecs_cluster_arn")
 	ecsClusterName := test_structure.LoadString(t, ecsClusterTestFolder, "clusterName")
 	uniqueID := test_structure.LoadString(t, ecsClusterTestFolder, "uniqueID")
@@ -245,7 +237,7 @@ func deployEcsService(t *testing.T, ecsClusterTestFolder string, ecsServiceTestF
 
 	serviceName := fmt.Sprintf("nginx-%s", strings.ToLower(uniqueID))
 
-	ecsServiceTerraformOptions.Vars["aws_region"] = awsRegion
+	ecsServiceTerraformOptions := test.CreateBaseTerraformOptions(t, ecsServiceTestFolder, awsRegion)
 	ecsServiceTerraformOptions.Vars["service_name"] = serviceName
 	ecsServiceTerraformOptions.Vars["ecs_cluster_name"] = ecsClusterName
 	ecsServiceTerraformOptions.Vars["ecs_cluster_arn"] = ecsClusterArn

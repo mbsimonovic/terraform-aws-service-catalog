@@ -321,7 +321,7 @@ data "template_file" "ingress_listener_protocol_ports" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "alb_access_logs_bucket" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/logs/load-balancer-access-logs?ref=v0.29.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/logs/load-balancer-access-logs?ref=v0.29.3"
   create_resources = (
     var.expose_type != "cluster-internal"
     # Only create access logs if requested
@@ -360,7 +360,7 @@ resource "aws_iam_role" "new_role" {
 }
 
 module "service_account_assume_role_policy" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-iam-role-assume-role-policy-for-service-account?ref=v0.42.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-iam-role-assume-role-policy-for-service-account?ref=v0.42.2"
 
   eks_openid_connect_provider_arn = var.eks_iam_role_for_service_accounts_config.openid_connect_provider_arn
   eks_openid_connect_provider_url = var.eks_iam_role_for_service_accounts_config.openid_connect_provider_url

@@ -66,7 +66,7 @@ func TestAlb(t *testing.T) {
 		// Only test the domains with gruntwork.in, as that domain is the only one configured in the listener.
 		for _, domainName := range albDomainNames {
 			if strings.HasSuffix(domainName, "gruntwork.in") {
-				url := fmt.Sprintf("http://%s:8080", domainName)
+				url := fmt.Sprintf("https://%s", domainName)
 				retries := 60
 				timeBetweenRetries := 5 * time.Second
 

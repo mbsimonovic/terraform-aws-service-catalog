@@ -443,7 +443,13 @@ variable "asg_iam_role_already_exists" {
 }
 
 variable "asg_custom_iam_role_name" {
-  description = "Custom name for the IAM role for the Self-managed workers. When null, a default name based on worker_name_prefix will be used. This value is required (must be non-null) if self_managed_worker_iam_role_already_exists is true."
+  description = "Custom name for the IAM role for the Self-managed workers. When null, a default name based on worker_name_prefix will be used. One of asg_custom_iam_role_name and asg_iam_role_arn is required (must be non-null) if asg_iam_role_already_exists is true."
+  type        = string
+  default     = null
+}
+
+variable "asg_iam_role_arn" {
+  description = "ARN of the IAM role to use if iam_role_already_exists = true. When null, uses asg_custom_iam_role_name to lookup the ARN. One of asg_custom_iam_role_name and asg_iam_role_arn is required (must be non-null) if asg_iam_role_already_exists is true."
   type        = string
   default     = null
 }
@@ -541,7 +547,13 @@ variable "managed_node_group_iam_role_already_exists" {
 }
 
 variable "managed_node_group_custom_iam_role_name" {
-  description = "Custom name for the IAM role for the Managed Node Groups. When null, a default name based on worker_name_prefix will be used. This value is required (must be non-null) if managed_node_group_iam_role_already_exists is true."
+  description = "Custom name for the IAM role for the Managed Node Groups. When null, a default name based on worker_name_prefix will be used. One of managed_node_group_custom_iam_role_name and managed_node_group_iam_role_arn is required (must be non-null) if managed_node_group_iam_role_already_exists is true."
+  type        = string
+  default     = null
+}
+
+variable "managed_node_group_iam_role_arn" {
+  description = "ARN of the IAM role to use if iam_role_already_exists = true. When null, uses managed_node_group_custom_iam_role_name to lookup the ARN. One of managed_node_group_custom_iam_role_name and managed_node_group_iam_role_arn is required (must be non-null) if managed_node_group_iam_role_already_exists is true."
   type        = string
   default     = null
 }

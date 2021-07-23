@@ -82,7 +82,7 @@ data "aws_eks_cluster_auth" "kubernetes_token" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "eks_cluster" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.42.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.42.2"
 
   cluster_name = var.cluster_name
 
@@ -128,21 +128,10 @@ module "eks_workers" {
   eks_cluster_name = module.eks_cluster.eks_cluster_name
 
   # Self-managed workers settings
-  autoscaling_group_configurations                    = var.autoscaling_group_configurations
-  autoscaling_group_include_autoscaler_discovery_tags = var.autoscaling_group_include_autoscaler_discovery_tags
-  asg_iam_role_already_exists                         = local.has_self_managed_workers
-  asg_custom_iam_role_name = (
-    length(aws_iam_role.self_managed_worker) > 0
-    ? (
-      # We add a tautology here to force terraform to wait for the IAM role to be created. Otherwise, terraform
-      # optimizes this expression because the name attribute is an input that is set on the resource, and resolves this
-      # BEFORE the IAM role is actually created.
-      aws_iam_role.self_managed_worker[0].arn == null
-      ? aws_iam_role.self_managed_worker[0].name
-      : aws_iam_role.self_managed_worker[0].name
-    )
-    : null
-  )
+  autoscaling_group_configurations                     = var.autoscaling_group_configurations
+  autoscaling_group_include_autoscaler_discovery_tags  = var.autoscaling_group_include_autoscaler_discovery_tags
+  asg_iam_role_already_exists                          = local.has_self_managed_workers
+  asg_iam_role_arn                                     = length(aws_iam_role.self_managed_worker) > 0 ? aws_iam_role.self_managed_worker[0].arn : null
   asg_default_min_size                                 = var.asg_default_min_size
   asg_default_max_size                                 = var.asg_default_max_size
   asg_default_instance_type                            = var.asg_default_instance_type
@@ -175,26 +164,15 @@ module "eks_workers" {
   node_group_names = [for name, config in var.managed_node_group_configurations : name]
   # The rest configure the defaults for the node group configurations.
   managed_node_group_iam_role_already_exists = local.has_managed_node_groups
-  managed_node_group_custom_iam_role_name = (
-    length(aws_iam_role.managed_node_group) > 0
-    ? (
-      # We add a tautology here to force terraform to wait for the IAM role to be created. Otherwise, terraform
-      # optimizes this expression because the name attribute is an input that is set on the resource, and resolves this
-      # BEFORE the IAM role is actually created.
-      aws_iam_role.managed_node_group[0].arn == null
-      ? aws_iam_role.managed_node_group[0].name
-      : aws_iam_role.managed_node_group[0].name
-    )
-    : null
-  )
-  node_group_default_subnet_ids     = var.node_group_default_subnet_ids
-  node_group_default_min_size       = var.node_group_default_min_size
-  node_group_default_max_size       = var.node_group_default_max_size
-  node_group_default_desired_size   = var.node_group_default_desired_size
-  node_group_default_instance_types = var.node_group_default_instance_types
-  node_group_default_capacity_type  = var.node_group_default_capacity_type
-  node_group_default_tags           = var.node_group_default_tags
-  node_group_default_labels         = var.node_group_default_labels
+  managed_node_group_iam_role_arn            = length(aws_iam_role.managed_node_group) > 0 ? aws_iam_role.managed_node_group[0].arn : null
+  node_group_default_subnet_ids              = var.node_group_default_subnet_ids
+  node_group_default_min_size                = var.node_group_default_min_size
+  node_group_default_max_size                = var.node_group_default_max_size
+  node_group_default_desired_size            = var.node_group_default_desired_size
+  node_group_default_instance_types          = var.node_group_default_instance_types
+  node_group_default_capacity_type           = var.node_group_default_capacity_type
+  node_group_default_tags                    = var.node_group_default_tags
+  node_group_default_labels                  = var.node_group_default_labels
 
   # The rest of the block specifies settings that are common to both worker groups
 
@@ -331,7 +309,7 @@ resource "kubernetes_namespace" "aws_auth_merger" {
 }
 
 module "eks_aws_auth_merger" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-aws-auth-merger?ref=v0.42.1"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-aws-auth-merger?ref=v0.42.2"
   create_resources = var.enable_aws_auth_merger
 
   create_namespace       = false
@@ -347,7 +325,7 @@ module "eks_aws_auth_merger" {
 }
 
 module "eks_k8s_role_mapping" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.42.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.42.2"
 
   # Configure to create this in the merger namespace if using the aws-auth-merger. Otherwise create it as the main
   # config.
@@ -440,7 +418,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "metric_widget_worker_cpu_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.29.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.29.3"
 
   title = "${var.cluster_name} EKSWorker CPUUtilization"
   stat  = "Average"
@@ -460,7 +438,7 @@ module "metric_widget_worker_cpu_usage" {
 }
 
 module "metric_widget_worker_memory_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.29.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.29.3"
 
   title = "${var.cluster_name} EKSWorker MemoryUtilization"
   stat  = "Average"
@@ -480,7 +458,7 @@ module "metric_widget_worker_memory_usage" {
 }
 
 module "metric_widget_worker_disk_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.29.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.29.3"
 
   title = "${var.cluster_name} EKSWorker DiskUtilization"
   stat  = "Average"

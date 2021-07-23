@@ -80,6 +80,9 @@ module "ecs_service" {
   custom_task_execution_name_prefix = var.custom_task_execution_iam_role_name_prefix
   custom_ecs_service_role_name      = var.custom_ecs_service_role_name
 
+  volumes     = var.volumes
+  efs_volumes = var.efs_volumes
+
   dependencies = var.dependencies
 }
 
@@ -249,7 +252,7 @@ module "listener_rules" {
 
 # Add CloudWatch Alarms that go off if the ECS Service's CPU or Memory usage gets too high.
 module "ecs_service_cpu_memory_alarms" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/ecs-service-alarms?ref=v0.29.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/ecs-service-alarms?ref=v0.29.3"
 
   ecs_service_name     = var.service_name
   ecs_cluster_name     = var.ecs_cluster_name
@@ -262,7 +265,7 @@ module "ecs_service_cpu_memory_alarms" {
 }
 
 module "metric_widget_ecs_service_cpu_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.29.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.29.3"
 
   period = 60
   stat   = "Average"
@@ -274,7 +277,7 @@ module "metric_widget_ecs_service_cpu_usage" {
 }
 
 module "metric_widget_ecs_service_memory_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.29.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.29.3"
 
   period = 60
   stat   = "Average"
@@ -311,7 +314,7 @@ resource "aws_route53_record" "service" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "route53_health_check" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/route53-health-check-alarms?ref=v0.29.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/route53-health-check-alarms?ref=v0.29.3"
 
   create_resources               = var.enable_route53_health_check
   alarm_sns_topic_arns_us_east_1 = var.alarm_sns_topic_arns_us_east_1

@@ -269,6 +269,12 @@ variable "backup_retention_period" {
   default     = 30
 }
 
+variable "replica_backup_retention_period" {
+  description = "How many days to keep backup snapshots around before cleaning them up on the read replicas. Must be 1 or greater to support read replicas. 0 means disable automated backups."
+  type        = number
+  default     = 0
+}
+
 # Create DB instance from a snapshot backup
 variable "snapshot_identifier" {
   description = "If non-null, the RDS Instance will be restored from the given Snapshot ID. This is the Snapshot ID you'd find in the RDS console, e.g: rds:production-2015-06-26-06-05."

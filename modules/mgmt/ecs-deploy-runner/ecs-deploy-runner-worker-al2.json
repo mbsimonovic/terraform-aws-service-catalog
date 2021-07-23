@@ -11,6 +11,7 @@
     "vpc_filter_value": "true",
     "vpc_subnet_filter_key": "default-for-az",
     "vpc_subnet_filter_value": "true",
+    "availability_zone": "",
     "gruntwork_installer_version": "v0.0.36",
     "ami_users": "",
     "bash_commons_version": "",
@@ -54,6 +55,7 @@
       },
       "most_free": "true"
     },
+    "availability_zone": "{{user `availability_zone`}}",
     "ssh_interface": "{{user `ssh_interface`}}",
     "ssh_username": "ec2-user",
     "encrypt_boot": "{{user `encrypt_boot`}}",

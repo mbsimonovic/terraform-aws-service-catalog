@@ -4,7 +4,7 @@
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "managed_node_groups" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-managed-workers?ref=v0.42.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-managed-workers?ref=v0.42.2"
 
   # Ideally, we can use module count to drive this resource creation, but using module counts and for_each adds a
   # limitation where dependency chains apply at the module level, not the individual resources. This causes a cyclic
@@ -16,6 +16,7 @@ module "managed_node_groups" {
 
   iam_role_already_exists = var.managed_node_group_iam_role_already_exists
   iam_role_name           = local.managed_node_group_iam_role_name
+  iam_role_arn            = var.managed_node_group_iam_role_arn
 
   # Since the node group configurations include launch template resources, we need to provide the names of the node
   # groups separately using only the variable.
@@ -100,10 +101,15 @@ locals {
 
   # When selecting default IAM role name, use a different IAM role name for each worker type to avoid conflicting.
   managed_node_group_default_iam_role_name = "${var.worker_name_prefix}${var.eks_cluster_name}-mng"
+  # IAM role name should be null if IAM role arn is passed in.
   managed_node_group_iam_role_name = (
-    var.managed_node_group_custom_iam_role_name == null
-    ? local.managed_node_group_default_iam_role_name
-    : var.managed_node_group_custom_iam_role_name
+    var.managed_node_group_iam_role_arn != null
+    ? null
+    : (
+      var.managed_node_group_custom_iam_role_name == null
+      ? local.managed_node_group_default_iam_role_name
+      : var.managed_node_group_custom_iam_role_name
+    )
   )
 }
 
@@ -181,7 +187,7 @@ locals {
 }
 
 module "metric_widget_managed_node_group_worker_cpu_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.29.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.29.3"
 
   title = "${var.eks_cluster_name} Managed Node Group EKSWorker CPUUtilization"
   stat  = "Average"
@@ -197,7 +203,7 @@ module "metric_widget_managed_node_group_worker_cpu_usage" {
 }
 
 module "metric_widget_managed_node_group_worker_memory_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.29.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.29.3"
 
   title = "${var.eks_cluster_name} Managed Node Group EKSWorker MemoryUtilization"
   stat  = "Average"
@@ -213,7 +219,7 @@ module "metric_widget_managed_node_group_worker_memory_usage" {
 }
 
 module "metric_widget_managed_node_group_worker_disk_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.29.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.29.3"
 
   title = "${var.eks_cluster_name} Managed Node Group EKSWorker DiskUtilization"
   stat  = "Average"

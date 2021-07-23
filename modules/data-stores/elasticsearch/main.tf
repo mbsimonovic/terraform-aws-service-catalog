@@ -15,7 +15,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = ">= 2.6"
+      version = "~> 3.35"
     }
   }
 }
@@ -87,6 +87,10 @@ resource "aws_elasticsearch_domain" "cluster" {
 
     # Valid values are "Policy-Min-TLS-1-0-2019-07" and "Policy-Min-TLS-1-2-2019-07"
     tls_security_policy = var.tls_security_policy
+
+    custom_endpoint_enabled         = var.custom_endpoint_enabled
+    custom_endpoint                 = var.custom_endpoint
+    custom_endpoint_certificate_arn = var.custom_endpoint_certificate_arn
   }
 
   timeouts {
@@ -169,7 +173,7 @@ resource "aws_security_group_rule" "allow_inbound_https_from_security_group" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "elasticsearch_alarms" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/elasticsearch-alarms?ref=v0.29.2"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/elasticsearch-alarms?ref=v0.29.3"
   create_resources = var.enable_cloudwatch_alarms
 
   cluster_name   = var.domain_name

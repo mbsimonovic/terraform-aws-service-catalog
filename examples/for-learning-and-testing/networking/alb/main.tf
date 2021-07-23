@@ -9,7 +9,6 @@ terraform {
   required_version = ">= 0.12.26"
 }
 
-
 provider "aws" {
   region = var.aws_region
 }
@@ -33,8 +32,13 @@ module "alb" {
   num_days_after_which_delete_log_data  = 30
 
   is_internal_alb                = false
-  http_listener_ports            = [local.default_http_port]
   allow_inbound_from_cidr_blocks = ["0.0.0.0/0"]
+  https_listener_ports_and_acm_ssl_certs = [
+    {
+      port            = local.alb_entry_port
+      tls_domain_name = "*.${data.aws_route53_zone.alb.name}"
+    },
+  ]
 
   # Configure a domain name for the ALB
   create_route53_entry = true
@@ -59,7 +63,7 @@ resource "aws_instance" "webserver" {
   vpc_security_group_ids      = [aws_security_group.webserver.id]
   subnet_id                   = sort(tolist(data.aws_subnet_ids.default.ids))[0]
   associate_public_ip_address = false
-  user_data                   = data.template_file.user_data.rendered
+  user_data                   = local.user_data
 
   tags = {
     Name = "${var.alb_name}-webserver"
@@ -80,7 +84,7 @@ resource "aws_lb_target_group_attachment" "webserver" {
 }
 
 resource "aws_lb_listener_rule" "host_based_routing" {
-  listener_arn = module.alb.listener_arns[local.default_http_port]
+  listener_arn = module.alb.listener_arns[local.alb_entry_port]
   priority     = 99
 
   action {

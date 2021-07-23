@@ -8,50 +8,48 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/gruntwork-io/terratest/modules/aws"
-	"github.com/gruntwork-io/terratest/modules/retry"
 	"github.com/gruntwork-io/terratest/modules/shell"
-	"github.com/gruntwork-io/terratest/modules/ssh"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/stretchr/testify/require"
 )
 
+// Retry configuration constants
 const (
-	MaxTerraformRetries          = 3
-	SleepBetweenTerraformRetries = 5 * time.Second
+	maxTerraformRetries          = 3
+	sleepBetweenTerraformRetries = 5 * time.Second
 )
 
-var (
-	// Set up terratest to retry on known failures
-	RetryableTerraformErrors = map[string]string{
-		// `terraform init` frequently fails in CI due to network issues accessing plugins. The reason is unknown, but
-		// eventually these succeed after a few retries.
-		".*unable to verify signature.*":                "Failed to retrieve plugin due to transient network error.",
-		".*unable to verify checksum.*":                 "Failed to retrieve plugin due to transient network error.",
-		".*no provider exists with the given name.*":    "Failed to retrieve plugin due to transient network error.",
-		".*registry service is unreachable.*":           "Failed to retrieve plugin due to transient network error.",
-		".*timeout while waiting for plugin to start.*": "Failed to retrieve plugin due to transient network error.",
-		".*timed out waiting for server handshake.*":    "Failed to retrieve plugin due to transient network error.",
+var retryableTerraformErrors = map[string]string{
+	// `terraform init` frequently fails in CI due to network issues accessing plugins. The reason is unknown, but
+	// eventually these succeed after a few retries.
+	".*unable to verify signature.*":                "Failed to retrieve plugin due to transient network error.",
+	".*unable to verify checksum.*":                 "Failed to retrieve plugin due to transient network error.",
+	".*no provider exists with the given name.*":    "Failed to retrieve plugin due to transient network error.",
+	".*registry service is unreachable.*":           "Failed to retrieve plugin due to transient network error.",
+	".*timeout while waiting for plugin to start.*": "Failed to retrieve plugin due to transient network error.",
+	".*timed out waiting for server handshake.*":    "Failed to retrieve plugin due to transient network error.",
 
-		// Based on the full error message: "module.vpc_app_example.aws_vpc_endpoint_route_table_association.s3_private[0], provider "registry.terraform.io/hashicorp/aws" produced an unexpected new value: Root resource was present, but now absent."
-		// See https://github.com/hashicorp/terraform-provider-aws/issues/12449 and https://github.com/hashicorp/terraform-provider-aws/issues/12829
-		"Root resource was present, but now absent": "This seems to be an eventual consistency issue with AWS where Terraform looks for a route table association that was just created but doesn't yet see it: https://github.com/hashicorp/terraform-provider-aws/issues/12449",
+	// Based on the full error message: "module.vpc_app_example.aws_vpc_endpoint_route_table_association.s3_private[0], provider "registry.terraform.io/hashicorp/aws" produced an unexpected new value: Root resource was present, but now absent."
+	// See https://github.com/hashicorp/terraform-provider-aws/issues/12449 and https://github.com/hashicorp/terraform-provider-aws/issues/12829
+	"Root resource was present, but now absent": "This seems to be an eventual consistency issue with AWS where Terraform looks for a route table association that was just created but doesn't yet see it: https://github.com/hashicorp/terraform-provider-aws/issues/12449",
 
-		// Based on the full error message: "error reading Route Table Association (rtbassoc-0debe83161f2691ec): Empty
-		// result"
-		"error reading.*Empty result": "This seems to be an eventual consistency issue with AWS where Terraform looks for a route table association that was just created but doesn't yet see it: https://github.com/hashicorp/terraform-provider-aws/issues/12449",
+	// Based on the full error message: "error reading Route Table Association (rtbassoc-0debe83161f2691ec): Empty
+	// result"
+	"error reading.*Empty result": "This seems to be an eventual consistency issue with AWS where Terraform looks for a route table association that was just created but doesn't yet see it: https://github.com/hashicorp/terraform-provider-aws/issues/12449",
 
-		// Based on the full error message: "error waiting for Route Table Association (rtbassoc-0c83c992303e0797f)
-		// delete: unexpected state 'associated', wanted target ''"
-		"error waiting for Route Table Association.*delete: unexpected state": "This seems to be an eventual consistency issue with AWS where Terraform looks for a route table association that was just created but doesn't yet see it: https://github.com/hashicorp/terraform-provider-aws/issues/12449",
-	}
-)
+	// Based on the full error message: "error waiting for Route Table Association (rtbassoc-0c83c992303e0797f)
+	// delete: unexpected state 'associated', wanted target ''"
+	"error waiting for Route Table Association.*delete: unexpected state": "This seems to be an eventual consistency issue with AWS where Terraform looks for a route table association that was just created but doesn't yet see it: https://github.com/hashicorp/terraform-provider-aws/issues/12449",
+}
 
-// Test constants for the Gruntwork Phx DevOps account
+// Domain constants
 const (
 	BaseDomainForTest = "gruntwork.in"
 	AcmDomainForTest  = "*.gruntwork.in"
 )
+
+// Tags in Gruntwork Phx DevOps account to uniquely find Hosted Zone for BaseDomainForTest
+var DomainNameTagsForTest = map[string]interface{}{"original": "true"}
 
 // Regions in Gruntwork Phx DevOps account that have ACM certs and t3.micro instances in all AZs
 var RegionsForEc2Tests = []string{
@@ -63,36 +61,9 @@ var RegionsForEc2Tests = []string{
 	"ap-southeast-2",
 }
 
-// Tags in Gruntwork Phx DevOps account to uniquely find Hosted Zone for BaseDomainForTest
-var DomainNameTagsForTest = map[string]interface{}{"original": "true"}
-
-// Some of the tests need to run against Organization root account. This method overrides the default AWS_* environment variables
-func ConfigureTerraformForOrgTestAccount(t *testing.T, terraformOptions *terraform.Options) {
-	if terraformOptions.EnvVars == nil {
-		terraformOptions.EnvVars = map[string]string{}
-	}
-	terraformOptions.EnvVars["AWS_ACCESS_KEY_ID"] = os.Getenv("AWS_ORGTEST_ACCESS_KEY_ID")
-	terraformOptions.EnvVars["AWS_SECRET_ACCESS_KEY"] = os.Getenv("AWS_ORGTEST_SECRET_ACCESS_KEY")
-}
-
-func PickNRegions(t *testing.T, count int) []string {
-	regions := []string{}
-	for i := 0; i < count; i++ {
-		region := aws.GetRandomStableRegion(t, nil, regions)
-		regions = append(regions, region)
-	}
-	return regions
-}
-
 // read the externalAccountId to use for saving RDS snapshots from the environment
 func GetExternalAccountId() string {
 	return os.Getenv("TEST_EXTERNAL_ACCOUNT_ID")
-}
-
-func PickAwsRegion(t *testing.T) string {
-	// At least one zone in us-west-2, sa-east-1, eu-north-1, ap-northeast-2 do not have t2.micro
-	// ap-south-1 doesn't have ECS optimized Linux
-	return aws.GetRandomStableRegion(t, []string{}, []string{"sa-east-1", "ap-south-1", "ap-northeast-2", "us-west-2", "eu-north-1"})
 }
 
 func CreateBaseTerraformOptions(t *testing.T, terraformDir string, awsRegion string) *terraform.Options {
@@ -101,46 +72,10 @@ func CreateBaseTerraformOptions(t *testing.T, terraformDir string, awsRegion str
 		Vars: map[string]interface{}{
 			"aws_region": awsRegion,
 		},
-		RetryableTerraformErrors: RetryableTerraformErrors,
-		MaxRetries:               MaxTerraformRetries,
-		TimeBetweenRetries:       SleepBetweenTerraformRetries,
+		RetryableTerraformErrors: retryableTerraformErrors,
+		MaxRetries:               maxTerraformRetries,
+		TimeBetweenRetries:       sleepBetweenTerraformRetries,
 	}
-}
-
-func TestSSH(t *testing.T, ip string, sshUsername string, keyPair *aws.Ec2Keypair) {
-	publicHost := ssh.Host{
-		Hostname:    ip,
-		SshUserName: sshUsername,
-		SshKeyPair:  keyPair.KeyPair,
-	}
-
-	retry.DoWithRetry(
-		t,
-		fmt.Sprintf("SSH to public host %s", ip),
-		10,
-		30*time.Second,
-		func() (string, error) {
-			return "", ssh.CheckSshConnectionE(t, publicHost)
-		},
-	)
-}
-
-func TestSSHCommand(t *testing.T, ip string, sshUsername string, keyPair *aws.Ec2Keypair, command string) string {
-	publicHost := ssh.Host{
-		Hostname:    ip,
-		SshUserName: sshUsername,
-		SshKeyPair:  keyPair.KeyPair,
-	}
-
-	return retry.DoWithRetry(
-		t,
-		fmt.Sprintf("SSH to public host %s", ip),
-		10,
-		30*time.Second,
-		func() (string, error) {
-			return ssh.CheckSshCommandE(t, publicHost, command)
-		},
-	)
 }
 
 func RequireEnvVar(t *testing.T, envVarName string) {
