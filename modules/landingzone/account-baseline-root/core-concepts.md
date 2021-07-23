@@ -187,7 +187,7 @@ do the following:
 
     ```hcl
     module "aws_config" {
-      source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/account-baseline-root?ref=v0.51.0"     
+      source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/account-baseline-root?ref=v0.52.0"     
 
       # You MUST create a provider block for EVERY AWS region (see providers.tf) and pass all those providers in here via
       # this providers map. However, you should use var.opt_in_regions to tell Terraform to only use and authenticate to
