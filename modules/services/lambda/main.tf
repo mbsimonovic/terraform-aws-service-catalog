@@ -20,7 +20,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "lambda_function" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-lambda//modules/lambda?ref=v0.12.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-lambda//modules/lambda?ref=v0.13.0"
 
   create_resources = var.create_resources
 
@@ -72,7 +72,7 @@ module "lambda_function" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "scheduled_job" {
-  source   = "git::git@github.com:gruntwork-io/terraform-aws-lambda//modules/scheduled-lambda-job?ref=v0.12.0"
+  source   = "git::git@github.com:gruntwork-io/terraform-aws-lambda//modules/scheduled-lambda-job?ref=v0.13.0"
   for_each = var.schedule_expression == null ? toset([]) : toset(["once"])
 
   create_resources = var.create_resources
