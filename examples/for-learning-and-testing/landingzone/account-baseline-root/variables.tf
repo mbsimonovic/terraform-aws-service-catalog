@@ -163,7 +163,6 @@ variable "opt_in_regions" {
     "eu-west-3",
     "eu-west-2",
     "eu-west-1",
-    "ap-northeast-3",
     "ap-northeast-2",
     "ap-northeast-1",
     "sa-east-1",
@@ -186,6 +185,9 @@ variable "opt_in_regions" {
     #  "us-gov-west-1",  # GovCloud
     #  "cn-north-1",     # China
     #  "cn-northwest-1", # China
+    #
+    # This region is enabled by default but is brand-new and some services like AWS Config don't work.
+    # "ap-northeast-3", # Asia Pacific (Osaka)
   ]
 }
 
