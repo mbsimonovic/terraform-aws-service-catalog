@@ -24,7 +24,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "alb" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/alb?ref=v0.26.3"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/alb?ref=v0.27.0"
 
 
   alb_name        = var.alb_name
