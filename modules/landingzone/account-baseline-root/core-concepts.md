@@ -89,11 +89,7 @@ Here's a rough overview of how to create child accounts using this module:
 1. Authenticate as an *IAM User* to the root account in your AWS organization. You cannot use the root user, as the
    `account-baseline-root` module needs to assume an IAM role, which is something a root user cannot do. Therefore, you
    MUST use an IAM user.  
-1. Run `ulimit -n 1024`. This is necessary on some operating systems (especially MacOS) to increase the file limit so 
-   you don't get `Error: pipe: too many open files` errors.
-1. Run `terraform apply -parallelism=2` (or `terragrunt apply -parallelism=2` if you're using Terragrunt). We recommend 
-   using a `-parallelism` flag with a low value for stable performance as this module can peg all of your CPU cores and 
-   cause timeout/network connectivity errors.
+1. Run `terraform apply` (or `terragrunt apply` if you're using Terragrunt). 
 1. Once the child accounts have been created, authenticate to each one, and apply a baseline to it using either the 
    [account-baseline-security module](/modules/account-baseline-security) (for the security account) or the
    [account-baseline-app module](/modules/account-baseline-app) (for all other account types).

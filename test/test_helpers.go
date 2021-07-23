@@ -147,12 +147,6 @@ func RequireEnvVar(t *testing.T, envVarName string) {
 	require.NotEmptyf(t, os.Getenv(envVarName), "Environment variable %s must be set for this test.", envVarName)
 }
 
-// PlanWithParallelismE runs terraform plan with the given options including the parallelism flag and returns stdout/stderr.
-// This will fail the test if there is an error in the command.
-func PlanWithParallelismE(t *testing.T, options *terraform.Options) (string, error) {
-	return terraform.RunTerraformCommandE(t, options, terraform.FormatArgs(options, "plan", "-parallelism=2", "-input=false", "-lock=false")...)
-}
-
 var ecrAuthMutex sync.Mutex
 
 // Authenticate to ECR in the given region and run the given command.
