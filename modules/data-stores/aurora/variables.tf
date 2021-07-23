@@ -80,6 +80,12 @@ variable "engine_version" {
   default     = null
 }
 
+variable "allow_major_version_upgrade" {
+  description = "Enable to allow major engine version upgrades when changing engine versions."
+  type        = bool
+  default     = false
+}
+
 variable "engine_mode" {
   description = "The version of aurora to run - provisioned or serverless."
   type        = string
