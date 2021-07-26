@@ -12,7 +12,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ssh_grunt_policies" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-policies?ref=v0.50.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-policies?ref=v0.53.1"
 
   aws_account_id = data.aws_caller_identity.current.account_id
 
