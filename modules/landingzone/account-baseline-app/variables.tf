@@ -44,6 +44,12 @@ variable "config_s3_bucket_name" {
 variable "config_s3_mfa_delete" {
   description = "Enable MFA delete for either 'Change the versioning state of your bucket' or 'Permanently delete an object version'. This setting only applies to the bucket used to storage AWS Config data. This cannot be used to toggle this setting but is available to allow managed buckets to reflect the state in AWS. CIS v1.4 requires this variable to be true. If you do not wish to be CIS-compliant, you can set it to false."
   type        = bool
+  default     = false
+}
+
+variable "config_s3_enable_lifecycle_rules" {
+  description = "If you enable MFA Delete, you need to disable Lifecycle Rules for the bucket."
+  type        = bool
   default     = true
 }
 
@@ -477,6 +483,12 @@ variable "enable_cloudtrail" {
 
 variable "cloudtrail_s3_mfa_delete" {
   description = "Enable MFA delete for either 'Change the versioning state of your bucket' or 'Permanently delete an object version'. This setting only applies to the bucket used to storage Cloudtrail data. This cannot be used to toggle this setting but is available to allow managed buckets to reflect the state in AWS. CIS v1.4 requires this variable to be true. If you do not wish to be CIS-compliant, you can set it to false."
+  type        = bool
+  default     = false
+}
+
+variable "cloudtrail_s3_enable_lifecycle_rules" {
+  description = "If you enable MFA Delete, you need to disable Lifecycle Rules for the bucket."
   type        = bool
   default     = true
 }
