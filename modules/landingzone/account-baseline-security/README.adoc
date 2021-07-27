@@ -60,6 +60,7 @@ sure to read link:/core-concepts.md[How to use the Gruntwork Service Catalog]!
 
 * Learn more about each individual module, click the link in the link:#features[Features] section.
 * link:https://gruntwork.io/guides/foundations/how-to-configure-production-grade-aws-account-structure/[How to configure a production-grade AWS account structure]
+* link:/modules/landingzone/account-baseline-root/core-concepts.md#how-to-use-multi-region-services[How to use multi-region services]
 
 
 === Repo organization
