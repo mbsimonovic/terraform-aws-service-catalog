@@ -14,14 +14,6 @@ terraform {
       version = ">= 2.6"
     }
 
-    # Pin to this specific version to work around a bug introduced in 1.11.0:
-    # https://github.com/terraform-providers/terraform-provider-kubernetes/issues/759
-    # (Only for EKS)
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "= 1.10.0"
-    }
-
     helm = {
       source  = "hashicorp/helm"
       version = "~> 2.0"
@@ -360,7 +352,7 @@ resource "aws_iam_role" "new_role" {
 }
 
 module "service_account_assume_role_policy" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-iam-role-assume-role-policy-for-service-account?ref=v0.42.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-iam-role-assume-role-policy-for-service-account?ref=v0.43.0"
 
   eks_openid_connect_provider_arn = var.eks_iam_role_for_service_accounts_config.openid_connect_provider_arn
   eks_openid_connect_provider_url = var.eks_iam_role_for_service_accounts_config.openid_connect_provider_url

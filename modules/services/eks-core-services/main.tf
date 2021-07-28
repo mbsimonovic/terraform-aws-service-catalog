@@ -17,12 +17,10 @@ terraform {
       version = ">= 2.6"
     }
 
-    # Pin to this specific version to work around a bug introduced in 1.11.0:
-    # https://github.com/terraform-providers/terraform-provider-kubernetes/issues/759
-    # (Only for EKS)
+    # The underlying modules are only compatible with kubernetes provider 2.x
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "= 1.10.0"
+      version = "~> 2.0"
     }
 
     # The underlying modules are only compatible with helm provider 2.x
@@ -38,7 +36,6 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 provider "kubernetes" {
-  load_config_file       = false
   host                   = data.aws_eks_cluster.cluster.endpoint
   cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
   token                  = var.use_exec_plugin_for_auth ? null : data.aws_eks_cluster_auth.kubernetes_token[0].token
@@ -93,7 +90,7 @@ provider "helm" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "aws_for_fluent_bit" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-container-logs?ref=v0.42.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-container-logs?ref=v0.43.0"
 
   # The contents of the for each set is irrelevant as it is only used to enable the module.
   for_each = var.enable_fluent_bit ? { enable = true } : {}
@@ -133,7 +130,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "alb_ingress_controller" {
-  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-alb-ingress-controller?ref=v0.42.2"
+  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-alb-ingress-controller?ref=v0.43.0"
   dependencies = aws_eks_fargate_profile.core_services.*.id
 
   # The contents of the for each set is irrelevant as it is only used to enable the module.
@@ -154,7 +151,7 @@ module "alb_ingress_controller" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "k8s_external_dns" {
-  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-external-dns?ref=v0.42.2"
+  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-external-dns?ref=v0.43.0"
   dependencies = aws_eks_fargate_profile.core_services.*.id
 
   # The contents of the for each set is irrelevant as it is only used to enable the module.
@@ -182,7 +179,7 @@ module "k8s_external_dns" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "k8s_cluster_autoscaler" {
-  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-cluster-autoscaler?ref=v0.42.2"
+  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-cluster-autoscaler?ref=v0.43.0"
   dependencies = aws_eks_fargate_profile.core_services.*.id
 
   # The contents of the for each set is irrelevant as it is only used to enable the module.
@@ -195,6 +192,7 @@ module "k8s_cluster_autoscaler" {
   pod_labels                           = var.cluster_autoscaler_pod_labels
   pod_tolerations                      = var.cluster_autoscaler_pod_tolerations
   pod_node_affinity                    = var.cluster_autoscaler_pod_node_affinity
+  pod_resources                        = var.cluster_autoscaler_pod_resources
   release_name                         = var.cluster_autoscaler_release_name
 
   cluster_autoscaler_version    = var.cluster_autoscaler_version

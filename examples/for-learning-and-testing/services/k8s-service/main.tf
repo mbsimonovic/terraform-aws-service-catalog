@@ -7,13 +7,6 @@ terraform {
   # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
   # forwards compatible with 0.15.x code.
   required_version = ">= 0.12.26"
-
-  required_providers {
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "= 1.10.0"
-    }
-  }
 }
 
 
@@ -28,40 +21,11 @@ provider "aws" {
   skip_metadata_api_check     = var.kubeconfig_auth_type != "eks"
 }
 
-# Configure the kubernetes and Helm providers based on the requested authentication type.
-provider "kubernetes" {
-  # If using `context`, load the authentication info from the config file and chosen context.
-  load_config_file = var.kubeconfig_auth_type == "context"
-  config_path      = var.kubeconfig_auth_type == "context" ? var.kubeconfig_path : null
-  config_context   = var.kubeconfig_auth_type == "context" ? var.kubeconfig_context : null
-
-  # If using `eks`, load the authentication info directly from EKS.
-  host                   = var.kubeconfig_auth_type == "eks" ? data.aws_eks_cluster.cluster[0].endpoint : null
-  cluster_ca_certificate = var.kubeconfig_auth_type == "eks" ? base64decode(data.aws_eks_cluster.cluster[0].certificate_authority.0.data) : null
-  token                  = var.kubeconfig_auth_type == "eks" && var.use_exec_plugin_for_auth == false ? data.aws_eks_cluster_auth.kubernetes_token[0].token : null
-
-  # EKS clusters use short-lived authentication tokens that can expire in the middle of an 'apply' or 'destroy'. To
-  # avoid this issue, we use an exec-based plugin here to fetch an up-to-date token. Note that this code requires a
-  # binary—either kubergrunt or aws—to be installed and on your PATH.
-  dynamic "exec" {
-    for_each = var.kubeconfig_auth_type == "eks" && var.use_exec_plugin_for_auth ? ["once"] : []
-
-    content {
-      api_version = "client.authentication.k8s.io/v1alpha1"
-      command     = var.use_kubergrunt_to_fetch_token ? "kubergrunt" : "aws"
-      args = (
-        var.use_kubergrunt_to_fetch_token
-        ? ["eks", "token", "--cluster-id", var.kubeconfig_eks_cluster_name]
-        : ["eks", "get-token", "--cluster-name", var.kubeconfig_eks_cluster_name]
-      )
-    }
-  }
-}
-
+# Configure the Helm provider based on the requested authentication type.
 provider "helm" {
   kubernetes {
     # If using `context`, load the authentication info from the config file and chosen context.
-    config_path    = var.kubeconfig_auth_type == "context" ? var.kubeconfig_path : null
+    config_path    = var.kubeconfig_auth_type == "context" ? pathexpand(var.kubeconfig_path) : null
     config_context = var.kubeconfig_auth_type == "context" ? var.kubeconfig_context : null
 
     # If using `eks`, load the authentication info directly from EKS.

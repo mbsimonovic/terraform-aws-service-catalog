@@ -361,6 +361,16 @@ variable "cluster_autoscaler_scaling_strategy" {
   # See https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/FAQ.md#what-are-expanders
 }
 
+variable "cluster_autoscaler_pod_resources" {
+  description = "Pod resource requests and limits to use. Refer to https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/ for more information."
+
+  # We use any type here to avoid maintaining the kubernetes defined type spec for the resources here. That way, we can
+  # support wide range of kubernetes versions.
+  type = any
+
+  default = null
+}
+
 variable "cluster_autoscaler_pod_annotations" {
   description = "Annotations to apply to the cluster autoscaler pod(s), as key value pairs."
   type        = map(string)

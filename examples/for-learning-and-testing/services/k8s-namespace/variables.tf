@@ -30,7 +30,7 @@ variable "kubeconfig_eks_cluster_name" {
 variable "kubeconfig_path" {
   description = "Path to a kubeconfig file containing authentication configurations for Kubernetes clusters. Defaults to ~/.kube/config. Only used if var.kubeconfig_auth_type is `context`."
   type        = string
-  default     = null
+  default     = "~/.kube/config"
 }
 
 variable "kubeconfig_context" {

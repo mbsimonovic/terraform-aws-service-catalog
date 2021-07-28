@@ -14,12 +14,10 @@ terraform {
       version = ">= 2.6"
     }
 
-    # Pin to this specific version to work around a bug introduced in 1.11.0:
-    # https://github.com/terraform-providers/terraform-provider-kubernetes/issues/759
-    # (Only for EKS)
+    # The underlying modules are only compatible with kubernetes provider 2.x
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "= 1.10.0"
+      version = "~> 2.0"
     }
   }
 }
