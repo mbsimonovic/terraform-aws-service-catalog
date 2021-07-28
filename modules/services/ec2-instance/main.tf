@@ -17,7 +17,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ec2_instance" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-server.git//modules/single-server?ref=v0.13.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-server.git//modules/single-server?ref=v0.14.0"
 
   name             = var.name
   instance_type    = var.instance_type
@@ -32,9 +32,10 @@ module "ec2_instance" {
   dns_zone_id = var.route53_zone_id != "" ? var.route53_zone_id : (length(data.aws_route53_zone.selected) > 0 ? data.aws_route53_zone.selected[0].zone_id : "")
 
   # The A record that will be created for the EC2 instance is the concatenation of the instance's name plus the domain name
-  dns_name = var.route53_lookup_domain_name != "" ? "${var.name}.${var.route53_lookup_domain_name}" : "${var.name}.${var.fully_qualified_domain_name}"
-  dns_type = "A"
-  dns_ttl  = tostring(var.dns_ttl)
+  dns_name            = var.route53_lookup_domain_name != "" ? "${var.name}.${var.route53_lookup_domain_name}" : "${var.name}.${var.fully_qualified_domain_name}"
+  dns_type            = "A"
+  dns_ttl             = tostring(var.dns_ttl)
+  dns_uses_private_ip = var.dns_zone_is_private
 
   keypair_name = var.keypair_name
 
