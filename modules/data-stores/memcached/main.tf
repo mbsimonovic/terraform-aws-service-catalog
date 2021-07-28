@@ -22,7 +22,7 @@ terraform {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "memcached" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-cache.git//modules/memcached?ref=v0.15.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-cache.git//modules/memcached?ref=v0.16.0"
 
   name = var.name
 
@@ -47,7 +47,7 @@ module "memcached" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "memcached_alarms" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/elasticache-memcached-alarms?ref=v0.29.3"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/elasticache-memcached-alarms?ref=v0.30.0"
   create_resources = var.enable_cloudwatch_alarms
 
   cache_cluster_id     = module.memcached.cache_cluster_id

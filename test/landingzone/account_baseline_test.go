@@ -172,13 +172,11 @@ func TestAccountBaseline(t *testing.T) {
 				ConfigureTerraformForOrgTestAccount(t, terraformOptions)
 
 				// NOTE: Do *NOT* run apply for this test because destroy will not delete the child account,
-				// so eventually we'd be left with hundreds of unusable accounts. We also pass `-parallelism=2`
-				// to the terraform plan command as we've found the default value of 20 causes instability and
-				// eventual consistency issues when using the landing zone modules.
+				// so eventually we'd be left with hundreds of unusable accounts.
 				_, err := terraform.InitE(t, terraformOptions)
 				require.NoError(t, err, "Should not get init error")
 
-				result, err := PlanWithParallelismE(t, terraformOptions)
+				result, err := terraform.PlanE(t, terraformOptions)
 
 				assert.NoError(t, err, "Should not get plan error")
 

@@ -66,9 +66,8 @@ variable "config_sns_topic_name" {
 }
 
 variable "config_opt_in_regions" {
-  description = "Creates resources in the specified regions. Note that the region must be enabled on your AWS account. Regions that are not enabled are automatically filtered from this list. When null (default), AWS Config will be enabled on all regions enabled on the account. Please note that the best practice is to enable AWS Config in all available regions. Use this list to provide an alternate region list for testing purposes"
+  description = "Creates resources in the specified regions. The best practice is to enable AWS Config in all enabled regions in your AWS account. This variable must NOT be set to null or empty. Otherwise, we won't know which regions to use and authenticate to, and may use some not enabled in your AWS account (e.g., GovCloud, China, etc). To get the list of regions enabled in your AWS account, you can use the AWS CLI: aws ec2 describe-regions."
   type        = list(string)
-  default     = null
 }
 
 variable "config_num_days_after_which_archive_log_data" {
@@ -464,9 +463,8 @@ variable "guardduty_finding_publishing_frequency" {
 }
 
 variable "guardduty_opt_in_regions" {
-  description = "Creates resources in the specified regions. Note that the region must be enabled on your AWS account. Regions that are not enabled are automatically filtered from this list. When null (default), AWS Config will be enabled on all regions enabled on the account. Please note that the best practice is to enable AWS Config in all available regions. Use this list to provide an alternate region list for testing purposes"
+  description = "Creates resources in the specified regions. The best practice is to enable GuardDuty in all enabled regions in your AWS account. This variable must NOT be set to null or empty. Otherwise, we won't know which regions to use and authenticate to, and may use some not enabled in your AWS account (e.g., GovCloud, China, etc). To get the list of regions enabled in your AWS account, you can use the AWS CLI: aws ec2 describe-regions. The value provided for global_recorder_region must be in this list."
   type        = list(string)
-  default     = null
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -742,9 +740,8 @@ variable "kms_cmk_global_tags" {
 }
 
 variable "kms_cmk_opt_in_regions" {
-  description = "Creates KMS keys in the specified regions. Note that the region must be enabled on your AWS account. Regions that are not enabled are automatically filtered from this list. When null (default), KMS CMKs with region setting set to null will be created in all regions enabled on the account. Use this list to provide an alternate region list for testing purposes."
+  description = "Creates resources in the specified regions. This variable must NOT be set to null or empty. Otherwise, we won't know which regions to use and authenticate to, and may use some not enabled in your AWS account (e.g., GovCloud, China, etc). To get the list of regions enabled in your AWS account, you can use the AWS CLI: aws ec2 describe-regions. The value provided for global_recorder_region must be in this list."
   type        = list(string)
-  default     = null
 }
 
 variable "kms_grant_regions" {
@@ -796,9 +793,8 @@ variable "ebs_kms_key_name" {
 }
 
 variable "ebs_opt_in_regions" {
-  description = "Configures EBS encryption defaults in the specified regions. Note that the region must be enabled on your AWS account. Regions that are not enabled are automatically filtered from this list. When null (default), EBS encryption will be enabled on all regions enabled on the account. Use this list to provide an alternate region list for testing purposes."
+  description = "Creates resources in the specified regions. The best practice is to enable EBS Encryption in all enabled regions in your AWS account. This variable must NOT be set to null or empty. Otherwise, we won't know which regions to use and authenticate to, and may use some not enabled in your AWS account (e.g., GovCloud, China, etc). To get the list of regions enabled in your AWS account, you can use the AWS CLI: aws ec2 describe-regions. The value provided for global_recorder_region must be in this list."
   type        = list(string)
-  default     = null
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -836,7 +832,6 @@ variable "iam_access_analyzer_name" {
 }
 
 variable "iam_access_analyzer_opt_in_regions" {
-  description = "Enables IAM Access Analyzer defaults in the specified regions. Note that the region must be enabled on your AWS account. Regions that are not enabled are automatically filtered from this list. When null (default), IAM Access Analyzer will be enabled on all regions enabled on the account. Use this list to provide an alternate region list for testing purposes"
+  description = "Creates resources in the specified regions. The best practice is to enable IAM Access Analyzer in all enabled regions in your AWS account. This variable must NOT be set to null or empty. Otherwise, we won't know which regions to use and authenticate to, and may use some not enabled in your AWS account (e.g., GovCloud, China, etc). To get the list of regions enabled in your AWS account, you can use the AWS CLI: aws ec2 describe-regions. The value provided for global_recorder_region must be in this list."
   type        = list(string)
-  default     = null
 }

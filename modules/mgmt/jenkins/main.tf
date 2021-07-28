@@ -38,7 +38,7 @@ locals {
 }
 
 module "jenkins" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/jenkins-server?ref=v0.37.8"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/jenkins-server?ref=v0.38.0"
 
   name       = var.name
   aws_region = data.aws_region.current.name
@@ -243,7 +243,7 @@ resource "aws_iam_role_policy" "deploy_other_account_permissions" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "high_disk_usage_jenkins_volume_alarms" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/asg-disk-alarms?ref=v0.29.3"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/asg-disk-alarms?ref=v0.30.0"
 
   asg_names            = [module.jenkins.jenkins_asg_name]
   num_asg_names        = 1
@@ -283,7 +283,7 @@ module "jenkins_backup_dlm" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "jenkins_backup" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ec2-backup?ref=v0.37.8"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ec2-backup?ref=v0.38.0"
   count  = var.backup_using_lambda ? 1 : 0
 
   instance_name = module.jenkins.jenkins_asg_name

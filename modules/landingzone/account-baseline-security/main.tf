@@ -3,15 +3,41 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This module is now only being tested with Terraform 0.15.x. However, to make upgrading easier, we are setting
-  # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 0.15.x code.
-  required_version = ">= 0.12.26"
+  # This module is now only being tested with Terraform 0.15.x. We require at least version 0.15.1 or above
+  # because this module uses configuration_aliases, which were only added in Terraform 0.15.0, and we want the latest GPG keys, which were added in 0.15.1.
+  required_version = ">= 0.15.1"
 
   required_providers {
     aws = {
       source  = "hashicorp/aws"
       version = ">= 2.58"
+      configuration_aliases = [
+        aws.af_south_1,
+        aws.ap_east_1,
+        aws.ap_northeast_1,
+        aws.ap_northeast_2,
+        aws.ap_northeast_3,
+        aws.ap_south_1,
+        aws.ap_southeast_1,
+        aws.ap_southeast_2,
+        aws.ca_central_1,
+        aws.cn_north_1,
+        aws.cn_northwest_1,
+        aws.eu_central_1,
+        aws.eu_north_1,
+        aws.eu_south_1,
+        aws.eu_west_1,
+        aws.eu_west_2,
+        aws.eu_west_3,
+        aws.me_south_1,
+        aws.sa_east_1,
+        aws.us_east_1,
+        aws.us_east_2,
+        aws.us_gov_east_1,
+        aws.us_gov_west_1,
+        aws.us_west_1,
+        aws.us_west_2,
+      ]
     }
   }
 }
@@ -23,9 +49,39 @@ terraform {
 module "config" {
   source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/aws-config-multi-region?ref=v0.53.1"
 
+  # You MUST create a provider block for EVERY AWS region (see providers.tf) and pass all those providers in here via
+  # this providers map. However, you should use var.opt_in_regions to tell Terraform to only use and authenticate to
+  # regions that are enabled in your AWS account.
+  providers = {
+    aws.af_south_1     = aws.af_south_1
+    aws.ap_east_1      = aws.ap_east_1
+    aws.ap_northeast_1 = aws.ap_northeast_1
+    aws.ap_northeast_2 = aws.ap_northeast_2
+    aws.ap_northeast_3 = aws.ap_northeast_3
+    aws.ap_south_1     = aws.ap_south_1
+    aws.ap_southeast_1 = aws.ap_southeast_1
+    aws.ap_southeast_2 = aws.ap_southeast_2
+    aws.ca_central_1   = aws.ca_central_1
+    aws.cn_north_1     = aws.cn_north_1
+    aws.cn_northwest_1 = aws.cn_northwest_1
+    aws.eu_central_1   = aws.eu_central_1
+    aws.eu_north_1     = aws.eu_north_1
+    aws.eu_south_1     = aws.eu_south_1
+    aws.eu_west_1      = aws.eu_west_1
+    aws.eu_west_2      = aws.eu_west_2
+    aws.eu_west_3      = aws.eu_west_3
+    aws.me_south_1     = aws.me_south_1
+    aws.sa_east_1      = aws.sa_east_1
+    aws.us_east_1      = aws.us_east_1
+    aws.us_east_2      = aws.us_east_2
+    aws.us_gov_east_1  = aws.us_gov_east_1
+    aws.us_gov_west_1  = aws.us_gov_west_1
+    aws.us_west_1      = aws.us_west_1
+    aws.us_west_2      = aws.us_west_2
+  }
+
   create_resources       = var.enable_config
   aws_account_id         = var.aws_account_id
-  seed_region            = var.aws_region
   global_recorder_region = var.aws_region
 
   s3_bucket_name                        = var.config_s3_bucket_name != null ? var.config_s3_bucket_name : "${var.name_prefix}-config"
@@ -132,7 +188,6 @@ module "iam_groups" {
 
 module "iam_users" {
   source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-users?ref=v0.53.1"
-
   users                   = var.users
   password_length         = var.iam_password_policy_minimum_password_length
   password_reset_required = var.password_reset_required
@@ -195,8 +250,39 @@ module "iam_user_password_policy" {
 
 module "guardduty" {
   source         = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/guardduty-multi-region?ref=v0.53.1"
+
+  # You MUST create a provider block for EVERY AWS region (see providers.tf) and pass all those providers in here via
+  # this providers map. However, you should use var.opt_in_regions to tell Terraform to only use and authenticate to
+  # regions that are enabled in your AWS account.
+  providers = {
+    aws.af_south_1     = aws.af_south_1
+    aws.ap_east_1      = aws.ap_east_1
+    aws.ap_northeast_1 = aws.ap_northeast_1
+    aws.ap_northeast_2 = aws.ap_northeast_2
+    aws.ap_northeast_3 = aws.ap_northeast_3
+    aws.ap_south_1     = aws.ap_south_1
+    aws.ap_southeast_1 = aws.ap_southeast_1
+    aws.ap_southeast_2 = aws.ap_southeast_2
+    aws.ca_central_1   = aws.ca_central_1
+    aws.cn_north_1     = aws.cn_north_1
+    aws.cn_northwest_1 = aws.cn_northwest_1
+    aws.eu_central_1   = aws.eu_central_1
+    aws.eu_north_1     = aws.eu_north_1
+    aws.eu_south_1     = aws.eu_south_1
+    aws.eu_west_1      = aws.eu_west_1
+    aws.eu_west_2      = aws.eu_west_2
+    aws.eu_west_3      = aws.eu_west_3
+    aws.me_south_1     = aws.me_south_1
+    aws.sa_east_1      = aws.sa_east_1
+    aws.us_east_1      = aws.us_east_1
+    aws.us_east_2      = aws.us_east_2
+    aws.us_gov_east_1  = aws.us_gov_east_1
+    aws.us_gov_west_1  = aws.us_gov_west_1
+    aws.us_west_1      = aws.us_west_1
+    aws.us_west_2      = aws.us_west_2
+  }
+
   aws_account_id = var.aws_account_id
-  seed_region    = var.aws_region
 
   cloudwatch_event_rule_name   = var.guardduty_cloudwatch_event_rule_name
   finding_publishing_frequency = var.guardduty_finding_publishing_frequency
@@ -260,8 +346,39 @@ module "cloudtrail" {
 
 module "customer_master_keys" {
   source         = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-master-key-multi-region?ref=v0.53.1"
+
+  # You MUST create a provider block for EVERY AWS region (see providers.tf) and pass all those providers in here via
+  # this providers map. However, you should use var.opt_in_regions to tell Terraform to only use and authenticate to
+  # regions that are enabled in your AWS account.
+  providers = {
+    aws.af_south_1     = aws.af_south_1
+    aws.ap_east_1      = aws.ap_east_1
+    aws.ap_northeast_1 = aws.ap_northeast_1
+    aws.ap_northeast_2 = aws.ap_northeast_2
+    aws.ap_northeast_3 = aws.ap_northeast_3
+    aws.ap_south_1     = aws.ap_south_1
+    aws.ap_southeast_1 = aws.ap_southeast_1
+    aws.ap_southeast_2 = aws.ap_southeast_2
+    aws.ca_central_1   = aws.ca_central_1
+    aws.cn_north_1     = aws.cn_north_1
+    aws.cn_northwest_1 = aws.cn_northwest_1
+    aws.eu_central_1   = aws.eu_central_1
+    aws.eu_north_1     = aws.eu_north_1
+    aws.eu_south_1     = aws.eu_south_1
+    aws.eu_west_1      = aws.eu_west_1
+    aws.eu_west_2      = aws.eu_west_2
+    aws.eu_west_3      = aws.eu_west_3
+    aws.me_south_1     = aws.me_south_1
+    aws.sa_east_1      = aws.sa_east_1
+    aws.us_east_1      = aws.us_east_1
+    aws.us_east_2      = aws.us_east_2
+    aws.us_gov_east_1  = aws.us_gov_east_1
+    aws.us_gov_west_1  = aws.us_gov_west_1
+    aws.us_west_1      = aws.us_west_1
+    aws.us_west_2      = aws.us_west_2
+  }
+
   aws_account_id = var.aws_account_id
-  seed_region    = var.aws_region
 
   customer_master_keys = var.kms_customer_master_keys
   global_tags          = var.kms_cmk_global_tags
@@ -270,8 +387,39 @@ module "customer_master_keys" {
 
 module "kms_grants" {
   source            = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-grant-multi-region?ref=v0.53.1"
+
+  # You MUST create a provider block for EVERY AWS region (see providers.tf) and pass all those providers in here via
+  # this providers map. However, you should use var.opt_in_regions to tell Terraform to only use and authenticate to
+  # regions that are enabled in your AWS account.
+  providers = {
+    aws.af_south_1     = aws.af_south_1
+    aws.ap_east_1      = aws.ap_east_1
+    aws.ap_northeast_1 = aws.ap_northeast_1
+    aws.ap_northeast_2 = aws.ap_northeast_2
+    aws.ap_northeast_3 = aws.ap_northeast_3
+    aws.ap_south_1     = aws.ap_south_1
+    aws.ap_southeast_1 = aws.ap_southeast_1
+    aws.ap_southeast_2 = aws.ap_southeast_2
+    aws.ca_central_1   = aws.ca_central_1
+    aws.cn_north_1     = aws.cn_north_1
+    aws.cn_northwest_1 = aws.cn_northwest_1
+    aws.eu_central_1   = aws.eu_central_1
+    aws.eu_north_1     = aws.eu_north_1
+    aws.eu_south_1     = aws.eu_south_1
+    aws.eu_west_1      = aws.eu_west_1
+    aws.eu_west_2      = aws.eu_west_2
+    aws.eu_west_3      = aws.eu_west_3
+    aws.me_south_1     = aws.me_south_1
+    aws.sa_east_1      = aws.sa_east_1
+    aws.us_east_1      = aws.us_east_1
+    aws.us_east_2      = aws.us_east_2
+    aws.us_gov_east_1  = aws.us_gov_east_1
+    aws.us_gov_west_1  = aws.us_gov_west_1
+    aws.us_west_1      = aws.us_west_1
+    aws.us_west_2      = aws.us_west_2
+  }
+
   aws_account_id    = var.aws_account_id
-  seed_region       = var.aws_region
   opt_in_regions    = var.kms_cmk_opt_in_regions
   kms_grant_regions = var.kms_grant_regions
   kms_grants        = var.kms_grants
@@ -283,8 +431,39 @@ module "kms_grants" {
 
 module "ebs_encryption" {
   source         = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/ebs-encryption-multi-region?ref=v0.53.1"
+
+  # You MUST create a provider block for EVERY AWS region (see providers.tf) and pass all those providers in here via
+  # this providers map. However, you should use var.opt_in_regions to tell Terraform to only use and authenticate to
+  # regions that are enabled in your AWS account.
+  providers = {
+    aws.af_south_1     = aws.af_south_1
+    aws.ap_east_1      = aws.ap_east_1
+    aws.ap_northeast_1 = aws.ap_northeast_1
+    aws.ap_northeast_2 = aws.ap_northeast_2
+    aws.ap_northeast_3 = aws.ap_northeast_3
+    aws.ap_south_1     = aws.ap_south_1
+    aws.ap_southeast_1 = aws.ap_southeast_1
+    aws.ap_southeast_2 = aws.ap_southeast_2
+    aws.ca_central_1   = aws.ca_central_1
+    aws.cn_north_1     = aws.cn_north_1
+    aws.cn_northwest_1 = aws.cn_northwest_1
+    aws.eu_central_1   = aws.eu_central_1
+    aws.eu_north_1     = aws.eu_north_1
+    aws.eu_south_1     = aws.eu_south_1
+    aws.eu_west_1      = aws.eu_west_1
+    aws.eu_west_2      = aws.eu_west_2
+    aws.eu_west_3      = aws.eu_west_3
+    aws.me_south_1     = aws.me_south_1
+    aws.sa_east_1      = aws.sa_east_1
+    aws.us_east_1      = aws.us_east_1
+    aws.us_east_2      = aws.us_east_2
+    aws.us_gov_east_1  = aws.us_gov_east_1
+    aws.us_gov_west_1  = aws.us_gov_west_1
+    aws.us_west_1      = aws.us_west_1
+    aws.us_west_2      = aws.us_west_2
+  }
+
   aws_account_id = var.aws_account_id
-  seed_region    = var.aws_region
   opt_in_regions = var.ebs_opt_in_regions
 
   enable_encryption     = var.ebs_enable_encryption
@@ -303,11 +482,42 @@ module "ebs_encryption" {
 # ----------------------------------------------------------------------------------------------------------------------
 module "iam_access_analyzer" {
   source         = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-access-analyzer-multi-region?ref=v0.53.1"
+
+  # You MUST create a provider block for EVERY AWS region (see providers.tf) and pass all those providers in here via
+  # this providers map. However, you should use var.opt_in_regions to tell Terraform to only use and authenticate to
+  # regions that are enabled in your AWS account.
+  providers = {
+    aws.af_south_1     = aws.af_south_1
+    aws.ap_east_1      = aws.ap_east_1
+    aws.ap_northeast_1 = aws.ap_northeast_1
+    aws.ap_northeast_2 = aws.ap_northeast_2
+    aws.ap_northeast_3 = aws.ap_northeast_3
+    aws.ap_south_1     = aws.ap_south_1
+    aws.ap_southeast_1 = aws.ap_southeast_1
+    aws.ap_southeast_2 = aws.ap_southeast_2
+    aws.ca_central_1   = aws.ca_central_1
+    aws.cn_north_1     = aws.cn_north_1
+    aws.cn_northwest_1 = aws.cn_northwest_1
+    aws.eu_central_1   = aws.eu_central_1
+    aws.eu_north_1     = aws.eu_north_1
+    aws.eu_south_1     = aws.eu_south_1
+    aws.eu_west_1      = aws.eu_west_1
+    aws.eu_west_2      = aws.eu_west_2
+    aws.eu_west_3      = aws.eu_west_3
+    aws.me_south_1     = aws.me_south_1
+    aws.sa_east_1      = aws.sa_east_1
+    aws.us_east_1      = aws.us_east_1
+    aws.us_east_2      = aws.us_east_2
+    aws.us_gov_east_1  = aws.us_gov_east_1
+    aws.us_gov_west_1  = aws.us_gov_west_1
+    aws.us_west_1      = aws.us_west_1
+    aws.us_west_2      = aws.us_west_2
+  }
+
   aws_account_id = var.aws_account_id
 
   create_resources         = var.enable_iam_access_analyzer
   iam_access_analyzer_name = var.iam_access_analyzer_name
   iam_access_analyzer_type = var.iam_access_analyzer_type
-  seed_region              = var.aws_region
   opt_in_regions           = var.iam_access_analyzer_opt_in_regions
 }

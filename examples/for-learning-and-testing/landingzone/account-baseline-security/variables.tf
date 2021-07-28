@@ -47,6 +47,43 @@ variable "force_destroy" {
   default     = false
 }
 
+variable "opt_in_regions" {
+  description = "Create multi-region resources in the specified regions. The best practice is to enable multi-region services in all enabled regions in your AWS account. This variable must NOT be set to null or empty. Otherwise, we won't know which regions to use and authenticate to, and may use some not enabled in your AWS account (e.g., GovCloud, China, etc). To get the list of regions enabled in your AWS account, you can use the AWS CLI: aws ec2 describe-regions."
+  type        = list(string)
+  default = [
+    "eu-north-1",
+    "ap-south-1",
+    "eu-west-3",
+    "eu-west-2",
+    "eu-west-1",
+    "ap-northeast-2",
+    "ap-northeast-1",
+    "sa-east-1",
+    "ca-central-1",
+    "ap-southeast-1",
+    "ap-southeast-2",
+    "eu-central-1",
+    "us-east-1",
+    "us-east-2",
+    "us-west-1",
+    "us-west-2",
+
+    # By default, skip regions that are not enabled in most AWS accounts:
+    #
+    #  "af-south-1",     # Cape Town
+    #  "ap-east-1",      # Hong Kong
+    #  "eu-south-1",     # Milan
+    #  "me-south-1",     # Bahrain
+    #  "us-gov-east-1",  # GovCloud
+    #  "us-gov-west-1",  # GovCloud
+    #  "cn-north-1",     # China
+    #  "cn-northwest-1", # China
+    #
+    # This region is enabled by default but is brand-new and some services like AWS Config don't work.
+    # "ap-northeast-3", # Asia Pacific (Osaka)
+  ]
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # IAM ACCESS ANALYZER MODULE EXAMPLE PARAMETERS
 # ---------------------------------------------------------------------------------------------------------------------
