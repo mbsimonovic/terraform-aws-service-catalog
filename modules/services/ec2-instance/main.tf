@@ -87,7 +87,7 @@ locals {
     [for user in local.ip_lockdown_users : "'${user}'"],
   )
 
-  base_user_data = templatefile(
+  base_user_data = trimspace(templatefile(
     "${path.module}/user-data.sh",
     {
       log_group_name                      = var.name
@@ -103,7 +103,7 @@ locals {
       ebs_volumes                         = base64encode(jsonencode(var.ebs_volumes))
       ebs_aws_region                      = data.aws_region.current.name
     },
-  )
+  ))
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
