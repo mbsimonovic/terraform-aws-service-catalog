@@ -90,6 +90,7 @@ locals {
   # Trim excess whitespace, because AWS will do that on deploy. This prevents
   # constant redeployment because the userdata hash doesn't match the trimmed
   # userdata hash.
+  # See: https://github.com/hashicorp/terraform-provider-aws/issues/5011#issuecomment-878542063
   base_user_data = trimspace(templatefile(
     "${path.module}/user-data.sh",
     {
