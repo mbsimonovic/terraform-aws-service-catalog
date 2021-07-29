@@ -113,7 +113,7 @@ locals {
 }
 
 module "instance_type" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-utilities.git//modules/instance-type?ref=v0.2.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-utilities.git//modules/instance-type?ref=v0.6.0"
 
   instance_types = ["t2.micro", "t3.micro"]
 }
