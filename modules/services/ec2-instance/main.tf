@@ -87,6 +87,9 @@ locals {
     [for user in local.ip_lockdown_users : "'${user}'"],
   )
 
+  # Trim excess whitespace, because AWS will do that on deploy. This prevents
+  # constant redeployment because the userdata hash doesn't match the trimmed
+  # userdata hash.
   base_user_data = trimspace(templatefile(
     "${path.module}/user-data.sh",
     {

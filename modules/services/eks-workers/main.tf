@@ -90,7 +90,10 @@ locals {
   # Merge in all the cloud init scripts the user has passed in
   cloud_init_parts = merge({ default : local.cloud_init }, var.cloud_init_parts)
 
-  base_user_data = templatefile(
+  # Trim excess whitespace, because AWS will do that on deploy. This prevents
+  # constant redeployment because the userdata hash doesn't match the trimmed
+  # userdata hash.
+  base_user_data = trimspace(templatefile(
     "${path.module}/user-data.sh",
     {
       aws_region                = data.aws_region.current.name
@@ -111,7 +114,7 @@ locals {
       # TODO: investigate if IP lockdown can now be enabled due to IRSA
       enable_ip_lockdown = false
     },
-  )
+  ))
 }
 
 

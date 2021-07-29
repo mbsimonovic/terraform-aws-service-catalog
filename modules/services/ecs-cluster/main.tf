@@ -73,7 +73,10 @@ locals {
 
   log_group = var.cloudwatch_log_group_name != "" ? var.cloudwatch_log_group_name : "${var.cluster_name}-logs"
 
-  base_user_data = templatefile(
+  # Trim excess whitespace, because AWS will do that on deploy. This prevents
+  # constant redeployment because the userdata hash doesn't match the trimmed
+  # userdata hash.
+  base_user_data = trimespace(templatefile(
     "${path.module}/user-data.sh",
     {
       cluster_name                        = var.cluster_name
@@ -88,7 +91,7 @@ locals {
       enable_ip_lockdown                  = var.enable_ip_lockdown
       ip_lockdown_users                   = local.ip_lockdown_users_bash_array
     },
-  )
+  ))
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
