@@ -144,11 +144,11 @@ resource "aws_ebs_volume" "ec2_instance" {
   availability_zone = data.aws_subnet.ec2_instance.availability_zone
   type              = each.value.type
   size              = each.value.size
-  encrypted         = lookup(var.ebs_volumes, "encrypted", false)
-  iops              = lookup(var.ebs_volumes, "iops", null)
-  snapshot_id       = lookup(var.ebs_volumes, "snapshot_id", null)
-  kms_key_id        = lookup(var.ebs_volumes, "kms_key_id", null)
-  throughput        = lookup(var.ebs_volumes, "throughput", null)
+  encrypted         = lookup(each.value, "encrypted", false)
+  iops              = lookup(each.value, "iops", null)
+  snapshot_id       = lookup(each.value, "snapshot_id", null)
+  kms_key_id        = lookup(each.value, "kms_key_id", null)
+  throughput        = lookup(each.value, "throughput", null)
 
 
   # We want to set the name of the volume from the ebs_volumes map, but all other tags should be settable with var.tags.
