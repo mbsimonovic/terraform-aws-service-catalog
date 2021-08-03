@@ -13,6 +13,8 @@ readonly DEFAULT_MODULE_CI_VERSION="v0.38.1"
 # Build tooling
 # renovate.json auto-update: kubergrunt
 readonly DEFAULT_KUBERGRUNT_VERSION="v0.7.3"
+# renovate.json auto-update: gruntkms
+readonly DEFAULT_GRUNTKMS_VERSION="v0.0.10"
 # renovate.json auto-update: terragrunt
 readonly DEFAULT_TERRAGRUNT_VERSION="v0.31.2"
 
@@ -88,6 +90,19 @@ function install_kubergrunt {
   echo "Installing Kubergrunt"
   gruntwork-install --binary-name "kubergrunt" --repo "https://github.com/gruntwork-io/kubergrunt" --tag "$version"
   sudo chmod 755 /usr/local/bin/kubergrunt
+}
+
+function install_gruntkms {
+  local -r version="$1"
+
+  if [[ "$version" == "$SKIP_INSTALL_VERSION" ]]; then
+    echo "Gruntkms version is set to $SKIP_INSTALL_VERSION, so skipping install."
+    return
+  fi
+
+  echo "Installing Gruntkms"
+  gruntwork-install --binary-name "gruntkms" --repo "https://github.com/gruntwork-io/gruntkms" --tag "$version"
+  sudo chmod 755 /usr/local/bin/gruntkms
 }
 
 function install_terraform {
@@ -226,6 +241,7 @@ function install_modules_for_ci {
   install_stateful_server_packages "$module_stateful_server_version"
   install_ci_packages "$module_ci_version" "$module_security_version" "$jenkins_version"
   install_kubergrunt "$kubergrunt_version"
+  install_gruntkms "$gruntkms_version"
 }
 
 function install_jenkins {
@@ -237,6 +253,7 @@ function install_jenkins {
   local module_stateful_server_version="${module_stateful_server_version:-$DEFAULT_MODULE_STATEFUL_SERVER_VERSION}"
   local module_ci_version="${module_ci_version:-$DEFAULT_MODULE_CI_VERSION}"
   local kubergrunt_version="${kubergrunt_version:-$DEFAULT_KUBERGRUNT_VERSION}"
+  local gruntkms_version="${gruntkms_version:-$DEFAULT_GRUNTKMS_VERSION}"
   local bash_commons_version="${bash_commons_version:-$DEFAULT_BASH_COMMONS_VERSION}"
   local terraform_version="${terraform_version:-$DEFAULT_TERRAFORM_VERSION}"
   local terragrunt_version="${terragrunt_version:-$DEFAULT_TERRAGRUNT_VERSION}"
