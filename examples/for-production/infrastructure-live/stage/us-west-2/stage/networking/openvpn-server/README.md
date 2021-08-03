@@ -10,7 +10,7 @@ Catalog](https://github.com/gruntwork-io/terraform-aws-service-catalog) repo. If
 [support@gruntwork.io](mailto:support@gruntwork.io).
 
 Note that this module depends on the AMI defined by the [Packer](https://www.packer.io) template in [the
-module](https://github.com/gruntwork-io/terraform-aws-service-catalog/tree/v0.44.2/modules/mgmt/openvpn-server/openvpn-server.json).
+module](https://github.com/gruntwork-io/terraform-aws-service-catalog/tree/v0.54.0/modules/mgmt/openvpn-server/openvpn-server.json).
 
-See [the module docs](https://github.com/gruntwork-io/terraform-aws-service-catalog/tree/v0.44.2/modules/mgmt/openvpn-server) for more
+See [the module docs](https://github.com/gruntwork-io/terraform-aws-service-catalog/tree/v0.54.0/modules/mgmt/openvpn-server) for more
 information about the underlying Terraform module.

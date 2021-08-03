@@ -25,7 +25,7 @@ endif::[]
 = Public Static Website
 
 image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
-image:https://img.shields.io/badge/tf-%3E%3D0.15.0-blue.svg[Terraform version]
+image:https://img.shields.io/badge/tf-%3E%3D1.0.0-blue.svg[Terraform version]
 
 This module creates a public static website using https://docs.aws.amazon.com/s3/index.html[S3] and https://docs.aws.amazon.com/cloudfront/index.html[CloudFront] on https://aws.amazon.com[AWS]. The website can contain static HTML, CSS, JS, and images.
 

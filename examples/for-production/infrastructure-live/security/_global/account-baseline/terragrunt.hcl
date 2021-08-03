@@ -32,6 +32,31 @@ include {
 
 
 # ---------------------------------------------------------------------------------------------------------------------
+# CONFIGURE A PROVIDER FOR EACH AWS REGION
+# To deploy a multi-region module, we have to configure a provider with a unique alias for each of the regions AWS
+# supports and pass all these providers to the multi-region module in a provider = { ... } block. You MUST create a
+# provider block for EVERY one of these AWS regions, but you should specify the ones to use and authenticate to (the
+# ones actually enabled in your AWS account) using opt_in_regions.
+# ---------------------------------------------------------------------------------------------------------------------
+
+generate "providers" {
+  path      = "providers.tf"
+  if_exists = "overwrite"
+  contents  = <<EOF
+%{for region in local.all_aws_regions}
+provider "aws" {
+  region = "${region}"
+  alias  = "${replace(region, "-", "_")}"
+  # Skip credential validation and account ID retrieval for disabled or restricted regions
+  skip_credentials_validation = ${contains(coalesce(local.opt_in_regions, []), region) ? "false" : "true"}
+  skip_requesting_account_id  = ${contains(coalesce(local.opt_in_regions, []), region) ? "false" : "true"}
+}
+%{endfor}
+EOF
+}
+
+
+# ---------------------------------------------------------------------------------------------------------------------
 # Locals are named constants that are reusable within the configuration.
 # ---------------------------------------------------------------------------------------------------------------------
 locals {
@@ -68,6 +93,73 @@ locals {
     ),
     {},
   )
+
+  # The following locals are used for constructing multi region provider configurations for the underlying module.
+
+  # A list of all AWS regions
+  all_aws_regions = [
+    "af-south-1",
+    "ap-east-1",
+    "ap-northeast-1",
+    "ap-northeast-2",
+    "ap-northeast-3",
+    "ap-south-1",
+    "ap-southeast-1",
+    "ap-southeast-2",
+    "ca-central-1",
+    "cn-north-1",
+    "cn-northwest-1",
+    "eu-central-1",
+    "eu-north-1",
+    "eu-south-1",
+    "eu-west-1",
+    "eu-west-2",
+    "eu-west-3",
+    "me-south-1",
+    "sa-east-1",
+    "us-east-1",
+    "us-east-2",
+    "us-gov-east-1",
+    "us-gov-west-1",
+    "us-west-1",
+    "us-west-2",
+  ]
+
+  # Creates resources in the specified regions. The best practice is to enable multiregion modules in all enabled
+  # regions in your AWS account. To get the list of regions enabled in your AWS account, you can use the AWS CLI: aws
+  # ec2 describe-regions.
+  opt_in_regions = [
+    "eu-north-1",
+    "ap-south-1",
+    "eu-west-3",
+    "eu-west-2",
+    "eu-west-1",
+    "ap-northeast-2",
+    "ap-northeast-1",
+    "sa-east-1",
+    "ca-central-1",
+    "ap-southeast-1",
+    "ap-southeast-2",
+    "eu-central-1",
+    "us-east-1",
+    "us-east-2",
+    "us-west-1",
+    "us-west-2",
+
+    # By default, skip regions that are not enabled in most AWS accounts:
+    #
+    #  "af-south-1",     # Cape Town
+    #  "ap-east-1",      # Hong Kong
+    #  "eu-south-1",     # Milan
+    #  "me-south-1",     # Bahrain
+    #  "us-gov-east-1",  # GovCloud
+    #  "us-gov-west-1",  # GovCloud
+    #  "cn-north-1",     # China
+    #  "cn-northwest-1", # China
+    #
+    # This region is enabled by default but is brand-new and some services like AWS Config don't work.
+    # "ap-northeast-3", # Asia Pacific (Osaka)
+  ]
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

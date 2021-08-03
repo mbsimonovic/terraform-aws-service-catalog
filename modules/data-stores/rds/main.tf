@@ -8,9 +8,9 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This module is now only being tested with Terraform 0.15.x. We also make 0.15 the minimum version, as we need it
+  # This module is now only being tested with Terraform 1.0.x. We also make 0.15 the minimum version, as we need it
   # for features related to marking outputs as sensitive or nonsensitive.
-  required_version = ">= 0.15.0"
+  required_version = ">= 0.15.1"
 
   required_providers {
     aws = {

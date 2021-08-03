@@ -90,7 +90,7 @@ function run {
   # Use git-updated-folders to find all the terragrunt modules that changed, and pipe that through to the
   # infrastructure-deployer.
   local updated_folders
-  updated_folders="$(git-updated-folders --source-ref "$source_ref" --target-ref "$ref" --terragrunt --ext yaml --ext yml)"
+  updated_folders="$(git-updated-folders --source-ref "$source_ref" --target-ref "$ref" --terragrunt --ext yaml --ext yml --exclude-deleted)"
 
   if [[ -z "$updated_folders" ]]; then
     echo "No modules were updated. Skipping $command."

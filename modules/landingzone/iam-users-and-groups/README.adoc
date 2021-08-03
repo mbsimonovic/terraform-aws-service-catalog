@@ -26,7 +26,7 @@ endif::[]
 = IAM Users and IAM Groups
 
 image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_security"]
-image:https://img.shields.io/badge/tf-%3E%3D0.15.0-blue.svg[Terraform version]
+image:https://img.shields.io/badge/tf-%3E%3D1.0.0-blue.svg[Terraform version]
 
 This folder contains https://www.terraform.io[Terraform] code to provision and manage best practices set of IAM Groups
 for permissions management, and configuring IAM Users that take advantage of those groups.

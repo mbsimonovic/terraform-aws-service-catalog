@@ -7,13 +7,13 @@
 # the Shared Services AWS account.
 #
 # This is the build script for the OpenVPN Server AMI. You can view the packer template at the following URL:
-# https://github.com/gruntwork-io/terraform-aws-service-catalog/blob/v0.44.2/modules/mgmt/openvpn-server/openvpn-server.json
+# https://github.com/gruntwork-io/terraform-aws-service-catalog/blob/v0.54.0/modules/mgmt/openvpn-server/openvpn-server.json
 
 set -e
 
 readonly PACKER_TEMPLATE_REPO="https://github.com/gruntwork-io/terraform-aws-service-catalog.git//modules/mgmt/openvpn-server/openvpn-server.json"
-readonly PACKER_TEMPLATE_REPO_REF="v0.44.2"
-readonly SERVICE_CATALOG_REF="v0.44.2"
+readonly PACKER_TEMPLATE_REPO_REF="v0.54.0"
+readonly SERVICE_CATALOG_REF="v0.54.0"
 readonly DEPLOY_RUNNER_REGION="us-west-2"
 readonly REGION="us-west-2"
 
@@ -48,6 +48,12 @@ function run {
     --var version_tag="$PACKER_TEMPLATE_REPO_REF" \
     --var aws_region="$REGION" \
     --var ami_users="$ami_account_ids" \
+    --var vpc_filter_key="tag:Name" \
+    --var vpc_filter_value="mgmt" \
+    --var vpc_subnet_filter_key="tag:Name" \
+    --var vpc_subnet_filter_value="mgmt-private-1" \
+    --var associate_public_ip_address="false" \
+    --var ssh_interface="private_ip" \
     --var encrypt_boot=true \
     --var encrypt_kms_key_id="arn:aws:kms:us-east-1:234567890123:alias/ExampleAMIEncryptionKMSKeyArn"
 }

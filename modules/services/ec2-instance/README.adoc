@@ -25,7 +25,7 @@ endif::[]
 = EC2 Instance
 
 image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
-image:https://img.shields.io/badge/tf-%3E%3D0.12.0-blue.svg[Terraform version]
+image:https://img.shields.io/badge/tf-%3E%3D1.0.0-blue.svg[Terraform version]
 
 This Terraform Module creates a single EC2 instance that includes server hardening, IAM role, EIP (optional), EBS Volume (optional), and CloudWatch metrics, logs, and alerts. Note that a single EC2 instance can be a single point of failure, so if you want to run multiple EC2 instances for high availability and scalability, see the [asg-service](/modules/services/asg-service).
 
