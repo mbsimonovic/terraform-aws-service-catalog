@@ -40,8 +40,9 @@ module "bastion" {
   dns_type = "A"
   dns_ttl  = "300"
 
-  keypair_name             = var.keypair_name
-  allow_ssh_from_cidr_list = var.allow_ssh_from_cidr_list
+  keypair_name                  = var.keypair_name
+  allow_ssh_from_cidr_list      = var.allow_ssh_from_cidr_list
+  additional_security_group_ids = var.additional_security_group_ids
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -54,7 +55,7 @@ data "aws_route53_zone" "selected" {
   name = var.domain_name
 
   tags = var.base_domain_name_tags
-  # Since our bastion host needs to be publicly addressable, we need only look up Route 53 Public Hosted zones when querying for the zone_id 
+  # Since our bastion host needs to be publicly addressable, we need only look up Route 53 Public Hosted zones when querying for the zone_id
   private_zone = false
 }
 
