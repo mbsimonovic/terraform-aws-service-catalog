@@ -161,3 +161,9 @@ variable "default_user" {
   type        = string
   default     = "ubuntu"
 }
+
+variable "additional_security_group_ids" {
+  description = "A list of optional additional security group ids to assign to the bastion server."
+  type        = list(string)
+  default     = []
+}
