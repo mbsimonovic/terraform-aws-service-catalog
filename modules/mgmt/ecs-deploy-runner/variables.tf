@@ -402,13 +402,13 @@ variable "container_memory" {
 variable "container_max_cpu" {
   description = "The maximum CPU units that is allowed to be specified by the user when invoking the deploy runner with the Lambda function."
   type        = number
-  default     = 2048
+  default     = 8192
 }
 
 variable "container_max_memory" {
   description = "The maximum memory units that is allowed to be specified by the user when invoking the deploy runner with the Lambda function."
   type        = number
-  default     = 8192
+  default     = 32768
 }
 
 variable "ec2_worker_pool_configuration" {
