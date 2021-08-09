@@ -66,8 +66,13 @@ locals {
 inputs = {
   private_zones = {
     "${local.common_vars.locals.internal_services_domain_name}" = {
-      comment       = "Private hosted zone used by internal services"
-      vpc_id        = dependency.vpc.outputs.vpc_id
+      comment = "Private hosted zone used by internal services"
+      vpcs = [
+        {
+          id     = dependency.vpc.outputs.vpc_id
+          region = null # null means use the region configured in the provider.
+        },
+      ]
       tags          = {}
       force_destroy = false
     }

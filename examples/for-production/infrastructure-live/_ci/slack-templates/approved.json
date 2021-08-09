@@ -5,7 +5,7 @@
       "type": "header",
       "text": {
         "type": "plain_text",
-        "text": "Approved! Kicking off the apply. :white_check_mark:",
+        "text": ":white_check_mark: Approved! Kicking off the deploy.",
         "emoji": true
       }
     },
@@ -14,11 +14,11 @@
       "fields": [
         {
           "type": "mrkdwn",
-          "text": "*Committer*:${CIRCLE_USERNAME}"
+          "text": "*Committer*: ${CIRCLE_USERNAME}"
         },
         {
           "type": "mrkdwn",
-          "text": "*SHA*:${CIRCLE_SHA1}"
+          "text": "*SHA*: ${CIRCLE_SHA1}"
         }
       ],
       "accessory": {

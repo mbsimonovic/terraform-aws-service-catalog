@@ -230,4 +230,16 @@ inputs = {
   # IAM users
 
   users = local.users
+
+  # Configure opt in regions for each multi region service based on locally configured setting.
+  config_opt_in_regions              = local.opt_in_regions
+  guardduty_opt_in_regions           = local.opt_in_regions
+  kms_cmk_opt_in_regions             = local.opt_in_regions
+  ebs_opt_in_regions                 = local.opt_in_regions
+  iam_access_analyzer_opt_in_regions = local.opt_in_regions
+
+  # Disable MFA requirement for deleting S3 buckets and objects. Note that terraform cannot toggle this setting. Setting
+  # to true will lead to errors in the module unless the account has been set to enable this requirement.
+  config_s3_mfa_delete     = false
+  cloudtrail_s3_mfa_delete = false
 }
