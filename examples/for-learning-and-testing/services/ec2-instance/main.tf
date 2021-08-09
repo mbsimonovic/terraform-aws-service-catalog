@@ -83,11 +83,9 @@ locals {
     "touch-file" = {
       filename     = "touch-file"
       content_type = "text/x-shellscript"
-      content      = data.template_file.user_data.rendered
+      content      = local.user_data
     }
   }
-}
 
-data "template_file" "user_data" {
-  template = file("${path.module}/user-data.sh")
+  user_data = file("${path.module}/user-data.sh")
 }

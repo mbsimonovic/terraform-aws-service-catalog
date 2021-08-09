@@ -37,8 +37,8 @@ terraform {
 
 # The provider needs to depend on the cluster being setup.
 provider "kubernetes" {
-  host                   = data.template_file.kubernetes_cluster_endpoint.rendered
-  cluster_ca_certificate = base64decode(data.template_file.kubernetes_cluster_ca.rendered)
+  host                   = data.aws_eks_cluster.cluster.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
   token                  = var.use_exec_plugin_for_auth ? null : data.aws_eks_cluster_auth.kubernetes_token[0].token
 
   # EKS clusters use short-lived authentication tokens that can expire in the middle of an 'apply' or 'destroy'. To
@@ -62,15 +62,11 @@ provider "kubernetes" {
 # Workaround for Terraform limitation where you cannot directly set a depends on directive or interpolate from resources
 # in the provider config.
 # Specifically, Terraform requires all information for the Terraform provider config to be available at plan time,
-# meaning there can be no computed resources. We work around this limitation by creating a template_file data source
-# that does the computation.
+# meaning there can be no computed resources. We work around this limitation by rereading the EKS cluster info using a
+# data source.
 # See https://github.com/hashicorp/terraform/issues/2430 for more details
-data "template_file" "kubernetes_cluster_endpoint" {
-  template = module.eks_cluster.eks_cluster_endpoint
-}
-
-data "template_file" "kubernetes_cluster_ca" {
-  template = module.eks_cluster.eks_cluster_certificate_authority
+data "aws_eks_cluster" "cluster" {
+  name = module.eks_cluster.eks_cluster_name
 }
 
 data "aws_eks_cluster_auth" "kubernetes_token" {

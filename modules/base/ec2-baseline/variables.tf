@@ -80,7 +80,7 @@ variable "alarms_sns_topic_arn" {
 }
 
 variable "should_render_cloud_init" {
-  description = "If true, combine the parts in var.cloud_init_parts using a template_cloudinit_config data source and provide the rendered result as an output. If false, no output will be rendered. If true, cloud_init_parts is required. Defaults to true."
+  description = "If true, combine the parts in var.cloud_init_parts using a cloudinit_config data source and provide the rendered result as an output. If false, no output will be rendered. If true, cloud_init_parts is required. Defaults to true."
   type        = bool
   default     = true
 }

@@ -137,7 +137,7 @@ locals {
       "alb.ingress.kubernetes.io/scheme" = var.expose_type == "external" ? "internet-facing" : "internal"
       # We manually construct the list as a string here to avoid the values being converted as string, as opposed to
       # ints
-      "alb.ingress.kubernetes.io/listen-ports"             = "[${join(",", data.template_file.ingress_listener_protocol_ports.*.rendered)}]"
+      "alb.ingress.kubernetes.io/listen-ports"             = "[${join(",", local.ingress_listener_protocol_ports)}]"
       "alb.ingress.kubernetes.io/backend-protocol"         = var.ingress_backend_protocol
       "alb.ingress.kubernetes.io/load-balancer-attributes" = "access_logs.s3.enabled=true,access_logs.s3.bucket=${module.alb_access_logs_bucket.s3_bucket_name},access_logs.s3.prefix=${local.access_logs_s3_prefix}"
     },
@@ -295,14 +295,14 @@ locals {
     }
     sideCarContainers = var.sidecar_containers
   }
-}
 
-# We use a template file here to construct a list of protocol port mappings for the listener, that can then be injected
-# into the input values. We do this instead of directly rendering the list because terraform does some type conversions
-# in the yaml encode process.
-data "template_file" "ingress_listener_protocol_ports" {
-  count    = length(var.ingress_listener_protocol_ports)
-  template = "{\"${var.ingress_listener_protocol_ports[count.index]["protocol"]}\": ${var.ingress_listener_protocol_ports[count.index]["port"]}}"
+  # We use interpolate a string here to construct a list of protocol port mappings for the listener, that can then be injected
+  # into the input values. We do this instead of directly rendering the list because terraform does some type conversions
+  # in the yaml encode process.
+  ingress_listener_protocol_ports = [
+    for protocol_ports in var.ingress_listener_protocol_ports :
+    "{\"${protocol_ports["protocol"]}\": ${protocol_ports["port"]}}"
+  ]
 }
 
 

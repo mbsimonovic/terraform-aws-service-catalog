@@ -102,7 +102,7 @@ locals {
     "hello-world-server" = {
       filename     = "hello-world-server"
       content_type = "text/x-shellscript"
-      content      = data.template_file.user_data.rendered
+      content      = local.user_data
     }
   }
 
@@ -118,10 +118,11 @@ module "instance_type" {
   instance_types = ["t2.micro", "t3.micro"]
 }
 
-data "template_file" "user_data" {
-  template = file("${path.module}/user-data.sh")
-
-  vars = {
-    server_port = local.server_port
-  }
+locals {
+  user_data = templatefile(
+    "${path.module}/user-data.sh",
+    {
+      server_port = local.server_port
+    },
+  )
 }
