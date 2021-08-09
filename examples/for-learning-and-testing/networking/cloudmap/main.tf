@@ -61,13 +61,17 @@ resource "aws_instance" "bastion" {
   vpc_security_group_ids      = [aws_security_group.bastion.id]
   iam_instance_profile        = aws_iam_instance_profile.test_profile.name
   associate_public_ip_address = true
-  user_data = templatefile(
+  # Trim excess whitespace, because AWS will do that on deploy. This prevents
+  # constant redeployment because the userdata hash doesn't match the trimmed
+  # userdata hash.
+  # See: https://github.com/hashicorp/terraform-provider-aws/issues/5011#issuecomment-878542063
+  user_data = trimspace(templatefile(
     "${path.module}/user-data.sh",
     {
       aws_region = var.aws_region
       service_id = aws_service_discovery_service.bastion.id
     },
-  )
+  ))
 
   tags = {
     Name = var.test_instance_name
