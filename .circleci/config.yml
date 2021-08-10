@@ -51,6 +51,10 @@ install_gruntwork_utils: &install_gruntwork_utils
       --terragrunt-version ${TERRAGRUNT_VERSION} \
       --packer-version ${PACKER_VERSION} \
       --go-version ${GOLANG_VERSION}
+install_test_finder: &install_test_finder
+  name: install test finder
+  command: |
+    gruntwork-install --module-name "monorepo-helpers" --repo "https://github.com/gruntwork-io/terraform-aws-ci" --tag "${MODULE_CI_VERSION}"
 install_kube_utils: &install_kube_utils
   name: install kubernetes utilities
   command: |
@@ -83,12 +87,9 @@ run_pre_commit: &run_pre_commit
   command: |
     pip install pre-commit
     go get golang.org/x/tools/cmd/goimports
-    export GOPATH=~/go/bin && export PATH=$PATH:$GOPATH 
+    export GOPATH=~/go/bin && export PATH=$PATH:$GOPATH
     pre-commit install
     pre-commit run --all-files
-run_circleci_unit_tests: &run_circleci_unit_tests
-  name: run circleci unit tests
-  command: python ./.circleci/run_tests_unit_tests.py
 run_tests: &run_tests
   name: run tests
   command: |
@@ -127,12 +128,11 @@ jobs:
       - image: circleci/python:3.8.1
     steps:
       - checkout
+      - prepare_environment
       - run:
-          <<: *install_gruntwork_utils
+          <<: *install_test_finder
       - run:
           <<: *run_pre_commit
-      - run:
-          <<: *run_circleci_unit_tests
   find_tests_to_run:
     <<: *env
     docker:
@@ -142,6 +142,8 @@ jobs:
       - prepare_environment
       - run:
           <<: *install_hub_cli
+      - run:
+          <<: *install_test_finder
       - run:
           name: find all tests to run
           command: ./.circleci/find-all-tests-to-run.sh
