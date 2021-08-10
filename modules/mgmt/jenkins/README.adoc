@@ -6,7 +6,7 @@
 :cloud: aws
 :tags: jenkins, ec2, ci, cd
 :license: gruntwork
-:built-with: terraform, bash
+:built-with: terraform, bash, packer
 
 // AsciiDoc TOC settings
 :toc:

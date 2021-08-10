@@ -62,8 +62,7 @@ documentation] documentation in the https://github.com/gruntwork-io/terraform-aw
 
 === The bastion host AMI
 
-The bastion host AMI is defined using the https://www.packer.io/[Packer] template at `bastion-host.json`.
-This template configures the AMI to:
+The bastion host AMI is defined using the https://www.packer.io/[Packer] templates `bastion-host-ubuntu.json` (Packer < v1.7.0) and `bastion-host-ubuntu.pkr.hcl` (Packer >= v1.7.0). The template configures the AMI to:
 
 1. Run the https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/ssh-grunt[ssh-grunt module] so that
    developers can upload their public SSH keys to IAM and use those SSH keys, along with their IAM user names, to SSH

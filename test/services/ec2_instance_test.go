@@ -104,7 +104,7 @@ func TestEc2Instance(t *testing.T) {
 		awsRegion := aws.GetRandomStableRegion(t, test.RegionsForEc2Tests, nil)
 
 		packerOptions := &packer.Options{
-			Template: "../../modules/services/ec2-instance/ec2-instance.json",
+			Template: "../../modules/services/ec2-instance/ec2-instance.pkr.hcl",
 			Vars: map[string]string{
 				"aws_region":          awsRegion,
 				"service_catalog_ref": branchName,

@@ -330,7 +330,7 @@ func buildWorkerAmi(t *testing.T, testFolder string) {
 
 	branchName := git.GetCurrentBranchName(t)
 	packerOptions := &packer.Options{
-		Template: "../../modules/services/eks-workers/eks-node-al2.json",
+		Template: "../../modules/services/eks-workers/eks-node-al2.pkr.hcl",
 		Vars: map[string]string{
 			"aws_region":          awsRegion,
 			"service_catalog_ref": branchName,

@@ -58,7 +58,7 @@ func TestOpenvpnServer(t *testing.T) {
 		s3BucketName := "openvpn-test-" + strings.ToLower(uniqueId)
 
 		packerOptions := &packer.Options{
-			Template: "../../modules/mgmt/openvpn-server/openvpn-server.json",
+			Template: "../../modules/mgmt/openvpn-server/openvpn-server-ubuntu.pkr.hcl",
 			Vars: map[string]string{
 				"aws_region":          awsRegion,
 				"service_catalog_ref": branchName,
