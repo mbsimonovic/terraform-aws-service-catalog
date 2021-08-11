@@ -39,6 +39,7 @@ module "ec2_instance" {
 
   allow_ssh_from_cidr_list          = var.allow_ssh_from_cidr_blocks
   allow_ssh_from_security_group_ids = var.allow_ssh_from_security_group_ids
+  additional_security_group_ids     = var.additional_security_group_ids
 
   root_volume_type                  = var.root_volume_type
   root_volume_size                  = var.root_volume_size

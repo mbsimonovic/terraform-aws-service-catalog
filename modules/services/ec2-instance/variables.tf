@@ -246,3 +246,9 @@ variable "root_volume_delete_on_termination" {
   type        = bool
   default     = true
 }
+
+variable "additional_security_group_ids" {
+  description = "A list of optional additional security group ids to assign to the bastion server."
+  type        = list(string)
+  default     = []
+}
