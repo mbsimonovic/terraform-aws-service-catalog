@@ -248,7 +248,7 @@ variable "root_volume_delete_on_termination" {
 }
 
 variable "additional_security_group_ids" {
-  description = "A list of optional additional security group ids to assign to the bastion server."
+  description = "A list of optional additional security group ids to assign to the EC2 instance."
   type        = list(string)
   default     = []
 }
