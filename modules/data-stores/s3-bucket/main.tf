@@ -45,6 +45,9 @@ module "s3_bucket_primary" {
   replication_role    = var.replication_role
   replication_rules   = var.replication_rules
 
+  # CORS
+  cors_rules = var.cors_rules
+
   bucket_policy_statements = var.bucket_policy_statements
   bucket_ownership         = var.bucket_ownership
   sse_algorithm            = var.bucket_sse_algorithm
