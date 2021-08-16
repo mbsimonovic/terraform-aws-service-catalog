@@ -345,7 +345,7 @@ variable "schedule_cluster_autoscaler_on_fargate" {
 variable "cluster_autoscaler_version" {
   description = "Which version of the cluster autoscaler to install. This should match the major/minor version (e.g., v1.20) of your Kubernetes Installation. See https://github.com/kubernetes/autoscaler/tree/master/cluster-autoscaler#releases for a list of versions."
   type        = string
-  default     = "v1.20.0"
+  default     = "v1.21.0"
 }
 
 variable "cluster_autoscaler_repository" {

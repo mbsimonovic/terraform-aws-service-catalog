@@ -117,7 +117,7 @@ variable "instance_type" {
 variable "kubernetes_version" {
   description = "The version of kubernetes to install."
   type        = string
-  default     = "1.20"
+  default     = "1.21"
 }
 
 variable "module_aws_monitoring_version" {
