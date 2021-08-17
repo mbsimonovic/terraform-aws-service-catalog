@@ -359,11 +359,16 @@ module "eks_k8s_role_mapping" {
   #    the ConfigMap to preserve the Fargate role mappings during future merges.
   # 4. aws-auth-merger looks up the other ConfigMaps in the namespace and merges them together to replace the existing
   #    central ConfigMap.
-  eks_fargate_profile_executor_iam_role_arns = (
-    var.schedule_control_plane_services_on_fargate && var.enable_aws_auth_merger == false
-    ? [module.eks_cluster.eks_default_fargate_execution_role_arn_without_dependency]
-    : []
-  )
+  # NOTE: we use compact here in case there is no fargate execution role created within the eks-cluster-control-plane
+  # module.
+  eks_fargate_profile_executor_iam_role_arns = compact(concat(
+    (
+      var.enable_aws_auth_merger == false
+      ? [module.eks_cluster.eks_default_fargate_execution_role_arn_without_dependency]
+      : []
+    ),
+    var.fargate_profile_executor_iam_role_arns_for_k8s_role_mapping,
+  ))
 
   iam_role_to_rbac_group_mappings = var.iam_role_to_rbac_group_mapping
   iam_user_to_rbac_group_mappings = var.iam_user_to_rbac_group_mapping
