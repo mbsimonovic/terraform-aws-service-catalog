@@ -52,9 +52,11 @@ data "aws_region" "current" {}
 # BASE RESOURCES
 # Includes resources common to all EC2 instances in the Service Catalog, including permissions
 # for ssh-grunt, CloudWatch Logs aggregation, CloudWatch metrics, and CloudWatch alarms
+# Note that there are three calls: one for configuring common metrics (e.g., ASG alarms), one for self managed workers,
+# and the other for managed node groups.
 # ---------------------------------------------------------------------------------------------------------------------
 
-module "ec2_baseline" {
+module "ec2_baseline_common" {
   source = "../../base/ec2-baseline"
 
   name = join(
@@ -62,19 +64,58 @@ module "ec2_baseline" {
     compact([var.eks_cluster_name, var.worker_name_prefix]),
   )
 
-  external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
-  enable_ssh_grunt                    = local.enable_ssh_grunt
-  iam_role_name                       = module.self_managed_workers.eks_worker_iam_role_name
-  enable_cloudwatch_metrics           = local.has_self_managed_workers && var.enable_cloudwatch_metrics
-  enable_asg_cloudwatch_alarms        = local.has_self_managed_workers && var.enable_cloudwatch_alarms
-  asg_names                           = local.worker_asg_names
-  num_asg_names                       = length(var.autoscaling_group_configurations) + length(var.managed_node_group_configurations)
-  alarms_sns_topic_arn                = var.alarms_sns_topic_arn
-  cloud_init_parts                    = local.cloud_init_parts
-  ami                                 = var.cluster_instance_ami
-  ami_filters                         = var.cluster_instance_ami_filters
+  enable_asg_cloudwatch_alarms = true
+  asg_names                    = local.worker_asg_names
+  num_asg_names                = length(var.autoscaling_group_configurations) + length(var.managed_node_group_configurations)
+  alarms_sns_topic_arn         = var.alarms_sns_topic_arn
 
-  // CloudWatch log aggregation is handled separately in EKS
+  cloud_init_parts = local.cloud_init_parts
+  ami              = var.cluster_instance_ami
+  ami_filters      = var.cluster_instance_ami_filters
+
+  # Disable everything else
+  enable_ssh_grunt                  = false
+  enable_cloudwatch_log_aggregation = false
+  enable_cloudwatch_metrics         = false
+}
+
+module "ec2_baseline_asg" {
+  count  = local.has_self_managed_workers ? 1 : 0
+  source = "../../base/ec2-baseline"
+
+  name = join(
+    "-",
+    compact([var.eks_cluster_name, var.worker_name_prefix, "asg"]),
+  )
+  iam_role_name = module.self_managed_workers.eks_worker_iam_role_name
+
+  enable_ssh_grunt                    = local.enable_ssh_grunt
+  external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
+
+  enable_cloudwatch_metrics = var.enable_cloudwatch_metrics
+
+  # Disable everything else
+  should_render_cloud_init          = false
+  enable_cloudwatch_log_aggregation = false
+}
+
+module "ec2_baseline_mng" {
+  count  = local.has_managed_node_groups ? 1 : 0
+  source = "../../base/ec2-baseline"
+
+  name = join(
+    "-",
+    compact([var.eks_cluster_name, var.worker_name_prefix, "mng"]),
+  )
+  iam_role_name = module.managed_node_groups.eks_worker_iam_role_name
+
+  enable_ssh_grunt                    = local.enable_ssh_grunt
+  external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
+
+  enable_cloudwatch_metrics = var.enable_cloudwatch_metrics
+
+  # Disable everything else
+  should_render_cloud_init          = false
   enable_cloudwatch_log_aggregation = false
 }
 

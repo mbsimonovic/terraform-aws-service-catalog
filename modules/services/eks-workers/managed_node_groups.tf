@@ -58,8 +58,8 @@ resource "aws_launch_template" "template" {
 
   # For now, each Managed Node Group must have the same AMI and user data. In a future version, we will support extracting
   # additional user data and AMI configurations from each Managed Node Group entry.
-  image_id  = module.ec2_baseline.existing_ami
-  user_data = module.ec2_baseline.cloud_init_rendered
+  image_id  = module.ec2_baseline_common.existing_ami
+  user_data = data.cloudinit_config.managed_node_group.rendered
 
   network_interfaces {
     security_groups = concat(
@@ -113,6 +113,39 @@ locals {
   )
 }
 
+# ---------------------------------------------------------------------------------------------------------------------
+# SET UP CLOUDINIT CONFIG
+# Managed node groups need a specialized cloud-init configuration. See
+# https://github.com/hashicorp/terraform-provider-aws/issues/15007 for more info.
+# ---------------------------------------------------------------------------------------------------------------------
+
+data "cloudinit_config" "managed_node_group" {
+  gzip          = false
+  base64_encode = true
+  boundary      = "==BOUNDARY=="
+
+  # NOTE: We extract out the default cloud init part first, and then render the rest. This ensures the default cloud
+  # init configuration always runs first.
+  part {
+    filename     = local.cloud_init_parts["default"].filename
+    content_type = local.cloud_init_parts["default"].content_type
+    content      = local.cloud_init_parts["default"].content
+  }
+
+  dynamic "part" {
+    # We filter out the default cloud init part since we already rendered that above.
+    for_each = {
+      for k, v in var.cloud_init_parts :
+      k => v if k != "default"
+    }
+
+    content {
+      filename     = part.value.filename
+      content_type = part.value.content_type
+      content      = part.value.content
+    }
+  }
+}
 
 # ---------------------------------------------------------------------------------------------------------------------
 # SET UP SECURITY GROUP FOR SSH ACCESS

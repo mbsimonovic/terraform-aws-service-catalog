@@ -40,8 +40,8 @@ module "self_managed_workers" {
 
   # The following are not yet supported to accept multiple, but in a future version, we will support extracting
   # additional user data and AMI configurations from each ASG entry.
-  asg_default_instance_ami              = module.ec2_baseline.existing_ami
-  asg_default_instance_user_data_base64 = module.ec2_baseline.cloud_init_rendered
+  asg_default_instance_ami              = module.ec2_baseline_common.existing_ami
+  asg_default_instance_user_data_base64 = module.ec2_baseline_common.cloud_init_rendered
 
   cluster_instance_keypair_name = var.cluster_instance_keypair_name
 
