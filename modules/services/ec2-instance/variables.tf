@@ -97,6 +97,12 @@ variable "ssh_grunt_iam_group_sudo" {
   default     = ""
 }
 
+variable "attach_eip" {
+  description = "Determines if an Elastic IP (EIP) will be created for this instance."
+  type        = bool
+  default     = true
+}
+
 variable "tenancy" {
   description = "The tenancy of this instance. Must be one of: default, dedicated, or host."
   type        = string

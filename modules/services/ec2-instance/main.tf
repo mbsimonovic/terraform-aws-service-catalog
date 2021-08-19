@@ -24,6 +24,7 @@ module "ec2_instance" {
   ami              = module.ec2_baseline.existing_ami
   user_data_base64 = module.ec2_baseline.cloud_init_rendered
   tenancy          = var.tenancy
+  attach_eip       = var.attach_eip
 
   vpc_id    = var.vpc_id
   subnet_id = var.subnet_id
