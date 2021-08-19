@@ -149,6 +149,12 @@ variable "create_network_acls" {
   default     = true
 }
 
+variable "apply_default_nacl_rules" {
+  description = "If true, will apply the default NACL rules in var.default_nacl_ingress_rules and var.default_nacl_egress_rules to the public, private, and persistence subnets created by this module. Note that every VPC has default NACL rules that apply to subnets. When this is false, the original default NACL rules managed by AWS will be used. If you are managing NACLs for the subnets using another module or for some reason do not want to use the default NACLs, set this to false."
+  type        = bool
+  default     = false
+}
+
 variable "create_public_subnet_nacls" {
   description = "If set to false, this module will NOT create the NACLs for the public subnet tier. This is useful for VPCs that only need private subnets."
   type        = bool
