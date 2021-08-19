@@ -12,7 +12,7 @@ readonly DEFAULT_MODULE_CI_VERSION="v0.38.4"
 
 # Build tooling
 # renovate.json auto-update: kubergrunt
-readonly DEFAULT_KUBERGRUNT_VERSION="v0.7.3"
+readonly DEFAULT_KUBERGRUNT_VERSION="v0.7.6"
 # renovate.json auto-update: gruntkms
 readonly DEFAULT_GRUNTKMS_VERSION="v0.0.10"
 # renovate.json auto-update: terragrunt

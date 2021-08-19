@@ -9,7 +9,7 @@ env: &env
     # renovate.json auto-update: terratest
     TERRATEST_LOG_PARSER_VERSION: v0.37.2
     # renovate.json auto-update: kubergrunt
-    KUBERGRUNT_VERSION: v0.7.3
+    KUBERGRUNT_VERSION: v0.7.6
     # renovate.json auto-update: terraform-aws-ci
     MODULE_CI_VERSION: v0.38.4
     # renovate.json auto-update: terragrunt
