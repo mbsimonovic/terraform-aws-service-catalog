@@ -11,7 +11,7 @@
 terraform {
   # We're using a local file path here just so our automated tests run against the absolute latest code. However, when
   # using these modules in your code, you should use a Git URL with a ref attribute that pins you to a specific version:
-  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/services/k8s-service?ref=v0.54.0"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/services/k8s-service?ref=v0.58.0"
   source = "${get_parent_terragrunt_dir()}/../../..//modules/services/k8s-service"
 }
 
@@ -105,8 +105,9 @@ locals {
   # Automatically load account-level variables
   account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
 
-  # Extract the account_name for easy access
+  # Extract the account_name and account_role for easy access
   account_name = local.account_vars.locals.account_name
+  account_role = local.account_vars.locals.account_role
 
   # Automatically load region-level variables
   region_vars = read_terragrunt_config(find_in_parent_folders("region.hcl"))
@@ -166,7 +167,7 @@ inputs = {
   # Gruntwork sample app.
   env_vars = {
     CONFIG_APP_NAME                       = "backend"
-    CONFIG_APP_ENVIRONMENT_NAME           = local.account_name
+    CONFIG_APP_ENVIRONMENT_NAME           = local.account_role
     CONFIG_SECRETS_DIR                    = "/mnt/secrets"
     CONFIG_SECRETS_SECRETS_MANAGER_TLS_ID = local.tls_secrets_manager_arn
     CONFIG_SECRETS_SECRETS_MANAGER_REGION = local.aws_region

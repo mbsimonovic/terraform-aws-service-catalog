@@ -54,7 +54,7 @@ function call_build_script {
     exit 1
   fi
 
-  (eval "$assume_role_exports" && "$build_script")
+  (eval "$assume_role_exports" && bash "$build_script")
 }
 
 function run {

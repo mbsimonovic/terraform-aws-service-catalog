@@ -30,7 +30,7 @@ defaults: &defaults
   environment:
     REGION: us-west-2
     GRUNTWORK_INSTALLER_VERSION: v0.0.36
-    MODULE_CI_VERSION: v0.37.4
+    MODULE_CI_VERSION: v0.38.4
     MODULE_SECURITY_VERSION: v0.49.4
     # TODO: update the following on installation to your repositories.
     DEV_DEPLOY_PATH: "dev/us-west-2/dev/services/application"

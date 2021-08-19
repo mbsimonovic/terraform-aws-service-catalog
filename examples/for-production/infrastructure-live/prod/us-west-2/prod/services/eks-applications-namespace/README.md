@@ -11,5 +11,5 @@ Under the hood, this is all implemented using Terraform modules from the [Gruntw
 Catalog](https://github.com/gruntwork-io/terraform-aws-service-catalog) repo. If you don't have access to this repo, email
 [support@gruntwork.io](mailto:support@gruntwork.io).
 
-See [the module docs](https://github.com/gruntwork-io/terraform-aws-service-catalog/tree/v0.54.0/modules/services/k8s-namespace) for more
+See [the module docs](https://github.com/gruntwork-io/terraform-aws-service-catalog/tree/v0.58.0/modules/services/k8s-namespace) for more
 information about the underlying Terraform module.

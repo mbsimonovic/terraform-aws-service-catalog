@@ -13,16 +13,16 @@ set -e
 
 readonly PACKER_TEMPLATE_REPO="https://github.com/gruntwork-io/aws-sample-app.git//packer/build.json"
 readonly PACKER_TEMPLATE_REPO_REF="v0.0.4"
-readonly SERVICE_CATALOG_REF="v0.54.0"
+readonly SERVICE_CATALOG_REF="v0.58.0"
 readonly DEPLOY_RUNNER_REGION="us-west-2"
 readonly REGION="us-west-2"
 
 # The account IDs where the AMI should be shared.
 git_repo_root="$(git rev-parse --show-toplevel)"
-dev_account_id="$(jq -r '.dev' "$git_repo_root/accounts.json")"
-prod_account_id="$(jq -r '.prod' "$git_repo_root/accounts.json")"
-stage_account_id="$(jq -r '.stage' "$git_repo_root/accounts.json")"
-ami_account_ids="$dev_account_id,$prod_account_id,$stage_account_id"
+dev_account_id="$(jq -r '."dev"' "$git_repo_root/accounts.json")"
+prod_account_id="$(jq -r '."prod"' "$git_repo_root/accounts.json")"
+stage_account_id="$(jq -r '."stage"' "$git_repo_root/accounts.json")"
+ami_account_ids="[\"$dev_account_id\",\"$prod_account_id\",\"$stage_account_id\"]"
 
 function run {
   # Validate that the AMI is being built in the Shared Services account.
