@@ -26,7 +26,7 @@ readonly DEFAULT_TERRAFORM_VERSION="0.15.5"
 # terraform-aws-eks, both of which lag behind open source K8S
 readonly DEFAULT_KUBECTL_VERSION="v1.19.1"
 # renovate.json auto-update-github-releases: helm/helm
-readonly DEFAULT_HELM_VERSION="v3.6.0"
+readonly DEFAULT_HELM_VERSION="v3.6.3"
 # renovate.json auto-update-github-releases: hashicorp/packer
 readonly DEFAULT_PACKER_VERSION="1.7.2"
 # renovate.json auto-update-docker-ubuntu
