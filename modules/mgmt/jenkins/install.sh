@@ -8,7 +8,7 @@ readonly JENKINS_USER="jenkins"
 
 # Gruntwork module versions
 # renovate.json auto-update: terraform-aws-ci
-readonly DEFAULT_MODULE_CI_VERSION="v0.38.5"
+readonly DEFAULT_MODULE_CI_VERSION="v0.38.6"
 
 # Build tooling
 # renovate.json auto-update: kubergrunt
