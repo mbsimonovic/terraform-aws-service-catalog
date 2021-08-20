@@ -4,7 +4,7 @@
 set -e
 
 # renovate.json auto-update: terraform-aws-openvpn
-readonly DEFAULT_PACKAGE_OPENVPN_VERSION="v0.16.0"
+readonly DEFAULT_PACKAGE_OPENVPN_VERSION="v0.16.1"
 
 function include_ec2_baseline {
   if [[ "$1" ]]; then
