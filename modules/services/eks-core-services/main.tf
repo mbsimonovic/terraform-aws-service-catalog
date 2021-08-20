@@ -98,6 +98,7 @@ module "aws_for_fluent_bit" {
 
   iam_role_for_service_accounts_config = var.eks_iam_role_for_service_accounts_config
   iam_role_name_prefix                 = var.eks_cluster_name
+  extra_filters                        = var.fluent_bit_extra_filters
   extra_outputs                        = var.fluent_bit_extra_outputs
   cloudwatch_configuration = {
     region            = var.aws_region

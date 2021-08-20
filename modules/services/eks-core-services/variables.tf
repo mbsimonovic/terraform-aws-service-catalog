@@ -79,6 +79,12 @@ variable "fluent_bit_log_stream_prefix" {
   default     = null
 }
 
+variable "fluent_bit_extra_filters" {
+  description = "Additional filters that fluent-bit should apply to log output. This string should be formatted according to the Fluent-bit docs (https://docs.fluentbit.io/manual/administration/configuring-fluent-bit/configuration-file#config_filter)."
+  type        = string
+  default     = ""
+}
+
 variable "fluent_bit_extra_outputs" {
   description = "Additional output streams that fluent-bit should export logs to. This string should be formatted according to the Fluent-bit docs (https://docs.fluentbit.io/manual/administration/configuring-fluent-bit/configuration-file#config_output)."
   type        = string
