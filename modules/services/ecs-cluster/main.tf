@@ -102,7 +102,7 @@ locals {
 module "ecs_cluster_cpu_memory_alarms" {
   create_resources = var.enable_ecs_cloudwatch_alarms
 
-  source               = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/ecs-cluster-alarms?ref=v0.30.0"
+  source               = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/ecs-cluster-alarms?ref=v0.30.1"
   ecs_cluster_name     = var.cluster_name
   alarm_sns_topic_arns = var.alarms_sns_topic_arn
 
@@ -114,7 +114,7 @@ module "ecs_cluster_cpu_memory_alarms" {
 
 module "metric_widget_ecs_cluster_cpu_usage" {
 
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.1"
 
   period = 60
   stat   = "Average"
@@ -126,7 +126,7 @@ module "metric_widget_ecs_cluster_cpu_usage" {
 }
 
 module "metric_widget_ecs_cluster_memory_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.1"
 
   period = 60
   stat   = "Average"

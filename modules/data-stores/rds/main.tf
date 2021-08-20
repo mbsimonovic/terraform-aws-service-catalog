@@ -119,7 +119,7 @@ data "aws_secretsmanager_secret_version" "db_config" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "rds_alarms" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/rds-alarms?ref=v0.30.0"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/rds-alarms?ref=v0.30.1"
   create_resources = var.enable_cloudwatch_alarms
 
   rds_instance_ids     = local.rds_database_ids
@@ -137,7 +137,7 @@ module "rds_alarms" {
 }
 
 module "metric_widget_rds_cpu_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.1"
 
   title = "${var.name} ${title(local.engine)} CPUUtilization"
   stat  = "Average"
@@ -152,7 +152,7 @@ module "metric_widget_rds_cpu_usage" {
 }
 
 module "metric_widget_rds_memory" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.1"
 
   title = "${var.name} ${title(local.engine)} FreeableMemory"
   stat  = "Minimum"
@@ -167,7 +167,7 @@ module "metric_widget_rds_memory" {
 }
 
 module "metric_widget_rds_disk_space" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.1"
 
   title = "${var.name} ${title(local.engine)} FreeStorageSpace"
   stat  = "Minimum"
@@ -182,7 +182,7 @@ module "metric_widget_rds_disk_space" {
 }
 
 module "metric_widget_rds_db_connections" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.1"
 
   title = "${var.name} ${title(local.engine)} DatabaseConnections"
   stat  = "Maximum"
@@ -197,7 +197,7 @@ module "metric_widget_rds_db_connections" {
 }
 
 module "metric_widget_rds_read_latency" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.1"
 
   title = "${var.name} ${title(local.engine)} ReadLatency"
   stat  = "Average"
@@ -212,7 +212,7 @@ module "metric_widget_rds_read_latency" {
 }
 
 module "metric_widget_rds_write_latency" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.1"
 
   title = "${var.name} ${title(local.engine)} WriteLatency"
   stat  = "Average"
@@ -283,7 +283,7 @@ module "cleanup_snapshots" {
 
 # CloudWatch alarm that goes off if the backup job fails to create a new snapshot.
 module "backup_job_alarm" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/scheduled-job-alarm?ref=v0.30.0"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/scheduled-job-alarm?ref=v0.30.1"
   create_resources = var.share_snapshot_with_another_account && var.enable_cloudwatch_alarms
 
   name                 = "${var.name}-create-snapshot-failed"

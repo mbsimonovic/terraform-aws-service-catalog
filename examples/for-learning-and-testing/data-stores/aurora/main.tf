@@ -70,7 +70,7 @@ module "aurora" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "dashboard" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard?ref=v0.20.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard?ref=v0.30.1"
 
   dashboards = {
     (var.name) = [
