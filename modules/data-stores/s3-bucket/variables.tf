@@ -281,14 +281,26 @@ variable "replica_bucket_ownership" {
   default     = null
 }
 
+variable "enable_sse" {
+  description = "Set to true to enable server-side encryption for this bucket. You can control the algorithm using var.sse_algorithm."
+  type        = bool
+  default     = true
+}
+
 variable "bucket_sse_algorithm" {
-  description = "The server-side encryption algorithm to use on the bucket. Valid values are AES256 and aws:kms. Set to null to disable encryption."
+  description = "The server-side encryption algorithm to use on the bucket. Valid values are AES256 and aws:kms. To disable server-side encryption, set var.enable_sse to false."
   type        = string
   default     = "aws:kms"
 }
 
+variable "replica_enable_sse" {
+  description = "Set to true to enable server-side encryption for the replica bucket. You can control the algorithm using var.replica_sse_algorithm."
+  type        = bool
+  default     = true
+}
+
 variable "replica_sse_algorithm" {
-  description = "The server-side encryption algorithm to use on the replica bucket. Valid values are AES256 and aws:kms."
+  description = "The server-side encryption algorithm to use on the replica bucket. Valid values are AES256 and aws:kms. To disable server-side encryption, set var.replica_enable_sse to false."
   type        = string
   default     = "aws:kms"
 }
