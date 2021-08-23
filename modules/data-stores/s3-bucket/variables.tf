@@ -185,9 +185,9 @@ variable "enable_versioning" {
 }
 
 variable "mfa_delete" {
-  description = "Enable MFA delete for either 'Change the versioning state of your bucket' or 'Permanently delete an object version'. This cannot be used to toggle this setting but is available to allow managed buckets to reflect the state in AWS. Only used if enable_versioning is true. CIS v1.4 requires this variable to be true. If you do not wish to be CIS-compliant, you can set it to false."
+  description = "Enable MFA delete for either 'Change the versioning state of your bucket' or 'Permanently delete an object version'. This cannot be used to toggle this setting but is available to allow managed buckets to reflect the state in AWS. Only used if enable_versioning is true. For instructions on how to enable MFA Delete, check out the README from the terraform-aws-security/private-s3-bucket module."
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "access_logging_prefix" {
