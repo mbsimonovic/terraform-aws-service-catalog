@@ -3,17 +3,10 @@
 # ----------------------------------------------------------------------------------------------------------------------
 
 terraform {
-  # This module is now only being tested with Terraform 0.15.x. However, to make upgrading easier, we are setting
+  # This module is now only being tested with Terraform 1.0.x. However, to make upgrading easier, we are setting
   # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 0.15.x code.
+  # forwards compatible with 1.0.x code.
   required_version = ">= 0.12.26"
-
-  required_providers {
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "= 1.10.0"
-    }
-  }
 }
 
 
@@ -29,9 +22,8 @@ provider "aws" {
 }
 
 provider "kubernetes" {
-  load_config_file = var.kubeconfig_auth_type == "context"
-  config_path      = var.kubeconfig_auth_type == "context" ? var.kubeconfig_path : null
-  config_context   = var.kubeconfig_auth_type == "context" ? var.kubeconfig_context : null
+  config_path    = var.kubeconfig_auth_type == "context" ? pathexpand(var.kubeconfig_path) : null
+  config_context = var.kubeconfig_auth_type == "context" ? var.kubeconfig_context : null
 
   host                   = var.kubeconfig_auth_type == "eks" ? data.aws_eks_cluster.cluster[0].endpoint : null
   cluster_ca_certificate = var.kubeconfig_auth_type == "eks" ? base64decode(data.aws_eks_cluster.cluster[0].certificate_authority.0.data) : null

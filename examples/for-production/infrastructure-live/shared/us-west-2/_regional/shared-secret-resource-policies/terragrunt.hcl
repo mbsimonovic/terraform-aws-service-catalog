@@ -33,8 +33,9 @@ locals {
   # Automatically load account-level variables
   account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
 
-  # Extract the account_name for easy access
+  # Extract the account_name and account_role for easy access
   account_name = local.account_vars.locals.account_name
+  account_role = local.account_vars.locals.account_role
 
   # Automatically load region-level variables
   region_vars = read_terragrunt_config(find_in_parent_folders("region.hcl"))

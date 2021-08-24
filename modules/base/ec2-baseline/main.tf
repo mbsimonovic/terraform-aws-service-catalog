@@ -1,7 +1,7 @@
 terraform {
-  # This module is now only being tested with Terraform 0.15.x. However, to make upgrading easier, we are setting
+  # This module is now only being tested with Terraform 1.0.x. However, to make upgrading easier, we are setting
   # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 0.15.x code.
+  # forwards compatible with 1.0.x code.
   required_version = ">= 0.12.26"
 }
 
@@ -38,7 +38,7 @@ resource "aws_iam_role_policy" "ssh_grunt_permissions" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "cloudwatch_metrics" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-custom-metrics-iam-policy?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-custom-metrics-iam-policy?ref=v0.30.1"
 
   name_prefix = var.name
 
@@ -57,7 +57,7 @@ resource "aws_iam_role_policy" "custom_cloudwatch_metrics" {
 # ------------------------------------------------------------------------------
 
 module "cloudwatch_log_aggregation" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/logs/cloudwatch-log-aggregation-iam-policy?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/logs/cloudwatch-log-aggregation-iam-policy?ref=v0.30.1"
 
   name_prefix = var.name
 
@@ -76,7 +76,7 @@ resource "aws_iam_role_policy" "cloudwatch_log_aggregation" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "high_instance_cpu_usage_alarms" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/ec2-cpu-alarms?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/ec2-cpu-alarms?ref=v0.30.1"
 
   instance_ids         = [var.instance_id]
   instance_count       = 1
@@ -85,7 +85,7 @@ module "high_instance_cpu_usage_alarms" {
 }
 
 module "high_instance_memory_usage_alarms" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/ec2-memory-alarms?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/ec2-memory-alarms?ref=v0.30.1"
 
   instance_ids         = [var.instance_id]
   instance_count       = 1
@@ -94,7 +94,7 @@ module "high_instance_memory_usage_alarms" {
 }
 
 module "high_instance_disk_usage_alarms" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/ec2-disk-alarms?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/ec2-disk-alarms?ref=v0.30.1"
 
   instance_ids         = [var.instance_id]
   instance_count       = 1
@@ -110,7 +110,7 @@ module "high_instance_disk_usage_alarms" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "high_asg_cpu_usage_alarms" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/asg-cpu-alarms?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/asg-cpu-alarms?ref=v0.30.1"
 
   asg_names            = var.asg_names
   num_asg_names        = var.num_asg_names
@@ -119,7 +119,7 @@ module "high_asg_cpu_usage_alarms" {
 }
 
 module "high_asg_memory_usage_alarms" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/asg-memory-alarms?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/asg-memory-alarms?ref=v0.30.1"
 
   asg_names            = var.asg_names
   num_asg_names        = var.num_asg_names
@@ -128,7 +128,7 @@ module "high_asg_memory_usage_alarms" {
 }
 
 module "high_asg_disk_usage_root_volume_alarms" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/asg-disk-alarms?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/asg-disk-alarms?ref=v0.30.1"
 
   asg_names            = var.asg_names
   num_asg_names        = var.num_asg_names
@@ -142,8 +142,8 @@ module "high_asg_disk_usage_root_volume_alarms" {
 # COMBINE MULTIPLE CLOUD-INIT SCRIPTS
 # ---------------------------------------------------------------------------------------------------------------------
 
-data "template_cloudinit_config" "cloud_init" {
-  # Ideally, we could use var.cloud_init_parts in the count conditional. However, 
+data "cloudinit_config" "cloud_init" {
+  # Ideally, we could use var.cloud_init_parts in the count conditional. However,
   # the value may not be known until runtime, and hence using that may result in an error.
   # Instead, we fall back to a boolean.
   count = var.should_render_cloud_init ? 1 : 0

@@ -3,9 +3,9 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This module is now only being tested with Terraform 0.15.x. However, to make upgrading easier, we are setting
+  # This module is now only being tested with Terraform 1.0.x. However, to make upgrading easier, we are setting
   # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 0.15.x code.
+  # forwards compatible with 1.0.x code.
   required_version = ">= 0.12.26"
 
   required_providers {
@@ -14,12 +14,10 @@ terraform {
       version = ">= 2.6"
     }
 
-    # Pin to this specific version to work around a bug introduced in 1.11.0:
-    # https://github.com/terraform-providers/terraform-provider-kubernetes/issues/759
-    # (Only for EKS)
+    # The underlying modules are only compatible with kubernetes provider 2.x
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "= 1.10.0"
+      version = "~> 2.0"
     }
   }
 }
@@ -29,7 +27,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "namespace" {
-  source = "git::git@github.com:gruntwork-io/terraform-kubernetes-namespace.git//modules/namespace?ref=v0.3.1"
+  source = "git::git@github.com:gruntwork-io/terraform-kubernetes-namespace.git//modules/namespace?ref=v0.4.0"
 
   name        = var.name
   labels      = var.labels

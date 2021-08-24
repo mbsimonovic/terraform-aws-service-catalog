@@ -9,9 +9,9 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This module is now only being tested with Terraform 0.15.x. However, to make upgrading easier, we are setting
+  # This module is now only being tested with Terraform 1.0.x. However, to make upgrading easier, we are setting
   # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 0.15.x code.
+  # forwards compatible with 1.0.x code.
   required_version = ">= 0.12.26"
 
   required_providers {
@@ -27,7 +27,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_deploy_runner" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner?ref=v0.38.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner?ref=v0.38.6"
 
   name                          = var.name
   container_images              = module.standard_config.container_images
@@ -44,7 +44,7 @@ module "ecs_deploy_runner" {
 }
 
 module "standard_config" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner-standard-configuration?ref=v0.38.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner-standard-configuration?ref=v0.38.6"
 
   docker_image_builder = (
     var.docker_image_builder_config != null
@@ -603,7 +603,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "invoke_policy" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner-invoke-iam-policy?ref=v0.38.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner-invoke-iam-policy?ref=v0.38.6"
 
   name                                      = "invoke-${var.name}"
   deploy_runner_invoker_lambda_function_arn = module.ecs_deploy_runner.invoker_function_arn

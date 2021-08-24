@@ -11,9 +11,9 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This module is now only being tested with Terraform 0.15.x. However, to make upgrading easier, we are setting
+  # This module is now only being tested with Terraform 1.0.x. However, to make upgrading easier, we are setting
   # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 0.15.x code.
+  # forwards compatible with 1.0.x code.
   required_version = ">= 0.12.26"
 
   required_providers {
@@ -38,7 +38,7 @@ locals {
 }
 
 module "jenkins" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/jenkins-server?ref=v0.38.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/jenkins-server?ref=v0.38.6"
 
   name       = var.name
   aws_region = data.aws_region.current.name
@@ -129,7 +129,11 @@ locals {
     [for user in local.ip_lockdown_users : "'${user}'"],
   )
 
-  base_user_data = templatefile(
+  # Trim excess whitespace, because AWS will do that on deploy. This prevents
+  # constant redeployment because the userdata hash doesn't match the trimmed
+  # userdata hash.
+  # See: https://github.com/hashicorp/terraform-provider-aws/issues/5011#issuecomment-878542063
+  base_user_data = trimspace(templatefile(
     "${path.module}/user-data.sh",
     {
       # This is the default name tag for the server-group module Jenkins uses under the hood
@@ -150,7 +154,7 @@ locals {
       external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
       ip_lockdown_users                   = local.ip_lockdown_users_bash_array
     },
-  )
+  ))
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -243,7 +247,7 @@ resource "aws_iam_role_policy" "deploy_other_account_permissions" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "high_disk_usage_jenkins_volume_alarms" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/asg-disk-alarms?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/asg-disk-alarms?ref=v0.30.1"
 
   asg_names            = [module.jenkins.jenkins_asg_name]
   num_asg_names        = 1
@@ -265,7 +269,7 @@ module "high_disk_usage_jenkins_volume_alarms" {
 # AWS Data Lifecycle Management Policies Backup
 # ---------------------------------------------------------------------------------------------------------------------
 module "jenkins_backup_dlm" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-server.git//modules/ec2-backup?ref=v0.13.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-server.git//modules/ec2-backup?ref=v0.13.3"
   count  = var.backup_using_dlm ? 1 : 0
 
   target_tags = local.server_group_tags
@@ -283,7 +287,7 @@ module "jenkins_backup_dlm" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "jenkins_backup" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ec2-backup?ref=v0.38.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ec2-backup?ref=v0.38.6"
   count  = var.backup_using_lambda ? 1 : 0
 
   instance_name = module.jenkins.jenkins_asg_name

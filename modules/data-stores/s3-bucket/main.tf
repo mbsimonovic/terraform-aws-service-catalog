@@ -3,9 +3,9 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This module is now only being tested with Terraform 0.15.x. However, to make upgrading easier, we are setting
+  # This module is now only being tested with Terraform 1.0.x. However, to make upgrading easier, we are setting
   # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 0.15.x code.
+  # forwards compatible with 1.0.x code.
   required_version = ">= 0.12.26"
 
   required_providers {
@@ -28,8 +28,9 @@ provider "aws" {
 # CREATE THE PRIMARY BUCKET
 # ---------------------------------------------------------------------------------------------------------------------
 module "s3_bucket_primary" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/private-s3-bucket?ref=v0.53.1"
-  name   = var.primary_bucket
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/private-s3-bucket?ref=v0.53.7"
+
+  name = var.primary_bucket
 
   # Object versioning
   enable_versioning = var.enable_versioning
@@ -45,8 +46,12 @@ module "s3_bucket_primary" {
   replication_role    = var.replication_role
   replication_rules   = var.replication_rules
 
+  # CORS
+  cors_rules = var.cors_rules
+
   bucket_policy_statements = var.bucket_policy_statements
   bucket_ownership         = var.bucket_ownership
+  enable_sse               = var.enable_sse
   sse_algorithm            = var.bucket_sse_algorithm
   tags                     = var.tags
   force_destroy            = var.force_destroy_primary
@@ -56,7 +61,7 @@ module "s3_bucket_primary" {
 # CREATE THE S3 BUCKET TO STORE ACCESS LOGS
 # ---------------------------------------------------------------------------------------------------------------------
 module "s3_bucket_logs" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/private-s3-bucket?ref=v0.53.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/private-s3-bucket?ref=v0.53.7"
 
   create_resources = var.access_logging_bucket != null
 
@@ -75,7 +80,7 @@ module "s3_bucket_logs" {
 # CREATE THE S3 BUCKET FOR REPLICATION
 # ---------------------------------------------------------------------------------------------------------------------
 module "s3_bucket_replica" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/private-s3-bucket?ref=v0.53.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/private-s3-bucket?ref=v0.53.7"
 
   providers = {
     aws = aws.replica
@@ -87,6 +92,7 @@ module "s3_bucket_replica" {
   mfa_delete               = var.mfa_delete
   bucket_policy_statements = var.replica_bucket_policy_statements
   bucket_ownership         = var.replica_bucket_ownership
+  enable_sse               = var.replica_enable_sse
   sse_algorithm            = var.replica_sse_algorithm
   tags                     = var.tags
   force_destroy            = var.force_destroy_replica

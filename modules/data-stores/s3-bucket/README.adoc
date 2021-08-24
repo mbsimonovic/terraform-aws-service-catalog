@@ -25,7 +25,7 @@ endif::[]
 = S3 Bucket
 
 image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
-image:https://img.shields.io/badge/tf-%3E%3D0.15.0-blue.svg[Terraform version]
+image:https://img.shields.io/badge/tf-%3E%3D1.0.0-blue.svg[Terraform version]
 
 This folder contains code to deploy an https://aws.amazon.com/s3/[S3 bucket] on AWS.
 
@@ -66,6 +66,8 @@ If you want to deploy this repo in production, check out the following resources
   code optimized for direct usage in production. This is code from the
   https://gruntwork.io/reference-architecture/:[Gruntwork Reference Architecture], and it shows you how we build an
   end-to-end, integrated tech stack on top of the Gruntwork Service Catalog.
+
+* https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/private-s3-bucket#how-do-you-enable-mfa-delete[How to enable MFA Delete?]: step-by-step guide on enabling MFA delete for your S3 buckets.
 
 == Support
 

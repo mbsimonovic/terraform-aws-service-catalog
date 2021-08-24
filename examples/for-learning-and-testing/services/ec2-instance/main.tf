@@ -8,7 +8,7 @@ provider "aws" {
 
 module "path" {
   # t2.micro and t3.micro instances are not available in all regions. The instance-type module reconciles that.
-  source         = "git::git@github.com:gruntwork-io/terraform-aws-utilities.git//modules/instance-type?ref=v0.5.0"
+  source         = "git::git@github.com:gruntwork-io/terraform-aws-utilities.git//modules/instance-type?ref=v0.6.0"
   instance_types = ["t2.micro", "t3.micro"]
 }
 
@@ -83,11 +83,9 @@ locals {
     "touch-file" = {
       filename     = "touch-file"
       content_type = "text/x-shellscript"
-      content      = data.template_file.user_data.rendered
+      content      = local.user_data
     }
   }
-}
 
-data "template_file" "user_data" {
-  template = file("${path.module}/user-data.sh")
+  user_data = file("${path.module}/user-data.sh")
 }

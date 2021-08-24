@@ -3,9 +3,10 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This module is now only being tested with Terraform 0.15.x. However, to make upgrading easier, we are setting
-  # 0.13 as the minimum version, as this code uses for_each on modules.
-  required_version = ">= 0.13.0"
+  # This module is now only being tested with Terraform 1.0.x. However, to make upgrading easier, we are setting
+  # 0.13.7 as the minimum version, as this code uses for_each on modules, and includes the latest GPG key for provider
+  # binary validation.
+  required_version = ">= 0.13.7"
 
   required_providers {
     aws = {
@@ -20,7 +21,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "lambda_function" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-lambda//modules/lambda?ref=v0.13.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-lambda//modules/lambda?ref=v0.13.3"
 
   create_resources = var.create_resources
 
@@ -72,7 +73,7 @@ module "lambda_function" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "scheduled_job" {
-  source   = "git::git@github.com:gruntwork-io/terraform-aws-lambda//modules/scheduled-lambda-job?ref=v0.13.0"
+  source   = "git::git@github.com:gruntwork-io/terraform-aws-lambda//modules/scheduled-lambda-job?ref=v0.13.3"
   for_each = var.schedule_expression == null ? toset([]) : toset(["once"])
 
   create_resources = var.create_resources
@@ -88,7 +89,7 @@ module "scheduled_job" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "lambda_alarm" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/lambda-alarms?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/lambda-alarms?ref=v0.30.1"
 
   function_name        = module.lambda_function.function_name
   alarm_sns_topic_arns = var.alarm_sns_topic_arns

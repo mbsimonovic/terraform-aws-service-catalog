@@ -79,6 +79,12 @@ variable "fluent_bit_log_stream_prefix" {
   default     = null
 }
 
+variable "fluent_bit_extra_filters" {
+  description = "Additional filters that fluent-bit should apply to log output. This string should be formatted according to the Fluent-bit docs (https://docs.fluentbit.io/manual/administration/configuring-fluent-bit/configuration-file#config_filter)."
+  type        = string
+  default     = ""
+}
+
 variable "fluent_bit_extra_outputs" {
   description = "Additional output streams that fluent-bit should export logs to. This string should be formatted according to the Fluent-bit docs (https://docs.fluentbit.io/manual/administration/configuring-fluent-bit/configuration-file#config_output)."
   type        = string
@@ -345,7 +351,7 @@ variable "schedule_cluster_autoscaler_on_fargate" {
 variable "cluster_autoscaler_version" {
   description = "Which version of the cluster autoscaler to install. This should match the major/minor version (e.g., v1.20) of your Kubernetes Installation. See https://github.com/kubernetes/autoscaler/tree/master/cluster-autoscaler#releases for a list of versions."
   type        = string
-  default     = "v1.20.0"
+  default     = "v1.21.0"
 }
 
 variable "cluster_autoscaler_repository" {
@@ -359,6 +365,16 @@ variable "cluster_autoscaler_scaling_strategy" {
   type        = string
   default     = "least-waste"
   # See https://github.com/kubernetes/autoscaler/blob/master/cluster-autoscaler/FAQ.md#what-are-expanders
+}
+
+variable "cluster_autoscaler_pod_resources" {
+  description = "Pod resource requests and limits to use. Refer to https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/ for more information."
+
+  # We use any type here to avoid maintaining the kubernetes defined type spec for the resources here. That way, we can
+  # support wide range of kubernetes versions.
+  type = any
+
+  default = null
 }
 
 variable "cluster_autoscaler_pod_annotations" {

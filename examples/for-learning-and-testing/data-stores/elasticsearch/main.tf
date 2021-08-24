@@ -3,9 +3,9 @@
 # ---------------------------------------------------------------------------------------------------------------------
 
 terraform {
-  # This module is now only being tested with Terraform 0.15.x. However, to make upgrading easier, we are setting
+  # This module is now only being tested with Terraform 1.0.x. However, to make upgrading easier, we are setting
   # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 0.15.x code.
+  # forwards compatible with 1.0.x code.
   required_version = ">= 0.12.26"
 
   required_providers {
@@ -124,7 +124,7 @@ resource "aws_security_group_rule" "allow_all_inbound_ssh" {
 # Use this utility to find an instance type for the bastion host
 # that exists in all availability zones for the AWS region in use.
 module "lookup_instance_type" {
-  source         = "git::git@github.com:gruntwork-io/terraform-aws-utilities.git//modules/instance-type?ref=v0.2.1"
+  source         = "git::git@github.com:gruntwork-io/terraform-aws-utilities.git//modules/instance-type?ref=v0.6.0"
   instance_types = ["t2.micro", "t3.micro"]
 }
 

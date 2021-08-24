@@ -3,23 +3,15 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This module is now only being tested with Terraform 0.15.x. However, to make upgrading easier, we are setting
+  # This module is now only being tested with Terraform 1.0.x. However, to make upgrading easier, we are setting
   # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 0.15.x code.
+  # forwards compatible with 1.0.x code.
   required_version = ">= 0.12.26"
 
   required_providers {
     aws = {
       source  = "hashicorp/aws"
       version = ">= 2.6"
-    }
-
-    # Pin to this specific version to work around a bug introduced in 1.11.0:
-    # https://github.com/terraform-providers/terraform-provider-kubernetes/issues/759
-    # (Only for EKS)
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "= 1.10.0"
     }
 
     helm = {
@@ -41,7 +33,14 @@ resource "helm_release" "application" {
   version    = "v0.1.7"
   namespace  = var.namespace
 
-  values = [yamlencode(local.helm_chart_input)]
+  values = [
+    yamlencode(
+      merge(
+        local.helm_chart_input,
+        var.override_chart_inputs,
+      ),
+    ),
+  ]
 
   # external-dns and AWS ALB Ingress controller will turn the Ingress resources from the chart into AWS resources. These
   # are properly destroyed when the Ingress resource is destroyed. However, because of the asynchronous nature of
@@ -145,7 +144,7 @@ locals {
       "alb.ingress.kubernetes.io/scheme" = var.expose_type == "external" ? "internet-facing" : "internal"
       # We manually construct the list as a string here to avoid the values being converted as string, as opposed to
       # ints
-      "alb.ingress.kubernetes.io/listen-ports"             = "[${join(",", data.template_file.ingress_listener_protocol_ports.*.rendered)}]"
+      "alb.ingress.kubernetes.io/listen-ports"             = "[${join(",", local.ingress_listener_protocol_ports)}]"
       "alb.ingress.kubernetes.io/backend-protocol"         = var.ingress_backend_protocol
       "alb.ingress.kubernetes.io/load-balancer-attributes" = "access_logs.s3.enabled=true,access_logs.s3.bucket=${module.alb_access_logs_bucket.s3_bucket_name},access_logs.s3.prefix=${local.access_logs_s3_prefix}"
     },
@@ -182,135 +181,152 @@ locals {
   # Refer to the values.yaml file for helm-kubernetes-services/k8s-service for more information on the available input
   # parameters:
   # https://github.com/gruntwork-io/helm-kubernetes-services/blob/master/charts/k8s-service/values.yaml
-  helm_chart_input = {
-    applicationName = var.application_name
-    containerImage = {
-      repository = var.container_image["repository"]
-      tag        = var.container_image["tag"]
-      pullPolicy = var.container_image["pull_policy"]
-    }
-    canary = {
-      enabled      = var.desired_number_of_canary_pods > 0
-      replicaCount = var.desired_number_of_canary_pods
+  # We use merge here to support optionally setting various input values (with fallback to chart defaults).
+  helm_chart_input = merge(
+    # Only enable the horizontalPodAutoscaler input value if it is set.
+    (
+      var.horizontal_pod_autoscaler == null
+      ? {}
+      : {
+        horizontalPodAutoscaler = {
+          enabled              = true
+          minReplicas          = var.horizontal_pod_autoscaler.min_replicas
+          maxReplicas          = var.horizontal_pod_autoscaler.max_replicas
+          avgCpuUtilization    = var.horizontal_pod_autoscaler.avg_cpu_utilization
+          avgMemoryUtilization = var.horizontal_pod_autoscaler.avg_mem_utilization
+        }
+      }
+    ),
+    {
+      applicationName = var.application_name
+      containerImage = {
+        repository = var.container_image["repository"]
+        tag        = var.container_image["tag"]
+        pullPolicy = var.container_image["pull_policy"]
+      }
+      canary = {
+        enabled      = var.desired_number_of_canary_pods > 0
+        replicaCount = var.desired_number_of_canary_pods
+        # Workaround for deep type checker. See https://github.com/hashicorp/terraform/issues/22405 for more info.
+        containerImage = try(
+          var.canary_image != null
+          ? {
+            repository = var.canary_image["repository"]
+            tag        = var.canary_image["tag"]
+            pullPolicy = var.canary_image["pull_policy"]
+          }
+          : tomap(false),
+          {},
+        )
+      }
+      containerPorts = {
+        http = {
+          port     = var.container_port
+          protocol = var.container_protocol
+        }
+        liveness = {
+          port     = var.liveness_probe_port
+          protocol = "TCP"
+        }
+        readiness = {
+          port     = var.readiness_probe_port
+          protocol = "TCP"
+        }
+      }
+      replicaCount     = var.desired_number_of_pods
+      minPodsAvailable = var.min_number_of_pods_available
+
+      service = {
+        # When expose_type is cluster-internal, we do not want to associate an Ingress resource, or allow access
+        # externally from the cluster, so we use ClusterIP service type.
+        type = var.expose_type == "cluster-internal" ? "ClusterIP" : "NodePort"
+        ports = {
+          app = {
+            port = var.service_port
+          }
+        }
+      }
+
+      serviceAccount = {
+        # Create a new service account if service_account_name is not blank and it is not referring to an existing Service
+        # Account
+        create = (!var.service_account_exists) && var.service_account_name != ""
+
+        name        = var.service_account_name
+        namespace   = var.namespace
+        annotations = local.iam_role == "" ? {} : { "eks.amazonaws.com/role-arn" = local.iam_role }
+      }
+
+      ingress = {
+        enabled     = var.expose_type != "cluster-internal"
+        path        = "'${var.ingress_path}'"
+        hosts       = var.domain_name != null ? [var.domain_name] : []
+        servicePort = "app"
+        annotations = local.ingress_annotations
+        # Only configure the redirect path if using ssl redirect
+        additionalPathsHigherPriority = (
+          # When in Ingress Group mode, we need to make sure to only define this once per group.
+          var.ingress_configure_ssl_redirect
+          && var.ingress_ssl_redirect_rule_already_exists == false
+          ? [{
+            path        = "/*"
+            serviceName = "ssl-redirect"
+            servicePort = "use-annotation"
+          }]
+          : []
+        )
+      }
+
+      envVars      = var.env_vars
+      configMaps   = local.configmaps
+      secrets      = local.secrets
+      scratchPaths = var.scratch_paths
+
       # Workaround for deep type checker. See https://github.com/hashicorp/terraform/issues/22405 for more info.
-      containerImage = try(
-        var.canary_image != null
+      livenessProbe = try(
+        var.enable_liveness_probe
         ? {
-          repository = var.canary_image["repository"]
-          tag        = var.canary_image["tag"]
-          pullPolicy = var.canary_image["pull_policy"]
+          httpGet = {
+            port   = var.liveness_probe_port
+            path   = var.liveness_probe_path
+            scheme = var.liveness_probe_protocol
+          }
+          initialDelaySeconds = var.liveness_probe_grace_period_seconds
+          periodSeconds       = var.liveness_probe_interval_seconds
         }
         : tomap(false),
         {},
       )
-    }
-    containerPorts = {
-      http = {
-        port     = var.container_port
-        protocol = var.container_protocol
-      }
-      liveness = {
-        port     = var.liveness_probe_port
-        protocol = "TCP"
-      }
-      readiness = {
-        port     = var.readiness_probe_port
-        protocol = "TCP"
-      }
-    }
-    replicaCount     = var.desired_number_of_pods
-    minPodsAvailable = var.min_number_of_pods_available
-
-    service = {
-      # When expose_type is cluster-internal, we do not want to associate an Ingress resource, or allow access
-      # externally from the cluster, so we use ClusterIP service type.
-      type = var.expose_type == "cluster-internal" ? "ClusterIP" : "NodePort"
-      ports = {
-        app = {
-          port = var.service_port
+      readinessProbe = try(
+        var.enable_readiness_probe
+        ? {
+          httpGet = {
+            port   = var.readiness_probe_port
+            path   = var.readiness_probe_path
+            scheme = var.readiness_probe_protocol
+          }
+          initialDelaySeconds = var.readiness_probe_grace_period_seconds
+          periodSeconds       = var.readiness_probe_interval_seconds
         }
-      }
-    }
-
-    serviceAccount = {
-      # Create a new service account if service_account_name is not blank and it is not referring to an existing Service
-      # Account
-      create = (!var.service_account_exists) && var.service_account_name != ""
-
-      name        = var.service_account_name
-      namespace   = var.namespace
-      annotations = local.iam_role == "" ? {} : { "eks.amazonaws.com/role-arn" = local.iam_role }
-    }
-
-    ingress = {
-      enabled     = var.expose_type != "cluster-internal"
-      path        = "'${var.ingress_path}'"
-      hosts       = var.domain_name != null ? [var.domain_name] : []
-      servicePort = "app"
-      annotations = local.ingress_annotations
-      # Only configure the redirect path if using ssl redirect
-      additionalPathsHigherPriority = (
-        # When in Ingress Group mode, we need to make sure to only define this once per group.
-        var.ingress_configure_ssl_redirect
-        && var.ingress_ssl_redirect_rule_already_exists == false
-        ? [{
-          path        = "/*"
-          serviceName = "ssl-redirect"
-          servicePort = "use-annotation"
-        }]
-        : []
+        : tomap(false),
+        {},
       )
-    }
 
-    envVars      = var.env_vars
-    configMaps   = local.configmaps
-    secrets      = local.secrets
-    scratchPaths = var.scratch_paths
-
-    # Workaround for deep type checker. See https://github.com/hashicorp/terraform/issues/22405 for more info.
-    livenessProbe = try(
-      var.enable_liveness_probe
-      ? {
-        httpGet = {
-          port   = var.liveness_probe_port
-          path   = var.liveness_probe_path
-          scheme = var.liveness_probe_protocol
-        }
-        initialDelaySeconds = var.liveness_probe_grace_period_seconds
-        periodSeconds       = var.liveness_probe_interval_seconds
+      customResources = {
+        enabled   = var.custom_resources != {}
+        resources = var.custom_resources
       }
-      : tomap(false),
-      {},
-    )
-    readinessProbe = try(
-      var.enable_readiness_probe
-      ? {
-        httpGet = {
-          port   = var.readiness_probe_port
-          path   = var.readiness_probe_path
-          scheme = var.readiness_probe_protocol
-        }
-        initialDelaySeconds = var.readiness_probe_grace_period_seconds
-        periodSeconds       = var.readiness_probe_interval_seconds
-      }
-      : tomap(false),
-      {},
-    )
+      sideCarContainers = var.sidecar_containers
+    },
+  )
 
-    customResources = {
-      enabled   = var.custom_resources != {}
-      resources = var.custom_resources
-    }
-    sideCarContainers = var.sidecar_containers
-  }
-}
-
-# We use a template file here to construct a list of protocol port mappings for the listener, that can then be injected
-# into the input values. We do this instead of directly rendering the list because terraform does some type conversions
-# in the yaml encode process.
-data "template_file" "ingress_listener_protocol_ports" {
-  count    = length(var.ingress_listener_protocol_ports)
-  template = "{\"${var.ingress_listener_protocol_ports[count.index]["protocol"]}\": ${var.ingress_listener_protocol_ports[count.index]["port"]}}"
+  # We use interpolate a string here to construct a list of protocol port mappings for the listener, that can then be injected
+  # into the input values. We do this instead of directly rendering the list because terraform does some type conversions
+  # in the yaml encode process.
+  ingress_listener_protocol_ports = [
+    for protocol_ports in var.ingress_listener_protocol_ports :
+    "{\"${protocol_ports["protocol"]}\": ${protocol_ports["port"]}}"
+  ]
 }
 
 
@@ -321,7 +337,7 @@ data "template_file" "ingress_listener_protocol_ports" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "alb_access_logs_bucket" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/logs/load-balancer-access-logs?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/logs/load-balancer-access-logs?ref=v0.30.1"
   create_resources = (
     var.expose_type != "cluster-internal"
     # Only create access logs if requested
@@ -360,7 +376,7 @@ resource "aws_iam_role" "new_role" {
 }
 
 module "service_account_assume_role_policy" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-iam-role-assume-role-policy-for-service-account?ref=v0.42.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-iam-role-assume-role-policy-for-service-account?ref=v0.44.4"
 
   eks_openid_connect_provider_arn = var.eks_iam_role_for_service_accounts_config.openid_connect_provider_arn
   eks_openid_connect_provider_url = var.eks_iam_role_for_service_accounts_config.openid_connect_provider_url

@@ -3,9 +3,9 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This module is now only being tested with Terraform 0.15.x. However, to make upgrading easier, we are setting
+  # This module is now only being tested with Terraform 1.0.x. However, to make upgrading easier, we are setting
   # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 0.15.x code.
+  # forwards compatible with 1.0.x code.
   required_version = ">= 0.12.26"
 }
 
@@ -61,13 +61,17 @@ resource "aws_instance" "bastion" {
   vpc_security_group_ids      = [aws_security_group.bastion.id]
   iam_instance_profile        = aws_iam_instance_profile.test_profile.name
   associate_public_ip_address = true
-  user_data = templatefile(
+  # Trim excess whitespace, because AWS will do that on deploy. This prevents
+  # constant redeployment because the userdata hash doesn't match the trimmed
+  # userdata hash.
+  # See: https://github.com/hashicorp/terraform-provider-aws/issues/5011#issuecomment-878542063
+  user_data = trimspace(templatefile(
     "${path.module}/user-data.sh",
     {
       aws_region = var.aws_region
       service_id = aws_service_discovery_service.bastion.id
     },
-  )
+  ))
 
   tags = {
     Name = var.test_instance_name

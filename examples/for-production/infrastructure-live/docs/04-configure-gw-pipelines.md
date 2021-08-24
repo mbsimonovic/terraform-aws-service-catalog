@@ -71,7 +71,7 @@ We'll now fix this job so that it passes, by adding some Environment Variables t
 | --- | --- |
 | AWS_ACCESS_KEY_ID | The Access Key generated for the machine user in the Security account. |
 | AWS_SECRET_ACCESS_KEY | The Secret Key generated for the machine user in the Security account. |
-| GITHUB_OAUTH_TOKEN | Enter the MachineUserGitHubPAT here. You can find this in [`reference-architecture-form.yml`](reference-architecture-form.yml) or in the shared account's Secrets Manager. |
+| GITHUB_OAUTH_TOKEN | Enter the MachineUserGitHubPAT here. You can find this in [`reference-architecture-form.yml`](../reference-architecture-form.yml) or in the shared account's Secrets Manager. |
 
 #### Set up the Slack integration
 
@@ -133,6 +133,26 @@ approval.
 
 
 
+
+### Destroying infrastructure
+
+At this moment, the CI/CD pipeline for infrastructure code does not natively support destroying infrastructure. You must
+manually run the `destroy` call outside the CI pipeline when you want to destroy infrastructure.
+
+The steps for destroy are:
+
+1. Run `terragrunt destroy` in the folder you wish to destroy.
+1. You should see the destroy plan and a prompt to confirm the destroy action. Review the plan and make sure it looks
+   good to you. If it looks good, approve the plan by replying `yes` to the prompt.
+1. Once the infrastructure destroy completes, remove the module folder from git using `git rm -r` and commit the change.
+   Make sure to commit the change on a new branch.
+1. Open a new PR on the branch to be reviewed by a colleague. Note that the CI pipeline will ignore this changeset as it
+   is designed to filter out any changes that remove modules.
+1. Go through the normal review process to get the change merged in.
+
+NOTE: We are actively working on improvements to the Gruntwork Pipelines solution to support automated destroy
+workflows. Refer to [this issue in terraform-aws-ci](https://github.com/gruntwork-io/terraform-aws-ci/issues/162) for
+more information. Please subscribe to that ticket to be notified when support for destroy workflows is implemented.
 
 
 ## CI / CD pipeline for app code

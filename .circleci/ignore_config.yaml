@@ -1,0 +1,43 @@
+---
+# This is a configuration file for validate-monorepo-test-mappings from the monorepo-helpers module in terraform-aws-ci. Refer to
+# https://github.com/gruntwork-io/terraform-aws-ci/blob/master/modules/monorepo-helpers/core-concepts.md#overview
+# for more info on the monorepo-helpers convention.
+prefix:
+  # Ignore repo meta files",
+  - CODEOWNERS
+  - LICENSE.txt
+  - .gitignore
+  - .pre-commit-config.yaml
+  - .circleci
+
+  # Ignore documentation assets
+  - _docs
+
+  # Ignore pre-commit hooks
+  - hooks
+
+  # This is the example lambda function path and do not require the testing mapping
+  - examples/for-learning-and-testing/services/lambda/python
+
+  # Ignore legacy packer file
+  - modules/services/ecs-cluster/packer/ecs-node.json
+
+suffix:
+  # Ignore go meta files
+  - go.mod
+  - go.sum
+
+  # Ignore docs files
+  - README.md
+  - README.adoc
+  - core-concepts.md
+
+  # Ignore test helpers changes, as that will trigger all tests and thus defeats the purpose of this pre-commit hook.
+  - test_helpers.go
+  - validate_all_modules_and_examples_test.go
+
+  # Ignore html files
+  - .html
+
+  # Ignore image files
+  - .png

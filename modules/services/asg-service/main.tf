@@ -3,9 +3,9 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This module is now only being tested with Terraform 0.15.x. However, to make upgrading easier, we are setting
+  # This module is now only being tested with Terraform 1.0.x. However, to make upgrading easier, we are setting
   # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 0.15.x code.
+  # forwards compatible with 1.0.x code.
   required_version = ">= 0.12.26"
 
   required_providers {
@@ -22,7 +22,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "asg" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-asg.git//modules/asg-rolling-deploy?ref=v0.15.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-asg.git//modules/asg-rolling-deploy?ref=v0.15.1"
 
   launch_configuration_name = aws_launch_configuration.launch_configuration.name
   vpc_subnet_ids            = var.subnet_ids
@@ -264,7 +264,7 @@ resource "aws_alb_target_group" "service" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "listener_rules" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/lb-listener-rules?ref=v0.27.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/lb-listener-rules?ref=v0.27.1"
 
   default_listener_arns  = var.listener_arns
   default_listener_ports = var.listener_ports
@@ -306,7 +306,7 @@ resource "aws_route53_record" "service" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "route53_health_check" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/route53-health-check-alarms?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/route53-health-check-alarms?ref=v0.30.1"
 
   create_resources               = var.enable_route53_health_check
   alarm_configs                  = local.route53_alarm_configurations
@@ -340,7 +340,11 @@ locals {
     [for user in local.ip_lockdown_users : "'${user}'"],
   )
 
-  base_user_data = templatefile(
+  # Trim excess whitespace, because AWS will do that on deploy. This prevents
+  # constant redeployment because the userdata hash doesn't match the trimmed
+  # userdata hash.
+  # See: https://github.com/hashicorp/terraform-provider-aws/issues/5011#issuecomment-878542063
+  base_user_data = trimspace(templatefile(
     "${path.module}/user-data.sh",
     {
       log_group_name                      = var.name
@@ -353,7 +357,7 @@ locals {
       external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
       ip_lockdown_users                   = local.ip_lockdown_users_bash_array
     },
-  )
+  ))
 
   enable_ssh_grunt = var.ssh_grunt_iam_group == "" && var.ssh_grunt_iam_group_sudo == "" ? false : true
 

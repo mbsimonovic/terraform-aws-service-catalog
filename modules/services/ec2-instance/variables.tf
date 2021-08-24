@@ -97,6 +97,12 @@ variable "ssh_grunt_iam_group_sudo" {
   default     = ""
 }
 
+variable "attach_eip" {
+  description = "Determines if an Elastic IP (EIP) will be created for this instance."
+  type        = bool
+  default     = true
+}
+
 variable "tenancy" {
   description = "The tenancy of this instance. Must be one of: default, dedicated, or host."
   type        = string
@@ -245,4 +251,10 @@ variable "root_volume_delete_on_termination" {
   description = "If set to true, the root volume will be deleted when the Instance is terminated."
   type        = bool
   default     = true
+}
+
+variable "additional_security_group_ids" {
+  description = "A list of optional additional security group ids to assign to the EC2 instance."
+  type        = list(string)
+  default     = []
 }

@@ -8,9 +8,10 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This module is now only being tested with Terraform 0.15.x. However, to make upgrading easier, we are setting
-  # 0.13.0 as the minimum version, as that version added support for module for_each.
-  required_version = ">= 0.13.0"
+  # This module is now only being tested with Terraform 1.0.x. However, to make upgrading easier, we are setting
+  # 0.13.7 as the minimum version, as that version added support for module for_each, and includes the latest GPG key
+  # for provider binary validation.
+  required_version = ">= 0.13.7"
 
   required_providers {
     aws = {
@@ -51,9 +52,11 @@ data "aws_region" "current" {}
 # BASE RESOURCES
 # Includes resources common to all EC2 instances in the Service Catalog, including permissions
 # for ssh-grunt, CloudWatch Logs aggregation, CloudWatch metrics, and CloudWatch alarms
+# Note that there are three calls: one for configuring common metrics (e.g., ASG alarms), one for self managed workers,
+# and the other for managed node groups.
 # ---------------------------------------------------------------------------------------------------------------------
 
-module "ec2_baseline" {
+module "ec2_baseline_common" {
   source = "../../base/ec2-baseline"
 
   name = join(
@@ -61,19 +64,58 @@ module "ec2_baseline" {
     compact([var.eks_cluster_name, var.worker_name_prefix]),
   )
 
-  external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
-  enable_ssh_grunt                    = local.enable_ssh_grunt
-  iam_role_name                       = module.self_managed_workers.eks_worker_iam_role_name
-  enable_cloudwatch_metrics           = local.has_self_managed_workers && var.enable_cloudwatch_metrics
-  enable_asg_cloudwatch_alarms        = local.has_self_managed_workers && var.enable_cloudwatch_alarms
-  asg_names                           = local.worker_asg_names
-  num_asg_names                       = length(var.autoscaling_group_configurations) + length(var.managed_node_group_configurations)
-  alarms_sns_topic_arn                = var.alarms_sns_topic_arn
-  cloud_init_parts                    = local.cloud_init_parts
-  ami                                 = var.cluster_instance_ami
-  ami_filters                         = var.cluster_instance_ami_filters
+  enable_asg_cloudwatch_alarms = true
+  asg_names                    = local.worker_asg_names
+  num_asg_names                = length(var.autoscaling_group_configurations) + length(var.managed_node_group_configurations)
+  alarms_sns_topic_arn         = var.alarms_sns_topic_arn
 
-  // CloudWatch log aggregation is handled separately in EKS
+  cloud_init_parts = local.cloud_init_parts
+  ami              = var.cluster_instance_ami
+  ami_filters      = var.cluster_instance_ami_filters
+
+  # Disable everything else
+  enable_ssh_grunt                  = false
+  enable_cloudwatch_log_aggregation = false
+  enable_cloudwatch_metrics         = false
+}
+
+module "ec2_baseline_asg" {
+  count  = local.has_self_managed_workers ? 1 : 0
+  source = "../../base/ec2-baseline"
+
+  name = join(
+    "-",
+    compact([var.eks_cluster_name, var.worker_name_prefix, "asg"]),
+  )
+  iam_role_name = module.self_managed_workers.eks_worker_iam_role_name
+
+  enable_ssh_grunt                    = local.enable_ssh_grunt
+  external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
+
+  enable_cloudwatch_metrics = var.enable_cloudwatch_metrics
+
+  # Disable everything else
+  should_render_cloud_init          = false
+  enable_cloudwatch_log_aggregation = false
+}
+
+module "ec2_baseline_mng" {
+  count  = local.has_managed_node_groups ? 1 : 0
+  source = "../../base/ec2-baseline"
+
+  name = join(
+    "-",
+    compact([var.eks_cluster_name, var.worker_name_prefix, "mng"]),
+  )
+  iam_role_name = module.managed_node_groups.eks_worker_iam_role_name
+
+  enable_ssh_grunt                    = local.enable_ssh_grunt
+  external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
+
+  enable_cloudwatch_metrics = var.enable_cloudwatch_metrics
+
+  # Disable everything else
+  should_render_cloud_init          = false
   enable_cloudwatch_log_aggregation = false
 }
 
@@ -89,7 +131,11 @@ locals {
   # Merge in all the cloud init scripts the user has passed in
   cloud_init_parts = merge({ default : local.cloud_init }, var.cloud_init_parts)
 
-  base_user_data = templatefile(
+  # Trim excess whitespace, because AWS will do that on deploy. This prevents
+  # constant redeployment because the userdata hash doesn't match the trimmed
+  # userdata hash.
+  # See: https://github.com/hashicorp/terraform-provider-aws/issues/5011#issuecomment-878542063
+  base_user_data = trimspace(templatefile(
     "${path.module}/user-data.sh",
     {
       aws_region                = data.aws_region.current.name
@@ -110,7 +156,7 @@ locals {
       # TODO: investigate if IP lockdown can now be enabled due to IRSA
       enable_ip_lockdown = false
     },
-  )
+  ))
 }
 
 
@@ -129,7 +175,7 @@ locals {
 # is in use.
 
 module "eks_k8s_role_mapping" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.42.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.44.4"
 
   # Only setup the mapping if AWS Auth Merger is deployed.
   # The contents of the for each set is irrelevant as it is only used to enable the module.

@@ -11,7 +11,7 @@
 terraform {
   # We're using a local file path here just so our automated tests run against the absolute latest code. However, when
   # using these modules in your code, you should use a Git URL with a ref attribute that pins you to a specific version:
-  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/landingzone/account-baseline-app?ref=v0.38.1"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/landingzone/account-baseline-app?ref=v0.58.0"
   source = "${get_parent_terragrunt_dir()}/../../..//modules/landingzone/account-baseline-app"
 
   # This module deploys some resources (e.g., AWS Config) across all AWS regions, each of which needs its own provider,
@@ -32,6 +32,31 @@ include {
 
 
 # ---------------------------------------------------------------------------------------------------------------------
+# CONFIGURE A PROVIDER FOR EACH AWS REGION
+# To deploy a multi-region module, we have to configure a provider with a unique alias for each of the regions AWS
+# supports and pass all these providers to the multi-region module in a provider = { ... } block. You MUST create a
+# provider block for EVERY one of these AWS regions, but you should specify the ones to use and authenticate to (the
+# ones actually enabled in your AWS account) using opt_in_regions.
+# ---------------------------------------------------------------------------------------------------------------------
+
+generate "providers" {
+  path      = "providers.tf"
+  if_exists = "overwrite"
+  contents  = <<EOF
+%{for region in local.all_aws_regions}
+provider "aws" {
+  region = "${region}"
+  alias  = "${replace(region, "-", "_")}"
+  # Skip credential validation and account ID retrieval for disabled or restricted regions
+  skip_credentials_validation = ${contains(coalesce(local.opt_in_regions, []), region) ? "false" : "true"}
+  skip_requesting_account_id  = ${contains(coalesce(local.opt_in_regions, []), region) ? "false" : "true"}
+}
+%{endfor}
+EOF
+}
+
+
+# ---------------------------------------------------------------------------------------------------------------------
 # Locals are named constants that are reusable within the configuration.
 # ---------------------------------------------------------------------------------------------------------------------
 locals {
@@ -44,8 +69,9 @@ locals {
   # Automatically load account-level variables
   account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
 
-  # Extract the account_name for easy access
+  # Extract the account_name and account_role for easy access
   account_name = local.account_vars.locals.account_name
+  account_role = local.account_vars.locals.account_role
 
   # Automatically load region-level variables
   region_vars = read_terragrunt_config(find_in_parent_folders("region.hcl"))
@@ -59,6 +85,72 @@ locals {
   # A local for convenient access to the security account root ARN.
   security_account_root_arn = "arn:aws:iam::${local.accounts.security}:root"
 
+  # The following locals are used for constructing multi region provider configurations for the underlying module.
+
+  # A list of all AWS regions
+  all_aws_regions = [
+    "af-south-1",
+    "ap-east-1",
+    "ap-northeast-1",
+    "ap-northeast-2",
+    "ap-northeast-3",
+    "ap-south-1",
+    "ap-southeast-1",
+    "ap-southeast-2",
+    "ca-central-1",
+    "cn-north-1",
+    "cn-northwest-1",
+    "eu-central-1",
+    "eu-north-1",
+    "eu-south-1",
+    "eu-west-1",
+    "eu-west-2",
+    "eu-west-3",
+    "me-south-1",
+    "sa-east-1",
+    "us-east-1",
+    "us-east-2",
+    "us-gov-east-1",
+    "us-gov-west-1",
+    "us-west-1",
+    "us-west-2",
+  ]
+
+  # Creates resources in the specified regions. The best practice is to enable multiregion modules in all enabled
+  # regions in your AWS account. To get the list of regions enabled in your AWS account, you can use the AWS CLI: aws
+  # ec2 describe-regions.
+  opt_in_regions = [
+    "eu-north-1",
+    "ap-south-1",
+    "eu-west-3",
+    "eu-west-2",
+    "eu-west-1",
+    "ap-northeast-2",
+    "ap-northeast-1",
+    "sa-east-1",
+    "ca-central-1",
+    "ap-southeast-1",
+    "ap-southeast-2",
+    "eu-central-1",
+    "us-east-1",
+    "us-east-2",
+    "us-west-1",
+    "us-west-2",
+
+    # By default, skip regions that are not enabled in most AWS accounts:
+    #
+    #  "af-south-1",     # Cape Town
+    #  "ap-east-1",      # Hong Kong
+    #  "eu-south-1",     # Milan
+    #  "me-south-1",     # Bahrain
+    #  "us-gov-east-1",  # GovCloud
+    #  "us-gov-west-1",  # GovCloud
+    #  "cn-north-1",     # China
+    #  "cn-northwest-1", # China
+    #
+    # This region is enabled by default but is brand-new and some services like AWS Config don't work.
+    # "ap-northeast-3", # Asia Pacific (Osaka)
+  ]
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -170,4 +262,16 @@ inputs = {
       ]
     }
   }
+
+  # Configure opt in regions for each multi region service based on locally configured setting.
+  config_opt_in_regions              = local.opt_in_regions
+  guardduty_opt_in_regions           = local.opt_in_regions
+  kms_cmk_opt_in_regions             = local.opt_in_regions
+  iam_access_analyzer_opt_in_regions = local.opt_in_regions
+  ebs_opt_in_regions                 = local.opt_in_regions
+
+  # Disable MFA requirement for deleting S3 buckets and objects. Note that terraform cannot toggle this setting. Setting
+  # to true will lead to errors in the module unless the account has been set to enable this requirement.
+  config_s3_mfa_delete     = false
+  cloudtrail_s3_mfa_delete = false
 }

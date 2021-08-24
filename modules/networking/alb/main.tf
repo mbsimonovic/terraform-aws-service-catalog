@@ -5,10 +5,11 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This module is now only being tested with Terraform 0.15.x. However, to make upgrading easier, we are setting 0.13.0 as the minimum version. We require at least 0.13 in this module, as
-  # as that version added support for Terraform native variable validation. See:
+  # This module is now only being tested with Terraform 1.0.x. However, to make upgrading easier, we are setting 0.13.7
+  # as the minimum version. We require at least 0.13 in this module, as as that version added support for Terraform
+  # native variable validation, and has the latest GPG key for provider binary validation. See:
   # https://www.terraform.io/docs/language/values/variables.html#custom-validation-rules
-  required_version = ">= 0.13.0"
+  required_version = ">= 0.13.7"
 
   required_providers {
     aws = {
@@ -24,7 +25,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "alb" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/alb?ref=v0.27.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/alb?ref=v0.27.1"
 
 
   alb_name        = var.alb_name
@@ -70,7 +71,7 @@ module "alb" {
 
 # Create an S3 Bucket to store ALB access logs.
 module "alb_access_logs_bucket" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/logs/load-balancer-access-logs?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/logs/load-balancer-access-logs?ref=v0.30.1"
 
   # Try to do some basic cleanup to get a valid S3 bucket name: the name must be lower case and can only contain
   # lowercase letters, numbers, and hyphens. For the full rules, see:

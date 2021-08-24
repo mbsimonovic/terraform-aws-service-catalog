@@ -1,0 +1,50 @@
+---
+# This is a configuration file for find-tf-monorepo-tests from the monorepo-helpers module in terraform-aws-ci. Refer to
+# https://github.com/gruntwork-io/terraform-aws-ci/blob/master/modules/monorepo-helpers/core-concepts.md#overview
+# for more info on the monorepo-helpers convention.
+
+# Modules
+".*landingzone/account-baseline.*":
+  - TestAccountBaseline
+".*/ec2-baseline":
+  - TestBastionHost
+  - TestJenkins
+  - TestOpenvpnServer
+".*/eks-core-services":
+  - TestEksCluster
+".*/k8s-service":
+  - TestK8SService
+  - TestEksCluster
+".*/cloudmap":
+  - TestRoute53.*
+".*/route53-multiple-vpcs":
+  - TestRoute53.*
+".*/eks-workers":
+  - TestEksCluster
+".*/ecs-service":
+  - TestEcsCluster
+".*/elasticsearch-public":
+  - TestElasticsearch
+"modules/tls-scripts/helpers":
+  - TestTlsScripts
+
+# For production example
+".*/for-production/.*":
+  - TestSmokeForProductionExamples
+
+# Test code
+".*/test_helpers.go":
+  - .*
+".*/data_store_test_helpers.go":
+  - TestAurora
+  - TestRds
+".*/k8s_test_helpers.go":
+  - TestK8SNamespace
+  - TestK8SService
+  - TestEksCluster
+".*/for_production_smoke_test.go":
+  - TestSmokeForProductionExamples
+".*/ecs_deploy_runner_test_helpers.go":
+  - TestEcsDeployRunner
+"test/fixtures":
+  - TestEcrRepos

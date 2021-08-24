@@ -5,9 +5,9 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This module is now only being tested with Terraform 0.15.x. However, to make upgrading easier, we are setting
+  # This module is now only being tested with Terraform 1.0.x. However, to make upgrading easier, we are setting
   # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 0.15.x code.
+  # forwards compatible with 1.0.x code.
   required_version = ">= 0.12.26"
 
   required_providers {
@@ -23,7 +23,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "bastion" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-server.git//modules/single-server?ref=v0.13.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-server.git//modules/single-server?ref=v0.13.3"
 
   name             = var.name
   instance_type    = var.instance_type
@@ -40,8 +40,9 @@ module "bastion" {
   dns_type = "A"
   dns_ttl  = "300"
 
-  keypair_name             = var.keypair_name
-  allow_ssh_from_cidr_list = var.allow_ssh_from_cidr_list
+  keypair_name                  = var.keypair_name
+  allow_ssh_from_cidr_list      = var.allow_ssh_from_cidr_list
+  additional_security_group_ids = var.additional_security_group_ids
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -54,7 +55,7 @@ data "aws_route53_zone" "selected" {
   name = var.domain_name
 
   tags = var.base_domain_name_tags
-  # Since our bastion host needs to be publicly addressable, we need only look up Route 53 Public Hosted zones when querying for the zone_id 
+  # Since our bastion host needs to be publicly addressable, we need only look up Route 53 Public Hosted zones when querying for the zone_id
   private_zone = false
 }
 
@@ -80,7 +81,11 @@ locals {
     [for user in local.ip_lockdown_users : "'${user}'"],
   )
 
-  base_user_data = templatefile(
+  # Trim excess whitespace, because AWS will do that on deploy. This prevents
+  # constant redeployment because the userdata hash doesn't match the trimmed
+  # userdata hash.
+  # See: https://github.com/hashicorp/terraform-provider-aws/issues/5011#issuecomment-878542063
+  base_user_data = trimspace(templatefile(
     "${path.module}/user-data.sh",
     {
       log_group_name                      = var.name
@@ -93,7 +98,7 @@ locals {
       external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
       ip_lockdown_users                   = local.ip_lockdown_users_bash_array
     },
-  )
+  ))
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

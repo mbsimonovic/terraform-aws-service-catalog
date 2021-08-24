@@ -13,6 +13,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// The following comment exists to force a full test suite build when terraform versions are updated.
+// Test Terraform Version: 1.0.3
+
 // Retry configuration constants
 const (
 	maxTerraformRetries          = 3

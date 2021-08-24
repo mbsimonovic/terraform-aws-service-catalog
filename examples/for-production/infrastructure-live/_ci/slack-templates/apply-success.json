@@ -5,7 +5,7 @@
       "type": "header",
       "text": {
         "type": "plain_text",
-        "text": "Apply successful! :confetti_ball:",
+        "text": ":confetti_ball: Deployment successful!",
         "emoji": true
       }
     },
@@ -13,16 +13,16 @@
       "type": "section",
       "text": {
         "type": "mrkdwn",
-        "text": "Your apply has succeeded. :ship:"
+        "text": ":ship: Your deployment has succeeded."
       },
       "fields": [
         {
           "type": "mrkdwn",
-          "text": "*Committer*:${CIRCLE_USERNAME}"
+          "text": "*Committer*: ${CIRCLE_USERNAME}"
         },
         {
           "type": "mrkdwn",
-          "text": "*SHA*:${CIRCLE_SHA1}"
+          "text": "*SHA*: ${CIRCLE_SHA1}"
         }
       ],
       "accessory": {

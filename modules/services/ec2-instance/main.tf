@@ -1,7 +1,7 @@
 terraform {
-  # This module is now only being tested with Terraform 0.13.x. However, to make upgrading easier, we are setting
+  # This module is now only being tested with Terraform 1.0.x. However, to make upgrading easier, we are setting
   # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 0.13.x code.
+  # forwards compatible with 1.0.x code.
   required_version = ">= 0.12.26"
 
   required_providers {
@@ -17,13 +17,14 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ec2_instance" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-server.git//modules/single-server?ref=v0.13.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-server.git//modules/single-server?ref=v0.13.3"
 
   name             = var.name
   instance_type    = var.instance_type
   ami              = module.ec2_baseline.existing_ami
   user_data_base64 = module.ec2_baseline.cloud_init_rendered
   tenancy          = var.tenancy
+  attach_eip       = var.attach_eip
 
   vpc_id    = var.vpc_id
   subnet_id = var.subnet_id
@@ -31,14 +32,16 @@ module "ec2_instance" {
   dns_zone_id = var.route53_zone_id != "" ? var.route53_zone_id : (length(data.aws_route53_zone.selected) > 0 ? data.aws_route53_zone.selected[0].zone_id : "")
 
   # The A record that will be created for the EC2 instance is the concatenation of the instance's name plus the domain name
-  dns_name = var.route53_lookup_domain_name != "" ? "${var.name}.${var.route53_lookup_domain_name}" : "${var.name}.${var.fully_qualified_domain_name}"
-  dns_type = "A"
-  dns_ttl  = tostring(var.dns_ttl)
+  dns_name            = var.route53_lookup_domain_name != "" ? "${var.name}.${var.route53_lookup_domain_name}" : "${var.name}.${var.fully_qualified_domain_name}"
+  dns_type            = "A"
+  dns_ttl             = tostring(var.dns_ttl)
+  dns_uses_private_ip = var.dns_zone_is_private
 
   keypair_name = var.keypair_name
 
   allow_ssh_from_cidr_list          = var.allow_ssh_from_cidr_blocks
   allow_ssh_from_security_group_ids = var.allow_ssh_from_security_group_ids
+  additional_security_group_ids     = var.additional_security_group_ids
 
   root_volume_type                  = var.root_volume_type
   root_volume_size                  = var.root_volume_size
@@ -87,7 +90,11 @@ locals {
     [for user in local.ip_lockdown_users : "'${user}'"],
   )
 
-  base_user_data = templatefile(
+  # Trim excess whitespace, because AWS will do that on deploy. This prevents
+  # constant redeployment because the userdata hash doesn't match the trimmed
+  # userdata hash.
+  # See: https://github.com/hashicorp/terraform-provider-aws/issues/5011#issuecomment-878542063
+  base_user_data = trimspace(templatefile(
     "${path.module}/user-data.sh",
     {
       log_group_name                      = var.name
@@ -103,7 +110,7 @@ locals {
       ebs_volumes                         = base64encode(jsonencode(var.ebs_volumes))
       ebs_aws_region                      = data.aws_region.current.name
     },
-  )
+  ))
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -144,11 +151,11 @@ resource "aws_ebs_volume" "ec2_instance" {
   availability_zone = data.aws_subnet.ec2_instance.availability_zone
   type              = each.value.type
   size              = each.value.size
-  encrypted         = lookup(var.ebs_volumes, "encrypted", false)
-  iops              = lookup(var.ebs_volumes, "iops", null)
-  snapshot_id       = lookup(var.ebs_volumes, "snapshot_id", null)
-  kms_key_id        = lookup(var.ebs_volumes, "kms_key_id", null)
-  throughput        = lookup(var.ebs_volumes, "throughput", null)
+  encrypted         = lookup(each.value, "encrypted", false)
+  iops              = lookup(each.value, "iops", null)
+  snapshot_id       = lookup(each.value, "snapshot_id", null)
+  kms_key_id        = lookup(each.value, "kms_key_id", null)
+  throughput        = lookup(each.value, "throughput", null)
 
 
   # We want to set the name of the volume from the ebs_volumes map, but all other tags should be settable with var.tags.

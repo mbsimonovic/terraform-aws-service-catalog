@@ -57,6 +57,23 @@ variable "desired_number_of_canary_pods" {
   default     = 0
 }
 
+variable "horizontal_pod_autoscaler" {
+  description = "Configure the Horizontal Pod Autoscaler information for the associated Deployment. HPA is disabled when this variable is set to null."
+  type = object({
+    # The minimum amount of replicas allowed
+    min_replicas = number
+    # The maximum amount of replicas allowed
+    max_replicas = number
+    # The target average CPU utilization (as a percentage) to be used with the metrics. E.g., setting this to 60 means
+    # that the HPA controller will keep the average utilization of the CPU in Pods in the scaling target at 60%.
+    avg_cpu_utilization = number
+    # The target average Memory utilization (as a percentage) to be used with the metrics. Works the same as
+    # avg_cpu_utilization.
+    avg_mem_utilization = number
+  })
+  default = null
+}
+
 variable "canary_image" {
   description = "The Docker image to use for the canary. Required if desired_number_of_canary_pods is greater than 0."
   type = object({
@@ -515,4 +532,22 @@ variable "values_file_path" {
   description = "A local file path where the helm chart values will be emitted. Use to debug issues with the helm chart values. Set to null to prevent creation of the file."
   type        = string
   default     = null
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# ESCAPE HATCH
+# These variables are provided as an escape hatch to override the computed helm chart values within the module. This is
+# intended for use cases where the k8s-service helm chart implements features faster than the terraform module and you
+# wish to use a new variable that is not yet supported in the terraform module.
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "override_chart_inputs" {
+  description = "Override any computed chart inputs with this map. This map is shallow merged to the computed chart inputs prior to passing on to the Helm Release. This is provided as a workaround while the terraform module does not support a particular input value that is exposed in the underlying chart. Please always file a GitHub issue to request exposing additional underlying input values prior to using this variable."
+
+  # Ideally we would define a concrete type here, but since the input value spec for the chart has dynamic optional
+  # values, we can't use a concrete object type for Terraform. Also, setting a type spec here will defeat the purpose of
+  # the escape hatch since it requires defining new input values here before users can use it.
+  type = any
+
+  default = {}
 }

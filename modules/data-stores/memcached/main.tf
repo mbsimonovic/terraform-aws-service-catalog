@@ -4,9 +4,9 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This module is now only being tested with Terraform 0.15.x. However, to make upgrading easier, we are setting
+  # This module is now only being tested with Terraform 1.0.x. However, to make upgrading easier, we are setting
   # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 0.15.x code.
+  # forwards compatible with 1.0.x code.
   required_version = ">= 0.12.26"
 
   required_providers {
@@ -22,7 +22,7 @@ terraform {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "memcached" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-cache.git//modules/memcached?ref=v0.16.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-cache.git//modules/memcached?ref=v0.16.1"
 
   name = var.name
 
@@ -47,7 +47,7 @@ module "memcached" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "memcached_alarms" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/elasticache-memcached-alarms?ref=v0.30.0"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/elasticache-memcached-alarms?ref=v0.30.1"
   create_resources = var.enable_cloudwatch_alarms
 
   cache_cluster_id     = module.memcached.cache_cluster_id

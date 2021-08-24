@@ -5,7 +5,7 @@
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "self_managed_workers" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.42.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.44.4"
 
   # Ideally, we can use module count to drive this resource creation, but using module counts and for_each adds a
   # limitation where dependency chains apply at the module level, not the individual resources. This causes a cyclic
@@ -40,8 +40,8 @@ module "self_managed_workers" {
 
   # The following are not yet supported to accept multiple, but in a future version, we will support extracting
   # additional user data and AMI configurations from each ASG entry.
-  asg_default_instance_ami              = module.ec2_baseline.existing_ami
-  asg_default_instance_user_data_base64 = module.ec2_baseline.cloud_init_rendered
+  asg_default_instance_ami              = module.ec2_baseline_common.existing_ami
+  asg_default_instance_user_data_base64 = module.ec2_baseline_common.cloud_init_rendered
 
   cluster_instance_keypair_name = var.cluster_instance_keypair_name
 
@@ -121,7 +121,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "metric_widget_self_managed_worker_cpu_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.1"
 
   title = "${var.eks_cluster_name} Self-Managed EKSWorker CPUUtilization"
   stat  = "Average"
@@ -137,7 +137,7 @@ module "metric_widget_self_managed_worker_cpu_usage" {
 }
 
 module "metric_widget_self_managed_worker_memory_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.1"
 
   title = "${var.eks_cluster_name} Self-Managed EKSWorker MemoryUtilization"
   stat  = "Average"
@@ -153,7 +153,7 @@ module "metric_widget_self_managed_worker_memory_usage" {
 }
 
 module "metric_widget_self_managed_worker_disk_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.1"
 
   title = "${var.eks_cluster_name} Self-Managed EKSWorker DiskUtilization"
   stat  = "Average"

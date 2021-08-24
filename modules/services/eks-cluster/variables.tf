@@ -194,10 +194,16 @@ variable "worker_iam_role_arns_for_k8s_role_mapping" {
   default     = []
 }
 
+variable "fargate_profile_executor_iam_role_arns_for_k8s_role_mapping" {
+  description = "List of ARNs of AWS IAM roles corresponding to Fargate Profiles that should be mapped as Kubernetes Nodes."
+  type        = list(string)
+  default     = []
+}
+
 variable "kubernetes_version" {
   description = "Version of Kubernetes to use. Refer to EKS docs for list of available versions (https://docs.aws.amazon.com/eks/latest/userguide/platform-versions.html)."
   type        = string
-  default     = "1.20"
+  default     = "1.21"
 }
 
 variable "endpoint_public_access" {

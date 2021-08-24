@@ -5,7 +5,7 @@
       "type": "header",
       "text": {
         "type": "plain_text",
-        "text": "Apply failed. :interrobang:",
+        "text": ":interrobang: Deployment failed.",
         "emoji": true
       }
     },
@@ -13,16 +13,16 @@
       "type": "section",
       "text": {
         "type": "mrkdwn",
-        "text": "Your apply has failed. :confounded::"
+        "text": ":confounded: Your deployment has failed."
       },
       "fields": [
         {
           "type": "mrkdwn",
-          "text": "*Committer*:${CIRCLE_USERNAME}"
+          "text": "*Committer*: ${CIRCLE_USERNAME}"
         },
         {
           "type": "mrkdwn",
-          "text": "*SHA*:${CIRCLE_SHA1}"
+          "text": "*SHA*: ${CIRCLE_SHA1}"
         }
       ],
       "accessory": {

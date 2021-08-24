@@ -12,7 +12,7 @@
 terraform {
   # We're using a local file path here just so our automated tests run against the absolute latest code. However, when
   # using these modules in your code, you should use a Git URL with a ref attribute that pins you to a specific version:
-  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/networking/route53?ref=v0.44.2"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/networking/route53?ref=v0.58.0"
   source = "${get_parent_terragrunt_dir()}/../../..//modules/networking/route53"
 }
 
@@ -48,8 +48,9 @@ locals {
   # Automatically load account-level variables
   account_vars = read_terragrunt_config(find_in_parent_folders("account.hcl"))
 
-  # Extract the account_name for easy access
+  # Extract the account_name and account_role for easy access
   account_name = local.account_vars.locals.account_name
+  account_role = local.account_vars.locals.account_role
 
   # Automatically load region-level variables
   region_vars = read_terragrunt_config(find_in_parent_folders("region.hcl"))
@@ -66,8 +67,13 @@ locals {
 inputs = {
   private_zones = {
     "${local.common_vars.locals.internal_services_domain_name}" = {
-      comment       = "Private hosted zone used by internal services"
-      vpc_id        = dependency.vpc.outputs.vpc_id
+      comment = "Private hosted zone used by internal services"
+      vpcs = [
+        {
+          id     = dependency.vpc.outputs.vpc_id
+          region = null # null means use the region configured in the provider.
+        },
+      ]
       tags          = {}
       force_destroy = false
     }

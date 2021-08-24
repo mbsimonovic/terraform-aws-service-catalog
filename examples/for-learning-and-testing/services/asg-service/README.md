@@ -13,9 +13,12 @@ to deploy this module directly in production, check out the [examples/for-produc
 1. Create a [GitHub personal access
    token](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line)
    with `repo` permissions and set it as the environment variable `GITHUB_OAUTH_TOKEN`: e.g.,
-   `export GITHUB_OAUTH_TOKEN=xxx`.   
+   `export GITHUB_OAUTH_TOKEN=xxx`.
 1. Find the version of the Gruntwork AWS Service Catalog you want to use by looking at the [releases
    page](/../../releases).
+1. Initialize packer:
+    ```bash
+    packer init examples/for-learning-and-testing/services/asg-service/ami-example.pkr.hcl
 1. Run the build:
 
     ```bash
@@ -23,10 +26,10 @@ to deploy this module directly in production, check out the [examples/for-produc
       -var aws_region="<AWS REGION YOU WANT TO USE>" \
       -var service_catalog_ref="<SERVICE CATALOG VERSION YOU WANT TO USE>" \
       -var version_tag="<VERSION TAG FOR AMI>" \
-      examples/for-learning-and-testing/services/asg-service/ami-example.json
+      examples/for-learning-and-testing/services/asg-service/ami-example.pkr.hcl
     ```
 
-    See also the `variables` block in [ami-example.json](/examples/for-learning-and-testing/services/asg-service/ami-example.json)
+    See also the `variables` block in [ami-example.pkr.hcl](/examples/for-learning-and-testing/services/asg-service/ami-example.pkr.hcl)
     for other variables you can set.
 1. When the build finishes, it'll output the ID of the AMI:
 

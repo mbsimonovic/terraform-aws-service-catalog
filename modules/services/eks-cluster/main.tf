@@ -9,9 +9,10 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This module is now only being tested with Terraform 0.15.x. However, to make upgrading easier, we are setting
-  # 0.13.0 as the minimum version, as that version added support for module for_each.
-  required_version = ">= 0.13.0"
+  # This module is now only being tested with Terraform 1.0.x. However, to make upgrading easier, we are setting
+  # 0.13.7 as the minimum version, as that version added support for module for_each, and includes the latest GPG key
+  # for provider binary validation.
+  required_version = ">= 0.13.7"
 
   required_providers {
     aws = {
@@ -19,9 +20,10 @@ terraform {
       version = ">= 3.0"
     }
 
+    # The underlying modules are only compatible with kubernetes provider 2.x
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "~> 1.12.0"
+      version = "~> 2.0"
     }
   }
 }
@@ -35,9 +37,8 @@ terraform {
 
 # The provider needs to depend on the cluster being setup.
 provider "kubernetes" {
-  load_config_file       = false
-  host                   = data.template_file.kubernetes_cluster_endpoint.rendered
-  cluster_ca_certificate = base64decode(data.template_file.kubernetes_cluster_ca.rendered)
+  host                   = data.aws_eks_cluster.cluster.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
   token                  = var.use_exec_plugin_for_auth ? null : data.aws_eks_cluster_auth.kubernetes_token[0].token
 
   # EKS clusters use short-lived authentication tokens that can expire in the middle of an 'apply' or 'destroy'. To
@@ -61,15 +62,11 @@ provider "kubernetes" {
 # Workaround for Terraform limitation where you cannot directly set a depends on directive or interpolate from resources
 # in the provider config.
 # Specifically, Terraform requires all information for the Terraform provider config to be available at plan time,
-# meaning there can be no computed resources. We work around this limitation by creating a template_file data source
-# that does the computation.
+# meaning there can be no computed resources. We work around this limitation by rereading the EKS cluster info using a
+# data source.
 # See https://github.com/hashicorp/terraform/issues/2430 for more details
-data "template_file" "kubernetes_cluster_endpoint" {
-  template = module.eks_cluster.eks_cluster_endpoint
-}
-
-data "template_file" "kubernetes_cluster_ca" {
-  template = module.eks_cluster.eks_cluster_certificate_authority
+data "aws_eks_cluster" "cluster" {
+  name = module.eks_cluster.eks_cluster_name
 }
 
 data "aws_eks_cluster_auth" "kubernetes_token" {
@@ -82,7 +79,7 @@ data "aws_eks_cluster_auth" "kubernetes_token" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "eks_cluster" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.42.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.44.4"
 
   cluster_name = var.cluster_name
 
@@ -309,7 +306,7 @@ resource "kubernetes_namespace" "aws_auth_merger" {
 }
 
 module "eks_aws_auth_merger" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-aws-auth-merger?ref=v0.42.2"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-aws-auth-merger?ref=v0.44.4"
   create_resources = var.enable_aws_auth_merger
 
   create_namespace       = false
@@ -325,7 +322,7 @@ module "eks_aws_auth_merger" {
 }
 
 module "eks_k8s_role_mapping" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.42.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.44.4"
 
   # Configure to create this in the merger namespace if using the aws-auth-merger. Otherwise create it as the main
   # config.
@@ -362,11 +359,16 @@ module "eks_k8s_role_mapping" {
   #    the ConfigMap to preserve the Fargate role mappings during future merges.
   # 4. aws-auth-merger looks up the other ConfigMaps in the namespace and merges them together to replace the existing
   #    central ConfigMap.
-  eks_fargate_profile_executor_iam_role_arns = (
-    var.schedule_control_plane_services_on_fargate && var.enable_aws_auth_merger == false
-    ? [module.eks_cluster.eks_default_fargate_execution_role_arn_without_dependency]
-    : []
-  )
+  # NOTE: we use compact here in case there is no fargate execution role created within the eks-cluster-control-plane
+  # module.
+  eks_fargate_profile_executor_iam_role_arns = compact(concat(
+    (
+      var.enable_aws_auth_merger == false
+      ? [module.eks_cluster.eks_default_fargate_execution_role_arn_without_dependency]
+      : []
+    ),
+    var.fargate_profile_executor_iam_role_arns_for_k8s_role_mapping,
+  ))
 
   iam_role_to_rbac_group_mappings = var.iam_role_to_rbac_group_mapping
   iam_user_to_rbac_group_mappings = var.iam_user_to_rbac_group_mapping
@@ -418,7 +420,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "metric_widget_worker_cpu_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.1"
 
   title = "${var.cluster_name} EKSWorker CPUUtilization"
   stat  = "Average"
@@ -438,7 +440,7 @@ module "metric_widget_worker_cpu_usage" {
 }
 
 module "metric_widget_worker_memory_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.1"
 
   title = "${var.cluster_name} EKSWorker MemoryUtilization"
   stat  = "Average"
@@ -458,7 +460,7 @@ module "metric_widget_worker_memory_usage" {
 }
 
 module "metric_widget_worker_disk_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.1"
 
   title = "${var.cluster_name} EKSWorker DiskUtilization"
   stat  = "Average"

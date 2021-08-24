@@ -37,11 +37,11 @@ User Data can be defined to run scripts on boot of your instance.
     > EOF
     ```
 
-1. In your terraform file, create a `template_file` data section:
+1. In your terraform file, create a `user_data` local:
 
     ```
-    data "template_file" "user_data" {
-      template = file("${path.module}/user-data.sh")
+    locals {
+      user_data = templatefile("${path.module}/user-data.sh")
     }
     ```
 
@@ -53,7 +53,7 @@ User Data can be defined to run scripts on boot of your instance.
         "sample-file" = {
             filename     = "sample-file"
             content_type = "text/x-shellscript"
-            content      = data.template_file.user_data.rendered
+            content      = local.user_data
         }
       }
     }
@@ -95,4 +95,4 @@ You can see a complete example in the [`examples/for-learning-and-testing/servic
   }
   ```
 
-  Additional keys include "encrypted", "iops", "snapshot_id", "kms_key_id", "throughput", and "tags". See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ebs_volume for more information. 
+  Additional keys include "encrypted", "iops", "snapshot_id", "kms_key_id", "throughput", and "tags". See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ebs_volume for more information.

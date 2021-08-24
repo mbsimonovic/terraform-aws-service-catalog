@@ -42,7 +42,7 @@ func TestBastionHost(t *testing.T) {
 		awsRegion := aws.GetRandomStableRegion(t, test.RegionsForEc2Tests, nil)
 
 		packerOptions := &packer.Options{
-			Template: "../../modules/mgmt/bastion-host/bastion-host.json",
+			Template: "../../modules/mgmt/bastion-host/bastion-host-ubuntu.pkr.hcl",
 			Vars: map[string]string{
 				"aws_region":          awsRegion,
 				"service_catalog_ref": branchName,

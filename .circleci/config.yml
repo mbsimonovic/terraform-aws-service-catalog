@@ -5,22 +5,22 @@ version: 2.1
 env: &env
   environment:
     # renovate.json auto-update: gruntwork-installer
-    GRUNTWORK_INSTALLER_VERSION: v0.0.36
+    GRUNTWORK_INSTALLER_VERSION: v0.0.37
     # renovate.json auto-update: terratest
-    TERRATEST_LOG_PARSER_VERSION: v0.37.1
+    TERRATEST_LOG_PARSER_VERSION: v0.37.2
     # renovate.json auto-update: kubergrunt
-    KUBERGRUNT_VERSION: v0.7.3
+    KUBERGRUNT_VERSION: v0.7.6
     # renovate.json auto-update: terraform-aws-ci
-    MODULE_CI_VERSION: v0.38.0
+    MODULE_CI_VERSION: v0.38.6
     # renovate.json auto-update: terragrunt
-    TERRAGRUNT_VERSION: v0.31.1
+    TERRAGRUNT_VERSION: v0.31.5
     # renovate.json auto-update-github-releases: hashicorp/terraform
-    TERRAFORM_VERSION: 0.15.5
+    TERRAFORM_VERSION: 1.0.3
     # We intentionally do NOT auto update K8S, as it should be tied to EKS versions, and our support for them in
     # terraform-aws-eks, both of which lag behind open source K8S
     K8S_VERSION: v1.15.0
     # renovate.json auto-update-github-releases: hashicorp/packer
-    PACKER_VERSION: 1.7.2
+    PACKER_VERSION: 1.7.4
     # TODO: how to get renovate.json to auto-update the Go version? They publish tags, but they are of a strange format
     # like "go1.15": https://github.com/golang/go/releases
     GOLANG_VERSION: 1.16
@@ -51,6 +51,10 @@ install_gruntwork_utils: &install_gruntwork_utils
       --terragrunt-version ${TERRAGRUNT_VERSION} \
       --packer-version ${PACKER_VERSION} \
       --go-version ${GOLANG_VERSION}
+install_test_finder: &install_test_finder
+  name: install test finder
+  command: |
+    gruntwork-install --module-name "monorepo-helpers" --repo "https://github.com/gruntwork-io/terraform-aws-ci" --tag "${MODULE_CI_VERSION}"
 install_kube_utils: &install_kube_utils
   name: install kubernetes utilities
   command: |
@@ -83,12 +87,9 @@ run_pre_commit: &run_pre_commit
   command: |
     pip install pre-commit
     go get golang.org/x/tools/cmd/goimports
-    export GOPATH=~/go/bin && export PATH=$PATH:$GOPATH 
+    export GOPATH=~/go/bin && export PATH=$PATH:$GOPATH
     pre-commit install
     pre-commit run --all-files
-run_circleci_unit_tests: &run_circleci_unit_tests
-  name: run circleci unit tests
-  command: python ./.circleci/run_tests_unit_tests.py
 run_tests: &run_tests
   name: run tests
   command: |
@@ -127,12 +128,11 @@ jobs:
       - image: circleci/python:3.8.1
     steps:
       - checkout
+      - prepare_environment
       - run:
-          <<: *install_gruntwork_utils
+          <<: *install_test_finder
       - run:
           <<: *run_pre_commit
-      - run:
-          <<: *run_circleci_unit_tests
   find_tests_to_run:
     <<: *env
     docker:
@@ -142,6 +142,8 @@ jobs:
       - prepare_environment
       - run:
           <<: *install_hub_cli
+      - run:
+          <<: *install_test_finder
       - run:
           name: find all tests to run
           command: ./.circleci/find-all-tests-to-run.sh

@@ -25,9 +25,9 @@ endif::[]
 = Amazon EKS Workers
 
 image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
-image:https://img.shields.io/badge/tf-%3E%3D0.15.0-blue.svg[Terraform version]
+image:https://img.shields.io/badge/tf-%3E%3D1.0.0-blue.svg[Terraform version]
 image:https://img.shields.io/badge/helm-%3E%3D3.1.0-green[Helm version]
-image:https://img.shields.io/badge/k8s-1.16%20~%201.20-5dbcd2[K8s version]
+image:https://img.shields.io/badge/k8s-1.16%20~%201.21-5dbcd2[K8s version]
 
 This folder contains https://www.terraform.io[Terraform] and https://www.packer.io[Packer] code to deploy a
 production-grade EC2 server cluster as workers for

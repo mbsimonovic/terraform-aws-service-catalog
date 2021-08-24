@@ -30,7 +30,7 @@ defaults: &defaults
   environment:
     REGION: us-west-2
     GRUNTWORK_INSTALLER_VERSION: v0.0.36
-    MODULE_CI_VERSION: v0.37.2
+    MODULE_CI_VERSION: v0.38.4
     MODULE_SECURITY_VERSION: v0.49.4
     # TODO: update the following on installation to your repositories.
     DEV_DEPLOY_PATH: "dev/us-west-2/dev/services/application"
@@ -78,13 +78,18 @@ workflows:
     jobs:
       # Workflow: always build images, and then deploy image to dev on all commits to main, and deploy image to stage on
       # all tags that start with `v`.
-      - build
+      - build:
+          filters:
+            tags:
+              only: /^v.*/
       - deploy_dev:
           requires:
             - build
           filters:
             branches:
               only: main
+            # NOTE: tag filter is purposefully not added here. CircleCI does not build on tags automatically, so by
+            # omitting the tag filter, tags will skip this build step.
       - deploy_stage:
           requires:
             - build

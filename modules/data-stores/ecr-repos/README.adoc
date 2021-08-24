@@ -25,7 +25,7 @@ endif::[]
 = Amazon ECR Repositories
 
 image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
-image:https://img.shields.io/badge/tf-%3E%3D0.15.0-blue.svg[Terraform version]
+image:https://img.shields.io/badge/tf-%3E%3D1.0.0-blue.svg[Terraform version]
 
 This folder contains code to create and manage multiple https://aws.amazon.com/ecr/[Amazon Elastic Container Repository
 (ECR)] Repositories that can be used for storing and distributing container images.

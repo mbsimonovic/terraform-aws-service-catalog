@@ -3,9 +3,9 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This module is now only being tested with Terraform 0.15.x. However, to make upgrading easier, we are setting
+  # This module is now only being tested with Terraform 1.0.x. However, to make upgrading easier, we are setting
   # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 0.15.x code.
+  # forwards compatible with 1.0.x code.
   required_version = ">= 0.12.26"
 
   required_providers {
@@ -22,7 +22,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_service" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ecs.git//modules/ecs-service?ref=v0.30.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ecs.git//modules/ecs-service?ref=v0.30.3"
 
   service_name    = var.service_name
   ecs_cluster_arn = var.ecs_cluster_arn
@@ -231,7 +231,7 @@ locals {
 # domain names (the condition block) to the Target Group that contains this ASG service.
 # ---------------------------------------------------------------------------------------------------------------------
 module "listener_rules" {
-  source                 = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/lb-listener-rules?ref=v0.27.0"
+  source                 = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/lb-listener-rules?ref=v0.27.1"
   default_listener_arns  = var.default_listener_arns
   default_listener_ports = var.default_listener_ports
 
@@ -252,7 +252,7 @@ module "listener_rules" {
 
 # Add CloudWatch Alarms that go off if the ECS Service's CPU or Memory usage gets too high.
 module "ecs_service_cpu_memory_alarms" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/ecs-service-alarms?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/ecs-service-alarms?ref=v0.30.1"
 
   ecs_service_name     = var.service_name
   ecs_cluster_name     = var.ecs_cluster_name
@@ -265,7 +265,7 @@ module "ecs_service_cpu_memory_alarms" {
 }
 
 module "metric_widget_ecs_service_cpu_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.1"
 
   period = 60
   stat   = "Average"
@@ -277,7 +277,7 @@ module "metric_widget_ecs_service_cpu_usage" {
 }
 
 module "metric_widget_ecs_service_memory_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.1"
 
   period = 60
   stat   = "Average"
@@ -314,7 +314,7 @@ resource "aws_route53_record" "service" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "route53_health_check" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/route53-health-check-alarms?ref=v0.30.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/route53-health-check-alarms?ref=v0.30.1"
 
   create_resources               = var.enable_route53_health_check
   alarm_sns_topic_arns_us_east_1 = var.alarm_sns_topic_arns_us_east_1

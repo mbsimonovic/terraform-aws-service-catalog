@@ -18,7 +18,18 @@ func TestValidateAllModulesAndExamples(t *testing.T) {
 	cwd, err := os.Getwd()
 	require.NoError(t, err)
 
-	opts, optsErr := test_structure.NewValidationOptions(filepath.Join(cwd, "../.."), []string{}, []string{})
+	// Due to a Terraform bug (https://github.com/hashicorp/terraform/issues/28490), 'terraform validate' will fail on
+	// any module that uses configuration_aliases, so we have to exclude all our multi-region modules, as they all use
+	// that feature. Fortunately, validate will still run against these modules when we run it in the examples folder,
+	// and it will pass there because all our examples pass in the full set of providers expected by
+	// configuration_aliases.
+	excludeDirs := []string{
+		"modules/landingzone/account-baseline-app",
+		"modules/landingzone/account-baseline-root",
+		"modules/landingzone/account-baseline-security",
+	}
+
+	opts, optsErr := test_structure.NewValidationOptions(filepath.Join(cwd, "../.."), []string{}, excludeDirs)
 	require.NoError(t, optsErr)
 
 	test_structure.ValidateAllTerraformModules(t, opts)

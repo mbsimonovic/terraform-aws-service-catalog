@@ -54,7 +54,7 @@ func TestJenkins(t *testing.T) {
 		test_structure.SaveString(t, testFolder, "region", awsRegion)
 
 		packerOptions := &packer.Options{
-			Template: "../../modules/mgmt/jenkins/jenkins-ubuntu.json",
+			Template: "../../modules/mgmt/jenkins/jenkins-ubuntu.pkr.hcl",
 			Vars: map[string]string{
 				"aws_region":          awsRegion,
 				"service_catalog_ref": branchName,

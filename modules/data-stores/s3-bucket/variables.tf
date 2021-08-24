@@ -18,6 +18,40 @@ variable "access_logging_bucket" {
   default     = null
 }
 
+variable "cors_rules" {
+  # cors_rules is a list(object({...})) for setting CORS rules on this S3 bucket
+  # This is only applied to the primary bucket
+  # See https://docs.aws.amazon.com/AmazonS3/latest/dev/cors.html for more details
+
+  # The objects that can define the following properties:
+  #
+  # - allowed_origins list(string)      (required): The origins that you want to allow cross-domain requests from.
+  # - allowed_methods list(string)      (required): From the set of GET, PUT, POST, DELETE, HEAD
+  # - allowed_headers list(string)      (optional): The AllowedHeader element specifies which headers are allowed in a preflight request through the Access-Control-Request-Headers header.
+  # - expose_headers  list(string)      (optional): Each ExposeHeader element identifies a header in the response that you want customers to be able to access from their applications.
+  # - max_age_seconds number            (optional): The MaxAgeSeconds element specifies the time in seconds that your browser can cache the response for a preflight request as identified by the resource, the HTTP method, and the origin.
+  description = "CORS rules to set on this S3 bucket"
+
+  # Ideally, this would be a list(object({...})), but the Terraform object type constraint doesn't support optional
+  # parameters, whereas replication rules have many optional params. And we can't even use list(any), as the Terraform
+  # list type constraint requires all values to have the same type ("shape"), but as each object in the list may specify
+  # different optional params, this won't work either. So, sadly, we are forced to fall back to "any."
+  type = any
+
+  # Example:
+  #
+  # [
+  #   {
+  #     allowed_origins = ["*"]
+  #     allowed_methods = ["GET", "HEAD"]
+  #     allowed_headers = ["x-amz-*"]
+  #     expose_headers  = ["Etag"]
+  #     max_age_seconds = 3000
+  #   }
+  # ]
+  default = []
+}
+
 variable "bucket_policy_statements" {
   # The bucket policy statements for this S3 bucket. See the 'statement' block in the aws_iam_policy_document data
   # source for context: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document
@@ -151,7 +185,7 @@ variable "enable_versioning" {
 }
 
 variable "mfa_delete" {
-  description = "Enable MFA delete for either 'Change the versioning state of your bucket' or 'Permanently delete an object version'. This cannot be used to toggle this setting but is available to allow managed buckets to reflect the state in AWS. Only used if enable_versioning is true. For instructions on how to enable MFA Delete, check out the README from the s3-bucket module."
+  description = "Enable MFA delete for either 'Change the versioning state of your bucket' or 'Permanently delete an object version'. This cannot be used to toggle this setting but is available to allow managed buckets to reflect the state in AWS. Only used if enable_versioning is true. For instructions on how to enable MFA Delete, check out the README from the terraform-aws-security/private-s3-bucket module."
   type        = bool
   default     = false
 }
@@ -247,14 +281,26 @@ variable "replica_bucket_ownership" {
   default     = null
 }
 
+variable "enable_sse" {
+  description = "Set to true to enable server-side encryption for this bucket. You can control the algorithm using var.sse_algorithm."
+  type        = bool
+  default     = true
+}
+
 variable "bucket_sse_algorithm" {
-  description = "The server-side encryption algorithm to use on the bucket. Valid values are AES256 and aws:kms. Set to null to disable encryption."
+  description = "The server-side encryption algorithm to use on the bucket. Valid values are AES256 and aws:kms. To disable server-side encryption, set var.enable_sse to false."
   type        = string
   default     = "aws:kms"
 }
 
+variable "replica_enable_sse" {
+  description = "Set to true to enable server-side encryption for the replica bucket. You can control the algorithm using var.replica_sse_algorithm."
+  type        = bool
+  default     = true
+}
+
 variable "replica_sse_algorithm" {
-  description = "The server-side encryption algorithm to use on the replica bucket. Valid values are AES256 and aws:kms."
+  description = "The server-side encryption algorithm to use on the replica bucket. Valid values are AES256 and aws:kms. To disable server-side encryption, set var.replica_enable_sse to false."
   type        = string
   default     = "aws:kms"
 }

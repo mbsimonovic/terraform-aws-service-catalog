@@ -59,7 +59,7 @@ func buildASGAmi(t *testing.T, testFolder string) {
 
 	branchName := git.GetCurrentBranchName(t)
 	packerOptions := &packer.Options{
-		Template: "../../examples/for-learning-and-testing/services/asg-service/ami-example.json",
+		Template: "../../examples/for-learning-and-testing/services/asg-service/ami-example.pkr.hcl",
 		Vars: map[string]string{
 			"aws_region":          awsRegion,
 			"version_tag":         branchName,
