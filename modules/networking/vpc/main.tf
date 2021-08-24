@@ -68,6 +68,7 @@ module "vpc" {
   enable_default_security_group        = var.enable_default_security_group
   default_security_group_ingress_rules = var.default_security_group_ingress_rules
   default_security_group_egress_rules  = var.default_security_group_egress_rules
+  apply_default_nacl_rules             = var.apply_default_nacl_rules
   default_nacl_ingress_rules           = var.default_nacl_ingress_rules
   default_nacl_egress_rules            = var.default_nacl_egress_rules
 
