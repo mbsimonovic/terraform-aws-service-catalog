@@ -474,17 +474,7 @@ variable "enable_cloudtrail" {
 }
 
 variable "cloudtrail_s3_mfa_delete" {
-<<<<<<< HEAD
-  description = "Enable MFA delete for either 'Change the versioning state of your bucket' or 'Permanently delete an object version'. This setting only applies to the bucket used to storage Cloudtrail data. This cannot be used to toggle this setting but is available to allow managed buckets to reflect the state in AWS. For instructions on how to enable MFA Delete, check out the README from the s3-bucket module."
-  type        = bool
-  default     = false
-}
-
-variable "cloudtrail_s3_enable_lifecycle_rules" {
-  description = "If you enable MFA Delete, you need to disable Lifecycle Rules for the bucket."
-=======
   description = "Enable MFA delete for either 'Change the versioning state of your bucket' or 'Permanently delete an object version'. This setting only applies to the bucket used to storage Cloudtrail data. This cannot be used to toggle this setting but is available to allow managed buckets to reflect the state in AWS. For instructions on how to enable MFA Delete, check out the README from the terraform-aws-security/private-s3-bucket module."
->>>>>>> master
   type        = bool
   default     = false
 }
