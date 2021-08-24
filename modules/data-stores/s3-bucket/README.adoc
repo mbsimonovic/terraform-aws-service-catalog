@@ -67,6 +67,8 @@ If you want to deploy this repo in production, check out the following resources
   https://gruntwork.io/reference-architecture/:[Gruntwork Reference Architecture], and it shows you how we build an
   end-to-end, integrated tech stack on top of the Gruntwork Service Catalog.
 
+* https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/private-s3-bucket#how-do-you-enable-mfa-delete[How to enable MFA Delete?]: step-by-step guide on enabling MFA delete for your S3 buckets.
+
 == Support
 
 If you need help with this repo or anything else related to infrastructure or DevOps, Gruntwork offers
