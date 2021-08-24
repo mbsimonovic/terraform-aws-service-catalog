@@ -463,7 +463,6 @@ module "iam_access_analyzer" {
     aws.eu_west_3      = aws.eu_west_3
     aws.me_south_1     = aws.me_south_1
     aws.sa_east_1      = aws.sa_east_1
-    aws.sa_east_1      = aws.sa_east_1
     aws.us_east_1      = aws.us_east_1
     aws.us_east_2      = aws.us_east_2
     aws.us_gov_east_1  = aws.us_gov_east_1
