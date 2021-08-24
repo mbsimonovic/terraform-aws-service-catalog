@@ -19,7 +19,7 @@ module "self_managed_workers" {
   iam_role_name           = local.asg_iam_role_name
   iam_role_arn            = var.asg_iam_role_arn
 
-  autoscaling_group_configurations  = var.autoscaling_group_configurations
+  autoscaling_group_configurations  = local.asg_configs
   include_autoscaler_discovery_tags = var.autoscaling_group_include_autoscaler_discovery_tags
 
   asg_default_min_size                                 = var.asg_default_min_size
@@ -103,6 +103,22 @@ resource "aws_security_group_rule" "custom_egress_security_group_rules_asg" {
   cidr_blocks              = each.value.cidr_blocks
 }
 
+data "cloudinit_config" "asg_cloud_inits" {
+  for_each      = local.asg_cloud_inits
+  gzip          = true
+  base64_encode = true
+
+  dynamic "part" {
+    for_each = each.value.cloud_inits
+
+    content {
+      filename     = part.value.filename
+      content_type = part.value.content_type
+      content      = part.value.content
+    }
+  }
+}
+
 locals {
   # IAM role name should be null if IAM role arn is passed in.
   asg_iam_role_name = (
@@ -114,6 +130,32 @@ locals {
       : var.asg_custom_iam_role_name
     )
   )
+
+  # Per ASG cloud init
+  asg_cloud_inits = { for asg_name, asg_config in var.autoscaling_group_configurations :
+    asg_name => merge(asg_config, {
+      cloud_inits = merge({ default : {
+        filename     = "eks-worker-default-cloud-init"
+        content_type = "text/x-shellscript"
+        # Trim excess whitespace, because AWS will do that on deploy. This prevents
+        # constant redeployment because the userdata hash doesn't match the trimmed
+        # userdata hash.
+        # See: https://github.com/hashicorp/terraform-provider-aws/issues/5011#issuecomment-878542063
+        content = trimspace(templatefile(
+          "${path.module}/user-data.sh",
+          merge(local.default_user_data_context, {
+            eks_kubelet_extra_args = lookup(asg_config, "eks_kubelet_extra_args", "")
+          })
+        ))
+      } }, merge(var.cloud_init_parts, lookup(asg_config, "cloud_init_parts", {})))
+    })
+  }
+
+  asg_configs = { for asg_name, asg_config in var.autoscaling_group_configurations :
+    asg_name => merge(asg_config, {
+      asg_instance_user_data_base64 = data.cloudinit_config.asg_cloud_inits[asg_name].rendered
+    })
+  }
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

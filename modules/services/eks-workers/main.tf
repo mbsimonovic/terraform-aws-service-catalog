@@ -125,38 +125,39 @@ locals {
   cloud_init = {
     filename     = "eks-worker-default-cloud-init"
     content_type = "text/x-shellscript"
-    content      = local.base_user_data
+    content      = local.default_user_data
   }
 
   # Merge in all the cloud init scripts the user has passed in
   cloud_init_parts = merge({ default : local.cloud_init }, var.cloud_init_parts)
+  default_user_data_context = {
+    aws_region                = data.aws_region.current.name
+    eks_cluster_name          = var.eks_cluster_name
+    eks_endpoint              = data.aws_eks_cluster.cluster.endpoint
+    eks_certificate_authority = data.aws_eks_cluster.cluster.certificate_authority.0.data
+
+    enable_ssh_grunt                    = local.enable_ssh_grunt
+    enable_fail2ban                     = var.enable_fail2ban
+    ssh_grunt_iam_group                 = var.ssh_grunt_iam_group
+    ssh_grunt_iam_group_sudo            = var.ssh_grunt_iam_group_sudo
+    external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
+
+    # We disable CloudWatch logs at the VM level as this is handled internally in k8s.
+    enable_cloudwatch_log_aggregation = false
+    log_group_name                    = ""
+
+    # TODO: investigate if IP lockdown can now be enabled due to IRSA
+    enable_ip_lockdown = false
+
+    # Extra kublet args
+    eks_kubelet_extra_args = ""
+  }
 
   # Trim excess whitespace, because AWS will do that on deploy. This prevents
   # constant redeployment because the userdata hash doesn't match the trimmed
   # userdata hash.
   # See: https://github.com/hashicorp/terraform-provider-aws/issues/5011#issuecomment-878542063
-  base_user_data = trimspace(templatefile(
-    "${path.module}/user-data.sh",
-    {
-      aws_region                = data.aws_region.current.name
-      eks_cluster_name          = var.eks_cluster_name
-      eks_endpoint              = data.aws_eks_cluster.cluster.endpoint
-      eks_certificate_authority = data.aws_eks_cluster.cluster.certificate_authority.0.data
-
-      enable_ssh_grunt                    = local.enable_ssh_grunt
-      enable_fail2ban                     = var.enable_fail2ban
-      ssh_grunt_iam_group                 = var.ssh_grunt_iam_group
-      ssh_grunt_iam_group_sudo            = var.ssh_grunt_iam_group_sudo
-      external_account_ssh_grunt_role_arn = var.external_account_ssh_grunt_role_arn
-
-      # We disable CloudWatch logs at the VM level as this is handled internally in k8s.
-      enable_cloudwatch_log_aggregation = false
-      log_group_name                    = ""
-
-      # TODO: investigate if IP lockdown can now be enabled due to IRSA
-      enable_ip_lockdown = false
-    },
-  ))
+  default_user_data = trimspace(templatefile("${path.module}/user-data.sh", local.default_user_data_context))
 }
 
 

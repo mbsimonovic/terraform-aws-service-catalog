@@ -33,7 +33,7 @@ function configure_eks_instance {
   /etc/eks/bootstrap.sh \
     --apiserver-endpoint "$eks_endpoint" \
     --b64-cluster-ca "$eks_certificate_authority" \
-    --kubelet-extra-args "--node-labels=\"$node_labels\"" \
+    --kubelet-extra-args "--node-labels=\"$node_labels\" ${eks_kubelet_extra_args}" \
     "$eks_cluster_name"
 }
 

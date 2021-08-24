@@ -63,6 +63,8 @@ variable "autoscaling_group_configurations" {
   #                                             EC2 Auto Scaling selects the cheapest Spot pools and evenly allocates Spot capacity across the number of Spot pools that you specify.
   # - spot_max_price   string                 : (Defaults to value from var.asg_default_spot_max_price, an empty string which means the on-demand price.)
   #                                             When using a multi_instances_policy the maximum price per unit hour that the user is willing to pay for the Spot instances.
+  # - cloud_init_parts    map(string)         : (Defaults to value from var.cloud_init_parts)
+  #                                             Per-ASG cloud init scripts to run at boot time on the node.  See var.cloud_init_parts for accepted keys.
   #
   # Structure of Tag object:
   # - key                  string  : The key for the tag to apply to the instance.
