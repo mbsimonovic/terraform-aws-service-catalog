@@ -147,9 +147,9 @@ module "config_bucket" {
   create_resources = var.config_should_create_s3_bucket
 
   # Create the S3 bucket and allow all the other accounts to write to this bucket
-  s3_bucket_name            = local.config_s3_bucket_name_base
-  s3_mfa_delete             = var.config_s3_mfa_delete
-  linked_accounts           = local.all_non_logs_account_ids
+  s3_bucket_name  = local.config_s3_bucket_name_base
+  s3_mfa_delete   = var.config_s3_mfa_delete
+  linked_accounts = local.all_non_logs_account_ids
 
   # We have to set this to work around an issue where aws_caller_identity returns the wrong account ID. See:
   # https://github.com/gruntwork-io/terraform-aws-security/pull/308#issuecomment-676561441
