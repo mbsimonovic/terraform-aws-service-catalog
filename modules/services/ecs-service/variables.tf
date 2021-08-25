@@ -873,14 +873,14 @@ variable "lb_hosted_zone_id" {
 
 variable "deployment_circuit_breaker_enabled" {
   description = "Set to 'true' to prevent the task from attempting to continuously redeploy after a failed health check."
-  type = bool
-  default = false
+  type        = bool
+  default     = false
 }
 
 variable "deployment_circuit_breaker_rollback" {
   description = "Set to 'true' to also automatically roll back to the last successful deployment. deploy_circuit_breaker_enabled must also be true to enable this behavior."
-  type = bool
-  default = false
+  type        = bool
+  default     = false
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -889,14 +889,14 @@ variable "deployment_circuit_breaker_rollback" {
 
 variable "proxy_configuration_container_name" {
   description = "Use the name of the Envoy proxy container from `container_definitions` as the container name."
-  type = string
-  default = null
+  type        = string
+  default     = null
 }
 
 variable "proxy_configuration_properties" {
   description = "A map of network configuration parameters to provide the Container Network Interface (CNI) plugin."
-  type = map(string)
-  default = null
+  type        = map(string)
+  default     = null
 
   # Example:
   # properties = {
