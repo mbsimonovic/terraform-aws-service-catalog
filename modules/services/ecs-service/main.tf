@@ -22,7 +22,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_service" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ecs.git//modules/ecs-service?ref=v0.30.3"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ecs.git//modules/ecs-service?ref=v0.30.4"
 
   service_name    = var.service_name
   ecs_cluster_arn = var.ecs_cluster_arn
@@ -82,6 +82,17 @@ module "ecs_service" {
 
   volumes     = var.volumes
   efs_volumes = var.efs_volumes
+
+  deployment_circuit_breaker = {
+    enable   = var.deployment_circuit_breaker_enabled
+    rollback = var.deployment_circuit_breaker_enabled && var.deployment_circuit_breaker_rollback
+  }
+
+  proxy_configuration = var.proxy_configuration_container_name != null && var.proxy_configuration_properties != null ? {
+    type = "APPMESH"
+    container_name = var.proxy_configuration_container_name
+    properties = var.proxy_configuration_properties
+  } : null
 
   dependencies = var.dependencies
 }
