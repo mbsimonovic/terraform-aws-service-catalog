@@ -20,6 +20,35 @@ module "ecs_deploy_runner" {
   # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/mgmt/ecs-deploy-runner?ref=v1.0.8"
   source = "../../../../modules/mgmt/ecs-deploy-runner"
 
+  providers = {
+    aws                = aws.default
+    aws.af_south_1     = aws.af_south_1
+    aws.ap_east_1      = aws.ap_east_1
+    aws.ap_northeast_1 = aws.ap_northeast_1
+    aws.ap_northeast_2 = aws.ap_northeast_2
+    aws.ap_northeast_3 = aws.ap_northeast_3
+    aws.ap_south_1     = aws.ap_south_1
+    aws.ap_southeast_1 = aws.ap_southeast_1
+    aws.ap_southeast_2 = aws.ap_southeast_2
+    aws.ca_central_1   = aws.ca_central_1
+    aws.cn_north_1     = aws.cn_north_1
+    aws.cn_northwest_1 = aws.cn_northwest_1
+    aws.eu_central_1   = aws.eu_central_1
+    aws.eu_north_1     = aws.eu_north_1
+    aws.eu_south_1     = aws.eu_south_1
+    aws.eu_west_1      = aws.eu_west_1
+    aws.eu_west_2      = aws.eu_west_2
+    aws.eu_west_3      = aws.eu_west_3
+    aws.me_south_1     = aws.me_south_1
+    aws.sa_east_1      = aws.sa_east_1
+    aws.us_east_1      = aws.us_east_1
+    aws.us_east_2      = aws.us_east_2
+    aws.us_gov_east_1  = aws.us_gov_east_1
+    aws.us_gov_west_1  = aws.us_gov_west_1
+    aws.us_west_1      = aws.us_west_1
+    aws.us_west_2      = aws.us_west_2
+  }
+
   name = var.name
 
   vpc_id             = module.vpc.vpc_id

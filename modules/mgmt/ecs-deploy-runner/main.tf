@@ -19,6 +19,34 @@ terraform {
       source  = "hashicorp/aws"
       version = ">= 2.6"
     }
+
+    configuration_aliases = [
+      aws.af_south_1,
+      aws.ap_east_1,
+      aws.ap_northeast_1,
+      aws.ap_northeast_2,
+      aws.ap_northeast_3,
+      aws.ap_south_1,
+      aws.ap_southeast_1,
+      aws.ap_southeast_2,
+      aws.ca_central_1,
+      aws.cn_north_1,
+      aws.cn_northwest_1,
+      aws.eu_central_1,
+      aws.eu_north_1,
+      aws.eu_south_1,
+      aws.eu_west_1,
+      aws.eu_west_2,
+      aws.eu_west_3,
+      aws.me_south_1,
+      aws.sa_east_1,
+      aws.us_east_1,
+      aws.us_east_2,
+      aws.us_gov_east_1,
+      aws.us_gov_west_1,
+      aws.us_west_1,
+      aws.us_west_2,
+    ]
   }
 }
 
@@ -461,6 +489,34 @@ module "shared_secrets_kms_grants" {
   aws_account_id    = data.aws_caller_identity.current.account_id
   kms_grant_regions = local.shared_secrets_kms_grant_regions
   kms_grants        = local.shared_secrets_kms_grants
+
+  providers = {
+    aws.af_south_1     = aws.af_south_1
+    aws.ap_east_1      = aws.ap_east_1
+    aws.ap_northeast_1 = aws.ap_northeast_1
+    aws.ap_northeast_2 = aws.ap_northeast_2
+    aws.ap_northeast_3 = aws.ap_northeast_3
+    aws.ap_south_1     = aws.ap_south_1
+    aws.ap_southeast_1 = aws.ap_southeast_1
+    aws.ap_southeast_2 = aws.ap_southeast_2
+    aws.ca_central_1   = aws.ca_central_1
+    aws.cn_north_1     = aws.cn_north_1
+    aws.cn_northwest_1 = aws.cn_northwest_1
+    aws.eu_central_1   = aws.eu_central_1
+    aws.eu_north_1     = aws.eu_north_1
+    aws.eu_south_1     = aws.eu_south_1
+    aws.eu_west_1      = aws.eu_west_1
+    aws.eu_west_2      = aws.eu_west_2
+    aws.eu_west_3      = aws.eu_west_3
+    aws.me_south_1     = aws.me_south_1
+    aws.sa_east_1      = aws.sa_east_1
+    aws.us_east_1      = aws.us_east_1
+    aws.us_east_2      = aws.us_east_2
+    aws.us_gov_east_1  = aws.us_gov_east_1
+    aws.us_gov_west_1  = aws.us_gov_west_1
+    aws.us_west_1      = aws.us_west_1
+    aws.us_west_2      = aws.us_west_2
+  }
 }
 
 locals {
@@ -534,6 +590,34 @@ locals {
 
 module "kms_grants" {
   source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-grant-multi-region?ref=v0.53.1"
+
+  providers = {
+    aws.af_south_1     = aws.af_south_1
+    aws.ap_east_1      = aws.ap_east_1
+    aws.ap_northeast_1 = aws.ap_northeast_1
+    aws.ap_northeast_2 = aws.ap_northeast_2
+    aws.ap_northeast_3 = aws.ap_northeast_3
+    aws.ap_south_1     = aws.ap_south_1
+    aws.ap_southeast_1 = aws.ap_southeast_1
+    aws.ap_southeast_2 = aws.ap_southeast_2
+    aws.ca_central_1   = aws.ca_central_1
+    aws.cn_north_1     = aws.cn_north_1
+    aws.cn_northwest_1 = aws.cn_northwest_1
+    aws.eu_central_1   = aws.eu_central_1
+    aws.eu_north_1     = aws.eu_north_1
+    aws.eu_south_1     = aws.eu_south_1
+    aws.eu_west_1      = aws.eu_west_1
+    aws.eu_west_2      = aws.eu_west_2
+    aws.eu_west_3      = aws.eu_west_3
+    aws.me_south_1     = aws.me_south_1
+    aws.sa_east_1      = aws.sa_east_1
+    aws.us_east_1      = aws.us_east_1
+    aws.us_east_2      = aws.us_east_2
+    aws.us_gov_east_1  = aws.us_gov_east_1
+    aws.us_gov_west_1  = aws.us_gov_west_1
+    aws.us_west_1      = aws.us_west_1
+    aws.us_west_2      = aws.us_west_2
+  }
 
   aws_account_id    = data.aws_caller_identity.current.account_id
   kms_grant_regions = local.kms_grant_regions
