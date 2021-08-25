@@ -89,9 +89,9 @@ module "ecs_service" {
   }
 
   proxy_configuration = var.proxy_configuration_container_name != null && var.proxy_configuration_properties != null ? {
-    type = "APPMESH"
+    type           = "APPMESH"
     container_name = var.proxy_configuration_container_name
-    properties = var.proxy_configuration_properties
+    properties     = var.proxy_configuration_properties
   } : null
 
   dependencies = var.dependencies
