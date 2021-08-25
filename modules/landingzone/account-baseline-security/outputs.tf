@@ -413,3 +413,12 @@ output "aws_ebs_encryption_default_kms_key" {
   description = "A map from region to the ARN of the KMS key used for default EBS encryption for each region."
   value       = module.ebs_encryption.aws_ebs_encryption_default_kms_key
 }
+
+# ---------------------------------------------------------------------------------------------------------------------
+# SERVICE LINKED ROLE OUTPUTS
+# ---------------------------------------------------------------------------------------------------------------------
+
+output "service_linked_role_arns" {
+  description = "A map of ARNs of the service linked roles created from var.service_linked_roles."
+  value       = { for name, config in var.service_linked_roles : name => aws_iam_service_linked_role.role[name].arn }
+}

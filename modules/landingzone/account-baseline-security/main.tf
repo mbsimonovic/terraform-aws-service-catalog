@@ -423,6 +423,16 @@ module "kms_grants" {
   opt_in_regions    = var.kms_cmk_opt_in_regions
   kms_grant_regions = var.kms_grant_regions
   kms_grants        = var.kms_grants
+
+  # In order to support creating grants for IAM entities that are managed with this module, we need to make sure that
+  # grants are created after the IAM entities. See: https://github.com/gruntwork-io/terraform-aws-architecture-catalog/issues/44.
+  dependencies = concat(
+    formatlist("%v", values(module.iam_cross_account_roles)),
+    [
+      for _, role in aws_iam_service_linked_role.role :
+      role.id
+    ],
+  )
 }
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -475,6 +485,15 @@ module "ebs_encryption" {
     for k, v in module.customer_master_keys.key_arns :
     k => lookup(v, var.ebs_kms_key_name, null)
   }
+}
+
+# ----------------------------------------------------------------------------------------------------------------------
+# ACCOUNT LEVEL SERVICE-LINKED ROLES
+# ----------------------------------------------------------------------------------------------------------------------
+
+resource "aws_iam_service_linked_role" "role" {
+  for_each         = var.service_linked_roles
+  aws_service_name = each.value
 }
 
 # ----------------------------------------------------------------------------------------------------------------------
