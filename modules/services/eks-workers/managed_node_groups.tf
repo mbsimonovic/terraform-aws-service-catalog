@@ -56,10 +56,11 @@ resource "aws_launch_template" "template" {
   instance_type = var.node_group_launch_template_instance_type
   key_name      = var.cluster_instance_keypair_name
 
-  # For now, each Managed Node Group must have the same AMI and user data. In a future version, we will support extracting
-  # additional user data and AMI configurations from each Managed Node Group entry.
-  image_id  = module.ec2_baseline_common.existing_ami
-  user_data = data.cloudinit_config.managed_node_group.rendered
+  user_data = data.cloudinit_config.managed_node_group[each.key].rendered
+
+  # For now, each Managed Node Group must have the same AMI. In a future version, we will support extracting additional
+  # AMI configurations from each Managed Node Group entry.
+  image_id = module.ec2_baseline_common.existing_ami
 
   network_interfaces {
     security_groups = concat(
@@ -120,6 +121,8 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 data "cloudinit_config" "managed_node_group" {
+  for_each = var.managed_node_group_configurations
+
   gzip          = false
   base64_encode = true
   boundary      = "==BOUNDARY=="
@@ -127,17 +130,24 @@ data "cloudinit_config" "managed_node_group" {
   # NOTE: We extract out the default cloud init part first, and then render the rest. This ensures the default cloud
   # init configuration always runs first.
   part {
-    filename     = local.cloud_init_parts["default"].filename
-    content_type = local.cloud_init_parts["default"].content_type
-    content      = local.cloud_init_parts["default"].content
+    filename     = "eks-worker-default-cloud-init"
+    content_type = "text/x-shellscript"
+
+    # Trim excess whitespace, because AWS will do that on deploy. This prevents
+    # constant redeployment because the userdata hash doesn't match the trimmed
+    # userdata hash.
+    # See: https://github.com/hashicorp/terraform-provider-aws/issues/5011#issuecomment-878542063
+    content = trimspace(templatefile(
+      "${path.module}/user-data.sh",
+      merge(
+        local.default_user_data_context,
+        { eks_kubelet_extra_args = lookup(each.value, "eks_kubelet_extra_args", "") },
+      ),
+    ))
   }
 
   dynamic "part" {
-    # We filter out the default cloud init part since we already rendered that above.
-    for_each = {
-      for k, v in var.cloud_init_parts :
-      k => v if k != "default"
-    }
+    for_each = merge(var.cloud_init_parts, lookup(each.value, "cloud_init_parts", {}))
 
     content {
       filename     = part.value.filename

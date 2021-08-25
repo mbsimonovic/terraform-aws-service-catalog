@@ -39,9 +39,10 @@ module "self_managed_workers" {
   asg_default_multi_instance_overrides                 = var.asg_default_multi_instance_overrides
 
   # The following are not yet supported to accept multiple, but in a future version, we will support extracting
-  # additional user data and AMI configurations from each ASG entry.
-  asg_default_instance_ami              = module.ec2_baseline_common.existing_ami
-  asg_default_instance_user_data_base64 = module.ec2_baseline_common.cloud_init_rendered
+  # additional AMI configurations from each ASG entry.
+  # NOTE: we don't configure asg_default_instance_user_data_base64 here because asg_configs will inject a user data
+  # setting for every group configuration, negating the need to configure the default.
+  asg_default_instance_ami = module.ec2_baseline_common.existing_ami
 
   cluster_instance_keypair_name = var.cluster_instance_keypair_name
 
@@ -103,13 +104,34 @@ resource "aws_security_group_rule" "custom_egress_security_group_rules_asg" {
   cidr_blocks              = each.value.cidr_blocks
 }
 
+# Configure custom cloud-init configuration for each ASG depending on if cloud_init_parts or eks_kubelet_extra_args is
+# configured on the asg.
 data "cloudinit_config" "asg_cloud_inits" {
-  for_each      = local.asg_cloud_inits
+  for_each      = var.autoscaling_group_configurations
   gzip          = true
   base64_encode = true
 
+  # NOTE: We extract out the default cloud init part first, and then render the rest. This ensures the default cloud
+  # init configuration always runs first.
+  part {
+    filename     = "eks-worker-default-cloud-init"
+    content_type = "text/x-shellscript"
+
+    # Trim excess whitespace, because AWS will do that on deploy. This prevents
+    # constant redeployment because the userdata hash doesn't match the trimmed
+    # userdata hash.
+    # See: https://github.com/hashicorp/terraform-provider-aws/issues/5011#issuecomment-878542063
+    content = trimspace(templatefile(
+      "${path.module}/user-data.sh",
+      merge(
+        local.default_user_data_context,
+        { eks_kubelet_extra_args = lookup(each.value, "eks_kubelet_extra_args", "") },
+      ),
+    ))
+  }
+
   dynamic "part" {
-    for_each = each.value.cloud_inits
+    for_each = merge(var.cloud_init_parts, lookup(each.value, "cloud_init_parts", {}))
 
     content {
       filename     = part.value.filename
@@ -131,30 +153,12 @@ locals {
     )
   )
 
-  # Per ASG cloud init
-  asg_cloud_inits = { for asg_name, asg_config in var.autoscaling_group_configurations :
-    asg_name => merge(asg_config, {
-      cloud_inits = merge({ default : {
-        filename     = "eks-worker-default-cloud-init"
-        content_type = "text/x-shellscript"
-        # Trim excess whitespace, because AWS will do that on deploy. This prevents
-        # constant redeployment because the userdata hash doesn't match the trimmed
-        # userdata hash.
-        # See: https://github.com/hashicorp/terraform-provider-aws/issues/5011#issuecomment-878542063
-        content = trimspace(templatefile(
-          "${path.module}/user-data.sh",
-          merge(local.default_user_data_context, {
-            eks_kubelet_extra_args = lookup(asg_config, "eks_kubelet_extra_args", "")
-          })
-        ))
-      } }, merge(var.cloud_init_parts, lookup(asg_config, "cloud_init_parts", {})))
-    })
-  }
-
-  asg_configs = { for asg_name, asg_config in var.autoscaling_group_configurations :
-    asg_name => merge(asg_config, {
-      asg_instance_user_data_base64 = data.cloudinit_config.asg_cloud_inits[asg_name].rendered
-    })
+  asg_configs = {
+    for asg_name, asg_config in var.autoscaling_group_configurations :
+    asg_name => merge(
+      asg_config,
+      { asg_instance_user_data_base64 = data.cloudinit_config.asg_cloud_inits[asg_name].rendered },
+    )
   }
 }
 

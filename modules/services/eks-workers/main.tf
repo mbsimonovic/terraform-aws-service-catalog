@@ -69,14 +69,14 @@ module "ec2_baseline_common" {
   num_asg_names                = length(var.autoscaling_group_configurations) + length(var.managed_node_group_configurations)
   alarms_sns_topic_arn         = var.alarms_sns_topic_arn
 
-  cloud_init_parts = local.cloud_init_parts
-  ami              = var.cluster_instance_ami
-  ami_filters      = var.cluster_instance_ami_filters
+  ami         = var.cluster_instance_ami
+  ami_filters = var.cluster_instance_ami_filters
 
   # Disable everything else
   enable_ssh_grunt                  = false
   enable_cloudwatch_log_aggregation = false
   enable_cloudwatch_metrics         = false
+  should_render_cloud_init          = false
 }
 
 module "ec2_baseline_asg" {
@@ -119,17 +119,8 @@ module "ec2_baseline_mng" {
   enable_cloudwatch_log_aggregation = false
 }
 
-# Logic to setup the user data script
 locals {
-  # Default cloud init script for this module
-  cloud_init = {
-    filename     = "eks-worker-default-cloud-init"
-    content_type = "text/x-shellscript"
-    content      = local.default_user_data
-  }
-
-  # Merge in all the cloud init scripts the user has passed in
-  cloud_init_parts = merge({ default : local.cloud_init }, var.cloud_init_parts)
+  # Default context to use for configuring user data scripts.
   default_user_data_context = {
     aws_region                = data.aws_region.current.name
     eks_cluster_name          = var.eks_cluster_name
