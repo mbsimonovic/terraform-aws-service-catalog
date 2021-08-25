@@ -18,7 +18,6 @@ terraform {
     aws = {
       source  = "hashicorp/aws"
       version = ">= 2.6"
-    }
 
     configuration_aliases = [
       aws.af_south_1,
@@ -47,6 +46,7 @@ terraform {
       aws.us_west_1,
       aws.us_west_2,
     ]
+    }
   }
 }
 

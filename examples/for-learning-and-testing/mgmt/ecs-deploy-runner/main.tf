@@ -9,11 +9,6 @@ terraform {
   required_version = ">= 0.12.26"
 }
 
-
-provider "aws" {
-  region = var.aws_region
-}
-
 module "ecs_deploy_runner" {
   # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
   # to a specific version of the modules, such as the following example:
