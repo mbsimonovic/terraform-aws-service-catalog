@@ -490,6 +490,8 @@ module "shared_secrets_kms_grants" {
   kms_grant_regions = local.shared_secrets_kms_grant_regions
   kms_grants        = local.shared_secrets_kms_grants
 
+  opt_in_regions = var.kms_grant_opt_in_regions
+
   providers = {
     aws.af_south_1     = aws.af_south_1
     aws.ap_east_1      = aws.ap_east_1
@@ -622,6 +624,8 @@ module "kms_grants" {
   aws_account_id    = data.aws_caller_identity.current.account_id
   kms_grant_regions = local.kms_grant_regions
   kms_grants        = local.kms_grants
+
+  opt_in_regions = var.kms_grant_opt_in_regions
 }
 
 locals {
