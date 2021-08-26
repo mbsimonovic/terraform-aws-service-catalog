@@ -493,6 +493,7 @@ module "shared_secrets_kms_grants" {
   opt_in_regions = var.kms_grant_opt_in_regions
 
   providers = {
+    aws                = aws.default
     aws.af_south_1     = aws.af_south_1
     aws.ap_east_1      = aws.ap_east_1
     aws.ap_northeast_1 = aws.ap_northeast_1
@@ -594,6 +595,7 @@ module "kms_grants" {
   source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-grant-multi-region?ref=v0.53.1"
 
   providers = {
+    aws                = aws.default
     aws.af_south_1     = aws.af_south_1
     aws.ap_east_1      = aws.ap_east_1
     aws.ap_northeast_1 = aws.ap_northeast_1
