@@ -868,6 +868,47 @@ variable "lb_hosted_zone_id" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
+# DEPLOY CIRCUIT BREAKER
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "deployment_circuit_breaker_enabled" {
+  description = "Set to 'true' to prevent the task from attempting to continuously redeploy after a failed health check."
+  type        = bool
+  default     = false
+}
+
+variable "deployment_circuit_breaker_rollback" {
+  description = "Set to 'true' to also automatically roll back to the last successful deployment. deploy_circuit_breaker_enabled must also be true to enable this behavior."
+  type        = bool
+  default     = false
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# PROXY CONFIGURATION
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "proxy_configuration_container_name" {
+  description = "Use the name of the Envoy proxy container from `container_definitions` as the container name."
+  type        = string
+  default     = null
+}
+
+variable "proxy_configuration_properties" {
+  description = "A map of network configuration parameters to provide the Container Network Interface (CNI) plugin."
+  type        = map(string)
+  default     = null
+
+  # Example:
+  # properties = {
+  #   AppPorts         = "8080"
+  #   EgressIgnoredIPs = "169.254.170.2,169.254.169.254"
+  #   IgnoredUID       = "1337"
+  #   ProxyEgressPort  = 15001
+  #   ProxyIngressPort = 15000
+  # }
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
 # MODULE DEPENDENCIES
 # Workaround Terraform limitation where there is no module depends_on.
 # See https://github.com/hashicorp/terraform/issues/1178 for more details.
