@@ -154,6 +154,12 @@ variable "ingress_group" {
   default = null
 }
 
+variable "ingress_target_type" {
+  description = "Controls how the ALB routes traffic to the Pods. Supports 'instance' mode (route traffic to NodePort and load balance across all worker nodes, relying on Kubernetes Service networking to route to the pods), or 'ip' mode (route traffic directly to the pod IP - only works with AWS VPC CNI). Must be set to 'ip' if using Fargate. Only used if expose_type is not cluster-internal."
+  type        = string
+  default     = "instance"
+}
+
 variable "service_port" {
   description = "The port to expose on the Service. This is most useful when addressing the Service internally to the cluster, as it is ignored when connecting from the Ingress resource."
   type        = number
