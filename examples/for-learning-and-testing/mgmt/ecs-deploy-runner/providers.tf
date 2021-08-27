@@ -15,7 +15,7 @@ provider "aws" {
 # To deploy a multi-region service, we have to configure a provider with a unique alias for each of the regions AWS
 # supports and pass all these providers to the multi-region module in a provider = { ... } block. You MUST create a
 # provider block for EVERY one of these AWS regions, but you should specify the ones to use and authenticate to (the
-# ones actually enabled in your AWS account) using var.opt_in_regions.
+# ones actually enabled in your AWS account) using var.kms_grant_opt_in_regions.
 # ---------------------------------------------------------------------------------------------------------------------
 
 provider "aws" {
@@ -23,8 +23,8 @@ provider "aws" {
   alias  = "af_south_1"
 
   # Skip credential validation and account ID retrieval for disabled or restricted regions
-  skip_credentials_validation = contains(coalesce(var.opt_in_regions, []), "af-south-1") ? false : true
-  skip_requesting_account_id  = contains(coalesce(var.opt_in_regions, []), "af-south-1") ? false : true
+  skip_credentials_validation = contains(coalesce(var.kms_grant_opt_in_regions, []), "af-south-1") ? false : true
+  skip_requesting_account_id  = contains(coalesce(var.kms_grant_opt_in_regions, []), "af-south-1") ? false : true
 }
 
 provider "aws" {
@@ -32,8 +32,8 @@ provider "aws" {
   alias  = "ap_east_1"
 
   # Skip credential validation and account ID retrieval for disabled or restricted regions
-  skip_credentials_validation = contains(coalesce(var.opt_in_regions, []), "ap-east-1") ? false : true
-  skip_requesting_account_id  = contains(coalesce(var.opt_in_regions, []), "ap-east-1") ? false : true
+  skip_credentials_validation = contains(coalesce(var.kms_grant_opt_in_regions, []), "ap-east-1") ? false : true
+  skip_requesting_account_id  = contains(coalesce(var.kms_grant_opt_in_regions, []), "ap-east-1") ? false : true
 }
 
 provider "aws" {
@@ -41,8 +41,8 @@ provider "aws" {
   alias  = "ap_northeast_1"
 
   # Skip credential validation and account ID retrieval for disabled or restricted regions
-  skip_credentials_validation = contains(coalesce(var.opt_in_regions, []), "ap-northeast-1") ? false : true
-  skip_requesting_account_id  = contains(coalesce(var.opt_in_regions, []), "ap-northeast-1") ? false : true
+  skip_credentials_validation = contains(coalesce(var.kms_grant_opt_in_regions, []), "ap-northeast-1") ? false : true
+  skip_requesting_account_id  = contains(coalesce(var.kms_grant_opt_in_regions, []), "ap-northeast-1") ? false : true
 }
 
 provider "aws" {
@@ -50,8 +50,8 @@ provider "aws" {
   alias  = "ap_northeast_2"
 
   # Skip credential validation and account ID retrieval for disabled or restricted regions
-  skip_credentials_validation = contains(coalesce(var.opt_in_regions, []), "ap-northeast-2") ? false : true
-  skip_requesting_account_id  = contains(coalesce(var.opt_in_regions, []), "ap-northeast-2") ? false : true
+  skip_credentials_validation = contains(coalesce(var.kms_grant_opt_in_regions, []), "ap-northeast-2") ? false : true
+  skip_requesting_account_id  = contains(coalesce(var.kms_grant_opt_in_regions, []), "ap-northeast-2") ? false : true
 }
 
 provider "aws" {
@@ -59,8 +59,8 @@ provider "aws" {
   alias  = "ap_northeast_3"
 
   # Skip credential validation and account ID retrieval for disabled or restricted regions
-  skip_credentials_validation = contains(coalesce(var.opt_in_regions, []), "ap-northeast-3") ? false : true
-  skip_requesting_account_id  = contains(coalesce(var.opt_in_regions, []), "ap-northeast-3") ? false : true
+  skip_credentials_validation = contains(coalesce(var.kms_grant_opt_in_regions, []), "ap-northeast-3") ? false : true
+  skip_requesting_account_id  = contains(coalesce(var.kms_grant_opt_in_regions, []), "ap-northeast-3") ? false : true
 }
 
 provider "aws" {
@@ -68,8 +68,8 @@ provider "aws" {
   alias  = "ap_south_1"
 
   # Skip credential validation and account ID retrieval for disabled or restricted regions
-  skip_credentials_validation = contains(coalesce(var.opt_in_regions, []), "ap-south-1") ? false : true
-  skip_requesting_account_id  = contains(coalesce(var.opt_in_regions, []), "ap-south-1") ? false : true
+  skip_credentials_validation = contains(coalesce(var.kms_grant_opt_in_regions, []), "ap-south-1") ? false : true
+  skip_requesting_account_id  = contains(coalesce(var.kms_grant_opt_in_regions, []), "ap-south-1") ? false : true
 }
 
 provider "aws" {
@@ -77,8 +77,8 @@ provider "aws" {
   alias  = "ap_southeast_1"
 
   # Skip credential validation and account ID retrieval for disabled or restricted regions
-  skip_credentials_validation = contains(coalesce(var.opt_in_regions, []), "ap-southeast-1") ? false : true
-  skip_requesting_account_id  = contains(coalesce(var.opt_in_regions, []), "ap-southeast-1") ? false : true
+  skip_credentials_validation = contains(coalesce(var.kms_grant_opt_in_regions, []), "ap-southeast-1") ? false : true
+  skip_requesting_account_id  = contains(coalesce(var.kms_grant_opt_in_regions, []), "ap-southeast-1") ? false : true
 }
 
 provider "aws" {
@@ -86,8 +86,8 @@ provider "aws" {
   alias  = "ap_southeast_2"
 
   # Skip credential validation and account ID retrieval for disabled or restricted regions
-  skip_credentials_validation = contains(coalesce(var.opt_in_regions, []), "ap-southeast-2") ? false : true
-  skip_requesting_account_id  = contains(coalesce(var.opt_in_regions, []), "ap-southeast-2") ? false : true
+  skip_credentials_validation = contains(coalesce(var.kms_grant_opt_in_regions, []), "ap-southeast-2") ? false : true
+  skip_requesting_account_id  = contains(coalesce(var.kms_grant_opt_in_regions, []), "ap-southeast-2") ? false : true
 }
 
 provider "aws" {
@@ -95,8 +95,8 @@ provider "aws" {
   alias  = "ca_central_1"
 
   # Skip credential validation and account ID retrieval for disabled or restricted regions
-  skip_credentials_validation = contains(coalesce(var.opt_in_regions, []), "ca-central-1") ? false : true
-  skip_requesting_account_id  = contains(coalesce(var.opt_in_regions, []), "ca-central-1") ? false : true
+  skip_credentials_validation = contains(coalesce(var.kms_grant_opt_in_regions, []), "ca-central-1") ? false : true
+  skip_requesting_account_id  = contains(coalesce(var.kms_grant_opt_in_regions, []), "ca-central-1") ? false : true
 }
 
 provider "aws" {
@@ -104,8 +104,8 @@ provider "aws" {
   alias  = "cn_north_1"
 
   # Skip credential validation and account ID retrieval for disabled or restricted regions
-  skip_credentials_validation = contains(coalesce(var.opt_in_regions, []), "cn-north-1") ? false : true
-  skip_requesting_account_id  = contains(coalesce(var.opt_in_regions, []), "cn-north-1") ? false : true
+  skip_credentials_validation = contains(coalesce(var.kms_grant_opt_in_regions, []), "cn-north-1") ? false : true
+  skip_requesting_account_id  = contains(coalesce(var.kms_grant_opt_in_regions, []), "cn-north-1") ? false : true
 }
 
 provider "aws" {
@@ -113,8 +113,8 @@ provider "aws" {
   alias  = "cn_northwest_1"
 
   # Skip credential validation and account ID retrieval for disabled or restricted regions
-  skip_credentials_validation = contains(coalesce(var.opt_in_regions, []), "cn-northwest-1") ? false : true
-  skip_requesting_account_id  = contains(coalesce(var.opt_in_regions, []), "cn-northwest-1") ? false : true
+  skip_credentials_validation = contains(coalesce(var.kms_grant_opt_in_regions, []), "cn-northwest-1") ? false : true
+  skip_requesting_account_id  = contains(coalesce(var.kms_grant_opt_in_regions, []), "cn-northwest-1") ? false : true
 }
 
 provider "aws" {
@@ -122,8 +122,8 @@ provider "aws" {
   alias  = "eu_central_1"
 
   # Skip credential validation and account ID retrieval for disabled or restricted regions
-  skip_credentials_validation = contains(coalesce(var.opt_in_regions, []), "eu-central-1") ? false : true
-  skip_requesting_account_id  = contains(coalesce(var.opt_in_regions, []), "eu-central-1") ? false : true
+  skip_credentials_validation = contains(coalesce(var.kms_grant_opt_in_regions, []), "eu-central-1") ? false : true
+  skip_requesting_account_id  = contains(coalesce(var.kms_grant_opt_in_regions, []), "eu-central-1") ? false : true
 }
 
 provider "aws" {
@@ -131,8 +131,8 @@ provider "aws" {
   alias  = "eu_north_1"
 
   # Skip credential validation and account ID retrieval for disabled or restricted regions
-  skip_credentials_validation = contains(coalesce(var.opt_in_regions, []), "eu-north-1") ? false : true
-  skip_requesting_account_id  = contains(coalesce(var.opt_in_regions, []), "eu-north-1") ? false : true
+  skip_credentials_validation = contains(coalesce(var.kms_grant_opt_in_regions, []), "eu-north-1") ? false : true
+  skip_requesting_account_id  = contains(coalesce(var.kms_grant_opt_in_regions, []), "eu-north-1") ? false : true
 }
 
 provider "aws" {
@@ -140,8 +140,8 @@ provider "aws" {
   alias  = "eu_south_1"
 
   # Skip credential validation and account ID retrieval for disabled or restricted regions
-  skip_credentials_validation = contains(coalesce(var.opt_in_regions, []), "eu-south-1") ? false : true
-  skip_requesting_account_id  = contains(coalesce(var.opt_in_regions, []), "eu-south-1") ? false : true
+  skip_credentials_validation = contains(coalesce(var.kms_grant_opt_in_regions, []), "eu-south-1") ? false : true
+  skip_requesting_account_id  = contains(coalesce(var.kms_grant_opt_in_regions, []), "eu-south-1") ? false : true
 }
 
 provider "aws" {
@@ -149,8 +149,8 @@ provider "aws" {
   alias  = "eu_west_1"
 
   # Skip credential validation and account ID retrieval for disabled or restricted regions
-  skip_credentials_validation = contains(coalesce(var.opt_in_regions, []), "eu-west-1") ? false : true
-  skip_requesting_account_id  = contains(coalesce(var.opt_in_regions, []), "eu-west-1") ? false : true
+  skip_credentials_validation = contains(coalesce(var.kms_grant_opt_in_regions, []), "eu-west-1") ? false : true
+  skip_requesting_account_id  = contains(coalesce(var.kms_grant_opt_in_regions, []), "eu-west-1") ? false : true
 }
 
 provider "aws" {
@@ -158,8 +158,8 @@ provider "aws" {
   alias  = "eu_west_2"
 
   # Skip credential validation and account ID retrieval for disabled or restricted regions
-  skip_credentials_validation = contains(coalesce(var.opt_in_regions, []), "eu-west-2") ? false : true
-  skip_requesting_account_id  = contains(coalesce(var.opt_in_regions, []), "eu-west-2") ? false : true
+  skip_credentials_validation = contains(coalesce(var.kms_grant_opt_in_regions, []), "eu-west-2") ? false : true
+  skip_requesting_account_id  = contains(coalesce(var.kms_grant_opt_in_regions, []), "eu-west-2") ? false : true
 }
 
 provider "aws" {
@@ -167,8 +167,8 @@ provider "aws" {
   alias  = "eu_west_3"
 
   # Skip credential validation and account ID retrieval for disabled or restricted regions
-  skip_credentials_validation = contains(coalesce(var.opt_in_regions, []), "eu-west-3") ? false : true
-  skip_requesting_account_id  = contains(coalesce(var.opt_in_regions, []), "eu-west-3") ? false : true
+  skip_credentials_validation = contains(coalesce(var.kms_grant_opt_in_regions, []), "eu-west-3") ? false : true
+  skip_requesting_account_id  = contains(coalesce(var.kms_grant_opt_in_regions, []), "eu-west-3") ? false : true
 }
 
 provider "aws" {
@@ -176,8 +176,8 @@ provider "aws" {
   alias  = "me_south_1"
 
   # Skip credential validation and account ID retrieval for disabled or restricted regions
-  skip_credentials_validation = contains(coalesce(var.opt_in_regions, []), "me-south-1") ? false : true
-  skip_requesting_account_id  = contains(coalesce(var.opt_in_regions, []), "me-south-1") ? false : true
+  skip_credentials_validation = contains(coalesce(var.kms_grant_opt_in_regions, []), "me-south-1") ? false : true
+  skip_requesting_account_id  = contains(coalesce(var.kms_grant_opt_in_regions, []), "me-south-1") ? false : true
 }
 
 provider "aws" {
@@ -185,8 +185,8 @@ provider "aws" {
   alias  = "sa_east_1"
 
   # Skip credential validation and account ID retrieval for disabled or restricted regions
-  skip_credentials_validation = contains(coalesce(var.opt_in_regions, []), "sa-east-1") ? false : true
-  skip_requesting_account_id  = contains(coalesce(var.opt_in_regions, []), "sa-east-1") ? false : true
+  skip_credentials_validation = contains(coalesce(var.kms_grant_opt_in_regions, []), "sa-east-1") ? false : true
+  skip_requesting_account_id  = contains(coalesce(var.kms_grant_opt_in_regions, []), "sa-east-1") ? false : true
 }
 
 provider "aws" {
@@ -194,8 +194,8 @@ provider "aws" {
   alias  = "us_east_1"
 
   # Skip credential validation and account ID retrieval for disabled or restricted regions
-  skip_credentials_validation = contains(coalesce(var.opt_in_regions, []), "us-east-1") ? false : true
-  skip_requesting_account_id  = contains(coalesce(var.opt_in_regions, []), "us-east-1") ? false : true
+  skip_credentials_validation = contains(coalesce(var.kms_grant_opt_in_regions, []), "us-east-1") ? false : true
+  skip_requesting_account_id  = contains(coalesce(var.kms_grant_opt_in_regions, []), "us-east-1") ? false : true
 }
 
 provider "aws" {
@@ -203,8 +203,8 @@ provider "aws" {
   alias  = "us_east_2"
 
   # Skip credential validation and account ID retrieval for disabled or restricted regions
-  skip_credentials_validation = contains(coalesce(var.opt_in_regions, []), "us-east-2") ? false : true
-  skip_requesting_account_id  = contains(coalesce(var.opt_in_regions, []), "us-east-2") ? false : true
+  skip_credentials_validation = contains(coalesce(var.kms_grant_opt_in_regions, []), "us-east-2") ? false : true
+  skip_requesting_account_id  = contains(coalesce(var.kms_grant_opt_in_regions, []), "us-east-2") ? false : true
 }
 
 provider "aws" {
@@ -212,8 +212,8 @@ provider "aws" {
   alias  = "us_gov_east_1"
 
   # Skip credential validation and account ID retrieval for disabled or restricted regions
-  skip_credentials_validation = contains(coalesce(var.opt_in_regions, []), "us-gov-east-1") ? false : true
-  skip_requesting_account_id  = contains(coalesce(var.opt_in_regions, []), "us-gov-east-1") ? false : true
+  skip_credentials_validation = contains(coalesce(var.kms_grant_opt_in_regions, []), "us-gov-east-1") ? false : true
+  skip_requesting_account_id  = contains(coalesce(var.kms_grant_opt_in_regions, []), "us-gov-east-1") ? false : true
 }
 
 provider "aws" {
@@ -221,8 +221,8 @@ provider "aws" {
   alias  = "us_gov_west_1"
 
   # Skip credential validation and account ID retrieval for disabled or restricted regions
-  skip_credentials_validation = contains(coalesce(var.opt_in_regions, []), "us-gov-west-1") ? false : true
-  skip_requesting_account_id  = contains(coalesce(var.opt_in_regions, []), "us-gov-west-1") ? false : true
+  skip_credentials_validation = contains(coalesce(var.kms_grant_opt_in_regions, []), "us-gov-west-1") ? false : true
+  skip_requesting_account_id  = contains(coalesce(var.kms_grant_opt_in_regions, []), "us-gov-west-1") ? false : true
 }
 
 provider "aws" {
@@ -230,8 +230,8 @@ provider "aws" {
   alias  = "us_west_1"
 
   # Skip credential validation and account ID retrieval for disabled or restricted regions
-  skip_credentials_validation = contains(coalesce(var.opt_in_regions, []), "us-west-1") ? false : true
-  skip_requesting_account_id  = contains(coalesce(var.opt_in_regions, []), "us-west-1") ? false : true
+  skip_credentials_validation = contains(coalesce(var.kms_grant_opt_in_regions, []), "us-west-1") ? false : true
+  skip_requesting_account_id  = contains(coalesce(var.kms_grant_opt_in_regions, []), "us-west-1") ? false : true
 }
 
 provider "aws" {
@@ -239,6 +239,6 @@ provider "aws" {
   alias  = "us_west_2"
 
   # Skip credential validation and account ID retrieval for disabled or restricted regions
-  skip_credentials_validation = contains(coalesce(var.opt_in_regions, []), "us-west-2") ? false : true
-  skip_requesting_account_id  = contains(coalesce(var.opt_in_regions, []), "us-west-2") ? false : true
+  skip_credentials_validation = contains(coalesce(var.kms_grant_opt_in_regions, []), "us-west-2") ? false : true
+  skip_requesting_account_id  = contains(coalesce(var.kms_grant_opt_in_regions, []), "us-west-2") ? false : true
 }
