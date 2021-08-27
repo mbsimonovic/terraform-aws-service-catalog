@@ -3,10 +3,10 @@
 # ----------------------------------------------------------------------------------------------------------------------
 
 terraform {
-  # This module is now only being tested with Terraform 1.0.x. However, to make upgrading easier, we are setting
-  # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 1.0.x code.
-  required_version = ">= 0.12.26"
+  # This module is now only being tested with Terraform 0.15.x. We require at least version 0.15.1 or above
+  # because this module uses configuration_aliases, which were only added in Terraform 0.15.0, and we want the latest
+  # GPG keys, which were added in 0.15.1.
+  required_version = ">= 0.15.1"
 }
 
 module "ecs_deploy_runner" {
