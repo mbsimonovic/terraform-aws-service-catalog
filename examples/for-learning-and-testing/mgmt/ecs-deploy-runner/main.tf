@@ -15,6 +15,9 @@ module "ecs_deploy_runner" {
   # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/mgmt/ecs-deploy-runner?ref=v1.0.8"
   source = "../../../../modules/mgmt/ecs-deploy-runner"
 
+  # You MUST create a provider block for EVERY AWS region (see providers.tf) and pass all those providers in here via
+  # this providers map. However, you should use var.opt_in_regions to tell Terraform to only use and authenticate to
+  # regions that are enabled in your AWS account.
   providers = {
     aws                = aws.default
     aws.af_south_1     = aws.af_south_1
