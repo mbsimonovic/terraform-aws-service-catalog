@@ -93,6 +93,8 @@ module "ecs_deploy_runner" {
 # ---------------------------------------------------------------------------------------------------------------------
 resource "aws_kms_key" "shared_secret_grants" {
   deletion_window_in_days = 7
+
+  provider = aws.default
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -103,6 +105,10 @@ resource "aws_kms_key" "shared_secret_grants" {
 
 module "vpc" {
   source = "../../../../modules/networking/vpc"
+
+  providers = {
+    aws = aws.default
+  }
 
   vpc_name         = "${var.name}-vpc"
   aws_region       = var.aws_region
