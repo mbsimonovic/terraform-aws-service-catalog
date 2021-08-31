@@ -3,15 +3,10 @@
 # ----------------------------------------------------------------------------------------------------------------------
 
 terraform {
-  # This module is now only being tested with Terraform 1.0.x. However, to make upgrading easier, we are setting
-  # 0.12.26 as the minimum version, as that version added support for required_providers with source URLs, making it
-  # forwards compatible with 1.0.x code.
-  required_version = ">= 0.12.26"
-}
-
-
-provider "aws" {
-  region = var.aws_region
+  # This module is now only being tested with Terraform 0.15.x. We require at least version 0.15.1 or above
+  # because this module uses configuration_aliases, which were only added in Terraform 0.15.0, and we want the latest
+  # GPG keys, which were added in 0.15.1.
+  required_version = ">= 0.15.1"
 }
 
 module "ecs_deploy_runner" {
@@ -19,6 +14,38 @@ module "ecs_deploy_runner" {
   # to a specific version of the modules, such as the following example:
   # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/mgmt/ecs-deploy-runner?ref=v1.0.8"
   source = "../../../../modules/mgmt/ecs-deploy-runner"
+
+  # You MUST create a provider block for EVERY AWS region (see providers.tf) and pass all those providers in here via
+  # this providers map. However, you should use var.opt_in_regions to tell Terraform to only use and authenticate to
+  # regions that are enabled in your AWS account.
+  providers = {
+    aws                = aws.default
+    aws.af_south_1     = aws.af_south_1
+    aws.ap_east_1      = aws.ap_east_1
+    aws.ap_northeast_1 = aws.ap_northeast_1
+    aws.ap_northeast_2 = aws.ap_northeast_2
+    aws.ap_northeast_3 = aws.ap_northeast_3
+    aws.ap_south_1     = aws.ap_south_1
+    aws.ap_southeast_1 = aws.ap_southeast_1
+    aws.ap_southeast_2 = aws.ap_southeast_2
+    aws.ca_central_1   = aws.ca_central_1
+    aws.cn_north_1     = aws.cn_north_1
+    aws.cn_northwest_1 = aws.cn_northwest_1
+    aws.eu_central_1   = aws.eu_central_1
+    aws.eu_north_1     = aws.eu_north_1
+    aws.eu_south_1     = aws.eu_south_1
+    aws.eu_west_1      = aws.eu_west_1
+    aws.eu_west_2      = aws.eu_west_2
+    aws.eu_west_3      = aws.eu_west_3
+    aws.me_south_1     = aws.me_south_1
+    aws.sa_east_1      = aws.sa_east_1
+    aws.us_east_1      = aws.us_east_1
+    aws.us_east_2      = aws.us_east_2
+    aws.us_gov_east_1  = aws.us_gov_east_1
+    aws.us_gov_west_1  = aws.us_gov_west_1
+    aws.us_west_1      = aws.us_west_1
+    aws.us_west_2      = aws.us_west_2
+  }
 
   name = var.name
 
@@ -32,6 +59,8 @@ module "ecs_deploy_runner" {
   ami_builder_config          = var.ami_builder_config
   terraform_planner_config    = var.terraform_planner_config
   terraform_applier_config    = var.terraform_applier_config
+
+  kms_grant_opt_in_regions = var.kms_grant_opt_in_regions
 
   ec2_worker_pool_configuration = (
     var.enable_ec2_worker_pool
@@ -64,6 +93,8 @@ module "ecs_deploy_runner" {
 # ---------------------------------------------------------------------------------------------------------------------
 resource "aws_kms_key" "shared_secret_grants" {
   deletion_window_in_days = 7
+
+  provider = aws.default
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -74,6 +105,10 @@ resource "aws_kms_key" "shared_secret_grants" {
 
 module "vpc" {
   source = "../../../../modules/networking/vpc"
+
+  providers = {
+    aws = aws.default
+  }
 
   vpc_name         = "${var.name}-vpc"
   aws_region       = var.aws_region

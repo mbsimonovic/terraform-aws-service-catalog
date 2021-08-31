@@ -24,3 +24,7 @@ folder](/examples/for-production).
 1. Run `terraform apply`.
 1. The module will output the name and the ARN for your S3 bucket.
 1. When you're done testing, to undeploy everything, run `terraform destroy`.
+
+## How do you enable MFA Delete?
+
+[Check out the step-by-step guide on enabling MFA delete for your S3 buckets.](https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/private-s3-bucket#how-do-you-enable-mfa-delete)
