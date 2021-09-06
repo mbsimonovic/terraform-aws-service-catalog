@@ -46,6 +46,14 @@ resource "aws_elasticsearch_domain" "cluster" {
       availability_zone_count = var.availability_zone_count
     }
   }
+  advanced_security_options {
+    enabled                        = var.advanced_security_options
+    internal_user_database_enabled = var.advanced_security_options
+    master_user_options {
+      master_user_name     = var.master_user_name
+      master_user_password = var.master_user_password
+    }
+  }
 
   dynamic "vpc_options" {
     for_each = (var.is_public ? [] : [var.is_public])

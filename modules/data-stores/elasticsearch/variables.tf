@@ -127,6 +127,24 @@ variable "advanced_options" {
   default     = {}
 }
 
+variable "advanced_security_options" {
+  description = "Enable fine grain access control via a master account"
+  type        = bool
+  default     = false
+}
+
+variable "master_user_name" {
+  description = "Master account user name"
+  type        = string
+  default     = ""
+}
+
+variable "master_user_password" {
+  description = "Master account user password"
+  type        = string
+  default     = ""
+}
+
 variable "enable_node_to_node_encryption" {
   description = "Whether to enable node-to-node encryption. "
   type        = bool
