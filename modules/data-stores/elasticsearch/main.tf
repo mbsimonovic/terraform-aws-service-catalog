@@ -42,6 +42,9 @@ resource "aws_elasticsearch_domain" "cluster" {
     dedicated_master_enabled = var.dedicated_master_enabled
     dedicated_master_type    = var.dedicated_master_type
     dedicated_master_count   = var.dedicated_master_count
+    zone_awareness_config {
+      availability_zone_count = var.availability_zone_count
+    }
   }
 
   dynamic "vpc_options" {
