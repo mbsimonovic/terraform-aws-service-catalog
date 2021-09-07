@@ -65,6 +65,21 @@ variable "copy_to_regions" {
   default     = []
 }
 
+
+
+variable "region_kms_key_ids" {
+  // Example that will copy the resulting AMI to multiple regions and encrypt the AMI with that region's specified kms key:
+  // region_kms_key_ids = {
+  //   "us-east-1" : "<us-east-1 ami encryption kms key id, alias, or ARN>",
+  //   "us-east-2" : "<us-east-1 ami encryption kms key id, alias, or ARN>",
+  //   "ap-south-1" : "<us-east-1 ami encryption kms key id, alias, or ARN>"
+  // }
+  // https://www.packer.io/docs/builders/amazon/ebs#region_kms_key_ids
+  description = "Regions to copy the ami to, along with the custom kms key id (alias or arn) to use for encryption for that region. Keys must match the regions provided in ami_regions. If you just want to encrypt using a default ID, you can stick with `kms_key_id` and `ami_regions`"
+  type        = map(string)
+  default     = {}
+}
+
 variable "enable_cloudwatch_log_aggregation" {
   description = "If true, install the CloudWatch agent for aggregating logs."
   type        = string
@@ -204,6 +219,7 @@ source "amazon-ebs" "eks" {
   ami_description             = "An Amazon EKS-optimized AMI that is meant to be run as part of an EKS cluster."
   ami_name                    = "${var.ami_name}-${var.version_tag}-${formatdate("YYYYMMDD-hhmm", timestamp())}"
   ami_regions                 = var.copy_to_regions
+  region_kms_key_ids          = var.region_kms_key_ids
   ami_users                   = var.ami_users
   associate_public_ip_address = var.associate_public_ip_address
   availability_zone           = var.availability_zone

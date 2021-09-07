@@ -65,6 +65,12 @@ variable "copy_to_regions" {
   default     = []
 }
 
+variable "region_kms_key_ids" {
+  description = "Regions to copy the ami to, along with the custom kms key id (alias or arn) to use for encryption for that region."
+  type        = map(string)
+  default     = {}
+}
+
 variable "bash_commons_version" {
   description = "The version of github.com/gruntwork-io/bash-commons to install on the AMI."
   type        = string
@@ -205,6 +211,7 @@ source "amazon-ebs" "openvpn-server" {
   ami_description             = "An Ubuntu AMI that is meant to be run as an OpenVPN server."
   ami_name                    = "${var.ami_name}-${var.version_tag}-${formatdate("YYYYMMDD-hhmm", timestamp())}"
   ami_regions                 = var.copy_to_regions
+  region_kms_key_ids          = var.region_kms_key_ids
   ami_users                   = var.ami_users
   associate_public_ip_address = var.associate_public_ip_address
   availability_zone           = var.availability_zone
