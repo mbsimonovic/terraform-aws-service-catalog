@@ -94,6 +94,12 @@ variable "enable_fluent_bit" {
   default     = true
 }
 
+variable "enable_fargate_fluent_bit" {
+  description = "Whether or not to enable fluent-bit on EKS Fargate workers for log aggregation."
+  type        = bool
+  default     = true
+}
+
 variable "enable_alb_ingress_controller" {
   description = "Whether or not to enable the AWS LB Ingress controller."
   type        = bool

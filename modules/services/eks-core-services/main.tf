@@ -86,7 +86,7 @@ provider "helm" {
 
 # ---------------------------------------------------------------------------------------------------------------------
 # SETUP CLOUDWATCH LOGGING
-# The following sets up and deploys fluentd to export the container logs to Cloudwatch. This is the recommended way to
+# The following sets up and deploys fluent-bit to export the container logs to Cloudwatch. This is the recommended way to
 # forward container logs from a Kubernetes deployment.
 # ---------------------------------------------------------------------------------------------------------------------
 
@@ -109,6 +109,22 @@ module "aws_for_fluent_bit" {
   pod_node_affinity = var.fluent_bit_pod_node_affinity
 }
 
+module "fargate_fluent_bit" {
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-fargate-container-logs?ref=v0.44.8"
+
+  # The contents of the for each set is irrelevant as it is only used to enable the module.
+  for_each = var.enable_fargate_fluent_bit ? { enable = true } : {}
+
+  fargate_execution_iam_role_arns = var.fargate_fluent_bit_execution_iam_role_arns
+  extra_filters                   = var.fargate_fluent_bit_extra_filters
+  extra_parsers                   = var.fargate_fluent_bit_extra_parsers
+  cloudwatch_configuration = {
+    region            = var.aws_region
+    log_group_name    = local.maybe_log_group
+    log_stream_prefix = var.fargate_fluent_bit_log_stream_prefix
+  }
+}
+
 resource "aws_cloudwatch_log_group" "eks_cluster" {
   count = local.create_cloudwatch_log_group ? 1 : 0
   name  = local.log_group_name
@@ -124,6 +140,12 @@ locals {
     ? aws_cloudwatch_log_group.eks_cluster[0].name
     : local.log_group_name
   )
+
+  # The other core services depend on logging, so we create a local that captures this dependency relation.
+  core_service_dependencies = [
+    join("", aws_eks_fargate_profile.core_services.*.id),
+    length(module.fargate_fluent_bit) > 0 ? module.fargate_fluent_bit["enable"].config_map_id : "",
+  ]
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -132,8 +154,12 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "alb_ingress_controller" {
-  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-alb-ingress-controller?ref=v0.44.4"
-  dependencies = aws_eks_fargate_profile.core_services.*.id
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-alb-ingress-controller?ref=v0.44.4"
+
+  # Ideally we would use module depends_on for this purpose, but module depends_on causes all data sources within the
+  # module to be labeled as apply time data. This means that you end up with a perpetual diff. To avoid this, we use the
+  # dependencies input to only apply the dependencies on the resources and not the data sources.
+  dependencies = local.core_service_dependencies
 
   # The contents of the for each set is irrelevant as it is only used to enable the module.
   for_each = var.enable_alb_ingress_controller ? { enable = true } : {}
@@ -153,8 +179,12 @@ module "alb_ingress_controller" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "k8s_external_dns" {
-  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-external-dns?ref=v0.44.4"
-  dependencies = aws_eks_fargate_profile.core_services.*.id
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-external-dns?ref=v0.44.4"
+
+  # Ideally we would use module depends_on for this purpose, but module depends_on causes all data sources within the
+  # module to be labeled as apply time data. This means that you end up with a perpetual diff. To avoid this, we use the
+  # dependencies input to only apply the dependencies on the resources and not the data sources.
+  dependencies = local.core_service_dependencies
 
   # The contents of the for each set is irrelevant as it is only used to enable the module.
   for_each = var.enable_external_dns ? { enable = true } : {}
@@ -181,8 +211,12 @@ module "k8s_external_dns" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "k8s_cluster_autoscaler" {
-  source       = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-cluster-autoscaler?ref=v0.44.4"
-  dependencies = aws_eks_fargate_profile.core_services.*.id
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-cluster-autoscaler?ref=v0.44.4"
+
+  # Ideally we would use module depends_on for this purpose, but module depends_on causes all data sources within the
+  # module to be labeled as apply time data. This means that you end up with a perpetual diff. To avoid this, we use the
+  # dependencies input to only apply the dependencies on the resources and not the data sources.
+  dependencies = local.core_service_dependencies
 
   # The contents of the for each set is irrelevant as it is only used to enable the module.
   for_each = var.enable_cluster_autoscaler ? { enable = true } : {}

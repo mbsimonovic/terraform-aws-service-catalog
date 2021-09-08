@@ -61,6 +61,12 @@ variable "enable_fluent_bit" {
   default     = true
 }
 
+variable "enable_fargate_fluent_bit" {
+  description = "Whether or not to enable fluent-bit on EKS Fargate workers for log aggregation."
+  type        = bool
+  default     = true
+}
+
 variable "fluent_bit_log_group_name" {
   description = "Name of the CloudWatch Log Group fluent-bit should use to stream logs to. When null (default), uses the eks_cluster_name as the Log Group name."
   type        = string
@@ -146,6 +152,32 @@ variable "fluent_bit_pod_node_affinity" {
   #         - node-label-value
   #         - another-node-label-value
 }
+
+variable "fargate_fluent_bit_execution_iam_role_arns" {
+  description = "List of ARNs of Fargate execution IAM Roles that should get permissions to ship logs using fluent-bit. This must be provided if enable_fargate_fluent_bit is true."
+  type        = list(string)
+  default     = []
+}
+
+variable "fargate_fluent_bit_log_stream_prefix" {
+  description = "Prefix string to use for the CloudWatch Log Stream that gets created for each Fargate pod."
+  type        = string
+  default     = "fargate"
+}
+
+variable "fargate_fluent_bit_extra_filters" {
+  description = "Additional filters that fluent-bit should apply to log output. This string should be formatted according to the Fluent-bit docs (https://docs.fluentbit.io/manual/administration/configuring-fluent-bit/configuration-file#config_filter)."
+  type        = string
+  default     = ""
+}
+
+variable "fargate_fluent_bit_extra_parsers" {
+  description = "Additional parsers that fluent-bit should export logs to. This string should be formatted according to the Fluent-bit docs (https://docs.fluentbit.io/manual/administration/configuring-fluent-bit/configuration-file#config_output)."
+  type        = string
+  default     = ""
+}
+
+
 
 # AWS ALB Ingress controller options
 
