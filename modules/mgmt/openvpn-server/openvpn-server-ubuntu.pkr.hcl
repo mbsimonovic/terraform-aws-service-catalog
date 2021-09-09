@@ -59,16 +59,26 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
+
 variable "copy_to_regions" {
-  description = "A list of additional regions the AMI should be copied to."
+  description = "A list of additional regions the AMI should be copied to. For encrypted AMIs, use `region_kms_key_ids` to provide the specific CMK to use for each region."
   type        = list(string)
   default     = []
 }
 
 variable "region_kms_key_ids" {
-  description = "Regions to copy the ami to, along with the custom kms key id (alias or arn) to use for encryption for that region."
+  description = "Map of regions to copy the ami to the custom kms key id (alias or arn) to use for encryption for that region. Note that each entry in the map must also have a corresponding entry in the `copy_to_regions` list. If set, encrypt_kms_key_id is ignored."
   type        = map(string)
   default     = {}
+
+  # Example that will copy the resulting AMI to multiple regions and encrypt the AMI with that region's specified kms key:
+  # copy_to_regions = ["us-east-1", "us-east-2", "ap-south-1"]
+  # region_kms_key_ids = {
+  #   "us-east-1" = "<us-east-1 ami encryption kms key id, alias, or ARN>"
+  #   "us-east-2" = "<us-east-2 ami encryption kms key id, alias, or ARN>"
+  #   "ap-south-1" = "<ap-south-1 ami encryption kms key id, alias, or ARN>"
+  # }
+  # https://www.packer.io/docs/builders/amazon/ebs#region_kms_key_ids
 }
 
 variable "bash_commons_version" {
