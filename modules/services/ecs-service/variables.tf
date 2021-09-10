@@ -652,13 +652,6 @@ variable "deployment_minimum_healthy_percent" {
   default     = 100
 }
 
-variable "force_destroy" {
-  description = "A boolean that indicates whether the access logs bucket should be destroyed, even if there are files in it, when you run Terraform destroy. Unless you are using this bucket only for test purposes, you'll want to leave this variable set to false."
-  type        = bool
-  default     = false
-}
-
-
 
 # ---------------------------------------------------------------------------------------------------------------------
 # ECS DEPLOYMENT CHECK OPTIONS
