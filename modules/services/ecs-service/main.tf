@@ -68,6 +68,8 @@ module "ecs_service" {
   health_check_unhealthy_threshold  = var.health_check_unhealthy_threshold
   health_check_matcher              = var.health_check_matcher
 
+  enable_execute_command = var.enable_execute_command
+
   enable_ecs_deployment_check      = var.enable_ecs_deployment_check
   deployment_check_timeout_seconds = var.deployment_check_timeout_seconds
   deployment_check_loglevel        = var.deployment_check_loglevel
