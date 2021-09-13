@@ -8,6 +8,13 @@ Architecture.
 * [The App](#the-app)
 * [Dockerizing](#dockerizing)
 * [Publishing your docker image](#publishing-your-docker-image)
+* [Deploying to an EKS cluster](#deploying-to-an-eks-cluster)
+  * [Setting up the Kubernetes Service](#setting-up-the-kubernetes-service)
+  * [Deploying your configuration](#deploying-your-configuration)
+  * [Monitoring your deployment progress](#monitoring-your-deployment-progress)
+* [Debugging errors](#debugging-errors)
+  * [Using kubectl](#using-kubectl)
+  * [Cloudwatch Logs](#cloudwatch-logs)
 
 
 
@@ -207,6 +214,168 @@ docker push 234567890123.dkr.ecr.us-west-2.amazonaws.com/simple-web-app:v1
 
 
 
+
+
+## Deploying to an EKS cluster
+
+Now that you have the Docker image of your app published, the next step is to deploy it to your EKS Cluster that was
+set up as part of your reference architecture deployment.
+
+### Setting up the Kubernetes Service
+
+The next step is to create a `terragrunt.hcl` file to deploy your app in each app environment (i.e. in dev, stage,
+prod). For example, for the `stage` environment, create a `simple-web-app` folder in
+[stage/us-west-2/stage/services](../stage/us-west-2/stage/services). Next, you can copy over the contents of the
+[sample-app-frontend terragrunt.hcl](../stage/us-west-2/stage/services/sample-app-frontend/terragrunt.hcl) so you have
+something to start with.
+
+With the `terragrunt.hcl` file open, update the following:
+
+* Set the `service_name` local to your desired name: e.g., `simple-web-app-stage`.
+* Remove the unneeded `tls_secrets_manager_arn` local (we are not configuring the service with a dedicated TLS certificate).
+* In the `container_image` object, set `repository` to the repo url of the just published Docker image: e.g., `234567890123.dkr.ecr.us-west-2.amazonaws.com/simple-web-app`. Also make sure to update the `tag` attribute to the appropriate image tag to deploy.
+* Update the `domain_name` to configure a DNS entry for the service: e.g., `simple-web-app.${local.account_vars.local.domain_name.name}`.
+* Remove the `scratch_paths` configuration, as our simple web app does not pull in secrets dynamically.
+* Remove all environment variables, leaving only an empty map: e.g. `env_vars = {}`.
+* Update health check paths to reflect our new service:
+    * `alb_health_check_path`
+    * `liveness_probe_path`
+    * `readiness_probe_path`
+
+* Remove configurations for IAM role service account binding, as our app won't be communicating with AWS:
+    * `service_account_name`
+    * `iam_role_name`
+    * `eks_iam_role_for_service_accounts_config`
+    * `iam_role_exists`
+    * `iam_policy`
+
+
+### Deploying your configuration
+
+The above are the minimum set of configurations that you need to deploy the app. You can take a look at [`variables.tf`
+of `k8s-service`](https://github.com/gruntwork-io/terraform-aws-service-catalog/tree/master/modules/services/k8s-service)
+for all the available options.
+
+Once you've verified that everything looks fine, change to the new `services/simple-web-app` folder, and run
+
+```bash
+terragrunt apply
+```
+
+This will show you the plan for deploying your new service. Verify the plan looks correct, and then approvie it to apply
+your application configuration, which will create a new Kubernetes Deployment to schedule the Pods. In the process,
+Kubernetes will allocate:
+
+- A `Service` resource to expose the Pods under a static IP within the Kubernetes cluster.
+- An `Ingress` resource to expose the Pods externally under an ALB.
+- A Route 53 Subdomain that binds to the ALB endpoint.
+
+Once the service is fully deployed, you can hit the configured DNS entry to reach your service.
+
+
+### Monitoring your deployment progress
+
+Due to the asynchronous nature of Kubernetes deployments, a successful `terragrunt apply` does not always mean your app
+was deployed successfully. The following commands will help you examine the deployment progress from the CLI.
+
+First, if you haven't done so already, configure your `kubectl` client to access the EKS cluster. You can follow the
+instructions [in this section of the
+docs](https://github.com/gruntwork-io/terraform-aws-eks/blob/master/core-concepts.md#how-do-i-authenticate-kubectl-to-the-eks-cluster)
+to configure `kubectl`. For this guide, we will use [kubergrunt](https://github.com/gruntwork-io/kubergrunt):
+
+```
+kubergrunt eks configure --eks-cluster-arn ARN_OF_EKS_CLUSTER
+```
+
+Once `kubectl` is configured, you can query the list of deployments:
+
+```
+kubectl get deployments --namespace applications
+```
+
+The list of deployments should include the new `simple-web-app` service you created. This will show you basic status
+info of the deployment:
+
+```
+NAME             DESIRED   CURRENT   UP-TO-DATE   AVAILABLE   AGE
+simple-web-app   3         3         3            3           5m
+```
+
+A stable deployment is indicated by all statuses showing the same counts. You can get more detailed information about a
+deployment using the `describe deployments` command if the numbers are not aligned:
+
+```
+kubectl describe deployments simple-web-app --namespace applications
+```
+
+See the [How do I check the status of a
+rollout?](https://github.com/gruntwork-io/helm-kubernetes-services/blob/master/charts/k8s-service/README.md#how-do-i-check-the-status-of-the-rollout)
+documentation for more information on getting detailed information about Kubernetes Deployments.
+
+## Debugging errors
+
+Sometimes, things don't go as planned. And when that happens, it's always beneficial to know how to locate the
+source of the problem. There are two places you can look for information about a failed Pod.
+
+### Using kubectl
+
+The `kubectl` CLI is a powerful tool that helps you investigate 
+problems with your `Pods`.
+
+The first step is to obtain the metadata and status of the `Pods`. To lookup information about a `Pod`, retrieve them
+using `kubectl`:
+
+```bash
+kubectl get pods \
+    -l "app.kubernetes.io/name=simple-web-app,app.kubernetes.io/instance=simple-web-app" \
+    --all-namespaces
+```
+
+This will list out all the associated `Pods` with the deployment you just made. Note that this will show you a minimal
+set of information about the `Pod`. However, this is a useful way to quickly scan the scope of the damage:
+
+- How many `Pods` are available? Are all of them failing or just a small few?
+- Are the `Pods` in a crash loop? Have they booted up successfully?
+- Are the `Pods` passing health checks?
+
+Once you can locate your failing `Pods`, you can dig deeper by using `describe pod` to get more information about a
+single `Pod`. To do this, you will first need to obtain the `Namespace` and name for the `Pod`. This information should
+be available in the previous command. Using that information, you can run:
+
+```bash
+kubectl describe pod $POD_NAME -n $POD_NAMESPACE
+```
+
+to output the detailed information. This includes the event logs, which indicate additional information about any
+failures that has happened to the `Pod`.
+
+You can also retrieve logs from a `Pod` (`stdout` and `stderr`) using `kubectl`:
+
+```
+kubectl logs $POD_NAME -n $POD_NAMESPACE
+```
+
+Most cluster level issues (e.g if there is not enough capacity to schedule the `Pod`) can be triaged with this
+information. However, if there are issues booting up the `Pod` or if the problems lie in your application code, you will
+need to dig into the logs.
+
+### CloudWatch Logs
+
+By default, all the container logs from a `Pod` (`stdout` and `stderr`) are sent to CloudWatch Logs. This is ideal for
+debugging situations where the container starts successfully but the service doesn't work as expected. Let's assume our
+`simple-web-app` containers started successfully (which they did!) but for some reason our requests to those containers
+are timing out or returning wrong content.
+
+1. Go to the "Logs" section of the [Cloudwatch Management Console](https://console.aws.amazon.com/cloudwatch/) and look for the name of the EKS cluster in the table.
+
+1. Clicking it should take you to a new page that displays a list of entries. Each of these correspond to a `Pod` in the
+   cluster, and contain the `Pod` name. Look for the one that corresponds to the failing `Pod` and click it.
+
+
+1. You should be presented with a real-time log stream of the container. If your app logs to STDOUT, its logs will show
+   up here. You can export the logs and analyze it in your preferred tool or use [CloudWatch Log
+   Insights](https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AnalyzingLogData.html) to query the logs directly
+   in the AWS web console.
 
 
 

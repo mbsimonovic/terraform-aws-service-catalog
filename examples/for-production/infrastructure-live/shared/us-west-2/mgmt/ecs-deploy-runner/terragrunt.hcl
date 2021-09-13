@@ -11,7 +11,7 @@
 terraform {
   # We're using a local file path here just so our automated tests run against the absolute latest code. However, when
   # using these modules in your code, you should use a Git URL with a ref attribute that pins you to a specific version:
-  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/mgmt/ecs-deploy-runner?ref=v0.58.0"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/mgmt/ecs-deploy-runner?ref=v0.60.1"
   source = "${get_parent_terragrunt_dir()}/../../..//modules/mgmt/ecs-deploy-runner"
 }
 
@@ -43,6 +43,31 @@ dependency "vpc_mgmt" {
 }
 
 
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# CONFIGURE A PROVIDER FOR EACH AWS REGION
+# To deploy a multi-region module, we have to configure a provider with a unique alias for each of the regions AWS
+# supports and pass all these providers to the multi-region module in a provider = { ... } block. You MUST create a
+# provider block for EVERY one of these AWS regions, but you should specify the ones to use and authenticate to (the
+# ones actually enabled in your AWS account) using opt_in_regions.
+# ---------------------------------------------------------------------------------------------------------------------
+
+generate "providers" {
+  path      = "providers.tf"
+  if_exists = "overwrite"
+  contents  = <<EOF
+%{for region in local.all_aws_regions}
+provider "aws" {
+  region = "${region}"
+  alias  = "${replace(region, "-", "_")}"
+  # Skip credential validation and account ID retrieval for disabled or restricted regions
+  skip_credentials_validation = ${contains(coalesce(local.opt_in_regions, []), region) ? "false" : "true"}
+  skip_requesting_account_id  = ${contains(coalesce(local.opt_in_regions, []), region) ? "false" : "true"}
+}
+%{endfor}
+EOF
+}
 
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -90,6 +115,73 @@ locals {
 
   git_ssh_private_key_secrets_manager_arn = "arn:aws:secretsmanager:us-west-2:234567890123:secret:GitSSHPrivateKey"
   github_pat_secrets_manager_arn          = ""
+
+  # The following locals are used for constructing multi region provider configurations for the underlying module.
+
+  # A list of all AWS regions
+  all_aws_regions = [
+    "af-south-1",
+    "ap-east-1",
+    "ap-northeast-1",
+    "ap-northeast-2",
+    "ap-northeast-3",
+    "ap-south-1",
+    "ap-southeast-1",
+    "ap-southeast-2",
+    "ca-central-1",
+    "cn-north-1",
+    "cn-northwest-1",
+    "eu-central-1",
+    "eu-north-1",
+    "eu-south-1",
+    "eu-west-1",
+    "eu-west-2",
+    "eu-west-3",
+    "me-south-1",
+    "sa-east-1",
+    "us-east-1",
+    "us-east-2",
+    "us-gov-east-1",
+    "us-gov-west-1",
+    "us-west-1",
+    "us-west-2",
+  ]
+
+  # Creates resources in the specified regions. The best practice is to enable multiregion modules in all enabled
+  # regions in your AWS account. To get the list of regions enabled in your AWS account, you can use the AWS CLI: aws
+  # ec2 describe-regions.
+  opt_in_regions = [
+    "eu-north-1",
+    "ap-south-1",
+    "eu-west-3",
+    "eu-west-2",
+    "eu-west-1",
+    "ap-northeast-2",
+    "ap-northeast-1",
+    "sa-east-1",
+    "ca-central-1",
+    "ap-southeast-1",
+    "ap-southeast-2",
+    "eu-central-1",
+    "us-east-1",
+    "us-east-2",
+    "us-west-1",
+    "us-west-2",
+
+    # By default, skip regions that are not enabled in most AWS accounts:
+    #
+    #  "af-south-1",     # Cape Town
+    #  "ap-east-1",      # Hong Kong
+    #  "eu-south-1",     # Milan
+    #  "me-south-1",     # Bahrain
+    #  "us-gov-east-1",  # GovCloud
+    #  "us-gov-west-1",  # GovCloud
+    #  "cn-north-1",     # China
+    #  "cn-northwest-1", # China
+    #
+    # This region is enabled by default but is brand-new and some services like AWS Config don't work.
+    # "ap-northeast-3", # Asia Pacific (Osaka)
+  ]
 
 }
 
@@ -234,6 +326,29 @@ inputs = {
   # A list of role names that should be given permissions to invoke the infrastructure CI/CD pipeline.
   iam_roles = ["allow-auto-deploy-from-other-accounts", ]
 
-  container_cpu    = 4096
-  container_memory = 16384
+  container_cpu        = 2048
+  container_memory     = 4096
+  container_max_cpu    = 8192
+  container_max_memory = 32768
+
+  # Configure opt in regions for each multi region service based on locally configured setting.
+  kms_grant_opt_in_regions = local.opt_in_regions
+
+  # The following configuration provisions EC2 instances to use with the ECS deploy runner. Fargate workers are pay per
+  # use and generally preferable, but they are limited to minimal resources in new accounts (2vCPUs, 4GB RAM). When
+  # deploying many infrastructure resources at once this may not be enough for terragrunt to be able to deploy
+  # everything. We recommend using EC2 based workers for the initial deployment and setup, and once you have launched,
+  # to spin down the EC2 workers by removing the following input to replace them with purely Fargate workers.
+  ec2_worker_pool_configuration = {
+    ami_filters = {
+      owners = [local.common_vars.locals.accounts.shared]
+      filters = [
+        {
+          name   = "name"
+          values = ["ecs-deploy-runner-worker-v0.60.1-*"]
+        },
+      ]
+    }
+    instance_type = "m5.2xlarge"
+  }
 }

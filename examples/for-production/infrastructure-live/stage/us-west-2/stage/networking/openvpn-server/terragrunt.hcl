@@ -12,7 +12,7 @@
 terraform {
   # We're using a local file path here just so our automated tests run against the absolute latest code. However, when
   # using these modules in your code, you should use a Git URL with a ref attribute that pins you to a specific version:
-  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/mgmt/openvpn-server?ref=v0.58.0"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/mgmt/openvpn-server?ref=v0.60.1"
   source = "${get_parent_terragrunt_dir()}/../../..//modules/mgmt/openvpn-server"
 }
 
@@ -85,7 +85,7 @@ inputs = {
     filters = [
       {
         name   = "name"
-        values = ["openvpn-server-v0.58.0-*"]
+        values = ["openvpn-server-v0.60.1-*"]
       },
     ]
   }
@@ -117,4 +117,7 @@ inputs = {
   # domain name and create a route 53 A record in the correct hosted zone so that the vpn server is
   # publicly addressable
   base_domain_name = local.account_vars.locals.domain_name.name
+
+  # Flip force_destroy to true prior to destroying this module.
+  force_destroy = false
 }

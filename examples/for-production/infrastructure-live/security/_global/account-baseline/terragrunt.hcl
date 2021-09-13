@@ -11,7 +11,7 @@
 terraform {
   # We're using a local file path here just so our automated tests run against the absolute latest code. However, when
   # using these modules in your code, you should use a Git URL with a ref attribute that pins you to a specific version:
-  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/landingzone/account-baseline-security?ref=v0.58.0"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/landingzone/account-baseline-security?ref=v0.60.1"
   source = "${get_parent_terragrunt_dir()}/../../..//modules/landingzone/account-baseline-security"
 
   # This module deploys some resources (e.g., AWS Config) across all AWS regions, each of which needs its own provider,
@@ -243,4 +243,31 @@ inputs = {
   # to true will lead to errors in the module unless the account has been set to enable this requirement.
   config_s3_mfa_delete     = false
   cloudtrail_s3_mfa_delete = false
+
+  ##################################
+  # KMS grants
+  ##################################
+
+  service_linked_roles = ["autoscaling.amazonaws.com"]
+
+  # These grants allow the autoscaling service-linked role to access to the AMI encryption key so that it
+  # can launch instances from AMIs that were shared from the shared-services account.
+  kms_grant_regions = {
+    ami_encryption_key = local.region_vars.locals.aws_region
+  }
+  kms_grants = {
+    ami_encryption_key = {
+      kms_cmk_arn       = "arn:aws:kms:us-east-1:234567890123:alias/ExampleAMIEncryptionKMSKeyArn"
+      grantee_principal = "arn:aws:iam::${local.accounts[local.account_name]}:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling"
+      granted_operations = [
+        "Encrypt",
+        "Decrypt",
+        "ReEncryptFrom",
+        "ReEncryptTo",
+        "GenerateDataKey",
+        "DescribeKey"
+      ]
+    }
+  }
+
 }

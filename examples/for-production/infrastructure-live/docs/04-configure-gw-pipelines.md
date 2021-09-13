@@ -13,6 +13,9 @@ code](https://gruntwork.io/guides/automations/how-to-configure-a-production-grad
 * [CI / CD pipeline for app code](#ci--cd-pipeline-for-app-code): How to configure a CI / CD pipeline for application
   code, such as a Ruby, Python, PHP, or Java web service packaged with Packer or Docker.
 
+* [Update the CI / CD pipeline itself](#update-the-ci--cd-pipeline-itself): How to pull in changes to the pipeline from
+  `terraform-aws-ci` and redeploy pipeline containers.
+
 
 ## CI / CD pipeline for infrastructure code
 
@@ -132,6 +135,31 @@ approval.
    ![Slack Apply Notification](images/circleci-setup/circleci_slack_apply.png)
 
 
+### Try it out
+
+
+You can try out the pipeline by making a change to one of the modules. For example, try extending
+the number of replicas in the sample app:
+
+1. Create a new branch in the `infrastructure-live` repo.
+    `git checkout -B add-replica-to-sample-app`.
+1. Open the file `dev/us-west-2/dev/services/sample-app-frontend` in your editor.
+1. Change the input variable `desired_number_of_pods` to `2`.
+
+1. Commit the change.
+    `git commit -a`.
+1. Push the branch to GitHub and open a PR.
+    `git push add-replica-to-sample-app`
+1. Login to CircleCI. Navigate to your infrastructure-live project.
+1. Click on the new pipeline job for the branch `add-replica-to-sample-app` to see the build log.
+1. Verify the `plan`. Make sure that the change corresponds to adding a new replica to the EKS service.
+
+1. When satisfied with the plan, merge the PR into `main`.
+1. Go back to the project and verify a new build is started on the `main` branch.
+1. Wait for the `plan` to finish. The build should hold for approval.
+1. Approve the deployment by clicking `Approve`.
+1. Wait for the `apply` to finish.
+1. Login to the AWS console and verify the EKS service now has 2 replicas.
 
 
 ### Destroying infrastructure
@@ -276,6 +304,69 @@ Configure CircleCI to watch the repo for changes:
     - `GITHUB_OAUTH_TOKEN` : Use the GitHub Personal Access Token for the GitHub machine user that you provided to
       Gruntwork.
 
+## Update the CI / CD pipeline itself
+
+The CI / CD pipeline uses the Gruntwork [terraform-aws-ci](https://github.com/gruntwork-io/terraform-aws-ci) repo code, so
+whenever there's a new release, it's a good idea to update your pipeline.
+
+Here are the manual steps for this process:
+
+1. Update the Service Catalog version tag in the
+[`build_deploy_runner_image.sh`](/shared/us-west-2/_regional/container_images/build_deploy_runner_image.sh) and
+[`build_kaniko_image.sh`](/shared/us-west-2/_regional/container_images/build_kaniko_image.sh) scripts.
+
+1. Run each script while authenticating to the `shared` account.
+
+        aws-vault exec your-shared -- shared/us-west-2/_regional/container_images/build_deploy_runner_image.sh
+        aws-vault exec your-shared -- shared/us-west-2/_regional/container_images/build_kaniko_image.sh
+
+
+1. Update [`common.hcl`](/common.hcl) with new tag values for these images. The new tag value will be version of
+`terraform-aws-ci` that the images use. For example, if your newly created images are using the `v0.38.9` release of
+`terraform-aws-ci`, update [`common.hcl`](/common.hcl) to:
+
+        deploy_runner_container_image_tag = "v0.38.9"
+        kaniko_container_image_tag = "v0.38.9"
+
+1. Run `apply` on the `ecs-deploy-runner` modules in each account. These can be run simultaneously in different terminal sessions.
+
+        cd logs/us-west-2/mgmt/ecs-deploy-runner
+        aws-vault exec your-logs -- terragrunt apply --terragrunt-source-update -auto-approve
+
+        cd shared/us-west-2/mgmt/ecs-deploy-runner
+        aws-vault exec your-shared -- terragrunt apply --terragrunt-source-update -auto-approve
+
+        cd security/us-west-2/mgmt/ecs-deploy-runner
+        aws-vault exec your-security -- terragrunt apply --terragrunt-source-update -auto-approve
+
+        cd dev/us-west-2/mgmt/ecs-deploy-runner
+        aws-vault exec your-dev -- terragrunt apply --terragrunt-source-update -auto-approve
+
+        cd stage/us-west-2/mgmt/ecs-deploy-runner
+        aws-vault exec your-stage -- terragrunt apply --terragrunt-source-update -auto-approve
+
+        cd prod/us-west-2/mgmt/ecs-deploy-runner
+        aws-vault exec your-prod -- terragrunt apply --terragrunt-source-update -auto-approve
+
+
+### Why manually?
+
+The CI / CD pipeline has a guard in place to avoid being updated automatically by the pipeline itself. This is so that
+you cannot accidentally lock yourself out of the pipeline when applying a change to the pipeline that changes
+permissions. For example, if you change the IAM permissions of the CI user, you may no longer be able to run the
+pipeline. The pipeline job that updates the permissions will also be affected by the change. This can be difficult to
+recover from because you will have lost access to make further changes. That's why we recommend the manual approach
+detailed above.
+
+If you are certain that your changes will not break the pipeline itself, you can go ahead and use the pipeline to
+update itself. To do this, you need to remove the guard that's in place, temporarily. That is, comment or remove the
+lines
+
+        elif [[ "$updated_folder" =~ ^.+/ecs-deploy-runner(/.+)?$ ]]; then
+          echo "No action defined for changes to $updated_folder."
+
+in [`_ci/scripts/deploy-infra.sh`](/_ci/scripts/deploy-infra.sh). You can combine this change into the same commit or
+pull request as your changes to the `ecs-deploy-runner` module configuration.
 
 ## Next steps
 

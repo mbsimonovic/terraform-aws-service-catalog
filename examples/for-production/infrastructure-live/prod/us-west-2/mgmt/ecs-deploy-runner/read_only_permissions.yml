@@ -34,6 +34,15 @@ ElasticacheReadOnlyAccess:
   - "*"
 
 
+EKSReadOnlyAccess:
+  effect: "Allow"
+  actions:
+  - "eks:List*"
+  - "eks:Describe*"
+  resources:
+  - "*"
+
+
 ACMReadOnlyAccess:
   effect: "Allow"
   actions:

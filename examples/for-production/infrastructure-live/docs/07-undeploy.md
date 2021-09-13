@@ -5,11 +5,12 @@ this section, we'll walk you through how to undeploy parts or all of the Referen
 
 1. [Before you get started](#before-you-get-started)
 1. [Pre-requisite: force_destroy on S3 buckets](#pre-requisite-force_destroy-on-S3-buckets)
-1. [Pre-requisite: disable Terragrunt prevent_destroy](#pre-requisite-disable-terragrunt-prevent_destroy)
 1. [Pre-requisite: understand module dependencies](#pre-requisite-understand-module-dependencies)
-1. [Undeploying a single module](#undeploying-a-single-module)
-1. [Undeploying multiple modules or an entire environment](#undeploying-multiple-modules-or-an-entire-environment)
+1. [Undeploying modules using Gruntwork Pipelines](#undeploying-modules-using-gruntwork-pipelines)
+1. [Manually undeploying a single module](#manually-undeploying-a-single-module)
+1. [Manually undeploying multiple modules or an entire environment](#manually-undeploying-multiple-modules-or-an-entire-environment)
 1. [Removing the terraform state](#removing-the-terraform-state)
+1. [Useful Tips](#useful-tips)
 1. [Known errors](#known-errors)
 1. [Next steps](#next-steps)
 
@@ -54,23 +55,104 @@ services that expose this variable (note, you may not have all of these in your 
 
 ## Pre-requisite: understand module dependencies
 
-Important note: some of your Terraform modules may depend on other ones! For example, most modules depend on the `vpc`
-module, fetching information about the VPC using  [Terragrunt `dependency`
+At this point the CI / CD pipeline (Gruntwork Pipelines) only **supports destroying modules that have no downstream dependencies.** You can destroy
+multiple modules but only if all of them have no dependencies, and also only if none of them are dependent on each other.
+
+### Undeploying a module with many dependencies
+
+For example, most modules depend on the `vpc` module, fetching information about the VPC using [Terragrunt `dependency`
 blocks](https://terragrunt.gruntwork.io/docs/reference/config-blocks-and-attributes/#dependency) or
-[aws_vpc](https://www.terraform.io/docs/providers/aws/d/vpc.html) data source. If you run `destroy` on your `vpc`
+[aws_vpc](https://www.terraform.io/docs/providers/aws/d/vpc.html) data source. If you undeploy your `vpc`
 *before* the modules that depend on it, then any command you try to run on those other modules will fail, as their
 data sources will no longer be able to fetch the VPC info!
 
 Therefore, you should only destroy a module if you're sure no other module depends on it! Terraform does not provide
 an easy way to track these sorts of dependencies. We have configured the modules here using Terragrunt [`dependency`](https://terragrunt.gruntwork.io/docs/reference/config-blocks-and-attributes/#dependency) blocks, so use those to find dependencies between modules.
 
+You can check the module dependency tree with `graph-dependencies` and GraphViz:
+
+        aws-vault exec <account_profile> -- terragrunt graph-dependencies | dot -Tpng > dep-graph.png
+        open dep-graph.png
 
 
-## Undeploying a single module
 
-Now that all the pre-requisites are out of the way, *if you are absolutely sure you want to run destroy on a single
-module* (remember, there's no undo!), just go into that module's folder and run `terragrunt destroy`. For example, to
-undeploy the sample-app-frontend service in the `stage` environment, you'd run:
+
+
+## Undeploying modules using Gruntwork Pipelines
+
+Consider a reference architecture with this graph in each of the application accounts (dev, stage, prod):
+
+![Dependency Graph](images/dev-eks-graph.png)
+
+Let's say you've decided you no longer need the `eks-cluster` and want to undeploy it. It involves a several-step process.
+
+1. Undeploy `sample-app-frontend` and `sample-app-backend`.
+1. Undeploy `eks-core-services`.
+1. Undeploy `eks-applications-namespace`.
+1. Undeploy `eks-cluster`.
+
+We'll walk through each of these steps below, using Gruntwork Pipelines.
+
+_NOTE: You can combine changes across all application accounts (i.e., dev, stage, prod) in a single commit, but we
+recommend first undeploying one account at a time until you get the hang of it._
+
+### Undeploy sample-apps
+
+#### Update the force_destroy variable
+
+1. First create a branch and push a commit that allows destroying the S3 bucket containing access logs for the
+`sample-app-frontend`: [see force_destroy section](#pre-requisite-force_destroy-on-S3-buckets).
+
+        force_destroy_ingress_access_logs = true
+
+1. Open a pull request for that change and verify the plan in CI. You should see a trivial change to update the
+`sample-app-frontend` module.
+1. Go through the typical git workflow to get the change merged into the main branch.
+1. As CI runs on the main branch, watch for the job to be held for approval. Approve the job, and wait for the
+`deployment` step to complete so that the `sample-app-frontend` is fully updated with the new variable.
+
+#### Delete the sample-app folders
+
+1. On a new branch push a commit to delete the `sample-app-frontend` and `sample-app-backend` folders.
+
+        # For example, to remove from only dev and stage accounts:
+        rm -rf {dev,stage}/us-west-2/{dev,stage}/services/sample-app-{frontend,backend}
+
+1. Open a pull request for that change and verify the plan in CI.
+    - Make sure the `plan -destroy` output looks accurate.
+    - You should see multiple plan outputs -- one per folder deleted. You'll need to scroll through the plan
+    output to see all of them, as it runs `plan -destroy` for each folder individually.
+1. Repeat steps 3 & 4 from above.
+1. [Remove the terraform state](#removing-the-terraform-state).
+
+### Undeploy the other modules
+
+1. Create a new branch and push a commit that deletes the `eks-core-services` module folder.
+
+        # For example, to remove from only dev and stage accounts:
+        rm -rf {dev,stage}/us-west-2/{dev,stage}/services/eks-core-services
+
+1. Open a pull request for that change and verify the plan in CI.
+    - Make sure the `plan -destroy` output looks accurate.
+    - Be sure to scroll through the entire plan output to see plans for all folders.
+1. Repeat steps 3 & 4 from above, including [removing the terraform state](#removing-the-terraform-state).
+1. Repeat steps 1-3 from this section for `eks-applications-namespace`, and then `eks-cluster` module folders.
+
+
+Once completed, there should no longer be an `eks-cluster` or any of its dependencies in the accounts you deleted them
+from. You can verify this by logging into the AWS Console.
+
+**NOTE: If you run into timeout errors, try rerunning the job from failure, and they should resolve.** (If they do not,
+please [reach out](mailto:support@gruntwork.io) to us.)
+
+
+
+
+
+
+## Manually undeploying a single module
+
+You can also bypass the CI / CD pipeline and run destroy locally. For example:
 
 ```
 cd stage/us-west-2/stage/services/sample-app-frontend
@@ -80,7 +162,10 @@ terragrunt destroy
 
 
 
-## Undeploying multiple modules or an entire environment
+
+
+
+## Manually undeploying multiple modules or an entire environment
 
 *If you are absolutely sure you want to run destroy on multiple modules or an entire environment* (remember, there's
 no undo!), you can use the `destroy-all` command. For example, to undeploy the entire staging environment, you'd run:
@@ -112,6 +197,8 @@ terragrunt destroy-all \
 
 
 
+
+
 ## Removing the terraform state
 
 **NOTE: Deleting state means that you lose the ability to manage your current terraform resources! Be sure to only
@@ -125,6 +212,8 @@ To delete the state objects, login to the console and look for the S3 bucket in 
 should begin with your company's name and end with `terraform-state`. Also look for a DynamoDB
 table named `terraform-locks`. You can safely remove both **once you have confirmed all the resources have been
 destroyed successfully**.
+
+
 
 
 
@@ -179,4 +268,3 @@ There are a few reasons your call to `destroy` may fail:
 
     1. Run `apply` to temporarily bring back the dependencies.
     1. Update the code to temporarily remove the dependencies and replace them with some mock data.
-

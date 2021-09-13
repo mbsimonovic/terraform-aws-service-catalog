@@ -11,7 +11,7 @@
 terraform {
   # We're using a local file path here just so our automated tests run against the absolute latest code. However, when
   # using these modules in your code, you should use a Git URL with a ref attribute that pins you to a specific version:
-  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/services/k8s-service?ref=v0.58.0"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/services/k8s-service?ref=v0.60.1"
   source = "${get_parent_terragrunt_dir()}/../../..//modules/services/k8s-service"
 }
 
@@ -171,11 +171,11 @@ inputs = {
     CONFIG_SECRETS_DIR                    = "/mnt/secrets"
     CONFIG_SECRETS_SECRETS_MANAGER_TLS_ID = local.tls_secrets_manager_arn
     CONFIG_SECRETS_SECRETS_MANAGER_REGION = local.aws_region
-    CONFIG_SECRETS_SECRETS_MANAGER_DB_ID  = local.db_secrets_manager_arn
-    CONFIG_DATABASE_HOST                  = "database"
     CONFIG_CACHE_ENGINE                   = "memcached"
     CONFIG_CACHE_HOST                     = dependency.memcached.outputs.configuration_endpoint
     CONFIG_CACHE_PORT                     = tostring(dependency.memcached.outputs.cache_port)
+    CONFIG_SECRETS_SECRETS_MANAGER_DB_ID  = local.db_secrets_manager_arn
+    CONFIG_DATABASE_HOST                  = "database"
     CONFIG_DATABASE_RUN_SCHEMA_MIGRATIONS = "true"
     CONFIG_DATABASE_POOL_SIZE             = 10
   }

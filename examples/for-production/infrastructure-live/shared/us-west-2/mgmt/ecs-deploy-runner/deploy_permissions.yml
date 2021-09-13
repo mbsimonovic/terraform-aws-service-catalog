@@ -29,6 +29,14 @@ ElasticacheDeployAccess:
   - "*"
 
 
+EKSDeployAccess:
+  effect: "Allow"
+  actions:
+  - "eks:*"
+  resources:
+  - "*"
+
+
 ACMDeployAccess:
   effect: "Allow"
   actions:

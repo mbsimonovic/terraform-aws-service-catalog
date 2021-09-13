@@ -6,14 +6,14 @@
 # This script is intended to be run on a CI server that has the necessary credentials to invoke the ECS Deploy Runner in
 # the Shared Services AWS account.
 #
-# This is the build script for the OpenVPN Server AMI. You can view the packer template at the following URL:
-# https://github.com/gruntwork-io/terraform-aws-service-catalog/blob/v0.60.1/modules/mgmt/openvpn-server/openvpn-server-ubuntu.pkr.hcl
+# This is the build script for the ECS Deploy Runner EC2 Workers AMI. You can view the packer template at the following URL:
+# https://github.com/gruntwork-io/terraform-aws-service-catalog/blob/v0.60.1/modules/mgmt/ecs-deploy-runner/ecs-deploy-runner-worker-al2.pkr.hcl
 #
 # Pass in the --run-local flag to build the image on the local machine, without going through the ECS Deploy Runner.
 
 set -e
 
-readonly PACKER_TEMPLATE_REPO="https://github.com/gruntwork-io/terraform-aws-service-catalog.git//modules/mgmt/openvpn-server/openvpn-server-ubuntu.pkr.hcl"
+readonly PACKER_TEMPLATE_REPO="https://github.com/gruntwork-io/terraform-aws-service-catalog.git//modules/mgmt/ecs-deploy-runner/ecs-deploy-runner-worker-al2.pkr.hcl"
 readonly PACKER_TEMPLATE_REPO_REF="v0.60.1"
 readonly SERVICE_CATALOG_REF="v0.60.1"
 readonly DEPLOY_RUNNER_REGION="us-west-2"
@@ -22,9 +22,11 @@ readonly REGION="us-west-2"
 # The account IDs where the AMI should be shared.
 git_repo_root="$(git rev-parse --show-toplevel)"
 dev_account_id="$(jq -r '."dev"' "$git_repo_root/accounts.json")"
+logs_account_id="$(jq -r '."logs"' "$git_repo_root/accounts.json")"
 prod_account_id="$(jq -r '."prod"' "$git_repo_root/accounts.json")"
+security_account_id="$(jq -r '."security"' "$git_repo_root/accounts.json")"
 stage_account_id="$(jq -r '."stage"' "$git_repo_root/accounts.json")"
-ami_account_ids="[\"$dev_account_id\",\"$prod_account_id\",\"$stage_account_id\"]"
+ami_account_ids="[\"$dev_account_id\",\"$logs_account_id\",\"$prod_account_id\",\"$security_account_id\",\"$stage_account_id\"]"
 
 function run {
   local run_local="false"

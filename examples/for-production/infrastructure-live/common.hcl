@@ -15,11 +15,11 @@ locals {
 
   # All accounts use the ECR repo in the shared account for the ecs-deploy-runner docker image.
   deploy_runner_ecr_uri             = "${local.accounts.shared}.dkr.ecr.${local.default_region}.amazonaws.com/ecs-deploy-runner"
-  deploy_runner_container_image_tag = "v0.38.4"
+  deploy_runner_container_image_tag = "v0.38.9"
 
   # All accounts use the ECR repo in the shared account for the Kaniko docker image.
   kaniko_ecr_uri             = "${local.accounts.shared}.dkr.ecr.${local.default_region}.amazonaws.com/kaniko"
-  kaniko_container_image_tag = "v0.38.4"
+  kaniko_container_image_tag = "v0.38.9"
 
   # The infastructure-live repository on which the deploy runner operates.
   infra_live_repo_https = "https://github.com/gruntwork-io/infrastructure-live"
@@ -32,10 +32,10 @@ locals {
   ]
 
   # The name of the S3 bucket in the Logs account where AWS Config will report its findings.
-  config_s3_bucket_name = "gruntwork-config-logs"
+  config_s3_bucket_name = "${local.name_prefix}-config-logs"
 
   # The name of the S3 bucket in the Logs account where AWS CloudTrail will report its findings.
-  cloudtrail_s3_bucket_name = "gruntwork-cloudtrail-logs"
+  cloudtrail_s3_bucket_name = "${local.name_prefix}-cloudtrail-logs"
 
   # IAM configurations for cross account ssh-grunt setup.
   ssh_grunt_users_group      = "ssh-grunt-users"

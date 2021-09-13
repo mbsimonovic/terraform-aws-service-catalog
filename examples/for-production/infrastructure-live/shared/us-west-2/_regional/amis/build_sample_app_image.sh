@@ -8,12 +8,14 @@
 #
 # This is the build script for the Gruntwork Sample App AMI. You can view the packer template at the following URL:
 # https://github.com/gruntwork-io/aws-sample-app/blob/v0.0.4/packer/build.json
+#
+# Pass in the --run-local flag to build the image on the local machine, without going through the ECS Deploy Runner.
 
 set -e
 
 readonly PACKER_TEMPLATE_REPO="https://github.com/gruntwork-io/aws-sample-app.git//packer/build.json"
 readonly PACKER_TEMPLATE_REPO_REF="v0.0.4"
-readonly SERVICE_CATALOG_REF="v0.58.0"
+readonly SERVICE_CATALOG_REF="v0.60.1"
 readonly DEPLOY_RUNNER_REGION="us-west-2"
 readonly REGION="us-west-2"
 
@@ -25,6 +27,20 @@ stage_account_id="$(jq -r '."stage"' "$git_repo_root/accounts.json")"
 ami_account_ids="[\"$dev_account_id\",\"$prod_account_id\",\"$stage_account_id\"]"
 
 function run {
+  local run_local="false"
+
+  while [[ $# > 0 ]]; do
+    local key="$1"
+
+    case "$key" in
+      --run-local)
+        run_local="true"
+        ;;
+    esac
+
+    shift
+  done
+
   # Validate that the AMI is being built in the Shared Services account.
   local account_id
   account_id="$(aws sts get-caller-identity --query 'Account' --output text)"
@@ -42,7 +58,7 @@ function run {
   # - "--gitlab-token-secrets-manager-arn" (When using GitLab as a VCS.)
   # - "--bitbucket-token-secrets-manager-arn" (When using Bitbucket as a VCS.)
   # - "--bitbucket-username" (When using Bitbucket as a VCS.)
-  infrastructure-deployer --aws-region "$DEPLOY_RUNNER_REGION" -- ami-builder build-packer-artifact \
+  args=( \
     --packer-template-path "git::$PACKER_TEMPLATE_REPO?ref=$PACKER_TEMPLATE_REPO_REF" \
     --var service_catalog_ref="$SERVICE_CATALOG_REF" \
     --var version_tag="$PACKER_TEMPLATE_REPO_REF" \
@@ -56,6 +72,13 @@ function run {
     --var ssh_interface="private_ip" \
     --var encrypt_boot=true \
     --var encrypt_kms_key_id="arn:aws:kms:us-east-1:234567890123:alias/ExampleAMIEncryptionKMSKeyArn"
+  )
+
+  if [[ "$run_local" == 'true' ]]; then
+    build-packer-artifact "${args[@]}"
+  else
+    infrastructure-deployer --aws-region "$DEPLOY_RUNNER_REGION" -- ami-builder build-packer-artifact "${args[@]}"
+  fi
 }
 
 # Run the main function if this script is called directly, instead of being sourced.

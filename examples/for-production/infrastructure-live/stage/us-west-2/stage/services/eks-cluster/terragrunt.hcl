@@ -11,7 +11,7 @@
 terraform {
   # We're using a local file path here just so our automated tests run against the absolute latest code. However, when
   # using these modules in your code, you should use a Git URL with a ref attribute that pins you to a specific version:
-  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/services/eks-cluster?ref=v0.58.0"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/services/eks-cluster?ref=v0.60.1"
   source = "${get_parent_terragrunt_dir()}/../../..//modules/services/eks-cluster"
 }
 
@@ -111,33 +111,32 @@ locals {
 inputs = {
   cluster_name              = "${local.name_prefix}-${local.account_name}"
   asg_default_instance_type = "t3.micro"
-  cluster_instance_ami      = ""
+
+  # We deploy EKS into the app VPC, inside the private app tier.
+  vpc_id                                     = dependency.vpc.outputs.vpc_id
+  schedule_control_plane_services_on_fargate = true
+  control_plane_vpc_subnet_ids               = dependency.vpc.outputs.private_app_subnet_ids
+  worker_vpc_subnet_ids                      = dependency.vpc.outputs.private_app_subnet_ids
+
+  # Configure worker node settings. This configuration uses Managed Node Groups as the worker pool.
+  cluster_instance_ami = ""
   cluster_instance_ami_filters = {
     owners = [local.common_vars.locals.accounts["shared"]]
     filters = [
       {
         name   = "name"
-        values = ["eks-workers-v0.58.0-*"]
+        values = ["eks-workers-v0.60.1-*"]
       },
     ]
   }
-  cluster_instance_keypair_name = "eks-cluster-admin-v1"
-
-  # We deploy EKS into the app VPC, inside the private app tier.
-  vpc_id                                     = dependency.vpc.outputs.vpc_id
-  schedule_control_plane_services_on_fargate = true
-
-  # In us-east-1, EKS is supported in all AZs except us-east-1e, so we limit the valid_subnet_ids to the first three,
-  # which makes EKS still highly available.
-  control_plane_vpc_subnet_ids = dependency.vpc.outputs.private_app_subnet_ids
-  worker_vpc_subnet_ids        = dependency.vpc.outputs.private_app_subnet_ids
-
-  autoscaling_group_configurations = {
-    "asg" = {
-      min_size   = "2"
-      max_size   = "4"
-      subnet_ids = dependency.vpc.outputs.private_app_subnet_ids
-      tags       = []
+  cluster_instance_keypair_name       = "eks-cluster-admin-v1"
+  external_account_ssh_grunt_role_arn = "arn:aws:iam::${local.common_vars.locals.accounts.security}:role/allow-ssh-grunt-access-from-other-accounts"
+  managed_node_group_configurations = {
+    "group" = {
+      min_size     = "2"
+      max_size     = "4"
+      desired_size = "2"
+      subnet_ids   = dependency.vpc.outputs.private_app_subnet_ids
     }
   }
 
@@ -156,6 +155,4 @@ inputs = {
   allow_inbound_api_access_from_cidr_blocks = ["0.0.0.0/0"]
 
   alarms_sns_topic_arn = [dependency.sns.outputs.topic_arn]
-
-  external_account_ssh_grunt_role_arn = "arn:aws:iam::${local.common_vars.locals.accounts.security}:role/allow-ssh-grunt-access-from-other-accounts"
 }
