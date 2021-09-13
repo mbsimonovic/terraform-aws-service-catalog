@@ -358,6 +358,12 @@ variable "health_check_matcher" {
   default     = "200"
 }
 
+variable "enable_execute_command" {
+  description = "Specifies whether to enable Amazon ECS Exec for the tasks within the service."
+  type        = bool
+  default     = false
+}
+
 variable "default_listener_arns" {
   description = "A map of all the listeners on the load balancer. The keys should be the port numbers and the values should be the ARN of the listener for that port."
   type        = map(string)
