@@ -94,11 +94,11 @@ module "vpc" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 locals {
-  destination_route_tables = concat(
+  destination_route_tables = compact(concat(
     [module.vpc.public_subnet_route_table_id],
     module.vpc.private_app_subnet_route_table_ids,
     module.vpc.private_persistence_route_table_ids,
-  )
+  ))
 }
 
 module "vpc_peering_connection" {
