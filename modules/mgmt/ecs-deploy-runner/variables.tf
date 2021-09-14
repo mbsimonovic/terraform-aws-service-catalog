@@ -497,3 +497,22 @@ variable "container_default_launch_type" {
   type        = string
   default     = "FARGATE"
 }
+
+# ---------------------------------------------------------------------------------------------------------------------
+# ESCAPE HATCHES
+# The variables below will be moved to optional attributes of the docker_image_builder object once optional type
+# attributes are generally available.
+# https://www.terraform.io/docs/language/expressions/type-constraints.html#experimental-optional-object-type-attributes
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "docker_image_builder_hardcoded_options" {
+  description = "Which options and args to always pass in alongside the ones provided by the command. This is a map of option keys to args to pass in. Each arg in the list will be passed in as a separate option. This will be passed in first, before the args provided by the user in the event data."
+  type        = map(list(string))
+  default     = {}
+}
+
+variable "docker_image_builder_hardcoded_args" {
+  description = "Unlike hardcoded_options, this is used for hardcoded positional args and will always be passed in at the end of the args list."
+  type        = list(string)
+  default     = ["--idempotent"]
+}

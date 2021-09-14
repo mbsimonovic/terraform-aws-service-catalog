@@ -55,7 +55,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_deploy_runner" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner?ref=v0.38.9"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner?ref=v0.38.10"
 
   name                          = var.name
   container_images              = module.standard_config.container_images
@@ -72,7 +72,7 @@ module "ecs_deploy_runner" {
 }
 
 module "standard_config" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner-standard-configuration?ref=v0.38.9"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner-standard-configuration?ref=v0.38.10"
 
   docker_image_builder = (
     var.docker_image_builder_config != null
@@ -101,6 +101,9 @@ module "standard_config" {
     }
     : null
   )
+
+  docker_image_builder_hardcoded_options = var.docker_image_builder_hardcoded_options
+  docker_image_builder_hardcoded_args    = var.docker_image_builder_hardcoded_args
 
   ami_builder = (
     var.ami_builder_config != null
