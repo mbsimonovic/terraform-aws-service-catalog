@@ -48,8 +48,9 @@ resource "aws_elasticsearch_domain" "cluster" {
   }
   advanced_security_options {
     enabled                        = var.advanced_security_options
-    internal_user_database_enabled = var.advanced_security_options
+    internal_user_database_enabled = var.internal_user_database_enabled
     master_user_options {
+      master_user_arn      = var.master_user_arn
       master_user_name     = var.master_user_name
       master_user_password = var.master_user_password
     }
