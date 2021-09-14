@@ -44,7 +44,9 @@ module "ecs_cluster" {
   multi_az_capacity_provider       = var.multi_az_capacity_provider
   capacity_provider_target         = var.capacity_provider_target
   capacity_provider_max_scale_step = var.capacity_provider_max_scale_step
-  capacity_provider_min_scale_step = var.capacity_provider_max_scale_step
+  capacity_provider_min_scale_step = var.capacity_provider_min_scale_step
+
+  autoscaling_termination_protection = var.autoscaling_termination_protection
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -106,10 +108,15 @@ module "ecs_cluster_cpu_memory_alarms" {
   ecs_cluster_name     = var.cluster_name
   alarm_sns_topic_arns = var.alarms_sns_topic_arn
 
-  high_cpu_utilization_threshold    = var.high_cpu_utilization_threshold
-  high_cpu_utilization_period       = var.high_cpu_utilization_period
-  high_memory_utilization_threshold = var.high_memory_utilization_threshold
-  high_memory_utilization_period    = var.high_memory_utilization_period
+  high_cpu_utilization_threshold          = var.high_cpu_utilization_threshold
+  high_cpu_utilization_period             = var.high_cpu_utilization_period
+  high_cpu_utilization_evaluation_periods = var.high_cpu_utilization_evaluation_periods
+  high_cpu_utilization_statistic          = var.high_cpu_utilization_statistic
+
+  high_memory_utilization_threshold          = var.high_memory_utilization_threshold
+  high_memory_utilization_period             = var.high_memory_utilization_period
+  high_memory_utilization_evaluation_periods = var.high_memory_utilization_evaluation_periods
+  high_memory_utilization_statistic          = var.high_memory_utilization_statistic
 }
 
 module "metric_widget_ecs_cluster_cpu_usage" {
@@ -158,88 +165,6 @@ module "ec2_baseline" {
 
   # We use custom alarms for ECS, as specified above
   enable_instance_cloudwatch_alarms = false
-}
-
-# ---------------------------------------------------------------------------------------------------------------------
-# ADD AN AUTO SCALING POLICY TO ADD MORE INSTANCES WHEN CPU USAGE IS HIGH
-# ---------------------------------------------------------------------------------------------------------------------
-
-resource "aws_autoscaling_policy" "scale_out" {
-  count = var.enable_autoscaling ? 1 : 0
-
-  name                      = "${var.cluster_name}-scale-out"
-  autoscaling_group_name    = module.ecs_cluster.ecs_cluster_asg_name
-  adjustment_type           = "ChangeInCapacity"
-  policy_type               = "StepScaling"
-  estimated_instance_warmup = 200
-
-  # Each of the step_adjustment values below defines what to do if the metric is a given amount above the alarm
-  # threshold. Since our threshold is set at 75, the values below define what to do for CPU usage between 75 and 85%
-  # and then anything above 85%
-
-  step_adjustment {
-    metric_interval_lower_bound = 0.0
-    metric_interval_upper_bound = 10.0
-    scaling_adjustment          = 1
-  }
-
-  step_adjustment {
-    metric_interval_lower_bound = 10.0
-    scaling_adjustment          = 2
-  }
-}
-
-resource "aws_cloudwatch_metric_alarm" "high_cpu_utilization" {
-  count = var.enable_autoscaling ? 1 : 0
-
-  alarm_name        = "${var.cluster_name}-autoscaling-high-cpu-utilization"
-  alarm_description = "An alarm that goes off if the CPU usage in the ${var.cluster_name} ECS cluster is high"
-  namespace         = "AWS/EC2"
-  metric_name       = "CPUUtilization"
-  dimensions = {
-    AutoScalingGroupName = module.ecs_cluster.ecs_cluster_asg_name
-  }
-  comparison_operator = var.high_cpu_utilization_comparison_operator
-  evaluation_periods  = var.high_cpu_utilization_evaluation_periods
-  period              = var.high_cpu_utilization_period
-  statistic           = var.high_cpu_utilization_statistic
-  threshold           = var.high_cpu_utilization_threshold
-  unit                = var.high_cpu_utilization_unit
-  alarm_actions       = [aws_autoscaling_policy.scale_out[count.index].arn]
-}
-
-# ---------------------------------------------------------------------------------------------------------------------
-# ADD AN AUTO SCALING POLICY TO REMOVE INSTANCES WHEN CPU USAGE IS LOW
-# ---------------------------------------------------------------------------------------------------------------------
-
-resource "aws_autoscaling_policy" "scale_in" {
-  count = var.enable_autoscaling ? 1 : 0
-
-  name                   = "${var.cluster_name}-scale-in"
-  autoscaling_group_name = module.ecs_cluster.ecs_cluster_asg_name
-  adjustment_type        = "ChangeInCapacity"
-  policy_type            = "SimpleScaling"
-  scaling_adjustment     = -1
-  cooldown               = 200
-}
-
-resource "aws_cloudwatch_metric_alarm" "low_cpu_utilization" {
-  count = var.enable_autoscaling ? 1 : 0
-
-  alarm_name        = "${var.cluster_name}-autoscaling-low-cpu-utilization"
-  alarm_description = "An alarm that goes off if the CPU usage in the ${var.cluster_name} ECS cluster is low"
-  namespace         = "AWS/EC2"
-  metric_name       = "CPUUtilization"
-  dimensions = {
-    AutoScalingGroup = module.ecs_cluster.ecs_cluster_asg_name
-  }
-  comparison_operator = var.low_cpu_utilization_comparison_operator
-  evaluation_periods  = var.low_cpu_utilization_evaluation_periods
-  period              = var.low_cpu_utilization_period
-  statistic           = var.low_cpu_utilization_statistic
-  threshold           = var.low_cpu_utilization_threshold
-  unit                = var.low_cpu_utilization_unit
-  alarm_actions       = [aws_autoscaling_policy.scale_in[count.index].arn]
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

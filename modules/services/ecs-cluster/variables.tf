@@ -129,9 +129,8 @@ variable "enable_ip_lockdown" {
   default     = true
 }
 
-
 variable "capacity_provider_enabled" {
-  description = "Enable a capacity provider to autoscale the EC2 ASG created for this ECS cluster"
+  description = "Enable a capacity provider to autoscale the EC2 ASG created for this ECS cluster."
   type        = bool
   default     = false
 }
@@ -143,22 +142,29 @@ variable "multi_az_capacity_provider" {
 }
 
 variable "capacity_provider_target" {
-  description = "Target cluster utilization for the capacity provider; a number from 1 to 100."
+  description = "Target cluster utilization for the ASG capacity provider; a number from 1 to 100. This number influences when scale out happens, and when instances should be scaled in. For example, a setting of 90 means that new instances will be provisioned when all instances are at 90% utilization, while instances that are only 10% utilized (CPU and Memory usage from tasks = 10%) will be scaled in."
   type        = number
   default     = null
 }
 
 variable "capacity_provider_max_scale_step" {
-  description = "Maximum step adjustment size to the ASG's desired instance count"
+  description = "Maximum step adjustment size to the ASG's desired instance count. A number between 1 and 10000."
   type        = number
   default     = null
 }
 
 variable "capacity_provider_min_scale_step" {
-  description = "Minimum step adjustment size to the ASG's desired instance count"
+  description = "Minimum step adjustment size to the ASG's desired instance count. A number between 1 and 10000."
   type        = number
   default     = null
 }
+
+variable "autoscaling_termination_protection" {
+  description = "Protect EC2 instances running ECS tasks from being terminated due to scale in (spot instances do not support lifecycle modifications). Note that the behavior of termination protection differs between clusters with capacity providers and clusters without. When capacity providers is turned on and this flag is true, only instances that have 0 ECS tasks running will be scaled in, regardless of capacity_provider_target. If capacity providers is turned off and this flag is true, this will prevent ANY instances from being scaled in."
+  type        = bool
+  default     = false
+}
+
 
 # ---------------------------------------------------------------------------------------------------------------------
 # SSH GRUNT VARIABLES
@@ -192,12 +198,6 @@ variable "external_account_ssh_grunt_role_arn" {
 # ---------------------------------------------------------------------------------------------------------------------
 # CLUSTER VARIABLES
 # ---------------------------------------------------------------------------------------------------------------------
-
-variable "enable_autoscaling" {
-  description = "Set to true to enable autoscaling for the ECS cluster based on CPU utilization."
-  type        = bool
-  default     = true
-}
 
 variable "enable_cluster_access_ports" {
   description = "Specify a list of ECS Cluster ports which should be accessible from the security groups given in cluster_access_from_sgs"
@@ -233,16 +233,10 @@ variable "alarms_sns_topic_arn" {
   default     = []
 }
 
-variable "high_cpu_utilization_comparison_operator" {
-  description = "The arithmetic operation to use when comparing the specified Statistic and Threshold. The specified Statistic value is used as the first operand. Either of the following is supported: GreaterThanOrEqualToThreshold, GreaterThanThreshold, LessThanThreshold, LessThanOrEqualToThreshold"
-  type        = string
-  default     = "GreaterThanOrEqualToThreshold"
-}
-
 variable "high_cpu_utilization_evaluation_periods" {
   description = "The number of periods over which data is compared to the specified threshold"
   type        = number
-  default     = 3
+  default     = 2
 }
 
 variable "high_cpu_utilization_threshold" {
@@ -257,55 +251,12 @@ variable "high_cpu_utilization_statistic" {
   default     = "Average"
 }
 
-variable "high_cpu_utilization_unit" {
-  description = "The unit for the alarm's high CPU metric"
-  type        = string
-  default     = "Percent"
-
-}
-
 variable "high_cpu_utilization_period" {
   description = "The period, in seconds, over which to measure the CPU utilization percentage. Only used if var.enable_ecs_cloudwatch_alarms is set to true"
   type        = number
   default     = 300
 }
 
-variable "low_cpu_utilization_comparison_operator" {
-  description = "The arithmetic operation to use when comparing the specified Statistic and Threshold. The specified Statistic value is used as the first operand. Either of the following is supported: GreaterThanOrEqualToThreshold, GreaterThanThreshold, LessThanThreshold, LessThanOrEqualToThreshold"
-  type        = string
-  default     = "LessThanThreshold"
-}
-
-variable "low_cpu_utilization_evaluation_periods" {
-  description = "The number of periods over which data is compared to the specified threshold"
-  type        = number
-  default     = 3
-}
-
-variable "low_cpu_utilization_threshold" {
-  description = "Trigger an alarm if the ECS Cluster has a CPU utilization percentage above this threshold. Only used if var.enable_ecs_cloudwatch_alarms is set to true"
-  type        = number
-  default     = 90
-}
-
-variable "low_cpu_utilization_statistic" {
-  description = "The statistic to apply to the alarm's high CPU metric. Either of the following is supported: SampleCount, Average, Sum, Minimum, Maximum"
-  type        = string
-  default     = "Average"
-}
-
-variable "low_cpu_utilization_unit" {
-  description = "The unit for the alarm's high CPU metric"
-  type        = string
-  default     = "Percent"
-
-}
-
-variable "low_cpu_utilization_period" {
-  description = "The period, in seconds, over which to measure the CPU utilization percentage. Only used if var.enable_ecs_cloudwatch_alarms is set to true"
-  type        = number
-  default     = 300
-}
 variable "high_memory_utilization_threshold" {
   description = "Trigger an alarm if the ECS Cluster has a memory utilization percentage above this threshold. Only used if var.enable_ecs_cloudwatch_alarms is set to true"
   type        = number
@@ -316,6 +267,18 @@ variable "high_memory_utilization_period" {
   description = "The period, in seconds, over which to measure the memory utilization percentage. Only used if var.enable_ecs_cloudwatch_alarms is set to true"
   type        = number
   default     = 300
+}
+
+variable "high_memory_utilization_evaluation_periods" {
+  description = "The number of periods over which data is compared to the specified threshold"
+  type        = number
+  default     = 2
+}
+
+variable "high_memory_utilization_statistic" {
+  description = "The statistic to apply to the alarm's high CPU metric. Either of the following is supported: SampleCount, Average, Sum, Minimum, Maximum"
+  type        = string
+  default     = "Average"
 }
 
 variable "high_disk_utilization_threshold" {
