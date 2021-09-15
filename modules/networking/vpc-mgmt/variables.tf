@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------------------------------------------------
 # VPC PARAMETERS
-# This is the VPC to use for management tasks in this account, such as building AMIs with Packer, running CI servers 
-# such as Jenkins, and running infra CI tools such as the ecs-deploy-runner. It's a good practice to isolate all these 
+# This is the VPC to use for management tasks in this account, such as building AMIs with Packer, running CI servers
+# such as Jenkins, and running infra CI tools such as the ecs-deploy-runner. It's a good practice to isolate all these
 # management tasks from your production workloads at the network layer, so we create a dedicated VPC.
 # ---------------------------------------------------------------------------------------------------------------------
 
@@ -127,6 +127,12 @@ variable "private_subnet_custom_tags" {
 
 variable "nat_gateway_custom_tags" {
   description = "A map of tags to apply to the NAT gateways, on top of the custom_tags. The key is the tag name and the value is the tag value. Note that tags defined here will override tags defined as custom_tags in case of conflict."
+  type        = map(string)
+  default     = {}
+}
+
+variable "security_group_tags" {
+  description = "A map of tags to apply to the default Security Group, on top of the custom_tags. The key is the tag name and the value is the tag value. Note that tags defined here will override tags defined as custom_tags in case of conflict."
   type        = map(string)
   default     = {}
 }
