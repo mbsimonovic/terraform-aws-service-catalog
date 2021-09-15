@@ -63,6 +63,7 @@ module "vpc" {
   # Other tags to apply to some of the VPC resources
   vpc_custom_tags         = var.vpc_custom_tags
   nat_gateway_custom_tags = var.nat_gateway_custom_tags
+  security_group_tags     = var.security_group_tags
 
   # Params for the Default Security Group and Default NACL
   enable_default_security_group        = var.enable_default_security_group
