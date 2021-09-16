@@ -131,12 +131,6 @@ variable "nat_gateway_custom_tags" {
   default     = {}
 }
 
-variable "security_group_tags" {
-  description = "A map of tags to apply to the default Security Group, on top of the custom_tags. The key is the tag name and the value is the tag value. Note that tags defined here will override tags defined as custom_tags in case of conflict."
-  type        = map(string)
-  default     = {}
-}
-
 variable "create_flow_logs" {
   description = "If you set this variable to false, this module will not create VPC Flow Logs resources. This is used as a workaround because Terraform does not allow you to use the 'count' parameter on modules. By using this parameter, you can optionally create or not create the resources within this module."
   type        = bool

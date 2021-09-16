@@ -43,7 +43,6 @@ module "vpc" {
   public_subnet_custom_tags       = var.public_subnet_custom_tags
   private_subnet_custom_tags      = var.private_subnet_custom_tags
   nat_gateway_custom_tags         = var.nat_gateway_custom_tags
-  security_group_tags             = var.security_group_tags
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
