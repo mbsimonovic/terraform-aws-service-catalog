@@ -101,6 +101,12 @@ variable "nat_gateway_custom_tags" {
   default     = {}
 }
 
+variable "security_group_tags" {
+  description = "A map of tags to apply to the default Security Group, on top of the custom_tags. The key is the tag name and the value is the tag value. Note that tags defined here will override tags defined as custom_tags in case of conflict."
+  type        = map(string)
+  default     = {}
+}
+
 variable "tag_for_use_with_eks" {
   description = "The VPC resources need special tags for discoverability by Kubernetes to use with certain features, like deploying ALBs."
   type        = bool

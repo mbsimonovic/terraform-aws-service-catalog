@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------------------------------------------------
 # VPC PARAMETERS
-# This is the VPC to use for management tasks in this account, such as building AMIs with Packer, running CI servers 
-# such as Jenkins, and running infra CI tools such as the ecs-deploy-runner. It's a good practice to isolate all these 
+# This is the VPC to use for management tasks in this account, such as building AMIs with Packer, running CI servers
+# such as Jenkins, and running infra CI tools such as the ecs-deploy-runner. It's a good practice to isolate all these
 # management tasks from your production workloads at the network layer, so we create a dedicated VPC.
 # ---------------------------------------------------------------------------------------------------------------------
 
