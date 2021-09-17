@@ -206,3 +206,34 @@ variable "ebs_enabled" {
   type        = bool
   default     = true
 }
+
+variable "advanced_security_options" {
+  description = "Enable fine grain access control"
+  type        = bool
+  default     = false
+}
+
+variable "internal_user_database_enabled" {
+  description = "Whether the internal user database is enabled. Enable this to use master accounts. Only used if advanced_security_options is set to true."
+  type        = bool
+  default     = false
+}
+
+variable "master_user_arn" {
+  description = "ARN of the master user. Only used if advanced_security_options and internal_user_database_enabled are set to true."
+  type        = string
+  default     = null
+}
+
+variable "master_user_name" {
+  description = "Master account user name. Only used if advanced_security_options and internal_user_database_enabled are set to true."
+  type        = string
+  default     = null
+}
+
+variable "master_user_password" {
+  description = "Master account user password. Only used if advanced_security_options and internal_user_database_enabled are set to true. WARNING: this password will be stored in Terraform state."
+  type        = string
+  default     = null
+  sensitive   = true
+}
