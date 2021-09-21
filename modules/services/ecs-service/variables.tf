@@ -244,25 +244,57 @@ variable "clb_container_port" {
 
 variable "elb_target_groups" {
   description = "Configurations for ELB target groups for ALBs and NLBs that should be associated with the ECS Tasks. Each entry corresponds to a separate target group. Set to the empty object ({}) if you are not using an ALB or NLB."
-  type = map(object(
-    {
-      # The name of the ELB Target Group that will contain the ECS Tasks.
-      name = string
+  # Ideally, we will use a more strict type here but since we want to support required and optional values,
+  # we have to use the unsafe `any` type.
+  type = any
 
-      # The name of the container, as it appears in the var.task_arn Task definition, to associate with the target
-      # group.
-      container_name = string
+  # `elb_target_groups` should be set to a map of keys to objects with one mapping per desired target group. The keys
+  # in the map can be any arbitrary name and are used to link the outputs with the inputs. The values of the map are an
+  # object containing these attributes:
 
-      # The port on the container to associate with the target group.
-      container_port = number
-
-      # The network protocol to use for routing traffic from the ELB to the Targets. Must be one of TCP, TLS, UDP, TCP_UDP, HTTP or HTTPS. Note that when using ALBs, must be HTTP or HTTPS.
-      protocol = string
-
-      # The protocol the ELB uses when performing health checks on Targets. Must be one of TCP, TLS, UDP, TCP_UDP, HTTP or HTTPS. Note that when using ALBs, must be HTTP or HTTPS.
-      health_check_protocol = string
-    }
-  ))
+  # REQUIRED:
+  #
+  # - name   string                          : The name of the ELB Target Group that will contain the ECS Tasks.
+  #
+  # - container_name   string                : The name of the container, as it appears in the var.task_arn Task
+  #                                            definition, to associate with the target group. Defaults to
+  #                                            aws_ecs_task_definition.task.arn.
+  #
+  # - container_port = number                : The port on the container to associate with the target group.
+  #
+  # OPTIONAL:
+  #
+  # - protocol   string                      : The network protocol to use for routing traffic from the ELB to the
+  #                                            Targets. Must be one of TCP, TLS, UDP, TCP_UDP, HTTP or HTTPS. Note that
+  #                                            when using ALBs, must be HTTP or HTTPS. Defaults to TCP.
+  #
+  # - health_check_protocol   string         : The protocol the ELB uses when performing health checks on Targets. Must
+  #                                            be one of TCP, TLS, UDP, TCP_UDP, HTTP or HTTPS. Note that when using
+  #                                            ALBs, must be HTTP or HTTPS. Defaults to TCP.
+  #
+  # - load_balancing_algorithm_type   string : Determine how the load balancer selects targets when routing requests.
+  #                                            For ALBs, allowed values are `round_robin` or
+  #                                            `least_outstanding_requests`. Defaults to `round_robin`. For NLBs,
+  #                                            defaults to null.
+  #
+  # Example:
+  # elb_target_groups = {
+  #   nlb = {
+  #     name                          = var.service_name
+  #     container_name                = var.service_name
+  #     container_port                = var.service_port
+  #     protocol                      = "TCP"
+  #     health_check_protocol         = "TCP"
+  #     load_balancing_algorithm_type = null
+  #   },
+  #   alb = {
+  #     name                          = var.service_name
+  #     container_port                = var.container_port
+  #     protocol                      = "HTTP"
+  #     health_check_protocol         = "HTTP"
+  #     load_balancing_algorithm_type = "round_robin"
+  #   }
+  # }
   default = {}
 }
 
