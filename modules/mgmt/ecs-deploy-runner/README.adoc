@@ -64,7 +64,7 @@ Service Catalog]!
 === Core concepts
 
 * For a comprehensive guide to Gruntwork Pipelines, refer to link:https://gruntwork.io/guides/automations/how-to-configure-a-production-grade-ci-cd-setup-for-apps-and-infrastructure-code[How to configure a production-grade CI-CD workflow for infrastructure code].
-* For an overview of how the vaarious parts fit together to form the complete pipeline, refer to the link:https://github.com/gruntwork-io/terraform-aws-ci/blob/master/modules/ecs-deploy-runner/core-concepts.md#overview[ECS Deploy Runner Core Concepts].
+* For an overview of how the various parts fit together to form the complete pipeline, refer to the link:https://github.com/gruntwork-io/terraform-aws-ci/blob/master/modules/ecs-deploy-runner/core-concepts.md#overview[ECS Deploy Runner Core Concepts].
 * The rest of the docs within the link:https://github.com/gruntwork-io/terraform-aws-ci/blob/master/modules/ecs-deploy-runner/README.adoc[ecs-deploy-runner module in the terraform-aws-ci repository] may also help with context.
 * The link:https://github.com/gruntwork-io/terraform-aws-ci/blob/master/modules/ecs-deploy-runner-standard-configuration/README.md[ECS Deploy Runner standard configuration] is a shortcut for setting up the `ecs-deploy-runner` module in a manner consistent with Gruntwork recommendations.
 
