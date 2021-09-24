@@ -1,0 +1,123 @@
+:type: service
+:name: ECS Deploy Runner
+:description: Use a CI/CD pipeline for deploying infrastructure code updates.
+:icon: /_docs/git-icon.png
+:category: ci-cd
+:cloud: aws
+:tags: cicd, pipelines, ci, cd
+:license: gruntwork
+:built-with: terraform, bash, packer
+
+// AsciiDoc TOC settings
+:toc:
+:toc-placement!:
+:toc-title:
+
+// GitHub specific settings. See https://gist.github.com/dcode/0cfbf2699a1fe9b46ff04c41721dda74 for details.
+ifdef::env-github[]
+:tip-caption: :bulb:
+:note-caption: :information_source:
+:important-caption: :heavy_exclamation_mark:
+:caution-caption: :fire:
+:warning-caption: :warning:
+endif::[]
+
+= ECS Deploy Runner
+
+image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
+image:https://img.shields.io/badge/tf-%3E%3D1.0.0-blue.svg[Terraform version]
+
+This Terraform Module deploys ECS Deploy Runner, the central component of link:https://gruntwork.io/pipelines[Gruntwork Pipelines].
+
+
+image::../../../_docs/pipelines-architecture.png?raw=true[Gruntwork Pipelines architecture]
+
+Gruntwork Pipelines is a code framework and approach that enables you to use
+your preferred CI tool to set up an end-to-end pipeline for infrastructure code
+(Terraform) and app code packaged in multiple formats, including container images (Docker) and Amazon Machine Images (AMIs built with Packer).
+
+
+toc::[]
+== Features
+
+* Set up a Terraform and Terragrunt pipeline based on best practices
+* Run deployments using Fargate or EC2 tasks on the ECS cluster
+* Configure the pipeline for building Packer and Docker images and for running plan and apply operations
+* Grant fine-grained permissions for running deployments with minimum necessary privileges
+* Stream output from the pipeline to CloudWatch Logs
+* Protect secrets needed by the pipeline using AWS Secrets Manager
+* Use KMS grants to allow the ECS task containers to access shared secrets and encrypted images between accounts
+
+
+
+Under the hood, this is all implemented using Terraform modules from the Gruntwork
+link:https://github.com/gruntwork-io/terraform-aws-ci[terraform-aws-ci] repo.
+
+
+== Learn
+
+NOTE: This repo is a part of the https://github.com/gruntwork-io/terraform-aws-service-catalog/[Gruntwork Service Catalog], a collection of
+reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
+sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/[How to use the Gruntwork
+Service Catalog]!
+
+=== Core concepts
+
+* For a comprehensive guide to Gruntwork Pipelines, refer to link:https://gruntwork.io/guides/automations/how-to-configure-a-production-grade-ci-cd-setup-for-apps-and-infrastructure-code[How to configure a production-grade CI-CD workflow for infrastructure code].
+* For an overview of how the vaarious parts fit together to form the complete pipeline, refer to the link:https://github.com/gruntwork-io/terraform-aws-ci/blob/master/modules/ecs-deploy-runner/core-concepts.md#overview[ECS Deploy Runner Core Concepts].
+* The rest of the docs within the link:https://github.com/gruntwork-io/terraform-aws-ci/blob/master/modules/ecs-deploy-runner/README.adoc[ecs-deploy-runner module in the terraform-aws-ci repository] may also help with context.
+* The link:https://github.com/gruntwork-io/terraform-aws-ci/blob/master/modules/ecs-deploy-runner-standard-configuration/README.md[ECS Deploy Runner standard configuration] is a shortcut for setting up the `ecs-deploy-runner` module in a manner consistent with Gruntwork recommendations.
+
+== Deploy
+
+=== Non-production deployment (quick start for learning)
+
+If you just want to try this repo out for experimenting and learning, check out the following resources:
+
+* link:/examples/for-learning-and-testing[examples/for-learning-and-testing folder]: The
+  `examples/for-learning-and-testing` folder contains standalone sample code optimized for learning, experimenting, and
+  testing (but not direct production usage).
+
+=== Production deployment
+
+If you want to deploy this repo in production, check out the following resources:
+
+* link:/examples/for-production/infrastructure-live/shared/us-west-2/mgmt/ecs-deploy-runner/[shared account ecs-deploy-runner configuration in the for-production folder]: The `examples/for-production` folder contains sample
+  code optimized for direct usage in production. This is code from the
+  https://gruntwork.io/reference-architecture/[Gruntwork Reference Architecture], and it shows you how we build an
+  end-to-end, integrated tech stack on top of the Gruntwork Service Catalog.
+
+
+== Operate
+
+=== Day-to-day operations
+
+* To upgrade the Docker image used by the pipeline, use the link:https://github.com/gruntwork-io/terraform-aws-ci/blob/master/modules/ecs-deploy-runner/docker/deploy-runner/Dockerfile[deploy-runner Dockerfile] and the link:https://github.com/gruntwork-io/terraform-aws-ci/blob/master/modules/ecs-deploy-runner/docker/kaniko/Dockerfile[Kaniko Dockerfile] (used when building Docker images in the pipeline)
+* For examples of how to invoke the pipeline to build AMIs, refer to the link:/examples/for-production/infrastructure-live/shared/us-west-2/_regional/amis[AMI build scripts in the for-production examples]
+* For examples of how to invoke the pipeline to build Docker images, refer to the link:/examples/for-production/infrastructure-live/shared/us-west-2/_regional/container_images[container image build scripts in the for-production examples]
+* To see how to use the pipeline with CircleCI, see the link:/examples/for-production/infrastructure-live/.circleci/config.yml[`.circleci/config.yml` example]
+* There is also link:/examples/for-production/infrastructure-live/_ci/scripts[a collection of scripts] for invoking the ecs-deploy-runner with any CI/CD system. These scripts are used in the circleci config, but can also be used with Jenkins, GitHub Actions, etc.
+
+
+== Support
+
+If you need help with this repo or anything else related to infrastructure or DevOps, Gruntwork offers
+https://gruntwork.io/support/[Commercial Support] via Slack, email, and phone/video. If you're already a Gruntwork
+customer, hop on Slack and ask away! If not, https://www.gruntwork.io/pricing/[subscribe now]. If you're not sure,
+feel free to email us at link:mailto:support@gruntwork.io[support@gruntwork.io].
+
+
+== Contributions
+
+Contributions to this repo are very welcome and appreciated! If you find a bug or want to add a new feature or even
+contribute an entirely new module, we are very happy to accept pull requests, provide feedback, and run your changes
+through our automated test suite.
+
+Please see
+https://gruntwork.io/guides/foundations/how-to-use-gruntwork-infrastructure-as-code-library#_contributing_to_the_gruntwork_infrastructure_as_code_library[Contributing to the Gruntwork Service Catalog]
+for instructions.
+
+
+== License
+
+Please see link:/LICENSE.txt[LICENSE.txt] for details on how the code in this repo is licensed.
