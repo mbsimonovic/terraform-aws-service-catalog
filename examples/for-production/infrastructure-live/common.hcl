@@ -21,7 +21,7 @@ locals {
   kaniko_ecr_uri             = "${local.accounts.shared}.dkr.ecr.${local.default_region}.amazonaws.com/kaniko"
   kaniko_container_image_tag = "v0.38.9"
 
-  # The infastructure-live repository on which the deploy runner operates.
+  # The infrastructure-live repository on which the deploy runner operates.
   infra_live_repo_https = "https://github.com/gruntwork-io/infrastructure-live"
   infra_live_repo_ssh   = "git@github.com:gruntwork-io/infrastructure-live.git"
 
@@ -36,6 +36,12 @@ locals {
 
   # The name of the S3 bucket in the Logs account where AWS CloudTrail will report its findings.
   cloudtrail_s3_bucket_name = "${local.name_prefix}-cloudtrail-logs"
+
+  # The name of the S3 bucket where Macie will store sensitive data discovery results.
+  macie_bucket_name_prefix = "${local.name_prefix}-macie-results"
+
+  # The name of the KMS key that the above bucket will be encrypted with.
+  macie_kms_key_name = "${local.name_prefix}-macie"
 
   # IAM configurations for cross account ssh-grunt setup.
   ssh_grunt_users_group      = "ssh-grunt-users"

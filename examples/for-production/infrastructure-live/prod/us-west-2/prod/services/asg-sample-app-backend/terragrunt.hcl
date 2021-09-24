@@ -11,7 +11,7 @@
 terraform {
   # We're using a local file path here just so our automated tests run against the absolute latest code. However, when
   # using these modules in your code, you should use a Git URL with a ref attribute that pins you to a specific version:
-  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/services/asg-service?ref=v0.60.1"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/services/asg-service?ref=v0.62.0"
   source = "${get_parent_terragrunt_dir()}/../../..//modules/services/asg-service"
 }
 
@@ -32,10 +32,10 @@ dependency "vpc" {
 }
 
 dependency "network_bastion" {
-  config_path = "${get_terragrunt_dir()}/../../networking/openvpn-server"
+  config_path = "${get_terragrunt_dir()}/../../networking/bastion-host"
 
   mock_outputs = {
-    security_group_id = "sg-abcd1234"
+    bastion_host_security_group_id = "sg-abcd1234"
   }
   mock_outputs_allowed_terraform_commands = ["validate", ]
 }
@@ -135,7 +135,7 @@ inputs = {
     ]
   }
   instance_type    = "t3.medium"
-  key_pair_name    = "${local.account_name}-asg-v1"
+  key_pair_name    = "asg-app-cluster-admin-v1"
   min_size         = 2
   max_size         = 3
   min_elb_capacity = 1
@@ -150,8 +150,9 @@ inputs = {
 
   listener_arns                         = dependency.alb_internal.outputs.listener_arns
   allow_inbound_from_security_group_ids = [dependency.alb_internal.outputs.alb_security_group_id]
-  allow_ssh_security_group_ids          = [dependency.network_bastion.outputs.security_group_id]
-  allow_ssh_from_cidr_blocks            = []
+  allow_ssh_security_group_ids          = [dependency.network_bastion.outputs.bastion_host_security_group_id]
+
+  allow_ssh_from_cidr_blocks = []
 
   listener_ports = [
     80,

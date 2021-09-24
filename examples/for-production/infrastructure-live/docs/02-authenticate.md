@@ -73,23 +73,20 @@ account in your organization: dev, stage, prod, shared-services, security, and t
 ### Configure your IAM user
 
 All IAM users are defined and managed in the security account. As part of deploying a Reference Architecture for you,
-Gruntwork created an IAM user with admin permissions in the security account. You should receive the username and encrypted password
-from Gruntwork after the deployment (if for some reason this didn't happen, please email us at [support@gruntwork.io](mailto:support@gruntwork.io)). The password is encrypted via PGP using [Keybase](https://keybase.io/) and [Base64-encoded](https://en.wikipedia.org/wiki/Base64). You can use the following one-liner command to decode and decrypt the password:
+Gruntwork created an IAM user with admin permissions in the security account. The password is encrypted via PGP using
+[Keybase](https://keybase.io/) and [Base64-encoded](https://en.wikipedia.org/wiki/Base64).
 
-```bash
-echo "<CIPHERTEXT SENT BY GRUNTWORK>" | base64 --decode | keybase pgp decrypt
-```
+However, to access the Terraform state containing the password, you need to already be authenticated to the account.
+Thus to get access to the initial admin IAM user, we will use the root user credentials. To do this, you can **either**:
 
-The decrypted text will include:
+- Login on the AWS Web Console using the root user credentials for the `security` account and use the web console to
+  setup the web console password and AWS Access Keys for the IAM user.
+- Use the [gruntwork CLI](https://github.com/gruntwork-io/gruntwork/) to rotate the password using the command:
 
-1. **Login URL**. This should be of the format `https://<ACCOUNT ID>.signin.aws.amazon.com/console`.
-1. **Username**. This is typically your email address.
-1. **Password**. A randomly generated password that you'll have to reset.
+      gruntwork aws reset-password --iam-user-name <IAM_username>
 
-Open the login URL in the browser and do the following:
 
-1. **Reset your password as instructed**. Use a strong password: preferably 30+ characters, randomly generated, and
-   stored in a secrets manager.
+Once you have access with the IAM user, be sure to do the following to finish configuring the user:
 
 1. **Enable MFA**. [Follow these instructions to enable
    MFA](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_enable.html) for your IAM user. It takes

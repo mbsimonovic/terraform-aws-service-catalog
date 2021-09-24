@@ -31,16 +31,14 @@ The Gruntwork Pipelines workflow, defined in [`.circleci/config.yml`](/.circleci
 - For each module that changed, trigger a `plan` action on the module by invoking the ECS deploy runner.
 - The ECS deploy runner is invoked using an AWS Lambda function that exposes a limited range of actions that can be
   performed in a deploy container that has all the necessary tools installed.
-- The infrastructure code runs from within a Docker container in an ECS task on Fargate. This task is what has the
+- The infrastructure code runs from within a Docker container in an ECS task on Fargate (or EC2). This task is what has the
   powerful AWS credentials to deploy infrastructure.
-- If the job was triggered on the `main` branch of the repository, the CI server will run `plan`.
-- If the Slack integration is set up, a notification will be sent to the Slack channel that the job is awaiting
-approval.
-- Once the job is manually approved. the CI server will run `apply`. The Slack integration will post a notification
-about whether the apply failed or succeeded.
+- CI server will run first run a `plan`.
+- If the Slack integration is set up, a notification will be sent to the Slack channel that the plan succeeded or failed. If the plan succeeded, and if the job was triggered on the `main` branch of the repository, the job will wait for approval.
+-  Once the job is manually approved, the CI server will run `apply`. The Slack integration will post a notification about whether the apply failed or succeeded.
 
 ### Set up the pipeline in your own organization
-First make sure you've copied the repo into your own GitHub organization, as `infrastructure-live`. The CircleCI job is already configured in `<YOUR_REPO_ROOT>/.circleci/config.yml`. Here are the additional steps to get the job running successfully:
+First, make sure you've copied the repo into your own GitHub organization as a new repository. You can name it whatever you'd like. We usually call it `infrastructure-live`. The CircleCI job is already configured in `<YOUR_REPO_ROOT>/.circleci/config.yml`. Here are the additional steps to get the job running successfully:
 
 #### View the failed job
 1. Login to CircleCI.
@@ -135,52 +133,11 @@ approval.
    ![Slack Apply Notification](images/circleci-setup/circleci_slack_apply.png)
 
 
-### Try it out
-
-
-You can try out the pipeline by making a change to one of the modules. For example, try extending
-the number of replicas in the sample app:
-
-1. Create a new branch in the `infrastructure-live` repo.
-    `git checkout -B add-replica-to-sample-app`.
-1. Open the file `dev/us-west-2/dev/services/sample-app-frontend` in your editor.
-1. Change the input variable `desired_number_of_pods` to `2`.
-
-1. Commit the change.
-    `git commit -a`.
-1. Push the branch to GitHub and open a PR.
-    `git push add-replica-to-sample-app`
-1. Login to CircleCI. Navigate to your infrastructure-live project.
-1. Click on the new pipeline job for the branch `add-replica-to-sample-app` to see the build log.
-1. Verify the `plan`. Make sure that the change corresponds to adding a new replica to the EKS service.
-
-1. When satisfied with the plan, merge the PR into `main`.
-1. Go back to the project and verify a new build is started on the `main` branch.
-1. Wait for the `plan` to finish. The build should hold for approval.
-1. Approve the deployment by clicking `Approve`.
-1. Wait for the `apply` to finish.
-1. Login to the AWS console and verify the EKS service now has 2 replicas.
 
 
 ### Destroying infrastructure
 
-At this moment, the CI/CD pipeline for infrastructure code does not natively support destroying infrastructure. You must
-manually run the `destroy` call outside the CI pipeline when you want to destroy infrastructure.
-
-The steps for destroy are:
-
-1. Run `terragrunt destroy` in the folder you wish to destroy.
-1. You should see the destroy plan and a prompt to confirm the destroy action. Review the plan and make sure it looks
-   good to you. If it looks good, approve the plan by replying `yes` to the prompt.
-1. Once the infrastructure destroy completes, remove the module folder from git using `git rm -r` and commit the change.
-   Make sure to commit the change on a new branch.
-1. Open a new PR on the branch to be reviewed by a colleague. Note that the CI pipeline will ignore this changeset as it
-   is designed to filter out any changes that remove modules.
-1. Go through the normal review process to get the change merged in.
-
-NOTE: We are actively working on improvements to the Gruntwork Pipelines solution to support automated destroy
-workflows. Refer to [this issue in terraform-aws-ci](https://github.com/gruntwork-io/terraform-aws-ci/issues/162) for
-more information. Please subscribe to that ticket to be notified when support for destroy workflows is implemented.
+For instructions on how to destroy infrastructure, see the [Undeploy guide](07-undeploy.md).
 
 
 ## CI / CD pipeline for app code

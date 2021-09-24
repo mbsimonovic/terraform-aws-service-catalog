@@ -10,7 +10,7 @@
 #
 # - For any commit on any branch, detect all the terragrunt modules that changed between the `HEAD` of the branch and
 #  `main` and run `terragrunt plan` on each of those modules.
-# - For commits to main:
+# - For commits to `main`:
 #     - Run `plan` as above, only instead of comparing the `HEAD` of the branch to `main`, this will only look at the
 #       last commit that triggered the build. Note that this will include all the changes that were merged in from the
 #       branch as the last commit is a merge commit containing all the changes.
@@ -39,8 +39,8 @@ defaults: &defaults
     image: "ubuntu-1604:201903-01"
   environment:
     GRUNTWORK_INSTALLER_VERSION: v0.0.36
-    MODULE_CI_VERSION: v0.38.9
-    MODULE_SECURITY_VERSION: v0.55.0
+    MODULE_CI_VERSION: v0.38.10
+    MODULE_SECURITY_VERSION: v0.55.1
 
 
 # This common step is used to determine the user friendly Git Ref name of the build, either the branch or tag.

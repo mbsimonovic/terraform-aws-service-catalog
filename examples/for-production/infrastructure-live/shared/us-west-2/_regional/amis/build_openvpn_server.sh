@@ -7,15 +7,15 @@
 # the Shared Services AWS account.
 #
 # This is the build script for the OpenVPN Server AMI. You can view the packer template at the following URL:
-# https://github.com/gruntwork-io/terraform-aws-service-catalog/blob/v0.60.1/modules/mgmt/openvpn-server/openvpn-server-ubuntu.pkr.hcl
+# https://github.com/gruntwork-io/terraform-aws-service-catalog/blob/v0.62.0/modules/mgmt/openvpn-server/openvpn-server-ubuntu.pkr.hcl
 #
 # Pass in the --run-local flag to build the image on the local machine, without going through the ECS Deploy Runner.
 
 set -e
 
 readonly PACKER_TEMPLATE_REPO="https://github.com/gruntwork-io/terraform-aws-service-catalog.git//modules/mgmt/openvpn-server/openvpn-server-ubuntu.pkr.hcl"
-readonly PACKER_TEMPLATE_REPO_REF="v0.60.1"
-readonly SERVICE_CATALOG_REF="v0.60.1"
+readonly PACKER_TEMPLATE_REPO_REF="v0.62.0"
+readonly SERVICE_CATALOG_REF="v0.62.0"
 readonly DEPLOY_RUNNER_REGION="us-west-2"
 readonly REGION="us-west-2"
 
@@ -67,16 +67,25 @@ function run {
     --var vpc_filter_key="tag:Name" \
     --var vpc_filter_value="mgmt" \
     --var vpc_subnet_filter_key="tag:Name" \
-    --var vpc_subnet_filter_value="mgmt-private-1" \
-    --var associate_public_ip_address="false" \
-    --var ssh_interface="private_ip" \
     --var encrypt_boot=true \
     --var encrypt_kms_key_id="arn:aws:kms:us-east-1:234567890123:alias/ExampleAMIEncryptionKMSKeyArn"
   )
 
   if [[ "$run_local" == 'true' ]]; then
+    # When running locally, the packer instance needs to be deployed in the public subnet so it is accessible.
+    args+=( \
+      --var vpc_subnet_filter_value="mgmt-public-1"
+    )
+
     build-packer-artifact "${args[@]}"
   else
+    # When running from ECS Deploy Runner, the packer instance needs to be deployed in the private to protect it.
+    args+=( \
+      --var vpc_subnet_filter_value="mgmt-private-1" \
+      --var associate_public_ip_address="false" \
+      --var ssh_interface="private_ip"
+    )
+
     infrastructure-deployer --aws-region "$DEPLOY_RUNNER_REGION" -- ami-builder build-packer-artifact "${args[@]}"
   fi
 }

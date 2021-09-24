@@ -11,7 +11,7 @@
 terraform {
   # We're using a local file path here just so our automated tests run against the absolute latest code. However, when
   # using these modules in your code, you should use a Git URL with a ref attribute that pins you to a specific version:
-  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/services/ecs-cluster?ref=v0.60.1"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/services/ecs-cluster?ref=v0.62.0"
   source = "${get_parent_terragrunt_dir()}/../../..//modules/services/ecs-cluster"
 }
 
@@ -111,7 +111,7 @@ inputs = {
     filters = [
       {
         name   = "name"
-        values = ["ecs-cluster-instance-v0.60.1-*"]
+        values = ["ecs-cluster-instance-v0.62.0-*"]
       },
     ]
   }
@@ -139,4 +139,9 @@ inputs = {
   enable_ecs_cloudwatch_alarms = true
   enable_cloudwatch_metrics    = true
   alarms_sns_topic_arn         = [dependency.sns.outputs.topic_arn]
+
+  # Enable Capacity Providers for ECS Cluster Autoscaling. Refer to https://github.com/gruntwork-io/terraform-aws-service-catalog/blob/master/modules/services/ecs-cluster/core-concepts.md#how-do-you-configure-cluster-autoscaling for more information.
+  capacity_provider_enabled  = true
+  multi_az_capacity_provider = true
+  capacity_provider_target   = 90
 }

@@ -11,7 +11,7 @@
 terraform {
   # We're using a local file path here just so our automated tests run against the absolute latest code. However, when
   # using these modules in your code, you should use a Git URL with a ref attribute that pins you to a specific version:
-  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/landingzone/account-baseline-app?ref=v0.60.1"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/landingzone/account-baseline-app?ref=v0.62.0"
   source = "${get_parent_terragrunt_dir()}/../../..//modules/landingzone/account-baseline-app"
 
   # This module deploys some resources (e.g., AWS Config) across all AWS regions, each of which needs its own provider,
@@ -84,6 +84,9 @@ locals {
 
   # A local for convenient access to the security account root ARN.
   security_account_root_arn = "arn:aws:iam::${local.accounts.security}:root"
+
+  # A local for convenient access to the macie bucket name for this account
+  macie_bucket_name = "${local.common_vars.locals.macie_bucket_name_prefix}-${local.account_name}"
 
   # The following locals are used for constructing multi region provider configurations for the underlying module.
 

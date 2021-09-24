@@ -15,7 +15,7 @@ set -e
 
 readonly PACKER_TEMPLATE_REPO="https://github.com/gruntwork-io/aws-sample-app.git//packer/build.json"
 readonly PACKER_TEMPLATE_REPO_REF="v0.0.4"
-readonly SERVICE_CATALOG_REF="v0.60.1"
+readonly SERVICE_CATALOG_REF="v0.62.0"
 readonly DEPLOY_RUNNER_REGION="us-west-2"
 readonly REGION="us-west-2"
 
@@ -67,16 +67,25 @@ function run {
     --var vpc_filter_key="tag:Name" \
     --var vpc_filter_value="mgmt" \
     --var vpc_subnet_filter_key="tag:Name" \
-    --var vpc_subnet_filter_value="mgmt-private-1" \
-    --var associate_public_ip_address="false" \
-    --var ssh_interface="private_ip" \
     --var encrypt_boot=true \
     --var encrypt_kms_key_id="arn:aws:kms:us-east-1:234567890123:alias/ExampleAMIEncryptionKMSKeyArn"
   )
 
   if [[ "$run_local" == 'true' ]]; then
+    # When running locally, the packer instance needs to be deployed in the public subnet so it is accessible.
+    args+=( \
+      --var vpc_subnet_filter_value="mgmt-public-1"
+    )
+
     build-packer-artifact "${args[@]}"
   else
+    # When running from ECS Deploy Runner, the packer instance needs to be deployed in the private to protect it.
+    args+=( \
+      --var vpc_subnet_filter_value="mgmt-private-1" \
+      --var associate_public_ip_address="false" \
+      --var ssh_interface="private_ip"
+    )
+
     infrastructure-deployer --aws-region "$DEPLOY_RUNNER_REGION" -- ami-builder build-packer-artifact "${args[@]}"
   fi
 }

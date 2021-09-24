@@ -7,12 +7,12 @@
 # the Shared Services AWS account.
 #
 # This is the build script for the Deploy Runner Docker image. You can view the Dockerfile at the following URL:
-# https://github.com/gruntwork-io/terraform-aws-ci/blob/v0.38.9/modules/ecs-deploy-runner/docker/deploy-runner
+# https://github.com/gruntwork-io/terraform-aws-ci/blob/v0.38.10/modules/ecs-deploy-runner/docker/deploy-runner
 
 set -e
 
 readonly DOCKERFILE_REPO="https://github.com/gruntwork-io/terraform-aws-ci.git"
-readonly DOCKERFILE_REPO_REF="v0.38.9"
+readonly DOCKERFILE_REPO_REF="v0.38.10"
 readonly DOCKERFILE_CONTEXT_PATH="modules/ecs-deploy-runner/docker/deploy-runner"
 readonly DEPLOY_RUNNER_REGION="us-west-2"
 readonly ECR_REPO_REGION="us-west-2"
