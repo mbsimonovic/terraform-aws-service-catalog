@@ -127,11 +127,13 @@ module "fargate_fluent_bit" {
 
 resource "aws_cloudwatch_log_group" "eks_cluster" {
   count = local.create_cloudwatch_log_group ? 1 : 0
-  name  = local.log_group_name
+
+  name              = local.log_group_name
+  retention_in_days = var.fluent_bit_log_group_retention
 }
 
 locals {
-  create_cloudwatch_log_group = var.enable_fluent_bit && var.fluent_bit_log_group_already_exists == false
+  create_cloudwatch_log_group = (var.enable_fluent_bit || var.enable_fargate_fluent_bit) && var.fluent_bit_log_group_already_exists == false
   log_group_name = (
     var.fluent_bit_log_group_name != null ? var.fluent_bit_log_group_name : var.eks_cluster_name
   )

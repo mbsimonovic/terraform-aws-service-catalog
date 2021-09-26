@@ -73,6 +73,12 @@ variable "fluent_bit_log_group_name" {
   default     = null
 }
 
+variable "fluent_bit_log_group_retention" {
+  description = "number of days to retain log events. Possible values are: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653, and 0. Select 0 to never expire."
+  type        = number
+  default     = 0
+}
+
 variable "fluent_bit_log_group_already_exists" {
   description = "If set to true, that means that the CloudWatch Log Group fluent-bit should use for streaming logs already exists and does not need to be created."
   type        = bool
