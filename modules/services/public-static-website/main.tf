@@ -35,6 +35,7 @@ module "static_website" {
   base_domain_name_tags = var.base_domain_name_tags
   hosted_zone_id        = var.hosted_zone_id
   custom_tags           = var.custom_tags
+  routing_rules         = var.routing_rules
 
   force_destroy_website            = var.force_destroy
   force_destroy_redirect           = var.force_destroy
@@ -64,6 +65,7 @@ module "cloudfront" {
   base_domain_name_tags  = var.base_domain_name_tags
   hosted_zone_id         = var.hosted_zone_id
   custom_tags            = var.custom_tags
+  viewer_protocol_policy = var.viewer_protocol_policy
 
   # If var.create_route53_entry is false, the aws_acm_certificate data source won't be created. Ideally, we'd just use
   # a conditional to only use that data source if var.create_route53_entry is true, but Terraform's conditionals are

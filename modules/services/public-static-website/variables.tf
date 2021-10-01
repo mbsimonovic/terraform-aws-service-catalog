@@ -77,6 +77,18 @@ variable "custom_tags" {
   default     = {}
 }
 
+variable "routing_rules" {
+  description = "A json array containing routing rules describing redirect behavior and when redirects are applied. For routing rule syntax, see: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-websiteconfiguration-routingrules.html. This will only be used if var.should_redirect_all_requests is false"
+  type        = string
+  default     = null
+}
+
+variable "viewer_protocol_policy" {
+  description = "Use this element to specify the protocol that users can use to access the files in the origin specified by TargetOriginId when a request matches the path pattern in PathPattern. One of allow-all, https-only, or redirect-to-https."
+  type        = string
+  default     = "allow-all"
+}
+
 variable "force_destroy" {
   description = "If set to true, this will force the delete of the website, redirect, and access log S3 buckets when you run terraform destroy, even if there is still content in those buckets. This is only meant for testing and should not be used in production."
   type        = bool
