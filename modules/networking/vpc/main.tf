@@ -86,6 +86,11 @@ module "vpc" {
   private_subnet_bits        = var.private_subnet_bits
   persistence_subnet_bits    = var.persistence_subnet_bits
 
+  # Params for manual subnet configuration
+  public_subnet_cidr_blocks              = var.public_subnet_cidr_blocks
+  private_app_subnet_cidr_blocks         = var.private_app_subnet_cidr_blocks
+  private_persistence_subnet_cidr_blocks = var.private_persistence_subnet_cidr_blocks
+
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

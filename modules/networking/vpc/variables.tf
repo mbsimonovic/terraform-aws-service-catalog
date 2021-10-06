@@ -215,6 +215,42 @@ variable "persistence_subnet_bits" {
   default     = 5
 }
 
+variable "public_subnet_cidr_blocks" {
+  description = "A map listing the specific CIDR blocks desired for each public subnet. The key must be in the form AZ-0, AZ-1, ... AZ-n where n is the number of Availability Zones. If left blank, we will compute a reasonable CIDR block for each subnet."
+  type        = map(string)
+  default     = {}
+  # Example:
+  # default = {
+  #    AZ-0 = "10.226.20.0/24"
+  #    AZ-1 = "10.226.21.0/24"
+  #    AZ-2 = "10.226.22.0/24"
+  # }
+}
+
+variable "private_app_subnet_cidr_blocks" {
+  description = "A map listing the specific CIDR blocks desired for each private-app subnet. The key must be in the form AZ-0, AZ-1, ... AZ-n where n is the number of Availability Zones. If left blank, we will compute a reasonable CIDR block for each subnet."
+  type        = map(string)
+  default     = {}
+  # Example:
+  # default = {
+  #    AZ-0 = "10.226.30.0/24"
+  #    AZ-1 = "10.226.31.0/24"
+  #    AZ-2 = "10.226.32.0/24"
+  # }
+}
+
+variable "private_persistence_subnet_cidr_blocks" {
+  description = "A map listing the specific CIDR blocks desired for each private-persistence subnet. The key must be in the form AZ-0, AZ-1, ... AZ-n where n is the number of Availability Zones. If left blank, we will compute a reasonable CIDR block for each subnet."
+  type        = map(string)
+  default     = {}
+  # Example:
+  # default = {
+  #    AZ-0 = "10.226.40.0/24"
+  #    AZ-1 = "10.226.41.0/24"
+  #    AZ-2 = "10.226.42.0/24"
+  # }
+}
+
 # ----------------------------------------------------------------------------------------------------------------------
 # OPTIONAL PARAMETERS FOR DEFAULT SECURITY GROUP AND DEFAULT NACL
 # ----------------------------------------------------------------------------------------------------------------------
