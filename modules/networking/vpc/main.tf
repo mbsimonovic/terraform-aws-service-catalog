@@ -233,9 +233,10 @@ module "vpc_flow_logs" {
   source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-flow-logs?ref=v0.17.5"
 
   vpc_id                    = module.vpc.vpc_id
-  cloudwatch_log_group_name = "${module.vpc.vpc_name}-vpc-flow-logs"
+  cloudwatch_log_group_name = var.flow_log_cloudwatch_log_group_name == null ? "${module.vpc.vpc_name}-vpc-flow-logs" : var.flow_log_cloudwatch_log_group_name
   kms_key_users             = var.kms_key_user_iam_arns
   kms_key_arn               = var.kms_key_arn
   create_resources          = var.create_flow_logs
   traffic_type              = var.flow_logs_traffic_type
+  cloudwatch_iam_role_name  = var.flow_log_cloudwatch_iam_role_name
 }

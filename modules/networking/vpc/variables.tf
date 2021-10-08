@@ -34,6 +34,17 @@ variable "create_flow_logs" {
   default     = true
 }
 
+variable "flow_log_cloudwatch_iam_role_name" {
+  description = "The name to use for the flow log IAM role. This can be useful if you provision the VPC without admin privileges which needs setting IAM:PassRole on deployment role. When null, a default name based on the VPC name will be chosen."
+  type        = string
+  default     = null
+}
+
+variable "flow_log_cloudwatch_log_group_name" {
+  description = "The name to use for the CloudWatch Log group used for storing flow log. When null, a default name based on the VPC name will be chosen."
+  type        = string
+  default     = null
+}
 variable "flow_logs_traffic_type" {
   description = "The type of traffic to capture in the VPC flow log. Valid values include ACCEPT, REJECT, or ALL. Defaults to REJECT. Only used if create_flow_logs is true."
   type        = string
