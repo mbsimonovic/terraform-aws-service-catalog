@@ -4,11 +4,11 @@
 set -e
 
 # renovate.json auto-update: terraform-aws-ecs
-readonly DEFAULT_ECS_CLUSTER_VERSION="v0.30.4"
+readonly DEFAULT_ECS_CLUSTER_VERSION="v0.31.5"
 
 # ECS tooling
 # renovate.json auto-update: terraform-aws-ecs
-readonly DEFAULT_ECS_SCRIPTS_VERSION="v0.30.4"
+readonly DEFAULT_ECS_SCRIPTS_VERSION="v0.31.5"
 # renovate.json auto-update: gruntkms
 readonly DEFAULT_GRUNT_KMS_VERSION="v0.0.10"
 
