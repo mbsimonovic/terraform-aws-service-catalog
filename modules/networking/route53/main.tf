@@ -115,6 +115,25 @@ data "aws_route53_zone" "parent_hosted_zone" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
+# CREATE REQUESTED SUBDOMAIN RECORDS FOR PUBLIC DOMAINS
+# ---------------------------------------------------------------------------------------------------------------------
+
+resource "aws_route53_record" "public" {
+  for_each = local.public_subdomains
+  zone_id = (
+    each.value.hosted_zone_id == ""
+    ? aws_route53_zone.public_zones[each.value.hosted_zone_domain]
+    : each.value.hosted_zone_id
+  )
+
+  name            = each.key
+  type            = each.value.config.type
+  ttl             = each.value.config.ttl
+  records         = each.value.config.records
+  allow_overwrite = true
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
 # CREATE AWS CLOUD MAP NAMESPACES
 # ---------------------------------------------------------------------------------------------------------------------
 
@@ -165,6 +184,42 @@ locals {
   delegated_domains = {
     for domain, zone in var.public_zones :
     domain => zone if !zone.created_outside_terraform && lookup(zone, "parent_hosted_zone_id", null) != null
+  }
+
+  # Build a map of objects representing the subdomains to create.
+  # First, we take the subdomains field on each domain and extract the information we need to create the
+  # aws_route53_record resources. The output of this expression is a list of objects.
+  public_subdomains_pairs = flatten(
+    [
+      for domain, zone in var.public_zones :
+      [
+        for subdomain, config in lookup(zone, "subdomains", {}) :
+        {
+          name               = "${subdomain}.${domain}"
+          config             = config,
+          hosted_zone_domain = domain
+          hosted_zone_id = (
+            zone.created_outside_terraform
+            ? (
+              zone.hosted_zone_domain_name != ""
+              ? data.aws_route53_zone.selected[zone.hosted_zone_domain_name].zone_id
+              : data.aws_route53_zone.selected[domain].zone_id
+            )
+            : ""
+          )
+        }
+      ]
+    ]
+  )
+  # We then iterate the list of objects containing the information we need for the aws_route53_record resources, and
+  # turn them into a giant map for foreaching.
+  public_subdomains = {
+    for domain_pair in local.public_subdomains_pairs :
+    domain_pair.name => {
+      config             = domain_pair.config
+      hosted_zone_domain = domain_pair.hosted_zone_domain
+      hosted_zone_id     = domain_pair.hosted_zone_id
+    }
   }
 
   # Build a map of objects representing ACM certificates to request, which will be merged together with

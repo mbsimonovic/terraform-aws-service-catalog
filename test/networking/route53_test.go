@@ -12,6 +12,7 @@ import (
 	awsgo "github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/servicediscovery"
 	"github.com/gruntwork-io/terratest/modules/aws"
+	dns_helper "github.com/gruntwork-io/terratest/modules/dns-helper"
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/retry"
 	"github.com/gruntwork-io/terratest/modules/ssh"
@@ -45,7 +46,6 @@ func TestRoute53(t *testing.T) {
 	// For the time being, hardcode the region to us-west-1
 	test_structure.RunTestStage(t, "setup", func() {
 		awsRegion := aws.GetRandomRegion(t, []string{"us-west-1"}, nil)
-
 		test_structure.SaveString(t, testFolder, "region", awsRegion)
 
 		uniqueID := strings.ToLower(random.UniqueId())
@@ -53,6 +53,9 @@ func TestRoute53(t *testing.T) {
 		publicZoneName2 := fmt.Sprintf("%s.gruntwork-dev.io", uniqueID)
 		publicZoneName3 := fmt.Sprintf("%s-new.gruntwork.in", uniqueID)
 		privateZoneName := fmt.Sprintf("gruntwork-test-%s.xyz", uniqueID)
+
+		subdomainName := fmt.Sprintf("sub.%s.gruntwork-dev.io", uniqueID)
+		test_structure.SaveString(t, testFolder, "subdomainName", subdomainName)
 
 		var privateZones = map[string]interface{}{
 			privateZoneName: map[string]interface{}{
@@ -97,6 +100,13 @@ func TestRoute53(t *testing.T) {
 				"created_outside_terraform": true,
 				"base_domain_name_tags":     map[string]interface{}{},
 				"hosted_zone_domain_name":   "gruntwork-dev.io",
+				"subdomains": map[string]interface{}{
+					"sub": map[string]interface{}{
+						"type":    "TXT",
+						"ttl":     3600,
+						"records": []string{"hello-world"},
+					},
+				},
 			},
 			publicZoneName3: map[string]interface{}{
 				"comment": "This is a delegated domain.",
@@ -143,8 +153,27 @@ func TestRoute53(t *testing.T) {
 		require.NotNil(t, publicDomainNames)
 		require.NotNil(t, publicZonesIds)
 		require.NotNil(t, publicZonesNameServers)
-	})
 
+		// Verify that the TXT subdomain record was created
+		subdomainName := test_structure.LoadString(t, testFolder, "subdomainName")
+		query := dns_helper.DNSQuery{
+			Type: "TXT",
+			Name: subdomainName,
+		}
+		dns_helper.DNSLookupAuthoritativeAllWithValidationRetry(
+			t,
+			query,
+			[]string{"8.8.8.8", "1.1.1.1"},
+			dns_helper.DNSAnswers{
+				dns_helper.DNSAnswer{
+					Type:  "TXT",
+					Value: `"hello-world"`,
+				},
+			},
+			// Try for up to 10 minutes
+			60, 10*time.Second,
+		)
+	})
 }
 
 // Verifies that setting provision_wilcard_certificate to true when creating public zones correctly results in a

@@ -106,6 +106,19 @@ variable "public_zones" {
   # only created if created_outside_terraform is false.
   #  parent_hosted_zone_id = string
   #
+  # Create the following subdomain entries on the domain. Use this for managing records that are not associated with any
+  # terraform module, like MX and TXT domains.
+  # Map keys are the relevant subdomain record you wish to create.
+  #   subdomains = map(object({
+  #     # The record type. Valid values are A, AAAA, CAA, CNAME, DS, MX, NAPTR, NS, PTR, SOA, SPF, SRV and TXT.
+  #     type = string
+  #     # The TTL of the record.
+  #     ttl = number
+  #     # A string list of records. To specify a single record value longer than 255 characters such as a TXT record for
+  #     # DKIM, add \"\" inside the Terraform configuration string (e.g. "first255characters\"\"morecharacters").
+  #     records = list(string)
+  #   }))
+  #
 
   # Allow empty maps to be passed by default - since we sometimes define only public zones or only private zones in a given module call
   default = {}
