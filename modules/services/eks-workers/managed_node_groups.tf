@@ -230,7 +230,7 @@ locals {
 }
 
 module "metric_widget_managed_node_group_worker_cpu_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.2"
 
   title = "${var.eks_cluster_name} Managed Node Group EKSWorker CPUUtilization"
   stat  = "Average"
@@ -246,7 +246,7 @@ module "metric_widget_managed_node_group_worker_cpu_usage" {
 }
 
 module "metric_widget_managed_node_group_worker_memory_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.2"
 
   title = "${var.eks_cluster_name} Managed Node Group EKSWorker MemoryUtilization"
   stat  = "Average"
@@ -262,7 +262,7 @@ module "metric_widget_managed_node_group_worker_memory_usage" {
 }
 
 module "metric_widget_managed_node_group_worker_disk_usage" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard-metric-widget?ref=v0.30.2"
 
   title = "${var.eks_cluster_name} Managed Node Group EKSWorker DiskUtilization"
   stat  = "Average"
