@@ -10,7 +10,7 @@
 # it can be used to correctly determine the logs account ID during a Terraform refresh.
 data "aws_organizations_organization" "logs_account_id_exists" {
   count      = local.has_logs_account ? 1 : 0
-  depends_on = [null_resource.wait_for_creation]
+  depends_on = [time_sleep.wait_30_seconds]
 }
 
 # This data source is used to find the logs account ID if the logs account does not yet exist. It depends on the
@@ -22,37 +22,34 @@ data "aws_organizations_organization" "logs_account_id_exists" {
 #   https://github.com/gruntwork-io/terraform-aws-security/issues/421
 data "aws_organizations_organization" "logs_account_id_does_not_exist" {
   count      = local.has_logs_account ? 1 : 0
-  depends_on = [module.organization, null_resource.wait_for_creation]
+  depends_on = [module.organization, time_sleep.wait_30_seconds]
 }
 
-# This null_resource is triggered under two conditions:
+# This time_sleep is triggered under two conditions:
 #
 #  - If the logs account exists.
 #  - If the logs account does not exist.
 #
 # To explain further, if the Organization does NOT yet exist - e.g. the first run with create_organization=true
-# - and a logs account exists in var.child_accounts, the first condition is met, the null_resource is
+# - and a logs account exists in var.child_accounts, the first condition is met, the time_sleep is
 # triggered, and the wait occurs, thus allowing the Organization and logs account to be created before the data
 # source tries to look up the logs account.
 #
 # If the Organization does NOT yet exist, and a logs account ALSO does not exist in var.child_accounts, the second
-# condition is met, and the null_resource is triggered, the wait occurs, allowing the Organization to be created
+# condition is met, and the time_sleep is triggered, the wait occurs, allowing the Organization to be created
 # before the data source executes.
 #
 # Why not just trigger it with a string of "", you may ask? For the following reason: If the Organization _already_
-# exists, and any child account (but not the logs account) already exists, then the null_resource will also already
+# exists, and any child account (but not the logs account) already exists, then the time_sleep will also already
 # exist, and hence will not trigger during a refresh phase or plan. But then if the user later adds a logs account,
-# we need this null_resource to trigger again, thus incurring the wait condition, and thus not failing to assume the
+# we need this time_sleep to trigger again, thus incurring the wait condition, and thus not failing to assume the
 # role and cause all the other problems described in https://github.com/gruntwork-io/terraform-aws-security/issues/421.
-resource "null_resource" "wait_for_creation" {
+resource "time_sleep" "wait_30_seconds" {
   triggers = {
     logs_account_name = length(local.logs_account_name_array) > 0 ? local.logs_account_name_array[0] : ""
   }
 
-  provisioner "local-exec" {
-    # We need a sleep 30 here to give the Organization, child accounts and the IAM roles within them time to be created
-    command = "python -c 'import time; time.sleep(30)'"
-  }
+  create_duration = "30s"
 }
 
 locals {
