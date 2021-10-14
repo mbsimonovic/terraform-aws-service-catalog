@@ -140,8 +140,9 @@ locals {
     # TODO: investigate if IP lockdown can now be enabled due to IRSA
     enable_ip_lockdown = false
 
-    # Extra kublet args
-    eks_kubelet_extra_args = ""
+    # Extra args for bootstrap script
+    eks_kubelet_extra_args       = ""
+    eks_bootstrap_script_options = ""
   }
 
   # Trim excess whitespace, because AWS will do that on deploy. This prevents

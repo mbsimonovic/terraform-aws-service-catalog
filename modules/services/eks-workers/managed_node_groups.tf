@@ -141,7 +141,10 @@ data "cloudinit_config" "managed_node_group" {
       "${path.module}/user-data.sh",
       merge(
         local.default_user_data_context,
-        { eks_kubelet_extra_args = lookup(each.value, "eks_kubelet_extra_args", "") },
+        {
+          eks_kubelet_extra_args       = lookup(each.value, "eks_kubelet_extra_args", "")
+          eks_bootstrap_script_options = lookup(each.value, "eks_bootstrap_script_options", "")
+        },
       ),
     ))
   }

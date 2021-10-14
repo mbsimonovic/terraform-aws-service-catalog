@@ -104,8 +104,8 @@ resource "aws_security_group_rule" "custom_egress_security_group_rules_asg" {
   cidr_blocks              = each.value.cidr_blocks
 }
 
-# Configure custom cloud-init configuration for each ASG depending on if cloud_init_parts or eks_kubelet_extra_args is
-# configured on the asg.
+# Configure custom cloud-init configuration for each ASG depending on if cloud_init_parts, eks_kubelet_extra_args, or
+# eks_bootstrap_script_options is configured on the asg.
 data "cloudinit_config" "asg_cloud_inits" {
   for_each      = var.autoscaling_group_configurations
   gzip          = true
@@ -125,7 +125,10 @@ data "cloudinit_config" "asg_cloud_inits" {
       "${path.module}/user-data.sh",
       merge(
         local.default_user_data_context,
-        { eks_kubelet_extra_args = lookup(each.value, "eks_kubelet_extra_args", "") },
+        {
+          eks_kubelet_extra_args       = lookup(each.value, "eks_kubelet_extra_args", "")
+          eks_bootstrap_script_options = lookup(each.value, "eks_bootstrap_script_options", "")
+        },
       ),
     ))
   }

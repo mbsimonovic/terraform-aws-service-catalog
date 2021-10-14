@@ -34,7 +34,7 @@ function configure_eks_instance {
     --apiserver-endpoint "$eks_endpoint" \
     --b64-cluster-ca "$eks_certificate_authority" \
     --kubelet-extra-args "--node-labels=\"$node_labels\" ${eks_kubelet_extra_args}" \
-    "$eks_cluster_name"
+    ${eks_bootstrap_script_options} "$eks_cluster_name"
 }
 
 start_ec2_baseline \
