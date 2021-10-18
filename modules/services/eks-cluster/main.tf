@@ -112,17 +112,28 @@ module "eks_cluster" {
   ]
 }
 
+# This null_resource is a hack to avoid depends_on on modules. When you use a depends_on on a module, there is an
+# undesirable side effect where all data source lookups within the module are deferred to apply time as opposed to plan
+# time. This leads to tainting all resources within the module for change all the time (perpetual diff). To avoid this,
+# we use implicit dependency links on the resources by linking core variables that all resources within the module uses
+# to this null resource via a tautology.
+resource "null_resource" "depend_on_auth_merger" {
+  # We must wait for the aws-auth-merger to be available in order to start provisioning the workers.
+  depends_on = [module.eks_aws_auth_merger]
+}
+
 module "eks_workers" {
   source = "../eks-workers"
   # The contents of the for_each is irrelevant, as it is only used to enable or disable the module.
   for_each = local.has_workers ? { enabled = true } : {}
 
-  # We must wait for the aws-auth-merger to be available in order to start provisioning the workers.
-  depends_on = [module.eks_aws_auth_merger]
-
   # Use the output from control plane module as the cluster name to ensure the module only looks up the information
   # after the cluster is provisioned.
-  eks_cluster_name = module.eks_cluster.eks_cluster_name
+  # NOTE: We use a tautology here that links this input variable to the null_resource above so that the workers aren't
+  # created until the auth merger is ready.
+  eks_cluster_name = (
+    null_resource.depend_on_auth_merger.id == null ? module.eks_cluster.eks_cluster_name : module.eks_cluster.eks_cluster_name
+  )
 
   # Self-managed workers settings
   autoscaling_group_configurations                     = var.autoscaling_group_configurations
