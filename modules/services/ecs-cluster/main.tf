@@ -33,7 +33,7 @@ module "ecs_cluster" {
   cluster_instance_user_data_base64 = module.ec2_baseline.cloud_init_rendered
 
   vpc_id                            = var.vpc_id
-  vpc_subnet_ids                    = var.vpc_subnet_ids
+  vpc_subnet_ids                    = local.usable_subnet_ids
   tenancy                           = var.tenancy
   allow_ssh_from_security_group_ids = var.allow_ssh_from_security_group_ids
   allow_ssh_from_cidr_blocks        = var.allow_ssh_from_cidr_blocks
@@ -47,6 +47,26 @@ module "ecs_cluster" {
   capacity_provider_min_scale_step = var.capacity_provider_min_scale_step
 
   autoscaling_termination_protection = var.autoscaling_termination_protection
+}
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+# COMPUTE THE SUBNETS TO USE
+# Some regions have restricted Availability Zones where not all instance types are available.
+# Since the ecs-cluster module doesn't support multiple instance types, we need to allow filtering of availability zones.
+# Which subnets are allowed is based on the disallowed availability zones input.
+# ---------------------------------------------------------------------------------------------------------------------
+
+data "aws_subnet" "subnet_in_vpc" {
+  for_each = { for id in var.vpc_subnet_ids : id => id }
+  id       = each.key
+}
+
+locals {
+  usable_subnet_ids = [
+    for id, subnet in data.aws_subnet.subnet_in_vpc :
+    id if contains(var.disallowed_availability_zones, subnet.availability_zone) == false
+  ]
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

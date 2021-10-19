@@ -298,3 +298,9 @@ variable "default_user" {
   type        = string
   default     = "ec2-user"
 }
+
+variable "disallowed_availability_zones" {
+  description = "A list of availability zones in the region that should be skipped when deploying ECS. You can use this to avoid availability zones that may not be able to provision the resources (e.g instance type does not exist). If empty, allows all availability zones."
+  type        = list(string)
+  default     = []
+}
