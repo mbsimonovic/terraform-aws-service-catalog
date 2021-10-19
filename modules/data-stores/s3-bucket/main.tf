@@ -28,7 +28,7 @@ provider "aws" {
 # CREATE THE PRIMARY BUCKET
 # ---------------------------------------------------------------------------------------------------------------------
 module "s3_bucket_primary" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/private-s3-bucket?ref=v0.53.7"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/private-s3-bucket?ref=v0.55.4"
 
   name = var.primary_bucket
 
@@ -61,7 +61,7 @@ module "s3_bucket_primary" {
 # CREATE THE S3 BUCKET TO STORE ACCESS LOGS
 # ---------------------------------------------------------------------------------------------------------------------
 module "s3_bucket_logs" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/private-s3-bucket?ref=v0.53.7"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/private-s3-bucket?ref=v0.55.4"
 
   create_resources = var.access_logging_bucket != null
 
@@ -80,7 +80,7 @@ module "s3_bucket_logs" {
 # CREATE THE S3 BUCKET FOR REPLICATION
 # ---------------------------------------------------------------------------------------------------------------------
 module "s3_bucket_replica" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/private-s3-bucket?ref=v0.53.7"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/private-s3-bucket?ref=v0.55.4"
 
   providers = {
     aws = aws.replica

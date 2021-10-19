@@ -48,7 +48,7 @@ terraform {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "config" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/aws-config-multi-region?ref=v0.53.7"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/aws-config-multi-region?ref=v0.55.4"
 
   # You MUST create a provider block for EVERY AWS region (see providers.tf) and pass all those providers in here via
   # this providers map. However, you should use var.opt_in_regions to tell Terraform to only use and authenticate to
@@ -142,7 +142,7 @@ module "config" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "iam_cross_account_roles" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/cross-account-iam-roles?ref=v0.53.7"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/cross-account-iam-roles?ref=v0.55.4"
 
   create_resources = var.enable_iam_cross_account_roles
 
@@ -169,7 +169,7 @@ module "iam_cross_account_roles" {
 }
 
 module "iam_user_password_policy" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-user-password-policy?ref=v0.53.7"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-user-password-policy?ref=v0.55.4"
 
   create_resources = var.enable_iam_user_password_policy
 
@@ -190,7 +190,7 @@ module "iam_user_password_policy" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "guardduty" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/guardduty-multi-region?ref=v0.53.7"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/guardduty-multi-region?ref=v0.55.4"
 
   # You MUST create a provider block for EVERY AWS region (see providers.tf) and pass all those providers in here via
   # this providers map. However, you should use var.opt_in_regions to tell Terraform to only use and authenticate to
@@ -237,7 +237,7 @@ module "guardduty" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "cloudtrail" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/cloudtrail?ref=v0.53.7"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/cloudtrail?ref=v0.55.4"
 
   create_resources      = var.enable_cloudtrail
   is_multi_region_trail = true
@@ -272,8 +272,7 @@ module "cloudtrail" {
   data_logging_enabled                   = var.cloudtrail_data_logging_enabled
   data_logging_read_write_type           = var.cloudtrail_data_logging_read_write_type
   data_logging_include_management_events = var.cloudtrail_data_logging_include_management_events
-  data_logging_resource_type             = var.cloudtrail_data_logging_resource_type
-  data_logging_resource_values           = var.cloudtrail_data_logging_resource_values
+  data_logging_resources                 = var.cloudtrail_data_logging_resources
 
   force_destroy = var.cloudtrail_force_destroy
 }
@@ -283,7 +282,7 @@ module "cloudtrail" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "customer_master_keys" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-master-key-multi-region?ref=v0.53.7"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-master-key-multi-region?ref=v0.55.4"
 
   # You MUST create a provider block for EVERY AWS region (see providers.tf) and pass all those providers in here via
   # this providers map. However, you should use var.opt_in_regions to tell Terraform to only use and authenticate to
@@ -324,7 +323,7 @@ module "customer_master_keys" {
 }
 
 module "kms_grants" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-grant-multi-region?ref=v0.53.7"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-grant-multi-region?ref=v0.55.4"
 
   # You MUST create a provider block for EVERY AWS region (see providers.tf) and pass all those providers in here via
   # this providers map. However, you should use var.opt_in_regions to tell Terraform to only use and authenticate to
@@ -378,7 +377,7 @@ module "kms_grants" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "ebs_encryption" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/ebs-encryption-multi-region?ref=v0.53.7"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/ebs-encryption-multi-region?ref=v0.55.4"
 
   # You MUST create a provider block for EVERY AWS region (see providers.tf) and pass all those providers in here via
   # this providers map. However, you should use var.opt_in_regions to tell Terraform to only use and authenticate to
@@ -438,7 +437,7 @@ resource "aws_iam_service_linked_role" "role" {
 # IAM ACCESS ANALYZER DEFAULTS
 # ----------------------------------------------------------------------------------------------------------------------
 module "iam_access_analyzer" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-access-analyzer-multi-region?ref=v0.53.7"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-access-analyzer-multi-region?ref=v0.55.4"
 
   # You MUST create a provider block for EVERY AWS region (see providers.tf) and pass all those providers in here via
   # this providers map. However, you should use var.opt_in_regions to tell Terraform to only use and authenticate to

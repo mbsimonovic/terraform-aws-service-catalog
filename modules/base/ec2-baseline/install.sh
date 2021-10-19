@@ -5,7 +5,7 @@
 # renovate.json auto-update: bash-commons
 readonly DEFAULT_BASH_COMMONS_VERSION="v0.1.8"
 # renovate.json auto-update: terraform-aws-security
-readonly DEFAULT_MODULE_SECURITY_VERSION="v0.53.1"
+readonly DEFAULT_MODULE_SECURITY_VERSION="v0.55.4"
 # renovate.json auto-update: terraform-aws-monitoring
 readonly DEFAULT_MODULE_AWS_MONITORING_VERSION="v0.30.2"
 # renovate.json auto-update: terraform-aws-server

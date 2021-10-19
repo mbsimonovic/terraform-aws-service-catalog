@@ -892,16 +892,10 @@ variable "cloudtrail_data_logging_include_management_events" {
   default     = true
 }
 
-variable "cloudtrail_data_logging_resource_type" {
-  description = "The resource type in which you want to log data events. Possible values are: AWS::S3::Object and AWS::Lambda::Function."
-  type        = string
-  default     = "AWS::S3::Object"
-}
-
-variable "cloudtrail_data_logging_resource_values" {
-  description = "A list of resource ARNs for data event logging."
-  type        = list(string)
-  default     = []
+variable "cloudtrail_data_logging_resources" {
+  description = "Data resources for which to log data events. This should be a map, where each key is a data resource type, and each value is a list of data resource values. Possible values for data resource types are: AWS::S3::Object, AWS::Lambda::Function and AWS::DynamoDB::Table. See the 'data_resource' block within the 'event_selector' block of the 'aws_cloudtrail' resource for context: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudtrail#data_resource."
+  type        = map(list(string))
+  default     = {}
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
