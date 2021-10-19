@@ -38,6 +38,8 @@ module "self_managed_workers" {
   asg_default_spot_max_price                           = var.asg_default_spot_max_price
   asg_default_multi_instance_overrides                 = var.asg_default_multi_instance_overrides
 
+  custom_tags_security_group = var.asg_security_group_tags
+
   # The following are not yet supported to accept multiple, but in a future version, we will support extracting
   # additional AMI configurations from each ASG entry.
   # NOTE: we don't configure asg_default_instance_user_data_base64 here because asg_configs will inject a user data

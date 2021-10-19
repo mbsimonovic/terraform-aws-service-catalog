@@ -125,6 +125,12 @@ variable "eks_cluster_security_group_tags" {
   #   }
 }
 
+variable "cluster_iam_role_permissions_boundary" {
+  description = "ARN of permissions boundary to apply to the cluster IAM role - the IAM role created for the EKS cluster."
+  type        = string
+  default     = null
+}
+
 variable "enable_aws_auth_merger" {
   description = "If set to true, installs the aws-auth-merger to manage the aws-auth configuration. When true, requires setting the var.aws_auth_merger_image variable."
   type        = bool
@@ -470,6 +476,18 @@ variable "tenancy" {
   default     = "default"
 }
 
+variable "asg_iam_permissions_boundary" {
+  description = "ARN of a permission boundary to apply on the IAM role created for the self managed workers."
+  type        = string
+  default     = null
+}
+
+variable "asg_security_group_tags" {
+  description = "A map of tags to apply to the Security Group of the ASG for the self managed worker pool. The key is the tag name and the value is the tag value."
+  type        = map(string)
+  default     = {}
+}
+
 variable "asg_default_min_size" {
   description = "Default value for the min_size field of autoscaling_group_configurations. Any map entry that does not specify min_size will use this value."
   type        = number
@@ -672,6 +690,18 @@ variable "managed_node_group_configurations" {
   #   ngroup2 = {}  # Only defaults
   # }
   default = {}
+}
+
+variable "node_group_iam_permissions_boundary" {
+  description = "ARN of a permission boundary to apply on the IAM role created for the managed node groups."
+  type        = string
+  default     = null
+}
+
+variable "node_group_security_group_tags" {
+  description = "A map of tags to apply to the Security Group of the ASG for the managed node group pool. The key is the tag name and the value is the tag value."
+  type        = map(string)
+  default     = {}
 }
 
 variable "node_group_default_subnet_ids" {

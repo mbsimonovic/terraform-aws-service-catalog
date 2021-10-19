@@ -79,7 +79,7 @@ data "aws_eks_cluster_auth" "kubernetes_token" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "eks_cluster" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.45.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.45.2"
 
   cluster_name = var.cluster_name
 
@@ -100,6 +100,8 @@ module "eks_cluster" {
 
   custom_tags_eks_cluster    = var.eks_cluster_tags
   custom_tags_security_group = var.eks_cluster_security_group_tags
+
+  cluster_iam_role_permissions_boundary = var.cluster_iam_role_permissions_boundary
 
   # We make sure the Fargate Profile for control plane services depend on the aws-auth ConfigMap with user IAM role
   # mappings so that we don't accidentally revoke access to the Kubernetes cluster before we make all the necessary
@@ -155,6 +157,7 @@ module "eks_workers" {
   asg_default_spot_instance_pools                      = var.asg_default_spot_instance_pools
   asg_default_spot_max_price                           = var.asg_default_spot_max_price
   asg_default_multi_instance_overrides                 = var.asg_default_multi_instance_overrides
+  asg_security_group_tags                              = var.asg_security_group_tags
   tenancy                                              = var.tenancy
 
   # Managed Node Groups settings
@@ -181,6 +184,7 @@ module "eks_workers" {
   node_group_default_capacity_type           = var.node_group_default_capacity_type
   node_group_default_tags                    = var.node_group_default_tags
   node_group_default_labels                  = var.node_group_default_labels
+  node_group_security_group_tags             = var.node_group_security_group_tags
 
   # The rest of the block specifies settings that are common to both worker groups
 
@@ -259,15 +263,17 @@ resource "aws_security_group_rule" "allow_private_endpoint_from_cidr_blocks" {
 # - ConfigMap in module.eks_k8s_role_mapping depends on aws_iam_role that is passed in.
 #
 resource "aws_iam_role" "self_managed_worker" {
-  count              = local.has_self_managed_workers ? 1 : 0
-  name               = local.asg_iam_role_name
-  assume_role_policy = data.aws_iam_policy_document.allow_ec2_instances_to_assume_role.json
+  count                = local.has_self_managed_workers ? 1 : 0
+  name                 = local.asg_iam_role_name
+  assume_role_policy   = data.aws_iam_policy_document.allow_ec2_instances_to_assume_role.json
+  permissions_boundary = var.asg_iam_permissions_boundary
 }
 
 resource "aws_iam_role" "managed_node_group" {
-  count              = local.has_managed_node_groups ? 1 : 0
-  name               = local.managed_node_group_iam_role_name
-  assume_role_policy = data.aws_iam_policy_document.allow_ec2_instances_to_assume_role.json
+  count                = local.has_managed_node_groups ? 1 : 0
+  name                 = local.managed_node_group_iam_role_name
+  assume_role_policy   = data.aws_iam_policy_document.allow_ec2_instances_to_assume_role.json
+  permissions_boundary = var.node_group_iam_permissions_boundary
 }
 
 data "aws_iam_policy_document" "allow_ec2_instances_to_assume_role" {

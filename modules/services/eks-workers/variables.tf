@@ -464,6 +464,12 @@ variable "asg_iam_role_arn" {
   default     = null
 }
 
+variable "asg_security_group_tags" {
+  description = "A map of tags to apply to the Security Group of the ASG for the self managed worker pool. The key is the tag name and the value is the tag value."
+  type        = map(string)
+  default     = {}
+}
+
 
 # Defaults for the Node Group configurations passed in through var.managed_node_group_configurations. These values are used when
 # the corresponding setting is omitted from the underlying map. Refer to the documentation under
@@ -566,6 +572,12 @@ variable "managed_node_group_iam_role_arn" {
   description = "ARN of the IAM role to use if iam_role_already_exists = true. When null, uses managed_node_group_custom_iam_role_name to lookup the ARN. One of managed_node_group_custom_iam_role_name and managed_node_group_iam_role_arn is required (must be non-null) if managed_node_group_iam_role_already_exists is true."
   type        = string
   default     = null
+}
+
+variable "node_group_security_group_tags" {
+  description = "A map of tags to apply to the Security Group of the ASG for the managed node group pool. The key is the tag name and the value is the tag value."
+  type        = map(string)
+  default     = {}
 }
 
 
