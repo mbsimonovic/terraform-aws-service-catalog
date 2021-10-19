@@ -326,3 +326,9 @@ variable "default_user" {
   type        = string
   default     = "ubuntu"
 }
+
+variable "custom_tags" {
+  description = "A list of custom tags to apply to Jenkins and all other resources."
+  type        = map(string)
+  default     = {}
+}

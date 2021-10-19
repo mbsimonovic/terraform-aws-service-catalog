@@ -43,7 +43,7 @@ module "jenkins" {
   name       = var.name
   aws_region = data.aws_region.current.name
 
-  custom_tags = local.server_group_tags
+  custom_tags = merge(local.server_group_tags, var.custom_tags)
 
   ami_id        = module.ec2_baseline.existing_ami
   instance_type = var.instance_type
