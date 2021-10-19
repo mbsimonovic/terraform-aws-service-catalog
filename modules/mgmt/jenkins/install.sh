@@ -16,7 +16,7 @@ readonly DEFAULT_KUBERGRUNT_VERSION="v0.7.9"
 # renovate.json auto-update: gruntkms
 readonly DEFAULT_GRUNTKMS_VERSION="v0.0.10"
 # renovate.json auto-update: terragrunt
-readonly DEFAULT_TERRAGRUNT_VERSION="v0.31.7"
+readonly DEFAULT_TERRAGRUNT_VERSION="v0.35.3"
 
 # renovate.json auto-update-github-releases: jenkinsci/jenkins
 readonly DEFAULT_JENKINS_VERSION="2.277.2"
