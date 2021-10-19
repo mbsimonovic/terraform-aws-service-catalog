@@ -19,8 +19,17 @@ variable "ecs_cluster_name" {
 }
 
 variable "container_definitions" {
-  description = "Map of names to container definitions to use for the ECS task. Each entry corresponds to a different ECS container definition. The key corresponds to a user defined name for the container definition"
-  type        = any
+  description = "List of container definitions to use for the ECS task. Each entry corresponds to a different ECS container definition."
+
+  # Ideally we can use a concrete type here, but container definitions have many optional fields which Terraform does
+  # not yet have good support for.
+  type = any
+
+  # Example:
+  # container_definitions = [{
+  #   name  = "nginx"
+  #   image = "nginx:1.21"
+  # }]
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -203,9 +212,19 @@ variable "ecs_instance_security_group_id" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 variable "canary_container_definitions" {
-  description = "Map of names to container definitions to use for the canary ECS task. Each entry corresponds to a different ECS container definition. The key corresponds to a user defined name for the container definition"
-  type        = any
-  default     = {}
+  description = "List of container definitions to use for the canary ECS task. Each entry corresponds to a different ECS container definition."
+
+  # Ideally we can use a concrete type here, but container definitions have many optional fields which Terraform does
+  # not yet have good support for.
+  type = any
+
+  default = []
+
+  # Example:
+  # container_definitions = [{
+  #   name  = "nginx"
+  #   image = "nginx:1.21"
+  # }]
 }
 
 variable "canary_version" {
