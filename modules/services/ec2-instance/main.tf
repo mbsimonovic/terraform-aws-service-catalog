@@ -17,7 +17,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ec2_instance" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-server.git//modules/single-server?ref=v0.13.3"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-server.git//modules/single-server?ref=v0.13.6"
 
   name             = var.name
   instance_type    = var.instance_type
