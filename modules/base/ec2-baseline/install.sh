@@ -3,7 +3,7 @@
 
 # Gruntwork module versions
 # renovate.json auto-update: bash-commons
-readonly DEFAULT_BASH_COMMONS_VERSION="v0.1.7"
+readonly DEFAULT_BASH_COMMONS_VERSION="v0.1.8"
 # renovate.json auto-update: terraform-aws-security
 readonly DEFAULT_MODULE_SECURITY_VERSION="v0.53.1"
 # renovate.json auto-update: terraform-aws-monitoring
