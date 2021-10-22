@@ -115,6 +115,10 @@ module "eks_cluster" {
   fargate_profile_dependencies = [
     module.eks_k8s_role_mapping.aws_auth_config_map_name,
   ]
+
+  # Feature flags
+  use_kubergrunt_verification = var.use_kubergrunt_verification
+  use_upgrade_cluster_script  = var.use_kubergrunt_sync_components
 }
 
 # This null_resource is a hack to avoid depends_on on modules. When you use a depends_on on a module, there is an

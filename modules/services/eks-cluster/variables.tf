@@ -832,6 +832,25 @@ variable "dashboard_disk_usage_widget_parameters" {
   }
 }
 
+# ---------------------------------------------------------------------------------------------------------------------
+# OPTIONAL PARAMETERS WITH RECOMMENDED DEFAULTS
+# These values shouldn't be changed unless you are testing things or you have good reasons to adjust these flags. All of
+# these flags are optimized for production based workflows and adjustments can either disrupt your workflows to require
+# manual work arounds or make the module more brittle.
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "use_kubergrunt_verification" {
+  description = "When set to true, this will enable kubergrunt verification to wait for the Kubernetes API server to come up before completing. If false, reverts to a 30 second timed wait instead."
+  type        = bool
+  default     = true
+}
+
+variable "use_kubergrunt_sync_components" {
+  description = "When set to true, this will enable kubergrunt based component syncing. This step ensures that the core EKS components that are installed are upgraded to a matching version everytime the cluster's Kubernetes version is updated."
+  type        = bool
+  default     = true
+}
+
 
 # ---------------------------------------------------------------------------------------------------------------------
 # TEST PARAMETERS
