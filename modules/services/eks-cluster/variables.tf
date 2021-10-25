@@ -482,6 +482,12 @@ variable "asg_iam_permissions_boundary" {
   default     = null
 }
 
+variable "asg_iam_instance_profile_name" {
+  description = "Custom name for the IAM instance profile for the Self-managed workers. When null, the IAM role name will be used. If var.asg_use_resource_name_prefix is true, this will be used as a name prefix."
+  type        = string
+  default     = null
+}
+
 variable "asg_security_group_tags" {
   description = "A map of tags to apply to the Security Group of the ASG for the self managed worker pool. The key is the tag name and the value is the tag value."
   type        = map(string)
@@ -728,9 +734,9 @@ variable "node_group_default_desired_size" {
   default     = 1
 }
 
-variable "node_group_default_instance_type" {
+variable "node_group_launch_template_instance_type" {
   description = "The instance type to configure in the launch template. This value will be used when the instance_types field is set to null (NOT omitted, in which case var.node_group_default_instance_types will be used)."
-  type        = list(string)
+  type        = string
   default     = null
 }
 
@@ -861,4 +867,16 @@ variable "cluster_instance_associate_public_ip_address" {
   description = "Whether or not to associate a public IP address to the instances of the self managed ASGs. Will only work if the instances are launched in a public subnet."
   type        = bool
   default     = false
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# BACKWARD COMPATIBILITY FEATURE FLAGS
+# The following variables are feature flags to enable and disable certain features in the module. These are primarily
+# introduced to maintain backward compatibility by avoiding unnecessary resource creation.
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "asg_use_resource_name_prefix" {
+  description = "When true, all the relevant resources for self managed workers will be set to use the name_prefix attribute so that unique names are generated for them. This allows those resources to support recreation through create_before_destroy lifecycle rules. Set to false if you were using any version before 0.65.0 and wish to avoid recreating the entire worker pool on your cluster."
+  type        = bool
+  default     = true
 }

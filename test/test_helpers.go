@@ -38,7 +38,8 @@ var retryableTerraformErrors = map[string]string{
 
 	// Based on the full error message: "error reading Route Table Association (rtbassoc-0debe83161f2691ec): Empty
 	// result"
-	"error reading.*Empty result": "This seems to be an eventual consistency issue with AWS where Terraform looks for a route table association that was just created but doesn't yet see it: https://github.com/hashicorp/terraform-provider-aws/issues/12449",
+	"error reading.*Empty result":           "This seems to be an eventual consistency issue with AWS where Terraform looks for a route table association that was just created but doesn't yet see it: https://github.com/hashicorp/terraform-provider-aws/issues/12449",
+	"error reading.*couldn't find resource": "This seems to be an eventual consistency issue with AWS where Terraform looks for a route table association that was just created but doesn't yet see it: https://github.com/hashicorp/terraform-provider-aws/issues/12449",
 
 	// Based on the full error message: "error waiting for Route Table Association (rtbassoc-0c83c992303e0797f)
 	// delete: unexpected state 'associated', wanted target ''"

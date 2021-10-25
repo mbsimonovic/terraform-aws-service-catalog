@@ -5,7 +5,7 @@
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "self_managed_workers" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.45.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.46.0"
 
   # Ideally, we can use module count to drive this resource creation, but using module counts and for_each adds a
   # limitation where dependency chains apply at the module level, not the individual resources. This causes a cyclic
@@ -15,9 +15,10 @@ module "self_managed_workers" {
   cluster_name = var.eks_cluster_name
   name_prefix  = var.worker_name_prefix
 
-  iam_role_already_exists = var.asg_iam_role_already_exists
-  iam_role_name           = local.asg_iam_role_name
-  iam_role_arn            = var.asg_iam_role_arn
+  iam_role_already_exists   = var.asg_iam_role_already_exists
+  iam_role_name             = local.asg_iam_role_name
+  iam_role_arn              = var.asg_iam_role_arn
+  iam_instance_profile_name = var.asg_iam_instance_profile_name
 
   autoscaling_group_configurations  = local.asg_configs
   include_autoscaler_discovery_tags = var.autoscaling_group_include_autoscaler_discovery_tags
@@ -52,6 +53,9 @@ module "self_managed_workers" {
 
   # These are dangerous variables that are exposed to make testing easier, but should be left untouched.
   cluster_instance_associate_public_ip_address = var.cluster_instance_associate_public_ip_address
+
+  # Backward compatibility flags
+  use_resource_name_prefix = var.asg_use_resource_name_prefix
 }
 
 resource "aws_security_group_rule" "allow_inbound_ssh_from_security_groups" {

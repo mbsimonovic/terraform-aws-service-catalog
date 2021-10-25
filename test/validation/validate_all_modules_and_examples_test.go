@@ -27,6 +27,7 @@ func TestValidateAllModulesAndExamples(t *testing.T) {
 		"modules/landingzone/account-baseline-app",
 		"modules/landingzone/account-baseline-root",
 		"modules/landingzone/account-baseline-security",
+		"modules/mgmt/ecs-deploy-runner",
 	}
 
 	opts, optsErr := test_structure.NewValidationOptions(filepath.Join(cwd, "../.."), []string{}, excludeDirs)

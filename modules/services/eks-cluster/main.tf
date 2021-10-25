@@ -55,8 +55,8 @@ provider "kubernetes" {
       command     = var.use_kubergrunt_to_fetch_token ? "kubergrunt" : "aws"
       args = (
         var.use_kubergrunt_to_fetch_token
-        ? ["eks", "token", "--cluster-id", module.eks_cluster.eks_cluster_name]
-        : ["eks", "get-token", "--cluster-name", module.eks_cluster.eks_cluster_name]
+        ? ["eks", "token", "--cluster-id", data.aws_eks_cluster.cluster.name]
+        : ["eks", "get-token", "--cluster-name", data.aws_eks_cluster.cluster.name]
       )
     }
   }
@@ -82,7 +82,7 @@ data "aws_eks_cluster_auth" "kubernetes_token" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "eks_cluster" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.45.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.46.0"
 
   cluster_name = var.cluster_name
 
@@ -149,6 +149,7 @@ module "eks_workers" {
   autoscaling_group_include_autoscaler_discovery_tags  = var.autoscaling_group_include_autoscaler_discovery_tags
   asg_iam_role_already_exists                          = local.has_self_managed_workers
   asg_iam_role_arn                                     = length(aws_iam_role.self_managed_worker) > 0 ? aws_iam_role.self_managed_worker[0].arn : null
+  asg_iam_instance_profile_name                        = var.asg_iam_instance_profile_name
   asg_default_min_size                                 = var.asg_default_min_size
   asg_default_max_size                                 = var.asg_default_max_size
   asg_default_instance_type                            = var.asg_default_instance_type
@@ -166,6 +167,8 @@ module "eks_workers" {
   asg_default_multi_instance_overrides                 = var.asg_default_multi_instance_overrides
   asg_security_group_tags                              = var.asg_security_group_tags
   tenancy                                              = var.tenancy
+  # Backward compatibility flags
+  asg_use_resource_name_prefix = var.asg_use_resource_name_prefix
 
   # Managed Node Groups settings
   # We want to make sure the role mapping config map is created before the Managed Node Groups to avoid conflicts with
@@ -187,6 +190,7 @@ module "eks_workers" {
   node_group_default_min_size                = var.node_group_default_min_size
   node_group_default_max_size                = var.node_group_default_max_size
   node_group_default_desired_size            = var.node_group_default_desired_size
+  node_group_launch_template_instance_type   = var.node_group_launch_template_instance_type
   node_group_default_instance_types          = var.node_group_default_instance_types
   node_group_default_capacity_type           = var.node_group_default_capacity_type
   node_group_default_tags                    = var.node_group_default_tags
@@ -330,7 +334,7 @@ resource "kubernetes_namespace" "aws_auth_merger" {
 }
 
 module "eks_aws_auth_merger" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-aws-auth-merger?ref=v0.45.0"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-aws-auth-merger?ref=v0.46.0"
   create_resources = var.enable_aws_auth_merger
 
   create_namespace       = false
@@ -346,7 +350,7 @@ module "eks_aws_auth_merger" {
 }
 
 module "eks_k8s_role_mapping" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.45.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.46.0"
 
   # Configure to create this in the merger namespace if using the aws-auth-merger. Otherwise create it as the main
   # config.
