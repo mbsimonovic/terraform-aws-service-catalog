@@ -109,6 +109,10 @@ For information on registering the worker IAM role to the EKS control plane, ref
 link:core-concepts.md#iam-roles-and-kubernetes-api-access[IAM Roles and Kubernetes API Access] section of the
 documentation.
 
+For information on how to perform a blue-green deployment of the worker pools, refer to the
+link:core-concepts.md#how-do-i-perform-a-blue-green-release-to-roll-out-new-versions-of-the-module[How do I perform a
+blue green release to roll out new versions of the module] section of the documentation.
+
 For information on how to manage your EKS cluster, including how to deploy Pods on Fargate, how to associate IAM roles
 to Pod, how to upgrade your EKS cluster, and more, see the documentation in the
 https://github.com/gruntwork-io/terraform-aws-eks[terraform-aws-eks] repo.
