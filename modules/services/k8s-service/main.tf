@@ -177,7 +177,6 @@ locals {
     },
     local.alb_health_check,
     var.ingress_annotations,
-
   )
 
   # Refer to the values.yaml file for helm-kubernetes-services/k8s-service for more information on the available input
@@ -197,6 +196,14 @@ locals {
           avgCpuUtilization    = var.horizontal_pod_autoscaler.avg_cpu_utilization
           avgMemoryUtilization = var.horizontal_pod_autoscaler.avg_mem_utilization
         }
+      }
+    ),
+    # Only enable the terminationGracePeriodSeconds input value if it is set.
+    (
+      var.termination_grace_period_seconds == null
+      ? {}
+      : {
+        terminationGracePeriodSeconds = var.termination_grace_period_seconds
       }
     ),
     {

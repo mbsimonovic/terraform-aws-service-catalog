@@ -470,6 +470,12 @@ variable "sidecar_containers" {
   # }
 }
 
+variable "termination_grace_period_seconds" {
+  description = "Grace period in seconds that Kubernetes will wait before terminating the pod. The timeout happens in parallel to preStop hook and the SIGTERM signal, Kubernetes does not wait for preStop to finish before beginning the grace period."
+  type        = number
+  default     = null
+}
+
 # IAM role for IRSA
 
 variable "iam_role_exists" {
