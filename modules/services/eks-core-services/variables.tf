@@ -505,6 +505,12 @@ variable "autoscaler_down_delay_after_add" {
   default     = "10m"
 }
 
+variable "autoscaler_skip_nodes_with_local_storage" {
+  description = "If true cluster autoscaler will never delete nodes with pods with local storage, e.g. EmptyDir or HostPath"
+  type        = bool
+  default     = true
+}
+
 # Mappings for external domain names
 
 variable "service_dns_mappings" {

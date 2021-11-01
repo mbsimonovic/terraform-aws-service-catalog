@@ -241,8 +241,9 @@ module "k8s_cluster_autoscaler" {
   scaling_strategy              = var.cluster_autoscaler_scaling_strategy
 
   container_extra_args = {
-    scale-down-unneeded-time   = var.autoscaler_scale_down_unneeded_time
-    scale-down-delay-after-add = var.autoscaler_down_delay_after_add
+    scale-down-unneeded-time      = var.autoscaler_scale_down_unneeded_time
+    scale-down-delay-after-add    = var.autoscaler_down_delay_after_add
+    skip-nodes-with-local-storage = var.autoscaler_skip_nodes_with_local_storage
   }
 }
 
