@@ -20,7 +20,7 @@ env: &env
     # terraform-aws-eks, both of which lag behind open source K8S
     K8S_VERSION: v1.15.0
     # renovate.json auto-update-github-releases: hashicorp/packer
-    PACKER_VERSION: 1.7.7
+    PACKER_VERSION: 1.7.8
     # TODO: how to get renovate.json to auto-update the Go version? They publish tags, but they are of a strange format
     # like "go1.15": https://github.com/golang/go/releases
     GOLANG_VERSION: 1.16

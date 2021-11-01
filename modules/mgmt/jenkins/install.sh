@@ -28,7 +28,7 @@ readonly DEFAULT_KUBECTL_VERSION="v1.19.1"
 # renovate.json auto-update-github-releases: helm/helm
 readonly DEFAULT_HELM_VERSION="v3.7.1"
 # renovate.json auto-update-github-releases: hashicorp/packer
-readonly DEFAULT_PACKER_VERSION="1.7.7"
+readonly DEFAULT_PACKER_VERSION="1.7.8"
 # renovate.json auto-update-docker-ubuntu
 readonly DEFAULT_DOCKER_VERSION="5:20.10.7~3-0~ubuntu-focal"
 

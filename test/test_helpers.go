@@ -13,8 +13,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// The following comment exists to force a full test suite build when terraform versions are updated.
-// Test Terraform Version: 1.0.3
+// The following comment exists to force a full test suite build when terraform, terragrunt, and packer versions are
+// updated.
+// renovate.json auto-update-github-releases: hashicorp/terraform
+// Test TF Version: 1.0.9
+// renovate.json auto-update: terragrunt
+// Test TG Version: v0.35.4
+// renovate.json auto-update-github-releases: hashicorp/packer
+// Test PCK Version: 1.7.8
 
 // Retry configuration constants
 const (
