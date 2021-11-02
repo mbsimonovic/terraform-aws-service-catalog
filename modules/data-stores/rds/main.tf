@@ -25,7 +25,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "database" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/rds?ref=v0.22.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/rds?ref=v0.22.1"
 
   name                 = var.name
   db_name              = local.db_name
@@ -62,6 +62,7 @@ module "database" {
   backup_retention_period         = var.backup_retention_period
   replica_backup_retention_period = var.replica_backup_retention_period
   apply_immediately               = var.apply_immediately
+  delete_automated_backups        = var.delete_automated_backups
 
   # These are dangerous variables that exposed to make testing easier, but should be left untouched.
   publicly_accessible = var.publicly_accessible
