@@ -152,9 +152,21 @@ locals {
     (
       var.ingress_group != null
       ? {
-        "alb.ingress.kubernetes.io/group.name"  = var.ingress_group.name
-        "alb.ingress.kubernetes.io/group.order" = tostring(var.ingress_group.priority)
+        "alb.ingress.kubernetes.io/group.name" = var.ingress_group.name
       }
+      : {}
+    ),
+    (
+      # NOTE: can't use && because Terraform processes the conditional in one pass, and boolean operators are not short
+      # circuit.
+      var.ingress_group != null
+      ? (
+        var.ingress_group.priority != null
+        ? {
+          "alb.ingress.kubernetes.io/group.order" = tostring(var.ingress_group.priority)
+        }
+        : {}
+      )
       : {}
     ),
     (
