@@ -105,9 +105,9 @@ output "vpc_ready" {
 
 
 output "s3_vpc_endpoint_id" {
-   value = module.vpc.s3_vpc_endpoint_id
+  value = module.vpc.s3_vpc_endpoint_id
 }
 
 output "dynamodb_vpc_endpoint_id" {
-   value = module.vpc.dynamodb_vpc_endpoint_id
+  value = module.vpc.dynamodb_vpc_endpoint_id
 }
