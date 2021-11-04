@@ -25,8 +25,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "vpc" {
-  #source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-app?ref=v0.17.7"
-  source = "git::git@github.com:julian-berks-2020/terraform-aws-vpc.git//modules/vpc-app?ref=feature/endpoint_changes"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-app?ref=v0.17.9"
 
   vpc_name               = var.vpc_name
   aws_region             = var.aws_region
