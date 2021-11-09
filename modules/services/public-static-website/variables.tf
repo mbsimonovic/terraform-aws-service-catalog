@@ -89,6 +89,18 @@ variable "viewer_protocol_policy" {
   default     = "allow-all"
 }
 
+variable "geo_restriction_type" {
+  description = "The method that you want to use to restrict distribution of your content by country: none, whitelist, or blacklist."
+  type        = string
+  default     = "none"
+}
+
+variable "geo_locations_list" {
+  description = "The ISO 3166-1-alpha-2 codes for which you want CloudFront either to distribute your content (if var.geo_restriction_type is whitelist) or not distribute your content (if var.geo_restriction_type is blacklist)."
+  type        = list(string)
+  default     = []
+}
+
 variable "force_destroy" {
   description = "If set to true, this will force the delete of the website, redirect, and access log S3 buckets when you run terraform destroy, even if there is still content in those buckets. This is only meant for testing and should not be used in production."
   type        = bool
