@@ -122,7 +122,7 @@ resource "aws_route53_record" "public" {
   for_each = local.public_subdomains
   zone_id = (
     each.value.hosted_zone_id == ""
-    ? aws_route53_zone.public_zones[each.value.hosted_zone_domain]
+    ? aws_route53_zone.public_zones[each.value.hosted_zone_domain].zone_id
     : each.value.hosted_zone_id
   )
 

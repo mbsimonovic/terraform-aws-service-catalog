@@ -28,6 +28,13 @@ variable "cluster_instance_ami" {
   type        = string
 }
 
+variable "cluster_instance_associate_public_ip_address" {
+  description = "Whether to associate a public IP address with an instance in a VPC"
+  type        = bool
+  default     = false
+}
+
+
 variable "cluster_instance_ami_filters" {
   description = "Properties on the AMI that can be used to lookup a prebuilt AMI for use with ECS workers. You can build the AMI using the Packer template ecs-node-al2.json. Only used if var.cluster_instance_ami is null. One of var.cluster_instance_ami or var.cluster_instance_ami_filters is required. Set to null if cluster_instance_ami is set."
   type = object({

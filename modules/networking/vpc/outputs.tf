@@ -18,6 +18,21 @@ output "default_security_group_id" {
   value       = module.vpc.default_security_group_id
 }
 
+output "public_subnets" {
+  description = "A map of all public subnets, with the subnet name as key, and all `aws-subnet` properties as the value."
+  value       = module.vpc.public_subnets
+}
+
+output "private_app_subnets" {
+  description = "A map of all private-app subnets, with the subnet name as key, and all `aws-subnet` properties as the value."
+  value       = module.vpc.private_app_subnets
+}
+
+output "private_persistence_subnets" {
+  description = "A map of all private-persistence subnets, with the subnet name as key, and all `aws-subnet` properties as the value."
+  value       = module.vpc.private_persistence_subnets
+}
+
 output "public_subnet_cidr_blocks" {
   description = "The public IP address range of the VPC in CIDR notation."
   value       = module.vpc.public_subnet_cidr_blocks

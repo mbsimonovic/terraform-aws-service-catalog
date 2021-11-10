@@ -11,7 +11,7 @@ env: &env
     # renovate.json auto-update: kubergrunt
     KUBERGRUNT_VERSION: v0.7.10
     # renovate.json auto-update: terraform-aws-ci
-    MODULE_CI_VERSION: v0.39.2
+    MODULE_CI_VERSION: v0.39.3
     # renovate.json auto-update: terragrunt
     TERRAGRUNT_VERSION: v0.35.5
     # renovate.json auto-update-github-releases: hashicorp/terraform
