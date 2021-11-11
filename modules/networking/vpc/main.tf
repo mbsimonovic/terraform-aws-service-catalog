@@ -25,7 +25,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "vpc" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-app?ref=v0.17.8"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-app?ref=v0.17.9"
 
   vpc_name               = var.vpc_name
   aws_region             = var.aws_region
@@ -91,6 +91,7 @@ module "vpc" {
   private_app_subnet_cidr_blocks         = var.private_app_subnet_cidr_blocks
   private_persistence_subnet_cidr_blocks = var.private_persistence_subnet_cidr_blocks
 
+  create_vpc_endpoints = var.create_vpc_endpoints
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
