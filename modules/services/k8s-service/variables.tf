@@ -538,6 +538,20 @@ variable "iam_policy" {
   # }
 }
 
+# Helm release configurations
+
+variable "wait" {
+  description = "When true, wait until Pods are up and healthy or wait_timeout seconds before exiting terraform."
+  type        = bool
+  default     = true
+}
+
+variable "wait_timeout" {
+  description = "Number of seconds to wait for Pods to become healthy before marking the deployment as a failure."
+  type        = number
+  default     = 300
+}
+
 # Debug options
 
 variable "values_file_path" {

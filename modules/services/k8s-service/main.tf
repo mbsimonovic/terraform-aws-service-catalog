@@ -43,6 +43,9 @@ resource "helm_release" "application" {
     ),
   ]
 
+  wait    = var.wait
+  timeout = var.wait_timeout
+
   # external-dns and AWS ALB Ingress controller will turn the Ingress resources from the chart into AWS resources. These
   # are properly destroyed when the Ingress resource is destroyed. However, because of the asynchronous nature of
   # Kubernetes operations, there is a delay before the respective controllers delete the AWS resources. This can cause
