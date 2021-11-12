@@ -43,6 +43,9 @@ resource "helm_release" "application" {
     ),
   ]
 
+  wait    = var.wait
+  timeout = var.wait_timeout
+
   # external-dns and AWS ALB Ingress controller will turn the Ingress resources from the chart into AWS resources. These
   # are properly destroyed when the Ingress resource is destroyed. However, because of the asynchronous nature of
   # Kubernetes operations, there is a delay before the respective controllers delete the AWS resources. This can cause
@@ -152,9 +155,21 @@ locals {
     (
       var.ingress_group != null
       ? {
-        "alb.ingress.kubernetes.io/group.name"  = var.ingress_group.name
-        "alb.ingress.kubernetes.io/group.order" = tostring(var.ingress_group.priority)
+        "alb.ingress.kubernetes.io/group.name" = var.ingress_group.name
       }
+      : {}
+    ),
+    (
+      # NOTE: can't use && because Terraform processes the conditional in one pass, and boolean operators are not short
+      # circuit.
+      var.ingress_group != null
+      ? (
+        var.ingress_group.priority != null
+        ? {
+          "alb.ingress.kubernetes.io/group.order" = tostring(var.ingress_group.priority)
+        }
+        : {}
+      )
       : {}
     ),
     (
@@ -385,7 +400,7 @@ resource "aws_iam_role" "new_role" {
 }
 
 module "service_account_assume_role_policy" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-iam-role-assume-role-policy-for-service-account?ref=v0.46.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-iam-role-assume-role-policy-for-service-account?ref=v0.46.3"
 
   eks_openid_connect_provider_arn = var.eks_iam_role_for_service_accounts_config.openid_connect_provider_arn
   eks_openid_connect_provider_url = var.eks_iam_role_for_service_accounts_config.openid_connect_provider_url

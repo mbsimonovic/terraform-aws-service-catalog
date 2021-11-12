@@ -28,7 +28,7 @@ variable "image_version" {
   description = "Which version (AKA tag) of the var.image Docker image to deploy (e.g. 0.57)."
   type        = string
   # renovate.json auto-update-variable: aws-sample-app
-  default = "v0.0.4"
+  default = "v0.0.5"
 }
 
 variable "namespace" {

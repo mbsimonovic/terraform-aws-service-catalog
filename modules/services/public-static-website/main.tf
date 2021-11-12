@@ -66,6 +66,8 @@ module "cloudfront" {
   hosted_zone_id         = var.hosted_zone_id
   custom_tags            = var.custom_tags
   viewer_protocol_policy = var.viewer_protocol_policy
+  geo_restriction_type   = var.geo_restriction_type
+  geo_locations_list     = var.geo_locations_list
 
   # If var.create_route53_entry is false, the aws_acm_certificate data source won't be created. Ideally, we'd just use
   # a conditional to only use that data source if var.create_route53_entry is true, but Terraform's conditionals are

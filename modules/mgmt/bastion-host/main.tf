@@ -60,7 +60,7 @@ data "aws_route53_zone" "selected" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# THE USER DATA SCRIPT THAT WILL WILL RUN ON THE BASTION HOST DURING BOOT
+# THE USER DATA SCRIPT THAT WILL RUN ON THE BASTION HOST DURING BOOT
 # ---------------------------------------------------------------------------------------------------------------------
 
 locals {

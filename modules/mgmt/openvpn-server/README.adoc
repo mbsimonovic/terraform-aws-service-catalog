@@ -31,9 +31,9 @@ This Terraform Module deploys an https://openvpn.net/[OpenVPN Server].
 
 
 image::../../../_docs/openvpn-architecture.png?raw=true[OpenVPN server architecture]
-This server acts as the entrypoint to your AWS account. You must connect to it with an OpenVPN client before you can
-connect to any of your other servers, which are in private subnets. This way, you minimize the surface area you expose
-to attackers, and can focus all your efforts on locking down just a single server.
+This server acts as the entrypoint to the VPC in which it is deployed. You must connect to it with an OpenVPN client
+before you can connect to any of your other servers, which are in private subnets. This way, you minimize the surface
+area you expose to attackers, and can focus all your efforts on locking down just a single server.
 
 
 toc::[]

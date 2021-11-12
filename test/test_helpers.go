@@ -18,7 +18,7 @@ import (
 // renovate.json auto-update-github-releases: hashicorp/terraform
 // Test TF Version: 1.0.9
 // renovate.json auto-update: terragrunt
-// Test TG Version: v0.35.4
+// Test TG Version: v0.35.7
 // renovate.json auto-update-github-releases: hashicorp/packer
 // Test PCK Version: 1.7.8
 

@@ -58,7 +58,7 @@ module "openvpn" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# THE USER DATA SCRIPT THAT WILL WILL RUN ON THE OPENVPN SERVER DURING BOOT
+# THE USER DATA SCRIPT THAT WILL RUN ON THE OPENVPN SERVER DURING BOOT
 # ---------------------------------------------------------------------------------------------------------------------
 
 locals {

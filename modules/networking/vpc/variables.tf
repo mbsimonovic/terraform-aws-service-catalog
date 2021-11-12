@@ -425,3 +425,10 @@ variable "destination_vpc_resolver_name" {
   type        = string
   default     = null
 }
+
+
+variable "create_vpc_endpoints" {
+  description = "Create VPC endpoints for S3 and DynamoDB."
+  type        = bool
+  default     = true
+}
