@@ -113,6 +113,18 @@ variable "public_zones" {
   #     records = list(string)
   #   }))
   #
+  # Create the following apex records on the domain. Use this for managing records that are not associated with any
+  # terraform module, like MX and TXT domains.
+  #   apex_records = list(object({
+  #     # The record type. Valid values are A, AAAA, CAA, CNAME, DS, MX, NAPTR, NS, PTR, SOA, SPF, SRV and TXT.
+  #     type = string
+  #     # The TTL of the record.
+  #     ttl = number
+  #     # A string list of records. To specify a single record value longer than 255 characters such as a TXT record for
+  #     # DKIM, add \"\" inside the Terraform configuration string (e.g. "first255characters\"\"morecharacters").
+  #     records = list(string)
+  #   }))
+  #
 
   # Allow empty maps to be passed by default - since we sometimes define only public zones or only private zones in a given module call
   default = {}
@@ -133,6 +145,31 @@ variable "public_zones" {
   #         base_domain_name_tags = {
   #             original = true
   #         }
+  #         apex_records = [
+  #           {
+  #             type    = "MX"
+  #             ttl     = 3600
+  #             records = [
+  #               "1 mx.example.com."
+  #               "5 mx1.example.com."
+  #               "10 mx2.example.com."
+  #             ]
+  #           },
+  #           {
+  #             type    = "SPF"
+  #             ttl     = 3600
+  #             records = [
+  #               "v=spf1 include:_spf.example.com ~all"
+  #             ]
+  #           },
+  #           {
+  #             type    = "TXT"
+  #             ttl     = 3600
+  #             records = [
+  #               "v=spf1 include:_spf.example.com ~all"
+  #             ]
+  #           }
+  #         ]
   #         subdomains = {
   #           txt-test = {
   #             type    = "txt"

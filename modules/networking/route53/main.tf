@@ -115,6 +115,26 @@ data "aws_route53_zone" "parent_hosted_zone" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
+# CREATE REQUESTED APEX RECORDS FOR PUBLIC DOMAINS
+# ---------------------------------------------------------------------------------------------------------------------
+
+resource "aws_route53_record" "apex" {
+  count = length(local.public_apex_records)
+
+  zone_id = (
+    local.public_apex_records[count.index].hosted_zone_id == ""
+    ? aws_route53_zone.public_zones[local.public_apex_records[count.index].hosted_zone_domain].zone_id
+    : local.public_apex_records[count.index].hosted_zone_id
+  )
+
+  name            = local.public_apex_records[count.index].name
+  type            = local.public_apex_records[count.index].type
+  ttl             = local.public_apex_records[count.index].ttl
+  records         = local.public_apex_records[count.index].records
+  allow_overwrite = true
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
 # CREATE REQUESTED SUBDOMAIN RECORDS FOR PUBLIC DOMAINS
 # ---------------------------------------------------------------------------------------------------------------------
 
@@ -221,6 +241,34 @@ locals {
       hosted_zone_id     = domain_pair.hosted_zone_id
     }
   }
+
+  # Build a map of objects representing the apex records to create.
+  # First, we take the subdomains field on each domain and extract the information we need to create the
+  # aws_route53_record resources. The output of this expression is a list of objects.
+  public_apex_records = flatten(
+    [
+      for domain, zone in var.public_zones :
+      [
+        for record in lookup(zone, "apex_records", []) :
+        {
+          name               = domain,
+          hosted_zone_domain = domain,
+          hosted_zone_id = (
+            zone.created_outside_terraform
+            ? (
+              zone.hosted_zone_domain_name != ""
+              ? data.aws_route53_zone.selected[zone.hosted_zone_domain_name].zone_id
+              : data.aws_route53_zone.selected[domain].zone_id
+            )
+            : ""
+          )
+          type    = record.type
+          ttl     = record.ttl
+          records = record.records
+        }
+      ]
+    ]
+  )
 
   # Build a map of objects representing ACM certificates to request, which will be merged together with
   # service_discovery_namespace_acml_tls_certificates and provided as input to the acm-tls-certificates module
