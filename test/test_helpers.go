@@ -16,7 +16,7 @@ import (
 // The following comment exists to force a full test suite build when terraform, terragrunt, and packer versions are
 // updated.
 // renovate.json auto-update-github-releases: hashicorp/terraform
-// Test TF Version: 1.0.9
+// Test TF Version: 1.0.10
 // renovate.json auto-update: terragrunt
 // Test TG Version: v0.35.7
 // renovate.json auto-update-github-releases: hashicorp/packer
