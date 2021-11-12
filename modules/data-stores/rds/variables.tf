@@ -269,6 +269,12 @@ variable "backup_retention_period" {
   default     = 30
 }
 
+variable "delete_automated_backups" {
+  description = "Specifies whether to remove automated backups immediately after the DB instance is deleted"
+  type        = bool
+  default     = true
+}
+
 variable "replica_backup_retention_period" {
   description = "How many days to keep backup snapshots around before cleaning them up on the read replicas. Must be 1 or greater to support read replicas. 0 means disable automated backups."
   type        = number
