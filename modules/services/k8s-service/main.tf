@@ -369,7 +369,7 @@ module "alb_access_logs_bucket" {
   )
 
   s3_bucket_name    = local.access_logs_s3_bucket_name
-  s3_logging_prefix = var.application_name
+  s3_logging_prefix = local.access_logs_s3_prefix
 
   num_days_after_which_archive_log_data = var.num_days_after_which_archive_ingress_log_data
   num_days_after_which_delete_log_data  = var.num_days_after_which_delete_ingress_log_data
