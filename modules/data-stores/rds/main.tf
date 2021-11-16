@@ -59,6 +59,7 @@ module "database" {
   kms_key_arn                         = local.kms_key_arn
 
   multi_az                        = var.multi_az
+  backup_window                   = var.backup_window
   backup_retention_period         = var.backup_retention_period
   replica_backup_retention_period = var.replica_backup_retention_period
   apply_immediately               = var.apply_immediately

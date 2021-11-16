@@ -263,6 +263,12 @@ variable "iam_database_authentication_enabled" {
   default     = false
 }
 
+variable "backup_window" {
+  description = "The daily time range during which automated backups are created (e.g. 04:00-09:00). Time zone is UTC. Performance may be degraded while a backup runs."
+  type        = string
+  default     = "06:00-07:00"
+}
+
 variable "backup_retention_period" {
   description = "How many days to keep backup snapshots around before cleaning them up. Must be 1 or greater to support read replicas."
   type        = number
