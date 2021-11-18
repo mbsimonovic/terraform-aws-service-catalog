@@ -1,3 +1,4 @@
+
 # Authentication
 
 In the last section, you got a basic [overview of the architecture](01-overview.md), including learning that there is

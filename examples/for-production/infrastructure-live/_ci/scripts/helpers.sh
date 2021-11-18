@@ -9,7 +9,14 @@ function get_git_root {
 
 # Locate URL of git repo remote origin
 function get_git_origin_url {
-  git config --get remote.origin.url
+  # The GitHub checkout action does not set .git when adding the remote origin URL.
+  # Therefore, in order to match our regex, we need to ensure the .git is added.
+  origin_url="$(git config --get remote.origin.url)"
+  # Confirm that the .git suffix is not present.
+  if [[ $origin_url =~ .git$ ]]; then
+   echo "$origin_url"
+  fi
+  echo "${origin_url}.git"
 }
 
 # A function that uses aws-auth to assume the IAM role for invoking the ECS Deploy Runner.

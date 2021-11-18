@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Script used by circleci to trigger application deployments via the infrastructure-deployer CLI utility.
+# Script used by github to trigger application deployments via the infrastructure-deployer CLI utility.
 # This will use the terraform-applier container in the Gruntwork Pipelines solution to make a new commit to the main
 # branch of the infrastructure-live repository to deploy the application using the newly built image.
 #

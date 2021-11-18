@@ -1,0 +1,105 @@
+######################################################################################################################
+# INFRASTRUCTURE CI/CD CONFIGURATION
+#
+# This configures GitLab to implement a CI/CD pipeline for infrastructure code. Refer to the Gruntwork Production
+# Deployment Guide, "How to configure a production-grade CI/CD workflow for infrastructure code"
+# (https://gruntwork.io/guides/automations/how-to-configure-a-production-grade-ci-cd-setup-for-apps-and-infrastructure-code/)
+# for details on how the pipeline is setup.
+#
+# The following pipeline is implemented in this configuration:
+#
+# - For any commit on any branch, detect all the terragrunt modules that changed between the `HEAD` of the branch and
+#  `main` and run `terragrunt plan` on each of those modules.
+# - For commits to main:
+#     - Run `plan` as above, only instead of comparing the `HEAD` of the branch to `main`, this will only look at the
+#       last commit that triggered the build. Note that this will include all the changes that were merged in from the
+#       branch as the last commit is a merge commit containing all the changes.
+#     - Hold for approval.
+#     - If approved:
+#         - Find all the build scripts that were changed and run them. This will create the necessary resources that are
+#           not managed by Terraform, such as AMIs.
+#         - Run `terragrunt apply` on each of the updated modules.
+######################################################################################################################
+
+default:
+  image: ubuntu:16.04
+
+variables:
+  USER: gitlab
+  # To understand and configure how GitLab will fetch code for the repository,
+  # refer to: https://docs.gitlab.com/ee/ci/runners/README.html#git-strategy
+  GIT_STRATEGY: fetch
+  # Disable shallow clones/fetches since we'll be using git diff to compare branches
+  # and shallow clone implies --single-branch.
+  # See:  https://mirrors.edge.kernel.org/pub/software/scm/git/docs/git-clone.html
+  GIT_DEPTH: 0
+  GRUNTWORK_INSTALLER_VERSION: v0.0.36
+  MODULE_CI_VERSION: v0.38.10
+  MODULE_SECURITY_VERSION: v0.55.1
+
+# TODO: Add Slack notifications
+stages:
+  - setup
+  - plan
+  - hold
+  - deploy
+
+# GitLab doesn't have a way to prepend or append YAML anchors to an existing list, so
+# we use this as a workaround.
+# See: https://gitlab.com/gitlab-org/gitlab-foss/-/issues/24235
+.dependencies: &dependencies >
+  apt-get -y update &&
+  apt-get -y install curl sudo git python-pip jq &&
+  pip install awscli
+
+# This is used to determine what to use as the base comparison point for determining what modules to deploy. The logic
+# is as follows:
+#   - If we are on the main branch, the comparison is only the current commit.
+#   - If we are not on main, the comparison is to the current state of the main branch.
+setup:
+  stage: setup
+  script:
+    - >
+      if [[ "$CI_COMMIT_BRANCH" == "main" ]]; then
+        echo 'SOURCE_REF=HEAD^' >> setup.env
+      else
+        echo 'SOURCE_REF=origin/main' >> setup.env
+      fi
+  artifacts:
+    reports:
+      dotenv: setup.env
+
+plan:
+  stage: plan
+  script:
+    - *dependencies
+    - ./_ci/scripts/install.sh
+    - ./_ci/scripts/deploy-infra.sh "$SOURCE_REF" "$CI_COMMIT_SHA" plan
+  dependencies:
+    - setup
+
+hold_for_approval:
+  stage: hold
+  # This is the hacky way that GitLab handles hold & approval jobs
+  # See: https://docs.gitlab.com/ce/ci/yaml/README.html#whenmanual
+  when: manual
+  allow_failure: false
+  only:
+    refs:
+      - main
+  script:
+    - echo "Holding for approval before running deploy"
+
+
+deploy:
+  stage: deploy
+  script:
+    - *dependencies
+    - ./_ci/scripts/install.sh
+    - ./_ci/scripts/run-build-scripts.sh "$SOURCE_REF" "$CI_COMMIT_BRANCH"
+    - ./_ci/scripts/deploy-infra.sh "$SOURCE_REF" "origin/$CI_COMMIT_BRANCH" apply
+  dependencies:
+    - setup
+  only:
+    refs:
+      - main

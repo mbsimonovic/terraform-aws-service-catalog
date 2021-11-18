@@ -23,8 +23,7 @@ This diagram shows a rough overview of the Gruntwork Pipelines architecture:
 
 ![Architecture Diagram](images/gruntwork-pipelines-architecture.png)
 
-The Gruntwork Pipelines workflow, defined in [`.circleci/config.yml`](/.circleci/config.yml), works like this:
-
+The Gruntwork Pipelines workflow, defined in [`.github/workflows/pipelines.yml`](/.github/workflows/pipelines.yml), works like this:
 
 - A CI server is hooked up to watch for changes in your `infrastructure-live` repository.
 - Every time a new commit is pushed, the CI server looks for modules that have changed in the repository.
@@ -34,104 +33,81 @@ The Gruntwork Pipelines workflow, defined in [`.circleci/config.yml`](/.circleci
 - The infrastructure code runs from within a Docker container in an ECS task on Fargate (or EC2). This task is what has the
   powerful AWS credentials to deploy infrastructure.
 - CI server will run first run a `plan`.
-- If the Slack integration is set up, a notification will be sent to the Slack channel that the plan succeeded or failed. If the plan succeeded, and if the job was triggered on the `main` branch of the repository, the job will wait for approval.
--  Once the job is manually approved, the CI server will run `apply`. The Slack integration will post a notification about whether the apply failed or succeeded.
+- If the Slack integration is set up, a notification will be sent to the Slack channel that the plan succeeded or failed. 
+-  Next, the CI server will run `apply`. The Slack integration will post a notification about whether the apply failed or succeeded.
 
 ### Set up the pipeline in your own organization
-First, make sure you've copied the repo into your own GitHub organization as a new repository. You can name it whatever you'd like. We usually call it `infrastructure-live`. The CircleCI job is already configured in `<YOUR_REPO_ROOT>/.circleci/config.yml`. Here are the additional steps to get the job running successfully:
-
-#### View the failed job
-1. Login to CircleCI.
-1. Switch to your company's GitHub organization using the left panel.
-
-   ![CircleCI Switch Organizations](images/circleci-setup/circleci_switch_orgs.gif)
-
-1. Switch to the Projects tab using the left panel.
-1. Search for your infrastructure-live repository and click **Set Up Project.**
-1. Click **Start Building**.
-
-You should see a job kicked off that failed.
-
-   ![CircleCI Failed Job](images/circleci-setup/circleci_failed_job.png)
-
-We'll now fix this job so that it passes, by adding some Environment Variables that are missing.
+First, make sure you've copied the repo into your own GitHub organization as a new repository. You can name it whatever you'd like. We usually call it `infrastructure-live`. The GitHub Actions workflow is already configured in `<YOUR_REPO_ROOT>/.github/workflows/pipelines.yml`. Here are the additional steps to get the job running successfully:
 
 #### Get the machine user credentials from AWS
 1. Log into the Security account in the AWS Console.
 1. Go into IAM and find the ci-machine-user under Users.
 1. Go to Security Credentials > Access Keys > Create Access Key.
-1. Save these values as the `AWS_ACCESS_KEY_ID` and the `AWS_SECRET_ACCESS_KEY` Environment Variables in CircleCI.
+1. We will use these values as the `AWS_ACCESS_KEY_ID` and the `AWS_SECRET_ACCESS_KEY` below.
 
-#### CircleCI Environment Variables
-1. Login to CircleCI.
-1. Go into your project again, so you see the list of failed builds.
-1. Click on **Project Settings** (the upper right button, above **Auto-expand**).
-1. Click on **Environment Variables** and configure the following environment variables:
+#### Configure a Slack Workflow
+If you'd like to send Slack notifications when the pipeline is running, follow the steps in this section.
 
-| Env var name | Value |
-| --- | --- |
-| AWS_ACCESS_KEY_ID | The Access Key generated for the machine user in the Security account. |
-| AWS_SECRET_ACCESS_KEY | The Secret Key generated for the machine user in the Security account. |
-| GITHUB_OAUTH_TOKEN | Enter the MachineUserGitHubPAT here. You can find this in [`reference-architecture-form.yml`](../reference-architecture-form.yml) or in the shared account's Secrets Manager. |
+1. In Slack, open the Workflow builder:
 
-#### Set up the Slack integration
+   ![Slack Workflow Builder](images/github-setup/slack-workflow-1.png)
 
-1. Create a Slack App
-    1. Visit [your apps](https://api.slack.com/apps) on the Slack API website, and click `Create New App`.
-    1. Name your application (e.g., `CircleCI` or `CircleCI-Pipeline`).
-    1. Then select the Slack workspace in which to install this app.
-1. Set Permissions
-    1. On the next page select the "Permissions" area, and add these 3 "scopes".
-        * chat:write
-        * chat:write.public
-        * files:write
+1. Create a new Webhook workflow called "Gruntwork Pipelines"
 
-   ![Slack App Scopes](images/circleci-setup/slack_app_scopes.png)
-1. Install and Receive Token
-    1. Install the application into the Slack workspace and save your OAuth Access Token. This will be used in
-       a CircleCI environment variable.
+   ![Slack Webhook workflow](images/github-setup/slack-workflow-2.png)
 
-   ![Slack OAuth Tokens](images/circleci-setup/slack_oauth_tokens.png)
+1. Add the following text variables to the workflow: `branch`, `status`, `url`, `repo`, and `actor`
 
-   ![Slack OAuth Access Token](images/circleci-setup/slack_auth_token_key.png)
-1. Choose a Slack channel to notify
-    1. Choose or create a Slack channel in your workspace to notify with pipeline updates.
-    1. Right-click the channel name. You'll see a context menu.
-    1. Select `Copy link`.
-    1. Extract the Channel ID from the URL copied. E.g., `https://<org>.slack.com/archives/<CHANNEL_ID>`
-1. Create env vars on CircleCI
-    1. Login to CircleCI. Navigate to **Project Settings** -> **Environment Variables**.
-    1. Configure the following environment variables:
+   ![Slack workflow variables](images/github-setup/slack-workflow-3.png)
 
-| Env var name | Value |
-| --- | --- |
-| SLACK_ACCESS_TOKEN | The OAuth token acquired through the previous step. |
-| SLACK_DEFAULT_CHANNEL | If no channel ID is specified, the app will attempt to post here. |
+1. Once all of the variables are added, click Next.
 
-#### Verify the job succeeds
-1. On the project build page, rerun the failed job using the icons to the right of the job.
-1. The `plan` step should succeed. Since the job is happening on the `main` branch, the job should hit the
-`hold` phase and wait for your approval.
+1. Now add another step to the workflow
 
-   ![CircleCI Jobs](images/circleci-setup/circleci_jobs.png)
+   ![Slack workflow add step](images/github-setup/slack-workflow-4.png)
 
-1. You should get a Slack notification telling you the plan succeeded and that the job is being held for
-approval.
+1. Add the "Send a message"  step
 
-   ![Slack Plan Notification](images/circleci-setup/circleci_slack_plan.png)
+1. Choose a channel from the dropdown menu
 
-1. Approve the job.
+1. In the Message Text field, paste the following contents:
 
-   ![CircleCI Approve Job](images/circleci-setup/circleci_approve_job.png)
+    ```
+    Repo: <insert the repo variable>
+    Branch: <insert the branch variable>
+    Actor:  <insert the actor variable>
+    Status: <insert the status variable>
+    Workflow URL: <<insert the url variable>
+    ```
 
-1. The job should succeed!
+1. Use the "Insert a variable" button to insert a variable for each of the placeholders in the message above.
 
-   ![CircleCI Job Fixed](images/circleci-setup/circleci_fixed.png)
+1. Save the Send a message step.
 
-1. You should also get a Slack notification that the apply succeeded.
+1. Hit the Publish button to make the Workflow live.
 
-   ![Slack Apply Notification](images/circleci-setup/circleci_slack_apply.png)
+1. Copy the webhook URL and save it. We will use this value below.
 
+   ![Slack workflow add step](images/github-setup/slack-workflow-5.png)
+
+1. Note that the webhook URL should be treated as sensitive. Anyone with the URL can send HTTP requests to the webhook!
+
+#### Add secrets to GitHub
+1. Open the GitHub repository and navigate to Settings => Secrets.
+
+   ![GitHub Secrets](images/github-setup/secrets.png)
+
+1. Create the following repository secrets:
+
+- `AWS_ACCESS_KEY_ID`:  This is the first value from the AWS IAM user step above.
+- `AWS_SECRET_ACCESS_KEY`:  This is the second value from the AWS IAM user step above.
+- `GH_TOKEN`: Enter the GitHub machine user's oauth token here. If you don't know this, you can find it in the AWS Secrets Manager secret that you provided in the [`reference-architecture-form.yml`](../reference-architecture-form.yml).
+- `SLACK_WEBHOOK_URL`: This is the value from the Slack Workflow step above.
+
+
+#### Done!
+
+That's it. Access the pipeline in the Actions tab in GitHub.
 
 
 
@@ -147,8 +123,6 @@ You can find configurations for application CI / CD in the folder `_ci/app-templ
 
 ```
 _ci/app-templates
-├── .circleci
-│   └── config.yml
 └── scripts
     ├── build-docker-image.sh
     ├── constants.sh
@@ -156,7 +130,7 @@ _ci/app-templates
     └── install.sh
 ```
 
-- `.circleci/config.yml`: CircleCI pipeline configuration for building and deploying dockerized applications.
+
 - `scripts`: Helper bash scripts used to drive the CI / CD pipeline.
     - `constants.sh`: Environment variables that are shared across all the scripts
     - `install.sh`: Installer script to configure the CI runtime with necessary dependencies for running the deployment
@@ -179,7 +153,7 @@ In this guide, we will walk through how to setup the CI / CD pipeline for your a
 1. [Enable access to your application repo from ECS deploy
    runner](#enable-access-to-your-application-repo-from-ecs-deploy-runner)
 1. [Install CI / CD Configuration](#install-ci-cd-configuration)
-1. [Create CircleCI Job](#create-circleci-job)
+
 
 
 ### Dockerize your app
@@ -217,49 +191,12 @@ To allow the ECS deploy runner to start building and deploying your application:
 
 ### Install CI / CD Configuration
 
-To declare a build job in CircleCI, the application repository needs a `.circleci/config.yml` file that records the steps that
-CircleCI needs to run to deploy the app. To setup your repo with a CircleCI configuration that is compatible with
-Gruntwork Pipelines:
 
-1. In your application repository, checkout a new branch: `git checkout -B circleci`
-1. Copy the template files from _this_ repo to your application repo:
-    - `cp -r <THIS_REPO_ROOT>/_ci/app-templates/.circleci .circleci` to copy the CircleCI config folder.
-    - `mkdir _ci` to create a new folder `_ci` in your application repository root.
-    - `cp -r <THIS_REPO_ROOT>/_ci/app-templates/scripts _ci` to copy scripts into the new `_ci` folder.
-
-1. Edit `.circleci/config.yml` to fill in the environment variables at the top, especially `REGION`, `DEV_DEPLOY_PATH`,
-and `STAGE_DEPLOY_PATH`.
-1. Edit `_ci/scripts/constants.sh` to fill in the environment variables at the top. The `DOCKER_CONTEXT_PATH` from earlier will also go here.
-1. Commit and push:
-
-        git add .circleci
-        git add _ci
-        git commit
-        git push -u circleci
-
-1. Open a PR on GitHub for your branch so it can be reviewed.
 
 Once the branch is merged, updates to the `main` branch will trigger a build job in CircleCI.
 
 
-### Create CircleCI Job
 
-Configure CircleCI to watch the repo for changes:
-
-1. Login to CircleCI.
-1. Switch to the GitHub organization that has the application repository using the left panel.
-
-   ![CircleCI Switch Organizations](images/circleci-setup/circleci_switch_orgs.gif)
-
-1. Switch to the Projects tab using the left panel.
-1. Search for your application repository and click **Set Up Project.**
-1. Click **Start Building**.
-1. In the build page, go to **Project Settings** (the upper right button, above **Auto-expand**).
-1. In the settings page, go to **Environment Variables**. Configure the following environment variables:
-    - `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` : Use the AWS access key pair for the machine user that Gruntwork
-      provided to you when the Reference Architecture was first set up.
-    - `GITHUB_OAUTH_TOKEN` : Use the GitHub Personal Access Token for the GitHub machine user that you provided to
-      Gruntwork.
 
 ## Update the CI / CD pipeline itself
 

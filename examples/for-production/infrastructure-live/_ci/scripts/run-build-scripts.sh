@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Script used by circleci to trigger infrastructure deployments via the infrastructure-deployer CLI utility by
+# Script used to trigger infrastructure deployments via the infrastructure-deployer CLI utility by
 # invoking build scripts.
 #
 # Required positional arguments, in order:

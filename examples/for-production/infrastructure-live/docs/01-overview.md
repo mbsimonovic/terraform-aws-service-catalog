@@ -135,9 +135,9 @@ service](https://github.com/gruntwork-io/terraform-aws-service-catalog/tree/mast
 section of the [Authentication docs](02-authenticate.md).
 
 
-## CircleCI
+## GitHub
 
-We have set up [CircleCi](https://circleci.com/) as a Continuous Integration (CI) server. After every commit, a CircleCi
+We have set up [GitHub](https://github.com) as a Continuous Integration (CI) server. After every commit, a GitHub
 job runs your build, tests, packaging, and automated deployment steps.
 
 For more info, see the [Gruntwork Pipelines docs](04-configure-gw-pipelines.md).

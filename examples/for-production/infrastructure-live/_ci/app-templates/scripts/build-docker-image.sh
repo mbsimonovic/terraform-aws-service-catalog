@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Script used by circleci to build docker images for the application via the infrastructure-deployer CLI utility.
+# Script used by github to build docker images for the application via the infrastructure-deployer CLI utility.
 #
 # Required positional arguments, in order:
 # - REGION : The AWS Region where the ECS Deploy Runner exists.

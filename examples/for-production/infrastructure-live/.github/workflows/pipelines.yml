@@ -1,0 +1,125 @@
+######################################################################################################################
+# INFRASTRUCTURE CI/CD CONFIGURATION
+#
+# This configures GitHub Actions to implement a CI/CD pipeline for infrastructure code. Refer to the Gruntwork Production
+# Deployment Guide, "How to configure a production-grade CI/CD workflow for infrastructure code"
+# (https://gruntwork.io/guides/automations/how-to-configure-a-production-grade-ci-cd-setup-for-apps-and-infrastructure-code/)
+# for details on how the pipeline is setup.
+#
+# The following pipeline is implemented in this configuration:
+#
+# - For any commit on any branch, detect all the terragrunt modules that changed between the `HEAD` of the branch and
+#  `main` and run `terragrunt plan` on each of those modules.
+# - For commits to `main`:
+#     - Run `plan` as above, only instead of comparing the `HEAD` of the branch to `main`, this will only look at the
+#       last commit that triggered the build. Note that this will include all the changes that were merged in from the
+#       branch as the last commit is a merge commit containing all the changes.
+#     - Hold for approval.
+#     - If approved:
+#         - Find all the build scripts that were changed and run them. This will create the necessary resources that are
+#           not managed by Terraform, such as AMIs.
+#         - Run `terragrunt apply` on each of the updated modules.
+#
+######################################################################################################################
+name: gruntwork-pipelines
+on:
+  push:
+    paths-ignore:
+      - '.github/**'
+
+env:
+  GRUNTWORK_INSTALLER_VERSION: v0.0.36
+  MODULE_CI_VERSION: v0.38.10
+  MODULE_SECURITY_VERSION: v0.55.1
+  # Disables the use of the Amazon EC2 instance metadata service (IMDS).
+  # Forces the AWS CLI to use the env vars defined above for credentials.
+  AWS_EC2_METADATA_DISABLED: true
+
+
+jobs:
+  plan_and_deploy:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          # Fetch all history
+          fetch-depth: 0
+
+      - name: Set custom ref variables
+        id: ref
+        run: |
+          echo "::set-output name=source_ref::$(./.github/scripts/source-ref.sh)"
+          echo "::set-output name=short_ref::${GITHUB_REF#refs/*/}"
+        shell: bash
+
+      - name: Install utilities
+        run: ./_ci/scripts/install.sh
+        shell: bash
+        env:
+          GITHUB_OAUTH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Notify Slack of upcoming plan
+        uses: slackapi/slack-github-action@v1.15.0
+        with:
+          payload: "{\"status\":\"Preparing to run plan.\",\"branch\":\"${{ steps.ref.outputs.short_ref }}\",\"repo\":\"${{ github.repository }}\",\"actor\":\"${{ github.actor }}\",\"url\":\"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: run plan
+        id: plan
+        run: ./_ci/scripts/deploy-infra.sh "$SOURCE_REF" "${{ steps.ref.outputs.short_ref }}" plan
+        shell: bash
+        env:
+          GITHUB_OAUTH_TOKEN: ${{ secrets.GH_TOKEN }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Notify Slack of failed plan
+        uses: slackapi/slack-github-action@v1.15.0
+        if: failure() && steps.plan.outcome == 'failure'
+        with:
+          payload: "{\"status\":\"Plan failed.\",\"branch\":\"${{ steps.ref.outputs.short_ref }}\",\"repo\":\"${{ github.repository }}\",\"actor\":\"${{ github.actor }}\",\"url\":\"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Notify Slack of successful plan
+        uses: slackapi/slack-github-action@v1.15.0
+        if: success() && steps.plan.outcome == 'success'
+        with:
+          payload: "{\"status\":\"Plan successful!\",\"branch\":\"${{ steps.ref.outputs.short_ref }}\",\"repo\":\"${{ github.repository }}\",\"actor\":\"${{ github.actor }}\",\"url\":\"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Notify Slack of upcoming deploy
+        uses: slackapi/slack-github-action@v1.15.0
+        if: github.ref == 'refs/heads/main'
+        with:
+          payload: "{\"status\":\"Preparing to deploy.\",\"branch\":\"${{ steps.ref.outputs.short_ref }}\",\"repo\":\"${{ github.repository }}\",\"actor\":\"${{ github.actor }}\",\"url\":\"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: run deploy
+        id: deploy
+        if: github.ref == 'refs/heads/main'
+        run: ./_ci/scripts/deploy-infra.sh "$SOURCE_REF" "${{ steps.ref.outputs.short_ref }}" apply
+        shell: bash
+        env:
+          GITHUB_OAUTH_TOKEN: ${{ secrets.GH_TOKEN }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Notify Slack of failed deploy
+        uses: slackapi/slack-github-action@v1.15.0
+        if: github.ref == 'refs/heads/main' && failure() && steps.deploy.outcome == 'failure'
+        with:
+          payload: "{\"status\":\"Deploy failed.\",\"branch\":\"${{ steps.ref.outputs.short_ref }}\",\"repo\":\"${{ github.repository }}\",\"actor\":\"${{ github.actor }}\",\"url\":\"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Notify Slack of successful deploy
+        uses: slackapi/slack-github-action@v1.15.0
+        if: github.ref == 'refs/heads/main' && success() && steps.deploy.outcome == 'success'
+        with:
+          payload: "{\"status\":\"Deploy successful!\",\"branch\":\"${{ steps.ref.outputs.short_ref }}\",\"repo\":\"${{ github.repository }}\",\"actor\":\"${{ github.actor }}\",\"url\":\"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}"
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

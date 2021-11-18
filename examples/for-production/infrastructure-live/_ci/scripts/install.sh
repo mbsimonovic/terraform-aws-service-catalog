@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Script used by circleci to install the necessary helpers for the CI/CD pipeline
+# Script used to install the necessary helpers for the CI/CD pipeline
 #
 # Required environment variables:
 # - GRUNTWORK_INSTALLER_VERSION : The version of the gruntwork-installer helper utility used to install scripts from the

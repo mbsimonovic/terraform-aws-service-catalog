@@ -1,3 +1,4 @@
+
 # Adding a new account
 
 This document is a guide to how to add a new AWS account into the Reference Architecture. This is useful if you have a

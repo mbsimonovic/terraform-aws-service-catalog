@@ -18,6 +18,7 @@ readonly PACKER_TEMPLATE_REPO_REF="v0.0.4"
 readonly SERVICE_CATALOG_REF="v0.62.0"
 readonly DEPLOY_RUNNER_REGION="us-west-2"
 readonly REGION="us-west-2"
+readonly COPY_REGIONS=()
 
 # The account IDs where the AMI should be shared.
 git_repo_root="$(git rev-parse --show-toplevel)"
@@ -50,6 +51,17 @@ function run {
     exit 1
   fi
 
+  # Assemble the copy regions into a list and KMS key mapping into a map
+  local pkr_copy_regions
+  pkr_copy_regions='[]'
+  local pkr_kms_key_ids
+  pkr_kms_key_ids='{}'
+  for copy_region in ${COPY_REGIONS[@]}
+  do
+    pkr_copy_regions="$(echo "$pkr_copy_regions" | jq ". + [\"$copy_region\"]")"
+    pkr_kms_key_ids="$(echo "$pkr_kms_key_ids" | jq ". + {\"$copy_region\":\"arn:aws:kms:$copy_region:$shared_account_id:alias/ami-encryption\"}")"
+  done
+
   # Build the AMI using the ECS deploy runner by invoking the infrastructure-deployer CLI.
   # NOTE: The ECS deploy runner will inject the following parameters automatically:
   # - "--idempotent 'true'"
@@ -66,15 +78,19 @@ function run {
     --var ami_users="$ami_account_ids" \
     --var vpc_filter_key="tag:Name" \
     --var vpc_filter_value="mgmt" \
-    --var vpc_subnet_filter_key="tag:Name" \
+    --var vpc_subnet_filter_key="tag:Name"
+    --var copy_to_regions="$pkr_copy_regions" \
     --var encrypt_boot=true \
-    --var encrypt_kms_key_id="arn:aws:kms:us-east-1:234567890123:alias/ExampleAMIEncryptionKMSKeyArn"
+    --var encrypt_kms_key_id="arn:aws:kms:us-west-2:$shared_account_id:alias/ami-encryption" \
+    --var region_kms_key_ids="$pkr_kms_key_ids"
   )
 
   if [[ "$run_local" == 'true' ]]; then
-    # When running locally, the packer instance needs to be deployed in the public subnet so it is accessible.
+    # When running locally, the packer instance needs to be deployed in the public subnet so it is accessible. Also,
+    # since it is bypassing the ECS Deploy Runner, the idempotent flag needs to be passed in manually.
     args+=( \
-      --var vpc_subnet_filter_value="mgmt-public-1"
+      --var vpc_subnet_filter_value="mgmt-public-1" \
+      --idempotent 'true'
     )
 
     build-packer-artifact "${args[@]}"

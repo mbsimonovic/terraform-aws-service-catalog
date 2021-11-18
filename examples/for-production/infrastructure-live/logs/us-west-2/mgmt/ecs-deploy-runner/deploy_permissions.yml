@@ -5,14 +5,6 @@
 # Catalog tooling will only ever add/merge data. Alternatively, if you do not intend to use the Gruntwork Architecture
 # Catalog in the future, you could move this data directly into an HCL file instead.
 
-SecurityHubDeployAccess:
-  effect: "Allow"
-  actions:
-  - "securityhub:*"
-  resources:
-  - "*"
-
-
 RDSDeployAccess:
   effect: "Allow"
   actions:

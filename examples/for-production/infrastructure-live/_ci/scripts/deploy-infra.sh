@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Script used by circleci to trigger infrastructure deployments via the infrastructure-deployer CLI utility on
+# Script used by github to trigger infrastructure deployments via the infrastructure-deployer CLI utility on
 # live infrastructure config.
 #
 # Required positional arguments, in order:
@@ -57,8 +57,8 @@ function invoke_infrastructure_deployer {
   local -r ecs_deploy_runner_region='us-west-2'
 
   local assume_role_exports
-  if [[ "$updated_folder" == ".circleci" ]]; then
-    # Don't return an error when .circleci folder is updated.
+  if [[ $updated_folder =~ ^.github(/.+)?$ ]] || [[ "$updated_folder" == "_ci" ]]; then
+    # Don't return an error when .github folder is updated.
     echo "INFO: Skipping deployment of $updated_folder."
     exit 0
   elif [[ "$updated_folder" =~ ^([^/]+)/.+$ ]]; then

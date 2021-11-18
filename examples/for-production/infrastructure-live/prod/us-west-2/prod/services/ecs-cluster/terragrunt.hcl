@@ -117,7 +117,9 @@ inputs = {
   }
 
   # We deploy ECS into the app VPC, inside the private app tier.
-  vpc_id         = dependency.vpc.outputs.vpc_id
+  vpc_id = dependency.vpc.outputs.vpc_id
+
+  # If they chose us-east-1, we must avoid us-east-1e, because t3.micro is not supported there.
   vpc_subnet_ids = dependency.vpc.outputs.private_app_subnet_ids
 
   public_alb_sg_ids   = [dependency.alb.outputs.alb_security_group_id]

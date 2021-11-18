@@ -7,12 +7,12 @@
 # the Shared Services AWS account.
 #
 # This is the build script for the Deploy Runner Docker image. You can view the Dockerfile at the following URL:
-# https://github.com/gruntwork-io/terraform-aws-ci/blob/v0.38.10/modules/ecs-deploy-runner/docker/deploy-runner
+# https://github.com/gruntwork-io/terraform-aws-ci/blob/v0.38.14/modules/ecs-deploy-runner/docker/deploy-runner
 
 set -e
 
 readonly DOCKERFILE_REPO="https://github.com/gruntwork-io/terraform-aws-ci.git"
-readonly DOCKERFILE_REPO_REF="v0.38.10"
+readonly DOCKERFILE_REPO_REF="v0.38.14"
 readonly DOCKERFILE_CONTEXT_PATH="modules/ecs-deploy-runner/docker/deploy-runner"
 readonly DEPLOY_RUNNER_REGION="us-west-2"
 readonly ECR_REPO_REGION="us-west-2"
@@ -41,7 +41,11 @@ function run {
     --ref "$DOCKERFILE_REPO_REF" \
     --context-path "$DOCKERFILE_CONTEXT_PATH" \
     --build-arg 'GITHUB_OAUTH_TOKEN' \
-    --docker-image-tag "$ecr_repo_url:$DOCKERFILE_REPO_REF"
+    --docker-image-tag "$ecr_repo_url:$DOCKERFILE_REPO_REF" \
+    --build-arg 'module_ci_tag=v0.38.14' \
+    --build-arg 'terraform_version=1.0.4' \
+    --build-arg 'terragrunt_version=v0.31.3' \
+    --build-arg 'kubergrunt_version=v0.7.9'
 }
 
 # Run the main function if this script is called directly, instead of being sourced.
