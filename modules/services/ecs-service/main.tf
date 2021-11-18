@@ -27,16 +27,24 @@ module "ecs_service" {
   service_name    = var.service_name
   ecs_cluster_arn = var.ecs_cluster_arn
 
-  launch_type                       = var.launch_type
-  capacity_provider_strategy        = var.capacity_provider_strategy
-  placement_strategy_type           = var.placement_strategy_type
-  placement_strategy_field          = var.placement_strategy_field
-  placement_constraint_type         = var.placement_constraint_type
-  placement_constraint_expression   = var.placement_constraint_expression
-  ecs_task_definition_network_mode  = var.network_mode
-  ecs_service_network_configuration = var.network_configuration
-  task_cpu                          = var.task_cpu
-  task_memory                       = var.task_memory
+  launch_type                      = var.launch_type
+  capacity_provider_strategy       = var.capacity_provider_strategy
+  placement_strategy_type          = var.placement_strategy_type
+  placement_strategy_field         = var.placement_strategy_field
+  placement_constraint_type        = var.placement_constraint_type
+  placement_constraint_expression  = var.placement_constraint_expression
+  ecs_task_definition_network_mode = var.network_mode
+  ecs_service_network_configuration = (
+    var.network_mode == "awsvpc"
+    ? {
+      subnets          = var.network_configuration.subnets
+      security_groups  = concat(aws_security_group.service.*.id, var.network_configuration.additional_security_group_ids)
+      assign_public_ip = var.network_configuration.assign_public_ip
+    }
+    : null
+  )
+  task_cpu    = var.task_cpu
+  task_memory = var.task_memory
 
   ecs_task_container_definitions = local.container_definitions
   desired_number_of_tasks        = var.desired_number_of_tasks
@@ -97,6 +105,33 @@ module "ecs_service" {
   } : null
 
   dependencies = var.dependencies
+}
+
+# Create a Security group if the user provides dynamic rules for the awsvpc network mode.
+resource "aws_security_group" "service" {
+  count = (
+    # Ideally we can concat these two conditions using &&, but in Terraform && does not short circuit, so we can't
+    # combine them as when network_mode is not awsvpc, network_configuration is likely null.
+    var.network_mode == "awsvpc"
+    ? (
+      length(var.network_configuration.security_group_rules) > 0
+      ? 1 : 0
+    )
+    : 0
+  )
+
+  name   = var.service_name
+  vpc_id = var.network_configuration.vpc_id
+}
+resource "aws_security_group_rule" "dynamic" {
+  for_each                 = var.network_mode == "awsvpc" ? var.network_configuration.security_group_rules : {}
+  security_group_id        = length(aws_security_group.service) > 0 ? aws_security_group.service[0].id : null
+  type                     = each.value.type
+  from_port                = each.value.from_port
+  to_port                  = each.value.to_port
+  protocol                 = each.value.protocol
+  source_security_group_id = each.value.source_security_group_id
+  cidr_blocks              = each.value.cidr_blocks
 }
 
 # Update the ECS Node Security Group to allow the ECS Service to be accessed directly from an ECS Node (versus only from the ELB).

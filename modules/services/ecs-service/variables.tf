@@ -76,8 +76,30 @@ variable "network_mode" {
 variable "network_configuration" {
   description = "The configuration to use when setting up the VPC network mode. Required and only used if network_mode is awsvpc."
   type = object({
-    subnets          = list(string)
-    security_groups  = list(string)
+    # IDs of VPC Subnets to allocate fargate worker network from.
+    subnets = list(string)
+
+    # The ID of the VPC used for the Fargate worker network. Must be non-null when security_group_rules are provided.
+    vpc_id = string
+
+    # Security Group Rules to apply to the ECS Fargate worker. This module will create a new security group for the
+    # worker and attach these rules. Each entry accepts the same attributes as the aws_security_group_rule resource,
+    # except for security_group_id which will be set to the security group created within the module.
+    # Each entry corresponds to a rule. The key is a unique, user provided, arbitrary value that can be used by
+    # Terraform to know which rules to update across changes.
+    security_group_rules = map(object({
+      type                     = string
+      from_port                = number
+      to_port                  = number
+      protocol                 = string
+      source_security_group_id = string
+      cidr_blocks              = list(string)
+    }))
+
+    # Additional existing Security Groups that should be bound to the ECS Fargate worker.
+    additional_security_group_ids = list(string)
+
+    # Whether or not the ECS Fargate worker should get a public IP address.
     assign_public_ip = bool
   })
   default = null

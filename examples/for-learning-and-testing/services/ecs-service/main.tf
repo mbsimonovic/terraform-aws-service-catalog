@@ -98,9 +98,28 @@ module "ecs_service" {
   network_configuration = (
     var.launch_type == local.fargate_mode
     ? {
-      subnets          = data.aws_subnet_ids.default.ids
-      security_groups  = [aws_security_group.fargate_sg[0].id]
-      assign_public_ip = true
+      vpc_id                        = data.aws_vpc.default.id
+      subnets                       = data.aws_subnet_ids.default.ids
+      additional_security_group_ids = []
+      assign_public_ip              = true
+      security_group_rules = {
+        AllowAllEgress = {
+          type                     = "egress"
+          from_port                = 0
+          to_port                  = 0
+          protocol                 = "-1"
+          cidr_blocks              = ["0.0.0.0/0"]
+          source_security_group_id = null
+        }
+        AllowALBIngress = {
+          type                     = "ingress"
+          from_port                = 80
+          to_port                  = 80
+          protocol                 = "tcp"
+          cidr_blocks              = null
+          source_security_group_id = module.alb.alb_security_group_id
+        }
+      }
     }
     : null
   )
@@ -163,40 +182,18 @@ module "ecs_service" {
   alarm_sns_topic_arns = [aws_sns_topic.ecs-alerts.arn]
 }
 
-# Create a security group rule allowing traffic from the load balancer to reach
-# the service.
+# Create a security group rule allowing traffic from the load balancer to reach the service. This is only used for EC2
+# based deployments. Fargate deployments will have this rule dynamically created in the module using the
+# network_configuration setting.
 resource "aws_security_group_rule" "loadbalancer_to_service" {
+  count     = var.launch_type != local.fargate_mode ? 1 : 0
   type      = "ingress"
   from_port = 80
   to_port   = 80
   protocol  = "tcp"
   # Only allow access to the services from the Application Load Balancer
   source_security_group_id = module.alb.alb_security_group_id
-  security_group_id = (
-    var.launch_type == local.fargate_mode
-    # When using Fargate, control traffic directly to the Fargate tasks.
-    ? aws_security_group.fargate_sg[0].id
-    # When using EC2, control traffic to the EC2 instances due to bridge network mode.
-    : var.ecs_instance_security_group_id
-  )
-}
-
-# Create a Security Group for the Fargate Pods when deploying on Fargate.
-resource "aws_security_group" "fargate_sg" {
-  count       = var.launch_type == local.fargate_mode ? 1 : 0
-  name        = var.service_name
-  description = "Security group for Fargate Service"
-  vpc_id      = data.aws_vpc.default.id
-}
-
-resource "aws_security_group_rule" "allow_all_outbound" {
-  count             = var.launch_type == local.fargate_mode ? 1 : 0
-  type              = "egress"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
-  cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.fargate_sg[0].id
+  security_group_id        = var.ecs_instance_security_group_id
 }
 
 # Create an SNS topic to receive ecs-related alerts when defined service thresholds are breached
