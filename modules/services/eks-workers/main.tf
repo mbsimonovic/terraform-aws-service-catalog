@@ -168,7 +168,7 @@ locals {
 # is in use.
 
 module "eks_k8s_role_mapping" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.46.3"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.46.4"
 
   # Only setup the mapping if AWS Auth Merger is deployed.
   # The contents of the for each set is irrelevant as it is only used to enable the module.
