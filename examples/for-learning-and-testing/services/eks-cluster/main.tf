@@ -121,7 +121,7 @@ module "vpc" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "dashboard" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard?ref=v0.30.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/metrics/cloudwatch-dashboard?ref=v0.30.3"
 
   dashboards = {
     (var.cluster_name) = [

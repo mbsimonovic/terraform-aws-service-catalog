@@ -185,7 +185,7 @@ resource "aws_security_group_rule" "allow_inbound_https_from_security_group" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "elasticsearch_alarms" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/elasticsearch-alarms?ref=v0.30.2"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/elasticsearch-alarms?ref=v0.30.3"
   create_resources = var.enable_cloudwatch_alarms
 
   cluster_name   = var.domain_name
