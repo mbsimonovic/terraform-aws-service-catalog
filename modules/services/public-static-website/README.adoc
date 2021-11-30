@@ -71,11 +71,11 @@ website, and how to configure SSL, check out the documentation for the
 link:https://github.com/gruntwork-io/terraform-aws-static-assets/tree/master/modules/s3-static-website[s3-static-website] and
 link:https://github.com/gruntwork-io/terraform-aws-static-assets/tree/master/modules/s3-cloudfront[s3-cloudfront] modules.
 
-* link:/modules/s3-static-website/core-concepts.md#quick-start[Quick Start]
-* link:/modules/s3-static-website/core-concepts.md#how-to-test-the-website[How to test the website]
-* link:/modules/s3-static-website/core-concepts.md#how-to-configure-http[How to configure HTTPS (SSL) or a CDN?]
-* link:/modules/s3-static-website/core-concepts.md#how-to-handle[How to handle www + root domains]
-* link:/modules/s3-static-website/core-concepts.md#how-do-i-configure-cross-origin-resource-sharing-cors[How do I configure Cross Origin Resource Sharing (CORS)?]
+* link:/modules/services/public-static-website/core-concepts.md#quick-start[Quick Start]
+* link:https://github.com/gruntwork-io/terraform-aws-static-assets/blob/master/modules/s3-static-website/core-concepts.md#how-to-test-the-website[How to test the website]
+* link:/modules/services/public-static-website/core-concepts.md#how-to-configure-https-ssl-or-a-cdn[How to configure HTTPS (SSL) or a CDN?]
+* link:https://github.com/gruntwork-io/terraform-aws-static-assets/blob/master/modules/s3-static-website/core-concepts.md#how-do-i-handle-www--root-domains[How to handle www + root domains]
+* link:https://github.com/gruntwork-io/terraform-aws-static-assets/blob/master/modules/s3-static-website/core-concepts.md#how-do-i-configure-cross-origin-resource-sharing-cors[How do I configure Cross Origin Resource Sharing (CORS)?]
 
 
 
@@ -102,7 +102,7 @@ If you just want to try this repo out for experimenting and learning, check out 
 
 If you want to deploy this repo in production, check out the following resources:
 
-* link:/examples/for-production[examples/for-production folder]: The `examples/for-production` folder contains sample
+* link:/examples/for-learning-and-testing/services/public-static-website/example-website[examples/for-production folder]: The `examples/for-production` folder contains sample
   code optimized for direct usage in production. This is code from the
   https://gruntwork.io/reference-architecture/:[Gruntwork Reference Architecture], and it shows you how we build an
   end-to-end, integrated tech stack on top of the Gruntwork Service Catalog.
