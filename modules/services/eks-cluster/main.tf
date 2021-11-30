@@ -94,6 +94,7 @@ module "eks_cluster" {
   kubernetes_version                     = var.kubernetes_version
   endpoint_public_access                 = var.endpoint_public_access
   secret_envelope_encryption_kms_key_arn = var.secret_envelope_encryption_kms_key_arn
+  additional_security_groups             = var.additional_security_groups
 
   # Options for configuring control plane services on Fargate
   schedule_control_plane_services_on_fargate = var.schedule_control_plane_services_on_fargate

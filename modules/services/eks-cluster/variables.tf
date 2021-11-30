@@ -101,6 +101,12 @@ variable "allow_private_api_access_from_security_groups" {
   default     = []
 }
 
+variable "additional_security_groups" {
+  description = "A list of additional security group IDs to attach to the control plane."
+  type        = list(string)
+  default     = []
+}
+
 variable "eks_cluster_tags" {
   description = "A map of custom tags to apply to the EKS Cluster Control Plane. The key is the tag name and the value is the tag value."
   type        = map(string)
