@@ -82,13 +82,18 @@ data "aws_eks_cluster_auth" "kubernetes_token" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "eks_cluster" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.46.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.46.5"
 
   cluster_name = var.cluster_name
 
-  vpc_id                       = var.vpc_id
-  vpc_control_plane_subnet_ids = local.usable_control_plane_subnet_ids
-  endpoint_public_access_cidrs = var.allow_inbound_api_access_from_cidr_blocks
+  vpc_id                        = var.vpc_id
+  vpc_control_plane_subnet_ids  = local.usable_control_plane_subnet_ids
+  endpoint_public_access_cidrs  = var.allow_inbound_api_access_from_cidr_blocks
+  endpoint_private_access_cidrs = var.allow_private_api_access_from_cidr_blocks
+  endpoint_private_access_security_group_ids = {
+    for group_id in var.allow_private_api_access_from_security_groups :
+    group_id => group_id
+  }
 
   enabled_cluster_log_types              = var.enabled_control_plane_log_types
   kubernetes_version                     = var.kubernetes_version
@@ -239,28 +244,6 @@ module "eks_workers" {
   cluster_instance_associate_public_ip_address = var.cluster_instance_associate_public_ip_address
 }
 
-resource "aws_security_group_rule" "allow_private_endpoint_from_security_groups" {
-  for_each = { for group_id in var.allow_private_api_access_from_security_groups : group_id => group_id }
-
-  type                     = "ingress"
-  from_port                = 443
-  to_port                  = 443
-  protocol                 = "tcp"
-  security_group_id        = module.eks_cluster.eks_control_plane_security_group_id
-  source_security_group_id = each.key
-}
-
-resource "aws_security_group_rule" "allow_private_endpoint_from_cidr_blocks" {
-  count = length(var.allow_inbound_ssh_from_cidr_blocks) > 0 ? 1 : 0
-
-  type              = "ingress"
-  from_port         = 443
-  to_port           = 443
-  protocol          = "tcp"
-  security_group_id = module.eks_cluster.eks_control_plane_security_group_id
-  cidr_blocks       = var.allow_inbound_ssh_from_cidr_blocks
-}
-
 # Precreate the IAM roles for workers to avoid cyclic dependencies between the role mapping ConfigMap and ASGs/Node
 # Groups. This avoids a dependency chain that crosses module boundaries, which can lead to weird bugs in terraform.
 # Without this, you end up with the following dependency chain (note how the modules have interdependencies between each
@@ -335,7 +318,7 @@ resource "kubernetes_namespace" "aws_auth_merger" {
 }
 
 module "eks_aws_auth_merger" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-aws-auth-merger?ref=v0.46.4"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-aws-auth-merger?ref=v0.46.5"
   create_resources = var.enable_aws_auth_merger
 
   create_namespace       = false
@@ -351,7 +334,7 @@ module "eks_aws_auth_merger" {
 }
 
 module "eks_k8s_role_mapping" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.46.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.46.5"
 
   # Configure to create this in the merger namespace if using the aws-auth-merger. Otherwise create it as the main
   # config.

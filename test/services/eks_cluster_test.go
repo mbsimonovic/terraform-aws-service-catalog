@@ -34,7 +34,7 @@ import (
 
 const (
 	// renovate.json auto-update-variable: terraform-aws-eks
-	terraformAWSEKSVersion = "v0.46.4"
+	terraformAWSEKSVersion = "v0.46.5"
 )
 
 var defaultDomainTagFilterForTest = []map[string]string{
