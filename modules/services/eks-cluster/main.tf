@@ -99,7 +99,7 @@ module "eks_cluster" {
   kubernetes_version                     = var.kubernetes_version
   endpoint_public_access                 = var.endpoint_public_access
   secret_envelope_encryption_kms_key_arn = var.secret_envelope_encryption_kms_key_arn
-  additional_security_groups             = var.additional_security_groups
+  additional_security_groups             = var.additional_security_groups_for_control_plane
 
   # Options for configuring control plane services on Fargate
   schedule_control_plane_services_on_fargate = var.schedule_control_plane_services_on_fargate
@@ -214,6 +214,7 @@ module "eks_workers" {
   cloud_init_parts             = var.cloud_init_parts
 
   # - Security group settings
+  additional_security_groups_for_workers = var.additional_security_groups_for_workers
   allow_inbound_ssh_from_cidr_blocks     = var.allow_inbound_ssh_from_cidr_blocks
   allow_inbound_ssh_from_security_groups = var.allow_inbound_ssh_from_security_groups
   custom_ingress_security_group_rules    = var.custom_worker_ingress_security_group_rules

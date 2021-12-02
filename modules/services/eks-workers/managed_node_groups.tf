@@ -66,6 +66,7 @@ resource "aws_launch_template" "template" {
     security_groups = concat(
       [data.aws_eks_cluster.cluster.vpc_config[0].cluster_security_group_id],
       aws_security_group.managed_node_group[*].id,
+      var.additional_security_groups_for_workers,
     )
 
     # This setting exists solely for testing purposes. For production usage, you should not expose the worker nodes

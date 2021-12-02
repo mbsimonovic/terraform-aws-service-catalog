@@ -214,6 +214,12 @@ variable "worker_name_prefix" {
   default     = ""
 }
 
+variable "additional_security_groups_for_workers" {
+  description = "A list of additional security group IDs to be attached on worker groups."
+  type        = list(string)
+  default     = []
+}
+
 variable "allow_inbound_ssh_from_security_groups" {
   description = "The list of security group IDs to allow inbound SSH access to the worker groups."
   type        = list(string)

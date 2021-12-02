@@ -20,6 +20,8 @@ module "self_managed_workers" {
   iam_role_arn              = var.asg_iam_role_arn
   iam_instance_profile_name = var.asg_iam_instance_profile_name
 
+  additional_security_group_ids = var.additional_security_groups_for_workers
+
   autoscaling_group_configurations  = local.asg_configs
   include_autoscaler_discovery_tags = var.autoscaling_group_include_autoscaler_discovery_tags
 
