@@ -43,6 +43,11 @@ output "managed_node_group_worker_iam_role_name" {
   value       = module.managed_node_groups.eks_worker_iam_role_name
 }
 
+output "managed_node_group_worker_shared_security_group_id" {
+  description = "The ID of the common AWS Security Group associated with all the managed EKS workers."
+  value       = length(aws_security_group.managed_node_group) > 0 ? aws_security_group.managed_node_group[0].id : null
+}
+
 output "managed_node_group_worker_security_group_ids" {
   description = "Map of Node Group names to Auto Scaling Group security group IDs. Empty if var.cluster_instance_keypair_name is not set."
   value       = module.managed_node_groups.eks_worker_asg_security_group_ids

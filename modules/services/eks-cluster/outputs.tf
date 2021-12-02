@@ -28,6 +28,11 @@ output "self_managed_worker_iam_role_name" {
   value       = length(module.eks_workers) > 0 ? module.eks_workers["enabled"].self_managed_worker_iam_role_name : null
 }
 
+output "managed_node_group_worker_shared_security_group_id" {
+  description = "The ID of the common AWS Security Group associated with all the managed EKS workers."
+  value       = length(module.eks_workers) > 0 ? module.eks_workers["enabled"].managed_node_group_worker_shared_security_group_id : null
+}
+
 output "managed_node_group_worker_iam_role_arn" {
   description = "The ARN of the IAM role associated with the Managed Node Group EKS workers."
   value       = length(module.eks_workers) > 0 ? module.eks_workers["enabled"].managed_node_group_worker_iam_role_arn : null

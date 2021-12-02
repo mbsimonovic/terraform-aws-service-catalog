@@ -168,7 +168,7 @@ data "cloudinit_config" "managed_node_group" {
 resource "aws_security_group" "managed_node_group" {
   count       = local.has_managed_node_groups ? 1 : 0
   name        = "${var.worker_name_prefix}${var.eks_cluster_name}-mng"
-  description = "Security group for managing SSH access to EC2 instances of Managed Node Groups of cluster ${var.eks_cluster_name}."
+  description = "Security group for managing access to EC2 instances of Managed Node Groups of cluster ${var.eks_cluster_name}."
   vpc_id      = data.aws_eks_cluster.cluster.vpc_config[0].vpc_id
   tags        = var.node_group_security_group_tags
 }
