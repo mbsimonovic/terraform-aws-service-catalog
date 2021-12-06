@@ -52,6 +52,7 @@ module "s3_bucket_primary" {
   bucket_policy_statements = var.bucket_policy_statements
   bucket_ownership         = var.bucket_ownership
   enable_sse               = var.enable_sse
+  kms_key_arn              = var.bucket_kms_key_arn
   sse_algorithm            = var.bucket_sse_algorithm
   tags                     = var.tags
   force_destroy            = var.force_destroy_primary
