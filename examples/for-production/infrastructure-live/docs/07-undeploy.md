@@ -6,6 +6,8 @@ this section, we'll walk you through how to undeploy parts or all of the Referen
 1. [Before you get started](#before-you-get-started)
 1. [Pre-requisite: force_destroy on S3 buckets](#pre-requisite-force_destroy-on-S3-buckets)
 1. [Pre-requisite: understand module dependencies](#pre-requisite-understand-module-dependencies)
+1. [Undeploying a module with no dependencies using Gruntwork Pipelines](#undeploying-a-module-with-no-dependencies-using-gruntwork-pipelines)
+1. [Undeploying a chain of dependent modules using Gruntwork Pipelines](#undeploying-a-chain-of-dependent-modules-using-gruntwork-pipelines)
 1. [Undeploying modules using Gruntwork Pipelines](#undeploying-modules-using-gruntwork-pipelines)
 1. [Manually undeploying a single module](#manually-undeploying-a-single-module)
 1. [Manually undeploying multiple modules or an entire environment](#manually-undeploying-multiple-modules-or-an-entire-environment)
@@ -76,9 +78,41 @@ You can check the module dependency tree with `graph-dependencies` and GraphViz:
 
 
 
+## Undeploying a module with no dependencies using Gruntwork Pipelines
+
+To destroy a module with no downstream dependencies, such as `route53-private` in the `dev` environment:
+
+1. Update the `force_destroy` variable in `dev/us-west-2/dev/networking/route53-private/terragrunt.hcl`.
+[See force_destroy section](#pre-requisite-force_destroy-on-s3-buckets).
+
+        force_destroy = true
+
+1. Open a pull request for that change and verify the plan in CI. You should see a trivial change to update the
+module.
+1. Go through the typical git workflow to get the change merged into the main branch.
+1. As CI runs on the main branch, watch for the job to be held for approval. Approve the job, and wait for the
+`deployment` step to complete so that the module is fully updated with the new variable.
+1. Remove the module folder from the repo. For example:
+
+        rm -rf dev/us-west-2/dev/networking/route53-private
+
+1. Open a pull request for that change and verify the plan in CI.
+    - Make sure the `plan -destroy` output looks accurate.
+    - If you are deleting multiple modules (e.g., in `dev`, `stage`, and `prod`) you should see multiple plan
+    outputs -- one per folder deleted. You'll need to scroll through the plan output to see all of them, as
+    it runs `plan -destroy` for each folder individually.
+1. Go through the typical git workflow to get the change merged into the main branch.
+1. As CI runs on the main branch, watch for the job to be held for approval. Approve the job, and wait for the
+`deployment` step to complete so that the module is fully _deleted_.
+1. [Remove the terraform state](#removing-the-terraform-state).
+
+**NOTE: Repeat this process for upstream dependencies you may now want to destroy, always starting from the
+modules that have no existing downstream dependencies.**
 
 
-## Undeploying modules using Gruntwork Pipelines
+
+
+
 
 
 

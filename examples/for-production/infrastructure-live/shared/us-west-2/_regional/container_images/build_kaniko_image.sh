@@ -7,12 +7,12 @@
 # the Shared Services AWS account.
 #
 # This is the build script for the Kaniko Docker Image Builder Docker image. You can view the Dockerfile at the following URL:
-# https://github.com/gruntwork-io/terraform-aws-ci/blob/v0.38.14/modules/ecs-deploy-runner/docker/kaniko
+# https://github.com/gruntwork-io/terraform-aws-ci/blob/v0.39.5/modules/ecs-deploy-runner/docker/kaniko
 
 set -e
 
 readonly DOCKERFILE_REPO="https://github.com/gruntwork-io/terraform-aws-ci.git"
-readonly DOCKERFILE_REPO_REF="v0.38.14"
+readonly DOCKERFILE_REPO_REF="v0.39.5"
 readonly DOCKERFILE_CONTEXT_PATH="modules/ecs-deploy-runner/docker/kaniko"
 readonly DEPLOY_RUNNER_REGION="us-west-2"
 readonly ECR_REPO_REGION="us-west-2"
@@ -25,7 +25,7 @@ function run {
   # Validate that the AMI is being built in the Shared Services account.
   local account_id
   account_id="$(aws sts get-caller-identity --query 'Account' --output text)"
-  shared_account_id="$(jq -r '.shared' "$git_repo_root/accounts.json")"
+  shared_account_id="$(jq -r '."shared".id' "$git_repo_root/accounts.json")"
   if [[ "$account_id" != "$shared_account_id" ]]; then
     >&2 echo "Not authenticated to the correct account. Expected: $shared_account_id ; Actual: $account_id"
     exit 1

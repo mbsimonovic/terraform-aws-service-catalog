@@ -25,7 +25,7 @@ function assume_role_for_environment {
 
   # We lookup the account ID from the accounts.json file.
   local account_id
-  account_id="$(jq -r ".\"$environment\"" "$(get_git_root)/accounts.json")"
+  account_id="$(jq -r ".\"$environment\".id" "$(get_git_root)/accounts.json")"
   if [[ "$account_id" == "null" ]]; then
     echo "ERROR: Unknown environment $environment. Can not assume role."
     exit 1

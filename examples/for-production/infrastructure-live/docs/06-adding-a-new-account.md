@@ -5,8 +5,11 @@ This document is a guide to how to add a new AWS account into the Reference Arch
 need to expand the Reference Architecture with more accounts, like a test or sandbox account.
 
 1. [Create new Account in your AWS Org](#create-new-account-in-your-aws-org)
+    1. [Set the deploy order](#set-the-deploy-order)
+    1. [Configure MFA](#configure-mfa)
+    1. [Create a temporary IAM user](#create-a-temporary-iam-user)
 1. [Update Logs, Security, and Shared accounts to allow cross account access](#update-logs-security-shared-accounts-to-allow-cross-account-access)
-1. [Deploy the security baseline](#deploy-the-security-baseline)
+1. [Deploy the security baseline for the app account](#deploy-the-security-baseline-for-the-app-account)
 1. [Deploy the ECS Deploy Runner](#deploy-the-ecs-deploy-runner)
 
 
@@ -20,14 +23,127 @@ are doing this via the CLI, you can run the following command to create the new 
 gruntwork aws create --account "<ACCOUNT_NAME>=<EMAIL_ADDRESS_FOR_ROOT_USER>"
 ```
 
-Record the account name and AWS ID of the new account you just created in the [accounts.json](/accounts.json) file so
-that we can reference it throughout the process.
+Record the account name, AWS ID, and deploy order of the new account you just created in the
+[accounts.json](/accounts.json) file so that we can reference it throughout the process.
+
+### Set the deploy order
+
+The deploy order is the order in which the accounts are deployed when a common env file is modified (the files in
+`_envcommon`). Note that the deploy order does not influence how changes to individual component configurations
+(child Terragrunt configurations) are rolled out.
+
+Set the deploy order depending on the role that the account plays and how you want changes to be promoted across your
+environment.
+
+General guidelines:
+* The riskier the change would be, the higher you should set the deploy order. You'll have to determine the level of
+  risk for each kind of change.
+* The lowest deploy order should be set for `dev` and `sandbox` accounts. `dev` and `sandbox` accounts are typically the
+  least risky to break because they only affect internal users, and thus the impact to the business of downtime to these
+  accounts is limited.
+* `prod` accounts should be deployed after all other app accounts (`dev`, `sandbox`, `stage`) because the risk of
+  downtime is higher.
+* It could make sense for `prod` accounts to be deployed last, after shared services accounts (`shared`, `logs`,
+  `security`), but it depends on your risk level.
+* Shared services accounts (`shared` and `logs`) should be deployed after the app accounts (`dev`, `sandbox`, `stage`,
+  `prod`).
+    * A potential outage in `shared` could prevent access to deploy old and new code to all of your environments (e.g.,
+      a failed deploy of `account-baseline` could cause you to lose access to the ECR repos). This could be more
+      damaging than just losing access to `prod`.
+    * Similarly, an outage in `logs` could result in losing access to audit logs which can prevent detection of
+      malicious activity, or loss of compliance.
+* `security` should be deployed after all other accounts.
+    * A potential outage in `security` could prevent loss of all access to all accounts, which will prevent you from
+      making any changes, which is the highest impact to your operations. Therefore we recommend deploying security
+      last.
+
+For example, suppose you have the following folder structure:
+
+```
+.
+├── accounts.json
+├── _envcommon
+│   └── services
+│       └── my-app.hcl
+├── dev
+│   └── us-east-1
+│       └── dev
+│           └── services
+│               └── my-app
+│                   └── terragrunt.hcl
+│
+├── stage
+│   └── us-east-1
+│       └── stage
+│           └── services
+│               └── my-app
+│                   └── terragrunt.hcl
+└── prod
+    └── us-east-1
+        └── prod
+            └── services
+                └── my-app
+                    └── terragrunt.hcl
+```
+
+And suppose you had the following in your `accounts.json` file:
+
+```json
+{
+  "logs": {
+    "deploy_order": 5,
+    "id": "111111111111",
+    "root_user_email": ""
+  },
+  "security": {
+    "deploy_order": 5,
+    "id": "222222222222",
+    "root_user_email": ""
+  },
+  "shared": {
+    "deploy_order": 4,
+    "id": "333333333333",
+    "root_user_email": ""
+  },
+  "dev": {
+    "deploy_order": 1,
+    "id": "444444444444",
+    "root_user_email": ""
+  },
+  "stage": {
+    "deploy_order": 2,
+    "id": "555555555555",
+    "root_user_email": ""
+  },
+  "prod": {
+    "deploy_order": 3,
+    "id": "666666666666",
+    "root_user_email": ""
+  }
+}
+```
+
+If you make a change in `_envcommon/services/my-app.hcl`, then the Infrastructure CI/CD pipeline will proceed to run
+`plan` and `apply` in the deploy order specified in the `accounts.json` file. For the example, this means that the
+pipeline will run `plan` and `apply` on `dev` first, then `stage`, and then finally `prod`. If anything fails in
+between, then the pipeline will halt at that point. That is, if there is an error trying to deploy to `dev`, then the
+pipeline will halt without moving to `stage` or `prod`.
+
+If instead you made a change in `dev/us-east-1/dev/services/my-app/terragrunt.hcl` and
+`prod/us-east-1/prod/services/my-app/terragrunt.hcl`, then the changes are applied simultaneously, ignoring the deploy
+order. This is because a child config was updated directly, instead of the common configuration file. In this way, the
+deploy order only influences the pipeline for updates to the common component configurations.
+
+
+### Configure MFA
 
 Once the account is created, log in using the root credentials and configure MFA (see [this
 document](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_enable_virtual.html#enable-virt-mfa-for-root)
 for instructions on how to configure this). It is critical to enable MFA as the root user can bypass just about any
 other security restrictions you put in place. Make sure you keep a paper copy of the virtual device secret key so that
 you have a backup in case you lose your MFA device.
+
+### Create a temporary IAM user
 
 Once MFA is configured, set up a temporary IAM user with administrator access (the AWS managed IAM policy
 `AdministratorAccess`) and create an AWS Access key pair so you can authenticate on the command line.
@@ -75,7 +191,7 @@ approve it to apply the updated cross account permissions.
 
 
 
-## Deploy the security baseline
+## Deploy the security baseline for the app account
 
 Now that the cross account access is configured, you are ready to start provisioning the new account!
 

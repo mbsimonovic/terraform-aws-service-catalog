@@ -1,3 +1,4 @@
+
 # ---------------------------------------------------------------------------------------------------------------------
 # TERRAGRUNT CONFIGURATION
 # This is the configuration for Terragrunt, a thin wrapper for Terraform that helps keep your code DRY and
@@ -11,7 +12,7 @@
 terraform {
   # We're using a local file path here just so our automated tests run against the absolute latest code. However, when
   # using these modules in your code, you should use a Git URL with a ref attribute that pins you to a specific version:
-  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/landingzone/account-baseline-security?ref=v0.62.0"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/landingzone/account-baseline-security?ref=v0.65.0"
   source = "${get_parent_terragrunt_dir()}/../../..//modules/landingzone/account-baseline-security"
 
   # This module deploys some resources (e.g., AWS Config) across all AWS regions, each of which needs its own provider,
@@ -22,14 +23,14 @@ terraform {
     arguments = get_env("TG_DISABLE_PARALLELISM_LIMIT", "false") == "true" ? [] : ["-parallelism=2"]
   }
 }
-
 # Include all settings from the root terragrunt.hcl file
 include {
   path = find_in_parent_folders()
 }
 
-
-
+# ---------------------------------------------------------------------------------------------------------------------
+# Generators are used to generate additional Terraform code that is necessary to deploy a module.
+# ---------------------------------------------------------------------------------------------------------------------
 
 # ---------------------------------------------------------------------------------------------------------------------
 # CONFIGURE A PROVIDER FOR EACH AWS REGION
@@ -55,11 +56,12 @@ provider "aws" {
 EOF
 }
 
-
 # ---------------------------------------------------------------------------------------------------------------------
 # Locals are named constants that are reusable within the configuration.
 # ---------------------------------------------------------------------------------------------------------------------
 locals {
+  source_base_url = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/landingzone/account-baseline-security"
+
   # Automatically load common variables shared across all accounts
   common_vars = read_terragrunt_config(find_in_parent_folders("common.hcl"))
 
@@ -79,8 +81,8 @@ locals {
   # Extract the region for easy access
   aws_region = local.region_vars.locals.aws_region
 
-  # A local for more convenient access to the accounts map.
-  accounts = local.common_vars.locals.accounts
+  # A local for more convenient access to the account_ids map.
+  account_ids = local.common_vars.locals.account_ids
 
   users = yamldecode(file("users.yml"))
   cross_account_groups = try(
@@ -88,7 +90,7 @@ locals {
       templatefile(
         "cross_account_groups.yml",
         {
-          accounts = local.accounts
+          account_ids = local.account_ids
         },
       ),
     ),
@@ -99,76 +101,14 @@ locals {
   macie_bucket_name = "${local.common_vars.locals.macie_bucket_name_prefix}-${local.account_name}"
 
   # The following locals are used for constructing multi region provider configurations for the underlying module.
-
-  # A list of all AWS regions
-  all_aws_regions = [
-    "af-south-1",
-    "ap-east-1",
-    "ap-northeast-1",
-    "ap-northeast-2",
-    "ap-northeast-3",
-    "ap-south-1",
-    "ap-southeast-1",
-    "ap-southeast-2",
-    "ca-central-1",
-    "cn-north-1",
-    "cn-northwest-1",
-    "eu-central-1",
-    "eu-north-1",
-    "eu-south-1",
-    "eu-west-1",
-    "eu-west-2",
-    "eu-west-3",
-    "me-south-1",
-    "sa-east-1",
-    "us-east-1",
-    "us-east-2",
-    "us-gov-east-1",
-    "us-gov-west-1",
-    "us-west-1",
-    "us-west-2",
-  ]
-
-  # Creates resources in the specified regions. The best practice is to enable multiregion modules in all enabled
-  # regions in your AWS account. To get the list of regions enabled in your AWS account, you can use the AWS CLI: aws
-  # ec2 describe-regions.
-  opt_in_regions = [
-    "eu-north-1",
-    "ap-south-1",
-    "eu-west-3",
-    "eu-west-2",
-    "eu-west-1",
-    "ap-northeast-2",
-    "ap-northeast-1",
-    "sa-east-1",
-    "ca-central-1",
-    "ap-southeast-1",
-    "ap-southeast-2",
-    "eu-central-1",
-    "us-east-1",
-    "us-east-2",
-    "us-west-1",
-    "us-west-2",
-
-    # By default, skip regions that are not enabled in most AWS accounts:
-    #
-    #  "af-south-1",     # Cape Town
-    #  "ap-east-1",      # Hong Kong
-    #  "eu-south-1",     # Milan
-    #  "me-south-1",     # Bahrain
-    #  "us-gov-east-1",  # GovCloud
-    #  "us-gov-west-1",  # GovCloud
-    #  "cn-north-1",     # China
-    #  "cn-northwest-1", # China
-    #
-    # This region is enabled by default but is brand-new and some services like AWS Config don't work.
-    # "ap-northeast-3", # Asia Pacific (Osaka)
-  ]
+  multi_region_vars = read_terragrunt_config(find_in_parent_folders("multi_region_common.hcl"))
+  all_aws_regions   = local.multi_region_vars.locals.all_aws_regions
+  opt_in_regions    = local.multi_region_vars.locals.opt_in_regions
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
 # MODULE PARAMETERS
-# These are the variables we have to pass in to use the module specified in the terragrunt configuration above
+# These are the variables we have to pass in to use the module specified in the terragrunt configuration above.
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
   ################################
@@ -178,7 +118,7 @@ inputs = {
   config_s3_bucket_name = local.common_vars.locals.config_s3_bucket_name
 
   # Send Config logs and events to the logs account.
-  config_central_account_id = local.accounts.logs
+  config_central_account_id = local.account_ids.logs
 
   # Do not allow objects in the Config S3 bucket to be forcefully removed during destroy operations.
   config_force_destroy = false
@@ -187,7 +127,7 @@ inputs = {
   config_aggregate_config_data_in_external_account = true
 
   # The ID of the Logs account.
-  config_central_account_id = local.accounts.logs
+  config_central_account_id = local.account_ids.logs
 
   ################################
   # Parameters for CloudTrail
@@ -209,17 +149,17 @@ inputs = {
 
   # Allow these accounts to have read access to IAM groups and the public SSH keys of users in the group.
   allow_ssh_grunt_access_from_other_account_arns = [
-    for name, id in local.accounts :
+    for name, id in local.account_ids :
     "arn:aws:iam::${id}:root" if name != "security"
   ]
 
   # A list of account root ARNs that should be able to assume the auto deploy role.
   allow_auto_deploy_from_other_account_arns = [
     # External CI/CD systems may use an IAM user in the security account to perform deployments.
-    "arn:aws:iam::${local.accounts.security}:root",
+    "arn:aws:iam::${local.account_ids.security}:root",
 
     # The shared account contains automation and infrastructure tools, such as CI/CD systems.
-    "arn:aws:iam::${local.accounts.shared}:root",
+    "arn:aws:iam::${local.account_ids.shared}:root",
   ]
   auto_deploy_permissions = [
     "iam:GetRole",
@@ -261,7 +201,7 @@ inputs = {
   kms_grants = {
     ami_encryption_key = {
       kms_cmk_arn       = "arn:aws:kms:us-east-1:234567890123:alias/ExampleAMIEncryptionKMSKeyArn"
-      grantee_principal = "arn:aws:iam::${local.accounts[local.account_name]}:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling"
+      grantee_principal = "arn:aws:iam::${local.account_ids[local.account_name]}:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling"
       granted_operations = [
         "Encrypt",
         "Decrypt",

@@ -7,24 +7,24 @@
 # the Shared Services AWS account.
 #
 # This is the build script for the Jenkins Server AMI. You can view the packer template at the following URL:
-# https://github.com/gruntwork-io/terraform-aws-service-catalog/blob/v0.62.0/modules/mgmt/jenkins/jenkins-ubuntu.pkr.hcl
+# https://github.com/gruntwork-io/terraform-aws-service-catalog/blob/v0.65.0/modules/mgmt/jenkins/jenkins-ubuntu.pkr.hcl
 #
 # Pass in the --run-local flag to build the image on the local machine, without going through the ECS Deploy Runner.
 
 set -e
 
 readonly PACKER_TEMPLATE_REPO="https://github.com/gruntwork-io/terraform-aws-service-catalog.git//modules/mgmt/jenkins/jenkins-ubuntu.pkr.hcl"
-readonly PACKER_TEMPLATE_REPO_REF="v0.62.0"
-readonly SERVICE_CATALOG_REF="v0.62.0"
+readonly PACKER_TEMPLATE_REPO_REF="v0.65.0"
+readonly SERVICE_CATALOG_REF="v0.65.0"
 readonly DEPLOY_RUNNER_REGION="us-west-2"
 readonly REGION="us-west-2"
 readonly COPY_REGIONS=()
 
 # The account IDs where the AMI should be shared.
 git_repo_root="$(git rev-parse --show-toplevel)"
-dev_account_id="$(jq -r '."dev"' "$git_repo_root/accounts.json")"
-prod_account_id="$(jq -r '."prod"' "$git_repo_root/accounts.json")"
-stage_account_id="$(jq -r '."stage"' "$git_repo_root/accounts.json")"
+dev_account_id="$(jq -r '."dev".id' "$git_repo_root/accounts.json")"
+prod_account_id="$(jq -r '."prod".id' "$git_repo_root/accounts.json")"
+stage_account_id="$(jq -r '."stage".id' "$git_repo_root/accounts.json")"
 ami_account_ids="[\"$dev_account_id\",\"$prod_account_id\",\"$stage_account_id\"]"
 
 function run {
@@ -45,7 +45,7 @@ function run {
   # Validate that the AMI is being built in the Shared Services account.
   local account_id
   account_id="$(aws sts get-caller-identity --query 'Account' --output text)"
-  shared_account_id="$(jq -r '.shared' "$git_repo_root/accounts.json")"
+  shared_account_id="$(jq -r '."shared".id' "$git_repo_root/accounts.json")"
   if [[ "$account_id" != "$shared_account_id" ]]; then
     >&2 echo "Not authenticated to the correct account. Expected: $shared_account_id ; Actual: $account_id"
     exit 1

@@ -160,8 +160,8 @@ simple-web-app:
   # NOTE: we have to comment out the directives so that the python based data merger (see the `merge-data` hook under
   # blueprints in this repository) can parse this yaml file. This still works when feeding through templatefile, as it
   # will interleave blank comments with the list items, which yaml handles gracefully.
-  # %{ for account in accounts }
-  - '${account}'
+  # %{ for account_id in account_ids }
+  - '${account_id}'
   # %{ endfor }
   external_account_ids_with_write_access: []
   tags: {}

@@ -4,7 +4,7 @@ cross_account_groups:
 # parse this yaml file (we expect to apply the data merger to this module in
 # the future). This still works when feeding through templatefile, as it will
 # interleave blank comments with the list items, which yaml handles gracefully.
-#%{~ for name, id in accounts }
+#%{~ for name, id in account_ids }
   - group_name: "_account.${name}-full-access"
     iam_role_arns:
       - "arn:aws:iam::${id}:role/allow-full-access-from-other-accounts"

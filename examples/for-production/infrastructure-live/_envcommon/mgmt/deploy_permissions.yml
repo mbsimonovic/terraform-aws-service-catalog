@@ -1,0 +1,178 @@
+# We put this data in a YAML file, rather than directly in an HCL file, as YAML makes it easier for the Gruntwork
+# Architecture Catalog tooling to parse the file and add additional data: e.g., if you add an additional service from
+# the Architecture Catalog, the Architecture Catalog tooling may add a few extra parameters to this file that are used
+# by the new service. It is completely safe for you to add or modify data in this file manually, as the Architecture
+# Catalog tooling will only ever add/merge data. Alternatively, if you do not intend to use the Gruntwork Architecture
+# Catalog in the future, you could move this data directly into an HCL file instead.
+
+RDSDeployAccess:
+  effect: "Allow"
+  actions:
+  - "rds:*"
+  resources:
+  - "*"
+
+
+ElasticacheDeployAccess:
+  effect: "Allow"
+  actions:
+  - "elasticache:*"
+  resources:
+  - "*"
+
+
+ACMDeployAccess:
+  effect: "Allow"
+  actions:
+  - "acm:*"
+  resources:
+  - "*"
+AutoScalingDeployAccess:
+  effect: "Allow"
+  actions:
+  - "autoscaling:*"
+  resources:
+  - "*"
+CloudTrailDeployAccess:
+  effect: "Allow"
+  actions:
+  - "cloudtrail:*"
+  resources:
+  - "*"
+CloudWatchDeployAccess:
+  effect: "Allow"
+  actions:
+  - "cloudwatch:*"
+  resources:
+  - "*"
+CloudWatchLogsDeployAccess:
+  effect: "Allow"
+  actions:
+  - "logs:*"
+  resources:
+  - "*"
+ConfigDeployAccess:
+  effect: "Allow"
+  actions:
+  - "config:*"
+  resources:
+  - "*"
+EC2ServiceDeployAccess:
+  effect: "Allow"
+  actions:
+  - "ec2:*"
+  resources:
+  - "*"
+ECRDeployAccess:
+  effect: "Allow"
+  actions:
+  - "ecr:*"
+  resources:
+  - "*"
+ECSDeployAccess:
+  effect: "Allow"
+  actions:
+  - "ecs:*"
+  resources:
+  - "*"
+ELBDeployAccess:
+  effect: "Allow"
+  actions:
+  - "elasticloadbalancing:*"
+  resources:
+  - "*"
+GuardDutyDeployAccess:
+  effect: "Allow"
+  actions:
+  - "guardduty:*"
+  resources:
+  - "*"
+IAMDeployAccess:
+  effect: "Allow"
+  actions:
+  - "iam:*"
+  resources:
+  - "*"
+IAMAccessAnalyzerDeployAccess:
+  effect: "Allow"
+  actions:
+  - "access-analyzer:*"
+  resources:
+  - "*"
+KMSDeployAccess:
+  effect: "Allow"
+  actions:
+  - "kms:*"
+  resources:
+  - "*"
+LambdaDeployAccess:
+  effect: "Allow"
+  actions:
+  - "lambda:*"
+  resources:
+  - "*"
+Route53DeployAccess:
+  effect: "Allow"
+  actions:
+  - "route53:*"
+  - "route53domains:*"
+  - "route53resolver:*"
+  resources:
+  - "*"
+SecretsManagerDeployAccess:
+  effect: "Allow"
+  actions:
+  - "secretsmanager:*"
+  resources:
+  - "*"
+SNSDeployAccess:
+  effect: "Allow"
+  actions:
+  - "sns:*"
+  resources:
+  - "*"
+SQSDeployAccess:
+  effect: "Allow"
+  actions:
+  - "sqs:*"
+  resources:
+  - "*"
+
+
+CloudWatchEventsDeployAccess:
+  effect: "Allow"
+  actions:
+  - "events:*"
+  resources:
+  - "*"
+
+
+EKSDeployAccess:
+  effect: "Allow"
+  actions:
+  - "eks:*"
+  resources:
+  - "*"
+
+
+DLMDeployAccess:
+  effect: Allow
+  actions:
+  - "dlm:*"
+  resources:
+  - "*"
+
+
+DynamoDBLocksTableAccess:
+  effect: "Allow"
+  actions:
+  - "dynamodb:*"
+  resources:
+  - "arn:aws:dynamodb:*:*:table/terraform-locks"
+
+S3DeployAccess:
+  effect: "Allow"
+  actions:
+  - "s3:*"
+  resources:
+  - "*"

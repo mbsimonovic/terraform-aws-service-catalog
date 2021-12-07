@@ -6,6 +6,9 @@ locals {
 
   # Centrally define all the AWS account IDs. We use JSON so that it can be readily parsed outside of Terraform.
   accounts = jsondecode(file("accounts.json"))
+  account_ids = {
+    for key, account_info in local.accounts : key => account_info.id
+  }
 
   # Define a default region to use when operating on resources that are not contained within a specific region.
   default_region = "us-west-2"
@@ -14,12 +17,12 @@ locals {
   name_prefix = "gruntwork"
 
   # All accounts use the ECR repo in the shared account for the ecs-deploy-runner docker image.
-  deploy_runner_ecr_uri             = "${local.accounts.shared}.dkr.ecr.${local.default_region}.amazonaws.com/ecs-deploy-runner"
-  deploy_runner_container_image_tag = "v0.38.14"
+  deploy_runner_ecr_uri             = "${local.account_ids.shared}.dkr.ecr.${local.default_region}.amazonaws.com/ecs-deploy-runner"
+  deploy_runner_container_image_tag = "v0.39.5"
 
   # All accounts use the ECR repo in the shared account for the Kaniko docker image.
-  kaniko_ecr_uri             = "${local.accounts.shared}.dkr.ecr.${local.default_region}.amazonaws.com/kaniko"
-  kaniko_container_image_tag = "v0.38.14"
+  kaniko_ecr_uri             = "${local.account_ids.shared}.dkr.ecr.${local.default_region}.amazonaws.com/kaniko"
+  kaniko_container_image_tag = "v0.39.5"
 
   # The infrastructure-live repository on which the deploy runner operates.
   infra_live_repo_https = "https://github.com/gruntwork-io/infrastructure-live"
@@ -46,7 +49,7 @@ locals {
   # IAM configurations for cross account ssh-grunt setup.
   ssh_grunt_users_group      = "ssh-grunt-users"
   ssh_grunt_sudo_users_group = "ssh-grunt-sudo-users"
-  allow_ssh_grunt_role       = "arn:aws:iam::${local.accounts.security}:role/allow-ssh-grunt-access-from-other-accounts"
+  allow_ssh_grunt_role       = "arn:aws:iam::${local.account_ids.security}:role/allow-ssh-grunt-access-from-other-accounts"
 
   # -------------------------------------------------------------------------------------------------------------------
   # COMMON NETWORK CONFIGURATION DATA

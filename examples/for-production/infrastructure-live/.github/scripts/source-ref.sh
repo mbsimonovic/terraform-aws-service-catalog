@@ -3,7 +3,7 @@
 #   - If we are on the main branch, the comparison is only the current commit.
 #   - If we are not on main, the comparison is to the current state of the main branch.
 if [[ "${GITHUB_REF##*/}" == "main" ]]; then
-  echo 'SOURCE_REF=HEAD^' >> $GITHUB_ENV
+  echo 'HEAD^'
 else
-  echo 'SOURCE_REF=main' >> $GITHUB_ENV
+  echo 'origin/main'
 fi

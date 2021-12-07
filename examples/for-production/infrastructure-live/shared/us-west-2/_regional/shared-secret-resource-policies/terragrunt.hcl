@@ -1,3 +1,4 @@
+
 # ---------------------------------------------------------------------------------------------------------------------
 # TERRAGRUNT CONFIGURATION
 # This is the configuration for Terragrunt, a thin wrapper for Terraform that helps keep your code DRY and
@@ -9,21 +10,19 @@
 # locally, you can use --terragrunt-source /path/to/local/checkout/of/module to override the source parameter to a
 # local check out of the module for faster iteration.
 terraform {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/secrets-manager-resource-policies?ref=v0.55.4"
+  source = "${local.source_base_url}?ref=v0.55.1"
 }
-
 # Include all settings from the root terragrunt.hcl file
 include {
   path = find_in_parent_folders()
 }
 
-
-
-
 # ---------------------------------------------------------------------------------------------------------------------
 # Locals are named constants that are reusable within the configuration.
 # ---------------------------------------------------------------------------------------------------------------------
 locals {
+  source_base_url = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/secrets-manager-resource-policies"
+
   # Automatically load common variables shared across all accounts
   common_vars = read_terragrunt_config(find_in_parent_folders("common.hcl"))
 
@@ -43,13 +42,13 @@ locals {
   # Extract the region for easy access
   aws_region = local.region_vars.locals.aws_region
   # A local for more convenient access to the accounts map.
-  accounts          = local.common_vars.locals.accounts
-  accounts_to_share = [for name, id in local.accounts : "arn:aws:iam::${id}:root" if name != "shared"]
+  account_ids       = local.common_vars.locals.account_ids
+  accounts_to_share = [for name, id in local.account_ids : "arn:aws:iam::${id}:root" if name != "shared"]
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
 # MODULE PARAMETERS
-# These are the variables we have to pass in to use the module specified in the terragrunt configuration above
+# These are the variables we have to pass in to use the module specified in the terragrunt configuration above.
 # ---------------------------------------------------------------------------------------------------------------------
 inputs = {
   secret_policies = {

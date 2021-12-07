@@ -26,15 +26,34 @@ This diagram shows a rough overview of the Gruntwork Pipelines architecture:
 The Gruntwork Pipelines workflow, defined in [`.github/workflows/pipelines.yml`](/.github/workflows/pipelines.yml), works like this:
 
 - A CI server is hooked up to watch for changes in your `infrastructure-live` repository.
-- Every time a new commit is pushed, the CI server looks for modules that have changed in the repository.
-- For each module that changed, trigger a `plan` action on the module by invoking the ECS deploy runner.
+- Every time a new commit is pushed, the CI server looks at what changed and takes appropriate actions based on what
+  files changed:
+    - For each module that is removed, trigger a `plan -destroy` action on the module by invoking the ECS deploy runner.
+    - For each common file that changed (anything in the `_envcommon` folder as described in
+      [Terragrunt patterns used in the Reference Architecture: Multiple Includes](./appendix.md#multiple-includes)),
+      trigger a `plan` action on _every module that includes that common file_ by invoking the ECS deploy runner. Note
+      that each account is deployed in sequence, and the ordering is determined by the assigned `deploy_order`. Refer to
+      [Appendix: Common data files](./appendix.md#common-data-files) for more information on where the `deploy_order`
+      is indicated.
+    - For each module (a folder containing `terragrunt.hcl`) that is newly added or modified, trigger a `plan` action on
+      the module by invoking the ECS deploy runner.
 - The ECS deploy runner is invoked using an AWS Lambda function that exposes a limited range of actions that can be
   performed in a deploy container that has all the necessary tools installed.
 - The infrastructure code runs from within a Docker container in an ECS task on Fargate (or EC2). This task is what has the
   powerful AWS credentials to deploy infrastructure.
 - CI server will run first run a `plan`.
-- If the Slack integration is set up, a notification will be sent to the Slack channel that the plan succeeded or failed. 
--  Next, the CI server will run `apply`. The Slack integration will post a notification about whether the apply failed or succeeded.
+- If the Slack integration is set up, a notification will be sent to the Slack channel that the plan succeeded or failed.
+- If the plan succeeded, and if the job was triggered on the `main` branch of the repository,
+  the CI server will move on to run `apply`.
+    - Note that for updates to common files, the CI server will run `apply` in the deploy order.
+    - If any environment fails, the CI server will halt the rollout of the changes without moving on to the next
+      environments. This allows you to prevent roll out to a production environment if it fails in an earlier tier.
+    - Note that Terraform and Gruntwork pipelines does not currently support a safe rollback. To resume deployment, we
+      recommend either manually fixing issues (e.g., if the rollout requires a state migration), or rolling forward with
+      additional code changes.
+- If the Slack integration is setup, a notification will be sent to the Slack channel about whether the apply failed or
+  succeeded.
+
 
 ### Set up the pipeline in your own organization
 First, make sure you've copied the repo into your own GitHub organization as a new repository. You can name it whatever you'd like. We usually call it `infrastructure-live`. The GitHub Actions workflow is already configured in `<YOUR_REPO_ROOT>/.github/workflows/pipelines.yml`. Here are the additional steps to get the job running successfully:
@@ -261,6 +280,7 @@ lines
 
 in [`_ci/scripts/deploy-infra.sh`](/_ci/scripts/deploy-infra.sh). You can combine this change into the same commit or
 pull request as your changes to the `ecs-deploy-runner` module configuration.
+
 
 ## Next steps
 

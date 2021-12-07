@@ -7,12 +7,12 @@
 # the Shared Services AWS account.
 #
 # This is the build script for the Deploy Runner Docker image. You can view the Dockerfile at the following URL:
-# https://github.com/gruntwork-io/terraform-aws-ci/blob/v0.38.14/modules/ecs-deploy-runner/docker/deploy-runner
+# https://github.com/gruntwork-io/terraform-aws-ci/blob/v0.39.5/modules/ecs-deploy-runner/docker/deploy-runner
 
 set -e
 
 readonly DOCKERFILE_REPO="https://github.com/gruntwork-io/terraform-aws-ci.git"
-readonly DOCKERFILE_REPO_REF="v0.38.14"
+readonly DOCKERFILE_REPO_REF="v0.39.5"
 readonly DOCKERFILE_CONTEXT_PATH="modules/ecs-deploy-runner/docker/deploy-runner"
 readonly DEPLOY_RUNNER_REGION="us-west-2"
 readonly ECR_REPO_REGION="us-west-2"
@@ -25,7 +25,7 @@ function run {
   # Validate that the AMI is being built in the Shared Services account.
   local account_id
   account_id="$(aws sts get-caller-identity --query 'Account' --output text)"
-  shared_account_id="$(jq -r '.shared' "$git_repo_root/accounts.json")"
+  shared_account_id="$(jq -r '."shared".id' "$git_repo_root/accounts.json")"
   if [[ "$account_id" != "$shared_account_id" ]]; then
     >&2 echo "Not authenticated to the correct account. Expected: $shared_account_id ; Actual: $account_id"
     exit 1
@@ -42,10 +42,10 @@ function run {
     --context-path "$DOCKERFILE_CONTEXT_PATH" \
     --build-arg 'GITHUB_OAUTH_TOKEN' \
     --docker-image-tag "$ecr_repo_url:$DOCKERFILE_REPO_REF" \
-    --build-arg 'module_ci_tag=v0.38.14' \
-    --build-arg 'terraform_version=1.0.4' \
-    --build-arg 'terragrunt_version=v0.31.3' \
-    --build-arg 'kubergrunt_version=v0.7.9'
+    --build-arg "module_ci_tag=$DOCKERFILE_REPO_REF" \
+    --build-arg 'terraform_version=1.0.9' \
+    --build-arg 'terragrunt_version=v0.35.11' \
+    --build-arg 'kubergrunt_version=v0.7.10'
 }
 
 # Run the main function if this script is called directly, instead of being sourced.

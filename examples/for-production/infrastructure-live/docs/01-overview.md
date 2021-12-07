@@ -51,6 +51,74 @@ All of the infrastructure in this repo is managed as **code** using [Terragrunt]
 For more info on Infrastructure as Code and Terraform, check out [A Comprehensive Guide to
 Terraform](https://blog.gruntwork.io/a-comprehensive-guide-to-terraform-b3d32832baca) and our guide on [How to use the Gruntwork Infrastructure as Code Library](https://gruntwork.io/guides/foundations/how-to-use-gruntwork-infrastructure-as-code-library/).
 
+For a primer on what advantages using Terragrunt over Terraform has for a comprehensive, production-ready, end-to-end
+architecture like the Reference Architecture, check out the post [Terragrunt: how to keep your Terraform code DRY and
+maintainable](https://blog.gruntwork.io/terragrunt-how-to-keep-your-terraform-code-dry-and-maintainable-f61ae06959d8).
+
+For more info on the various Terragrunt features that are used in the Reference Architecture, refer to [Appendix:
+Terragrunt patterns used in the Reference
+Architecture](appendix.md#terragrunt-patterns-used-in-the-reference-architecture).
+
+
+### Folder structure
+
+The code in this repo uses the following folder hierarchy:
+
+```
+.
+├── terragrunt.hcl
+├── common.hcl
+├── accounts.json
+├── _ci
+├── _envcommon
+│   └── CATEGORY
+│       └── RESOURCE.hcl
+└── ACCOUNT
+    ├── REGION
+    │   ├── ENVIRONMENT
+    │   │   └── CATEGORY
+    │   │       └── RESOURCE
+    │   └── _regional
+    │       └── RESOURCE
+    └── _global
+        └── RESOURCE
+```
+
+Where:
+
+- **Root `terragrunt.hcl`**: Root Terragrunt configuration that contains all the configuration that is common to all
+  accounts and environments. This configuration is used to specify:
+    - The Terraform provider block for configuring access to AWS.
+    - The Terraform remote state configuration for storing the state data in AWS S3 buckets.
+    - A minimal set of global inputs that is needed in all resources.
+- **`common.hcl`**: Terragrunt data file that defines global local variables that every Terragrunt configuration needs
+  to reference.
+- **`accounts.json`**: A JSON data file that contains a mapping of account names to metadata about the AWS account (ID,
+  root user email, and deploy ordering).
+- **`_ci`**: Folder containing various scripts for driving CI/CD workflows with the infrastructure code.
+- **`_envcommon`**: Folder containing the Terragrunt configuration that is common to the specific resource for all
+  environments. For example, the common settings that are necessary to configure a VPC is specified in the
+  `_envcommon/networking/vpc-app.hcl` file.
+- **ACCOUNT**: At the top level are each of your AWS accounts, such as `stage`, `prod`, `security`, etc.
+  If you have everything deployed in a single AWS account, there will just be a single folder at the root (e.g.
+  main-account).
+- **REGION**: Within each account, there will be one or more [AWS
+  regions](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html), such as
+  `us-east-1`, `eu-west-1`, and `ap-southeast-2`, where you've deployed resources. There may also be a `_global`
+  folder that defines resources that are available across all the AWS regions in this account, such as IAM users,
+  Route 53 hosted zones, and CloudTrail.
+- **ENVIRONMENT**: Within each region, there will be one or more "environments", such as `qa`, `stage`, etc. Typically,
+  an environment will correspond to a single [AWS Virtual Private Cloud (VPC)](https://aws.amazon.com/vpc/), which
+  isolates that environment from everything else in that AWS account. There may also be a `_regional` folder
+  that defines resources that are available across all the environments in this AWS region, such as Route 53 A records,
+  SNS topics, and ECR repos.
+- **CATEGORY and RESOURCE**: Within each environment, you deploy all the resources for that environment, such as EC2
+  Instances, Auto Scaling Groups, ECS Clusters, Databases, Load Balancers, and so on. These resources are further
+  organized by the overarching category that they relate to, such as `networking` and `services`. Note that the
+  Terraform code for most of these resources lives in the [terraform-aws-service-catalog
+  repo](https://github.com/gruntwork-io/terraform-aws-service-catalog).
+
+
 
 
 ## AWS accounts
@@ -188,8 +256,6 @@ We have configured security best practices in every aspect of this infrastructur
 Check out [Gruntwork Security Best
 Practices](https://docs.google.com/document/d/e/2PACX-1vTikva7hXPd2h1SSglJWhlW8W6qhMlZUxl0qQ9rUJ0OX22CQNeM-91w4lStRk9u2zQIn6lPejUbe-dl/pub)
 for more info.
-
-
 
 
 
