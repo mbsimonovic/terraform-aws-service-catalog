@@ -287,6 +287,12 @@ variable "enable_sse" {
   default     = true
 }
 
+variable "bucket_kms_key_arn" {
+  description = "Optional KMS key to use for encrypting data in the S3 bucket. If null, data in S3 will be encrypted using the default aws/s3 key. If provided, the key policy of the provided key must allow whoever is writing to this bucket to use that key."
+  type        = string
+  default     = null
+}
+
 variable "bucket_sse_algorithm" {
   description = "The server-side encryption algorithm to use on the bucket. Valid values are AES256 and aws:kms. To disable server-side encryption, set var.enable_sse to false."
   type        = string
