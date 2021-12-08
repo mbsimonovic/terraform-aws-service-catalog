@@ -52,7 +52,7 @@ module "openvpn" {
 
   allow_vpn_from_cidr_list = var.allow_vpn_from_cidr_list
   allow_ssh_from_cidr_list = var.allow_ssh_from_cidr_list
-  allow_ssh_from_cidr      = true
+  allow_ssh_from_cidr      = length(var.allow_ssh_from_cidr_list) > 0
 
   backup_bucket_force_destroy = var.force_destroy
 }
