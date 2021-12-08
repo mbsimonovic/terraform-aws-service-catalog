@@ -49,6 +49,9 @@ module "s3_bucket_primary" {
   # CORS
   cors_rules = var.cors_rules
 
+  # Lifecycle Rules
+  lifecycle_rules = var.lifecycle_rules
+
   bucket_policy_statements = var.bucket_policy_statements
   bucket_ownership         = var.bucket_ownership
   enable_sse               = var.enable_sse
@@ -70,6 +73,7 @@ module "s3_bucket_logs" {
   acl                      = "log-delivery-write"
   bucket_policy_statements = var.access_logging_bucket_policy_statements
   enable_versioning        = var.enable_versioning
+  lifecycle_rules          = var.access_logging_bucket_lifecycle_rules
   mfa_delete               = var.mfa_delete
   sse_algorithm            = "AES256" # For access logging buckets, only AES256 encryption is supported
   bucket_ownership         = var.access_logging_bucket_ownership
@@ -90,6 +94,7 @@ module "s3_bucket_replica" {
   create_resources         = var.replica_bucket != null && var.replica_bucket_already_exists == false
   name                     = var.replica_bucket
   enable_versioning        = var.enable_versioning
+  lifecycle_rules          = var.replica_bucket_lifecycle_rules
   mfa_delete               = var.mfa_delete
   bucket_policy_statements = var.replica_bucket_policy_statements
   bucket_ownership         = var.replica_bucket_ownership

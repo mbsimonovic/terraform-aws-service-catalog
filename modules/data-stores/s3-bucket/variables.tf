@@ -178,6 +178,82 @@ variable "replica_bucket_policy_statements" {
   default = {}
 }
 
+
+variable "lifecycle_rules" {
+  # The lifecycle rules for this S3 bucket. See the 'lifecycle_rule' block in the aws_s3_bucket resource for context:
+  # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket
+  #
+  # lifecycle_rules is a map where the keys are the IDs of the rules and the values are objects that can define the
+  # following properties:
+  #
+  # - enabled                                     bool              (required): Specifies lifecycle rule status.
+  # - prefix                                      string            (optional): Object key prefix identifying one or more objects to which the rule applies.
+  # - tags                                        map(string)       (optional): Specifies object tags key and value.
+  # - abort_incomplete_multipart_upload_days      number            (optional): Specifies the number of days after initiating a multipart upload when the multipart upload must be completed.
+  # - noncurrent_version_expiration               number            (optional): Specifies the number of days noncurrent object versions expire.
+  # - expiration                                  map(object)       (optional): Specifies a period in the object's expire (documented below).
+  # - transition                                  map(object)       (optional): Specifies a period in the object's transitions (documented below).
+  # - noncurrent_version_transition               map(object)       (optional): Specifies when noncurrent object versions transitions (documented below).
+  #
+  # expiration is a map from a unique ID for the expiration setting to an object that can define the following properties:
+  #
+  # - date                                        string            (optional): Specifies the date after which you want the corresponding action to take effect.
+  # - days                                        number            (optional): Specifies the number of days after object creation when the specific rule action takes effect.
+  # - expired_object_delete_marker                bool              (optional): On a versioned bucket (versioning-enabled or versioning-suspended bucket), you can add this element in the lifecycle configuration to direct Amazon S3 to delete expired object delete markers.
+  #
+  # transition is a map from a unique ID for the transition setting to an object that can define the following properties:
+  #
+  # - storage_class                               string            (required): Specifies the Amazon S3 storage class to which you want the object to transition. Can be ONEZONE_IA, STANDARD_IA, INTELLIGENT_TIERING, GLACIER, or DEEP_ARCHIVE.
+  # - date                                        string            (optional): Specifies the date after which you want the corresponding action to take effect.
+  # - days                                        number            (optional): Specifies the number of days after object creation when the specific rule action takes effect.
+  #
+  # noncurrent_version_transition is a map from a unique ID for the noncurrent_version_transition setting to an object that can define the following properties:
+  #
+  # - storage_class                               string            (required): Specifies the Amazon S3 storage class to which you want the noncurrent object versions to transition. Can be ONEZONE_IA, STANDARD_IA, INTELLIGENT_TIERING, GLACIER, or DEEP_ARCHIVE.
+  # - days                                        number            (required): Specifies the number of days noncurrent object versions transition.
+  description = "The lifecycle rules for this S3 bucket. These can be used to change storage types or delete objects based on customizable rules. This should be a map, where each key is a unique ID for the lifecycle rule, and each value is an object that contains the parameters defined in the comment above."
+
+  # Ideally, this would be a map(object({...})), but the Terraform object type constraint doesn't support optional
+  # parameters, whereas lifecycle rules have many optional params. And we can't even use map(any), as the Terraform
+  # map type constraint requires all values to have the same type ("shape"), but as each object in the map may specify
+  # different optional params, this won't work either. So, sadly, we are forced to fall back to "any."
+  type = any
+  # Example:
+  #
+  # {
+  #    ExampleRule = {
+  #      prefix  = "config/"
+  #      enabled = true
+  #
+  #      noncurrent_version_transition = {
+  #        ToStandardIa = {
+  #          days          = 30
+  #          storage_class = "STANDARD_IA"
+  #        }
+  #        ToGlacier = {
+  #          days          = 60
+  #          storage_class = "GLACIER"
+  #        }
+  #      }
+  #
+  #      noncurrent_version_expiration = 90
+  #    }
+  # }
+  default = {}
+}
+
+variable "access_logging_bucket_lifecycle_rules" {
+  description = "The lifecycle rules for the access logs bucket. See var.lifecycle_rules for details."
+  type        = any
+  default     = {}
+}
+
+variable "replica_bucket_lifecycle_rules" {
+  description = "The lifecycle rules for the replica bucket. See var.lifecycle_rules for details."
+  type        = any
+  default     = {}
+}
+
 variable "enable_versioning" {
   description = "Set to true to enable versioning for this bucket. If enabled, instead of overriding objects, the S3 bucket will always create a new version of each object, so all the old values are retained."
   type        = bool
