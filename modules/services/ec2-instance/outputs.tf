@@ -18,6 +18,16 @@ output "ec2_instance_security_group_id" {
   value       = module.ec2_instance.security_group_id
 }
 
+output "ec2_instance_iam_role_id" {
+  description = "The ID of the EC2 server's IAM role."
+  value       = module.ec2_instance.iam_role_id
+}
+
+output "ec2_instance_iam_role_name" {
+  description = "The name of the EC2 server's IAM role."
+  value       = module.ec2_instance.iam_role_name
+}
+
 output "ec2_instance_iam_role_arn" {
   description = "The ARN of the EC2 server's IAM role."
   value       = module.ec2_instance.iam_role_arn
