@@ -150,3 +150,28 @@ data "aws_iam_policy_document" "external_account_access" {
     }
   }
 }
+
+# ---------------------------------------------------------------------------------------------------------------------
+# ENABLE CROSS REGION REPLICATION
+# ---------------------------------------------------------------------------------------------------------------------
+resource "aws_ecr_replication_configuration" "this" {
+  count = length(var.replication_regions) > 0 ? 1 : 0
+  replication_configuration {
+    rule {
+
+      dynamic "destination" {
+        for_each = var.replication_regions
+        content {
+          region      = destination.value
+          registry_id = data.aws_caller_identity.current.account_id
+        }
+      }
+    }
+  }
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# GET INFO ABOUT CURRENT ACCOUNT
+# ---------------------------------------------------------------------------------------------------------------------
+
+data "aws_caller_identity" "current" {}

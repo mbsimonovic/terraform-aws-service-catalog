@@ -95,3 +95,9 @@ variable "global_tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "replication_regions" {
+  description = "List of regions (e.g., us-east-1) to replicate the ECR repository to."
+  type        = list(string)
+  default     = []
+}
