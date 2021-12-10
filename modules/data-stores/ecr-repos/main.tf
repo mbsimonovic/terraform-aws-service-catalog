@@ -52,6 +52,7 @@ locals {
       enable_automatic_image_scanning        = lookup(user_config, "enable_automatic_image_scanning", var.default_automatic_image_scanning)
       encryption_config                      = lookup(user_config, "encryption_config", var.default_encryption_config)
       image_tag_mutability                   = lookup(user_config, "image_tag_mutability", var.default_image_tag_mutability)
+      lifecycle_policy_rules                 = lookup(user_config, "lifecycle_policy_rules", var.default_lifecycle_policy_rules)
       tags = merge(
         lookup(user_config, "tags", {}),
         var.global_tags,
@@ -65,6 +66,10 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 locals {
+  repositories_with_lifecycle_rules = {
+    for repo_name, repo in local.repositories_with_defaults :
+    repo_name => repo if length(repo.lifecycle_policy_rules) > 0
+  }
   # We first get the actual external account access list by implementing the logic to use the default value when the map
   # value is null.
   repositories_to_external_access = {
@@ -149,6 +154,16 @@ data "aws_iam_policy_document" "external_account_access" {
       actions = local.iam_write_access_policies
     }
   }
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# ADD LIFECYCLE RULES
+# ---------------------------------------------------------------------------------------------------------------------
+
+resource "aws_ecr_lifecycle_policy" "this" {
+  for_each   = local.repositories_with_lifecycle_rules
+  repository = aws_ecr_repository.repos[each.key].name
+  policy     = jsonencode(each.value.lifecycle_policy_rules)
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

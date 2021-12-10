@@ -96,6 +96,33 @@ variable "global_tags" {
   default     = {}
 }
 
+variable "default_lifecycle_policy_rules" {
+  description = "Add lifecycle policy to ECR repo."
+  # ECR lifecycle policy has dynamic structure, lot of properties are optional.
+  # Here is policy description with properties https://docs.aws.amazon.com/AmazonECR/latest/userguide/LifecyclePolicies.html
+  # example of terraform policy here https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecr_lifecycle_policy#policy-on-tagged-image
+  # Example:
+  #   default_lifecycle_policy_rules  = {
+  #     rules = [
+  #         {
+  #             rulePriority = 1
+  #             description = "Expire images older than 120 days"
+  #             selection = {
+  #                 tagStatus = "any"
+  #                 countType = "sinceImagePushed"
+  #                 countUnit = "days"
+  #                 countNumber = 120
+  #             }
+  #             action = {
+  #                 type = "expire"
+  #               }
+  #           }
+  #       ]
+  #   }
+  type    = any
+  default = []
+}
+
 variable "replication_regions" {
   description = "List of regions (e.g., us-east-1) to replicate the ECR repository to."
   type        = list(string)
