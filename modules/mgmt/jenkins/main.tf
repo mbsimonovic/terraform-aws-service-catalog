@@ -38,7 +38,7 @@ locals {
 }
 
 module "jenkins" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/jenkins-server?ref=v0.39.5"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/jenkins-server?ref=v0.40.0"
 
   name       = var.name
   aws_region = data.aws_region.current.name
@@ -287,7 +287,7 @@ module "jenkins_backup_dlm" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "jenkins_backup" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ec2-backup?ref=v0.39.5"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ec2-backup?ref=v0.40.0"
   count  = var.backup_using_lambda ? 1 : 0
 
   instance_name = module.jenkins.jenkins_asg_name
