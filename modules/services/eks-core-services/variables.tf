@@ -406,13 +406,24 @@ variable "cluster_autoscaler_scaling_strategy" {
 }
 
 variable "cluster_autoscaler_pod_resources" {
-  description = "Pod resource requests and limits to use. Refer to https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/ for more information."
+  description = "Pod resource requests and limits to use. Refer to https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/ for more information. This is most useful for configuring CPU+Memory availability for Fargate, which defaults to 0.25 vCPU and 256MB RAM."
 
   # We use any type here to avoid maintaining the kubernetes defined type spec for the resources here. That way, we can
   # support wide range of kubernetes versions.
   type = any
 
-  default = null
+  # cluster-autoscaler is known to fail on Fargate when the default resource limits are used, so we set a saner default
+  # here.
+  default = {
+    requests = {
+      memory = "1024Mi"
+      cpu    = "250m"
+    }
+    limits = {
+      memory = "1024Mi"
+      cpu    = "250m"
+    }
+  }
 }
 
 variable "cluster_autoscaler_pod_annotations" {
