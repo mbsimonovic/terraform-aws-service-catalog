@@ -155,3 +155,92 @@ variable "create_network_acls" {
   type        = bool
   default     = true
 }
+
+# ----------------------------------------------------------------------------------------------------------------------
+# OPTIONAL PARAMETERS FOR DEFAULT SECURITY GROUP AND DEFAULT NACL
+# ----------------------------------------------------------------------------------------------------------------------
+
+variable "enable_default_security_group" {
+  description = "If set to false, the default security groups will NOT be created."
+  type        = bool
+  default     = false
+}
+
+variable "default_security_group_ingress_rules" {
+  description = "The ingress rules to apply to the default security group in the VPC. This is the security group that is used by any resource that doesn't have its own security group attached. The value for this variable must be a map where the keys are a unique name for each rule and the values are objects with the same fields as the ingress block in the aws_default_security_group resource: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/default_security_group#ingress-block."
+  # Ideally, we'd have a more specific type here, but neither the 'map' nor 'object' type has support for optional
+  # fields, and we need optional fields when defining security group rules.
+  type = any
+  default = {
+    # The default AWS configures:
+    # https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html#DefaultSecurityGroup
+    AllowAllFromSelf = {
+      from_port = 0
+      to_port   = 0
+      protocol  = "-1"
+      self      = true
+    }
+  }
+}
+
+variable "default_security_group_egress_rules" {
+  description = "The egress rules to apply to the default security group in the VPC. This is the security group that is used by any resource that doesn't have its own security group attached. The value for this variable must be a map where the keys are a unique name for each rule and the values are objects with the same fields as the egress block in the aws_default_security_group resource: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/default_security_group#egress-block."
+  # Ideally, we'd have a more specific type here, but neither the 'map' nor 'object' type has support for optional
+  # fields, and we need optional fields when defining security group rules.
+  type = any
+  default = {
+    # The default AWS configures:
+    # https://docs.aws.amazon.com/vpc/latest/userguide/VPC_SecurityGroups.html#DefaultSecurityGroup
+    AllowAllOutbound = {
+      from_port        = 0
+      to_port          = 0
+      protocol         = "-1"
+      cidr_blocks      = ["0.0.0.0/0"]
+      ipv6_cidr_blocks = ["::/0"]
+    }
+  }
+}
+
+variable "apply_default_nacl_rules" {
+  description = "If true, will apply the default NACL rules in var.default_nacl_ingress_rules and var.default_nacl_egress_rules to the public, private, and persistence subnets created by this module. Note that every VPC has default NACL rules that apply to subnets. When this is false, the original default NACL rules managed by AWS will be used. If you are managing NACLs for the subnets using another module or for some reason do not want to use the default NACLs, set this to false."
+  type        = bool
+  default     = false
+}
+
+variable "default_nacl_ingress_rules" {
+  description = "The ingress rules to apply to the default NACL in the VPC. This is the NACL that is used by any subnet that doesn't have its own NACL attached. The value for this variable must be a map where the keys are a unique name for each rule and the values are objects with the same fields as the ingress block in the aws_default_network_acl resource: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/default_network_acl."
+  # Ideally, we'd have a more specific type here, but neither the 'map' nor 'object' type has support for optional
+  # fields, and we need optional fields when defining security group rules.
+  type = any
+  default = {
+    # The default AWS configures:
+    # https://docs.aws.amazon.com/vpc/latest/userguide/vpc-network-acls.html#default-network-acl
+    AllowAll = {
+      from_port  = 0
+      to_port    = 0
+      action     = "allow"
+      protocol   = "-1"
+      cidr_block = "0.0.0.0/0"
+      rule_no    = 100
+    }
+  }
+}
+
+variable "default_nacl_egress_rules" {
+  description = "The egress rules to apply to the default NACL in the VPC. This is the security group that is used by any subnet that doesn't have its own NACL attached. The value for this variable must be a map where the keys are a unique name for each rule and the values are objects with the same fields as the egress block in the aws_default_network_acl resource: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/default_network_acl."
+  # Ideally, we'd have a more specific type here, but neither the 'map' nor 'object' type has support for optional
+  # fields, and we need optional fields when defining security group rules.
+  type = any
+  default = {
+    # The default AWS configures:
+    # https://docs.aws.amazon.com/vpc/latest/userguide/vpc-network-acls.html#default-network-acl
+    AllowAll = {
+      from_port  = 0
+      to_port    = 0
+      action     = "allow"
+      protocol   = "-1"
+      cidr_block = "0.0.0.0/0"
+      rule_no    = 100
+    }
+  }
+}
