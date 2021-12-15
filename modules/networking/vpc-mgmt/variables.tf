@@ -202,9 +202,15 @@ variable "default_security_group_egress_rules" {
 }
 
 variable "apply_default_nacl_rules" {
-  description = "If true, will apply the default NACL rules in var.default_nacl_ingress_rules and var.default_nacl_egress_rules to the public, private, and persistence subnets created by this module. Note that every VPC has default NACL rules that apply to subnets. When this is false, the original default NACL rules managed by AWS will be used. If you are managing NACLs for the subnets using another module or for some reason do not want to use the default NACLs, set this to false."
+  description = "If true, will apply the default NACL rules in var.default_nacl_ingress_rules and var.default_nacl_egress_rules on the default NACL of the VPC. Note that every VPC must have a default NACL - when this is false, the original default NACL rules managed by AWS will be used."
   type        = bool
   default     = false
+}
+
+variable "associate_default_nacl_to_subnets" {
+  description = "If true, will associate the default NACL to the public, private, and persistence subnets created by this module. Only used if var.apply_default_nacl_rules is true. Note that this does not guarantee that the subnets are associated with the default NACL. Subnets can only be associated with a single NACL. The default NACL association will be dropped if the subnets are associated with a custom NACL later."
+  type        = bool
+  default     = true
 }
 
 variable "default_nacl_ingress_rules" {

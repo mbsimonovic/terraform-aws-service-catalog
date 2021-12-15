@@ -23,7 +23,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "vpc" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-mgmt?ref=v0.18.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-mgmt?ref=v0.18.5"
 
   aws_region                      = var.aws_region
   vpc_name                        = var.vpc_name
@@ -49,6 +49,7 @@ module "vpc" {
   default_security_group_ingress_rules = var.default_security_group_ingress_rules
   default_security_group_egress_rules  = var.default_security_group_egress_rules
   apply_default_nacl_rules             = var.apply_default_nacl_rules
+  associate_default_nacl_to_subnets    = var.associate_default_nacl_to_subnets
   default_nacl_ingress_rules           = var.default_nacl_ingress_rules
   default_nacl_egress_rules            = var.default_nacl_egress_rules
 }
@@ -59,7 +60,7 @@ module "vpc" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "vpc_flow_logs" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-flow-logs?ref=v0.18.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-flow-logs?ref=v0.18.5"
 
   vpc_id                    = module.vpc.vpc_id
   cloudwatch_log_group_name = "${module.vpc.vpc_name}-vpc-flow-logs"
@@ -76,7 +77,7 @@ module "vpc_flow_logs" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "vpc_network_acls" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-mgmt-network-acls?ref=v0.18.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-mgmt-network-acls?ref=v0.18.5"
 
   create_resources = var.create_network_acls
 
