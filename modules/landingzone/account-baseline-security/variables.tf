@@ -1053,8 +1053,19 @@ variable "service_linked_roles" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
-# REQUIRED IAM ACCESS ANALYZER PARAMETERS
-# These variables must be passed in by the operator.
+# OPTIONAL EXTERNAL IAM ACCESS PARAMETERS
+# These variables have defaults, but may be overridden by the operator.
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "enable_github_actions_access" {
+  description = "When true, create an Open ID Connect Provider that GitHub actions can use to assume IAM roles in the account. Refer to https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services for more information."
+  type        = bool
+  default     = false
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# OPTIONAL IAM ACCESS ANALYZER PARAMETERS
+# These variables have defaults, but may be overridden by the operator.
 # ---------------------------------------------------------------------------------------------------------------------
 variable "enable_iam_access_analyzer" {
   description = "A feature flag to enable or disable this module."

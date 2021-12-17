@@ -422,3 +422,17 @@ output "service_linked_role_arns" {
   description = "A map of ARNs of the service linked roles created from var.service_linked_roles."
   value       = { for name, config in var.service_linked_roles : name => aws_iam_service_linked_role.role[name].arn }
 }
+
+# ---------------------------------------------------------------------------------------------------------------------
+# GITHUB ACTIONS OPENID CONNECT PROVIDER OUTPUTS
+# ---------------------------------------------------------------------------------------------------------------------
+
+output "github_actions_iam_openid_connect_provider_arn" {
+  description = "ARN of the OpenID Connect Provider that can be used to attach AWS IAM Roles to GitHub Actions."
+  value       = concat(aws_iam_openid_connect_provider.github_actions.*.arn, [""])[0]
+}
+
+output "github_actions_iam_openid_connect_provider_url" {
+  description = "URL of the OpenID Connect Provider that can be used to attach AWS IAM Roles to GitHub Actions."
+  value       = concat(aws_iam_openid_connect_provider.github_actions.*.url, [""])[0]
+}

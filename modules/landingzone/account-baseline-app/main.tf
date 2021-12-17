@@ -434,8 +434,25 @@ resource "aws_iam_service_linked_role" "role" {
 }
 
 # ----------------------------------------------------------------------------------------------------------------------
+# EXTERNAL IAM ACCESS VIA OPENID CONNECT PROVIDERS
+# ----------------------------------------------------------------------------------------------------------------------
+
+resource "aws_iam_openid_connect_provider" "github_actions" {
+  count           = var.enable_github_actions_access ? 1 : 0
+  url             = "https://token.actions.githubusercontent.com"
+  client_id_list  = ["sts.amazonaws.com"]
+  thumbprint_list = [data.tls_certificate.oidc_thumbprint[0].certificates[0].sha1_fingerprint]
+}
+
+data "tls_certificate" "oidc_thumbprint" {
+  count = var.enable_github_actions_access ? 1 : 0
+  url   = "https://token.actions.githubusercontent.com"
+}
+
+# ----------------------------------------------------------------------------------------------------------------------
 # IAM ACCESS ANALYZER DEFAULTS
 # ----------------------------------------------------------------------------------------------------------------------
+
 module "iam_access_analyzer" {
   source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-access-analyzer-multi-region?ref=v0.55.4"
 
