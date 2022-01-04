@@ -148,20 +148,26 @@ resource "aws_security_group_rule" "custom_permissions" {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
+# CREATE THE CLOUDWATCH LOG GROUP FOR HOLDING TASK LOGS IF REQUESTED
+# ---------------------------------------------------------------------------------------------------------------------
+
+resource "aws_cloudwatch_log_group" "eks_cluster" {
+  count = var.create_cloudwatch_log_group ? 1 : 0
+
+  name              = var.cloudwatch_log_group_name
+  retention_in_days = var.cloudwatch_log_group_retention
+  kms_key_id        = var.cloudwatch_log_group_kms_key_id
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
 # CREATE THE CONTAINER DEFINITION THAT SPECIFIES WHAT DOCKER CONTAINERS TO RUN AND THE RESOURCES THEY NEED
 # ---------------------------------------------------------------------------------------------------------------------
 
 locals {
-
   container_definitions = jsonencode(var.container_definitions)
 
   has_canary                   = var.canary_container_definitions != null ? true : false
   canary_container_definitions = local.has_canary ? jsonencode(var.canary_container_definitions) : null
-
-  cloudwatch_log_group_name = var.cloudwatch_log_group_name != null ? var.cloudwatch_log_group_name : var.service_name
-  cloudwatch_log_prefix     = "ecs-service"
-
-
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
