@@ -18,6 +18,11 @@ output "primary_endpoint" {
   value       = module.database.cluster_endpoint
 }
 
+output "reader_endpoint" {
+  description = "A read-only endpoint for the Aurora cluster, automatically load-balanced across replicas."
+  value       = module.database.reader_endpoint
+}
+
 output "primary_host" {
   description = "The host portion of the Aurora endpoint. primary_endpoint is in the form '<host>:<port>', and this output returns just the host part."
   value       = local.primary_host
