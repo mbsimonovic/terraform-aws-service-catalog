@@ -79,6 +79,12 @@ variable "fluent_bit_log_group_retention" {
   default     = 0
 }
 
+variable "fluent_bit_log_group_kms_key_id" {
+  description = "The ARN of the KMS key to use to encrypt the logs in the CloudWatch Log Group used for storing container logs streamed with FluentBit. Set to null to disable encryption."
+  type        = string
+  default     = null
+}
+
 variable "fluent_bit_log_group_already_exists" {
   description = "If set to true, that means that the CloudWatch Log Group fluent-bit should use for streaming logs already exists and does not need to be created."
   type        = bool

@@ -133,6 +133,7 @@ resource "aws_cloudwatch_log_group" "eks_cluster" {
 
   name              = local.log_group_name
   retention_in_days = var.fluent_bit_log_group_retention
+  kms_key_id        = var.fluent_bit_log_group_kms_key_id
 }
 
 locals {
