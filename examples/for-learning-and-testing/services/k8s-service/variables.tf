@@ -46,7 +46,7 @@ variable "expose_type" {
 variable "ingress_path" {
   description = "Path prefix that should be matched to route to the service. Use /* to match all paths."
   type        = string
-  default     = "/*"
+  default     = "/"
 }
 
 variable "ingress_group" {

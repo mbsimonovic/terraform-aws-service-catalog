@@ -113,6 +113,12 @@ variable "ingress_ssl_redirect_rule_already_exists" {
   default     = false
 }
 
+variable "ingress_ssl_redirect_rule_requires_path_type" {
+  description = "Whether or not the redirect rule requires setting path type. Set to true when deploying to Kubernetes clusters with version >=1.19. Only used if ingress_configure_ssl_redirect is true."
+  type        = bool
+  default     = true
+}
+
 variable "ingress_listener_protocol_ports" {
   description = "A list of maps of protocols and ports that the ALB should listen on."
   type = list(object({
@@ -132,9 +138,15 @@ variable "ingress_listener_protocol_ports" {
 }
 
 variable "ingress_path" {
-  description = "Path prefix that should be matched to route to the service. Use /* to match all paths."
+  description = "Path prefix that should be matched to route to the service. For Kubernetes Versions <1.19, Use /* to match all paths. For Kubernetes Versions >=1.19, use / with ingress_path_type set to Prefix to match all paths."
   type        = string
-  default     = "/*"
+  default     = "/"
+}
+
+variable "ingress_path_type" {
+  description = "The path type to use for the ingress rule. Refer to https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types for more information."
+  type        = string
+  default     = "Prefix"
 }
 
 variable "ingress_backend_protocol" {

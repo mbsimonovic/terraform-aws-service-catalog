@@ -31,7 +31,7 @@ resource "helm_release" "application" {
   repository = "https://helmcharts.gruntwork.io"
   chart      = "k8s-service"
   # renovate.json auto-update: helm-kubernetes-services
-  version   = "v0.2.6"
+  version   = "v0.2.9"
   namespace = var.namespace
 
   values = [
@@ -284,19 +284,30 @@ locals {
       ingress = {
         enabled     = var.expose_type != "cluster-internal"
         path        = "'${var.ingress_path}'"
+        pathType    = var.ingress_path_type
         hosts       = var.domain_name != null ? [var.domain_name] : []
         servicePort = "app"
         annotations = local.ingress_annotations
         # Only configure the redirect path if using ssl redirect
         additionalPathsHigherPriority = (
           # When in Ingress Group mode, we need to make sure to only define this once per group.
-          var.ingress_configure_ssl_redirect
-          && var.ingress_ssl_redirect_rule_already_exists == false
-          ? [{
-            path        = "/*"
-            serviceName = "ssl-redirect"
-            servicePort = "use-annotation"
-          }]
+          var.ingress_configure_ssl_redirect && var.ingress_ssl_redirect_rule_already_exists == false
+          ? [
+            (
+              var.ingress_ssl_redirect_rule_requires_path_type
+              ? {
+                path        = "/"
+                pathType    = "Prefix"
+                serviceName = "ssl-redirect"
+                servicePort = "use-annotation"
+              }
+              : {
+                path        = "/*"
+                serviceName = "ssl-redirect"
+                servicePort = "use-annotation"
+              }
+            )
+          ]
           : []
         )
       }
