@@ -19,6 +19,8 @@ import (
 // Test TF Version: 1.0.10
 // renovate.json auto-update: terragrunt
 // Test TG Version: v0.35.16
+// renovate.json auto-update: terratest
+// Test TT Version: v0.38.8
 // renovate.json auto-update-github-releases: hashicorp/packer
 // Test PCK Version: 1.7.8
 
