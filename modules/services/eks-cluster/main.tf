@@ -23,10 +23,10 @@ terraform {
     # The underlying modules are only compatible with kubernetes provider 2.x
     kubernetes = {
       source = "hashicorp/kubernetes"
-      # NOTE: 2.6.0 has a regression bug that prevents usage of the exec block with data source references, so we lock
-      # to a version less than that. See https://github.com/hashicorp/terraform-provider-kubernetes/issues/1464 for more
-      # details.
-      version = "~> 2.0, < 2.6.0"
+      # NOTE: 2.6.0 has a regression bug that prevents usage of the exec block with data source references, so we ignore
+      # that in the version constraint. See https://github.com/hashicorp/terraform-provider-kubernetes/issues/1464 for
+      # more details.
+      version = "~> 2.0, != 2.6.0"
     }
   }
 }
