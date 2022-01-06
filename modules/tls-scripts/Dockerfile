@@ -37,7 +37,7 @@ RUN git clone "https://${GITHUB_OAUTH_TOKEN}@github.com/gruntwork-io/terraform-a
 # everything else
 
 # Start from openjdk to easily get keytool
-FROM openjdk:8-jre-slim as without-secrets
+FROM openjdk:11-jre-slim as without-secrets
 COPY --from=with-secrets /usr/local/bin/gruntkms /usr/local/bin/gruntkms
 COPY --from=with-secrets /usr/local/bin/generate-key-stores.sh /usr/local/bin/generate-key-stores.sh
 
