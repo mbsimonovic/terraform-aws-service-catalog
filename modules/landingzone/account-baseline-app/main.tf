@@ -21,6 +21,7 @@ terraform {
         aws.ap_south_1,
         aws.ap_southeast_1,
         aws.ap_southeast_2,
+        aws.ap_southeast_3,
         aws.ca_central_1,
         aws.cn_north_1,
         aws.cn_northwest_1,
@@ -48,7 +49,7 @@ terraform {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "config" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/aws-config-multi-region?ref=v0.55.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/aws-config-multi-region?ref=v0.57.1"
 
   # You MUST create a provider block for EVERY AWS region (see providers.tf) and pass all those providers in here via
   # this providers map. However, you should use var.opt_in_regions to tell Terraform to only use and authenticate to
@@ -62,6 +63,7 @@ module "config" {
     aws.ap_south_1     = aws.ap_south_1
     aws.ap_southeast_1 = aws.ap_southeast_1
     aws.ap_southeast_2 = aws.ap_southeast_2
+    aws.ap_southeast_3 = aws.ap_southeast_3
     aws.ca_central_1   = aws.ca_central_1
     aws.cn_north_1     = aws.cn_north_1
     aws.cn_northwest_1 = aws.cn_northwest_1
@@ -142,7 +144,7 @@ module "config" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "iam_cross_account_roles" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/cross-account-iam-roles?ref=v0.55.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/cross-account-iam-roles?ref=v0.57.1"
 
   create_resources = var.enable_iam_cross_account_roles
 
@@ -169,7 +171,7 @@ module "iam_cross_account_roles" {
 }
 
 module "iam_user_password_policy" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-user-password-policy?ref=v0.55.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-user-password-policy?ref=v0.57.1"
 
   create_resources = var.enable_iam_user_password_policy
 
@@ -190,7 +192,7 @@ module "iam_user_password_policy" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "guardduty" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/guardduty-multi-region?ref=v0.55.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/guardduty-multi-region?ref=v0.57.1"
 
   # You MUST create a provider block for EVERY AWS region (see providers.tf) and pass all those providers in here via
   # this providers map. However, you should use var.opt_in_regions to tell Terraform to only use and authenticate to
@@ -204,6 +206,7 @@ module "guardduty" {
     aws.ap_south_1     = aws.ap_south_1
     aws.ap_southeast_1 = aws.ap_southeast_1
     aws.ap_southeast_2 = aws.ap_southeast_2
+    aws.ap_southeast_3 = aws.ap_southeast_3
     aws.ca_central_1   = aws.ca_central_1
     aws.cn_north_1     = aws.cn_north_1
     aws.cn_northwest_1 = aws.cn_northwest_1
@@ -237,7 +240,7 @@ module "guardduty" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "cloudtrail" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/cloudtrail?ref=v0.55.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/cloudtrail?ref=v0.57.1"
 
   create_resources      = var.enable_cloudtrail
   is_multi_region_trail = true
@@ -282,7 +285,7 @@ module "cloudtrail" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "customer_master_keys" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-master-key-multi-region?ref=v0.55.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-master-key-multi-region?ref=v0.57.1"
 
   # You MUST create a provider block for EVERY AWS region (see providers.tf) and pass all those providers in here via
   # this providers map. However, you should use var.opt_in_regions to tell Terraform to only use and authenticate to
@@ -296,6 +299,7 @@ module "customer_master_keys" {
     aws.ap_south_1     = aws.ap_south_1
     aws.ap_southeast_1 = aws.ap_southeast_1
     aws.ap_southeast_2 = aws.ap_southeast_2
+    aws.ap_southeast_3 = aws.ap_southeast_3
     aws.ca_central_1   = aws.ca_central_1
     aws.cn_north_1     = aws.cn_north_1
     aws.cn_northwest_1 = aws.cn_northwest_1
@@ -323,7 +327,7 @@ module "customer_master_keys" {
 }
 
 module "kms_grants" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-grant-multi-region?ref=v0.55.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/kms-grant-multi-region?ref=v0.57.1"
 
   # You MUST create a provider block for EVERY AWS region (see providers.tf) and pass all those providers in here via
   # this providers map. However, you should use var.opt_in_regions to tell Terraform to only use and authenticate to
@@ -337,6 +341,7 @@ module "kms_grants" {
     aws.ap_south_1     = aws.ap_south_1
     aws.ap_southeast_1 = aws.ap_southeast_1
     aws.ap_southeast_2 = aws.ap_southeast_2
+    aws.ap_southeast_3 = aws.ap_southeast_3
     aws.ca_central_1   = aws.ca_central_1
     aws.cn_north_1     = aws.cn_north_1
     aws.cn_northwest_1 = aws.cn_northwest_1
@@ -377,7 +382,7 @@ module "kms_grants" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "ebs_encryption" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/ebs-encryption-multi-region?ref=v0.55.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/ebs-encryption-multi-region?ref=v0.57.1"
 
   # You MUST create a provider block for EVERY AWS region (see providers.tf) and pass all those providers in here via
   # this providers map. However, you should use var.opt_in_regions to tell Terraform to only use and authenticate to
@@ -391,6 +396,7 @@ module "ebs_encryption" {
     aws.ap_south_1     = aws.ap_south_1
     aws.ap_southeast_1 = aws.ap_southeast_1
     aws.ap_southeast_2 = aws.ap_southeast_2
+    aws.ap_southeast_3 = aws.ap_southeast_3
     aws.ca_central_1   = aws.ca_central_1
     aws.cn_north_1     = aws.cn_north_1
     aws.cn_northwest_1 = aws.cn_northwest_1
@@ -454,7 +460,7 @@ data "tls_certificate" "oidc_thumbprint" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "iam_access_analyzer" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-access-analyzer-multi-region?ref=v0.55.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-access-analyzer-multi-region?ref=v0.57.1"
 
   # You MUST create a provider block for EVERY AWS region (see providers.tf) and pass all those providers in here via
   # this providers map. However, you should use var.opt_in_regions to tell Terraform to only use and authenticate to
@@ -468,6 +474,7 @@ module "iam_access_analyzer" {
     aws.ap_south_1     = aws.ap_south_1
     aws.ap_southeast_1 = aws.ap_southeast_1
     aws.ap_southeast_2 = aws.ap_southeast_2
+    aws.ap_southeast_3 = aws.ap_southeast_3
     aws.ca_central_1   = aws.ca_central_1
     aws.cn_north_1     = aws.cn_north_1
     aws.cn_northwest_1 = aws.cn_northwest_1

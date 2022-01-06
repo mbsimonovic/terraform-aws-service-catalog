@@ -202,6 +202,7 @@ do the following:
         aws.ap_south_1     = aws.ap_south_1
         aws.ap_southeast_1 = aws.ap_southeast_1
         aws.ap_southeast_2 = aws.ap_southeast_2
+        aws.ap_southeast_3 = aws.ap_southeast_3
         aws.ca_central_1   = aws.ca_central_1
         aws.cn_north_1     = aws.cn_north_1
         aws.cn_northwest_1 = aws.cn_northwest_1

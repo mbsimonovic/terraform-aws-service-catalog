@@ -91,6 +91,15 @@ provider "aws" {
 }
 
 provider "aws" {
+  region = "ap-southeast-3"
+  alias  = "ap_southeast_3"
+
+  # Skip credential validation and account ID retrieval for disabled or restricted regions
+  skip_credentials_validation = contains(coalesce(var.opt_in_regions, []), "ap-southeast-3") ? false : true
+  skip_requesting_account_id  = contains(coalesce(var.opt_in_regions, []), "ap-southeast-3") ? false : true
+}
+
+provider "aws" {
   region = "ca-central-1"
   alias  = "ca_central_1"
 

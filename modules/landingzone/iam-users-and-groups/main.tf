@@ -17,7 +17,7 @@ terraform {
 }
 
 module "iam_groups" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-groups?ref=v0.55.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-groups?ref=v0.57.1"
 
   create_resources = var.enable_iam_groups
 
@@ -62,7 +62,7 @@ module "iam_groups" {
 }
 
 module "iam_users" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-users?ref=v0.55.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/iam-users?ref=v0.57.1"
 
   users                   = var.users
   password_length         = var.minimum_password_length
