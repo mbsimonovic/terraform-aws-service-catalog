@@ -37,7 +37,7 @@ defaults: &defaults
   resource_class: large
   machine:
     enabled: true
-    image: ubuntu-1604:201903-01
+    image: ubuntu-1604:202104-01
   <<: *env
 install_gruntwork_utils: &install_gruntwork_utils
   name: install gruntwork utils
@@ -108,6 +108,10 @@ commands:
       - run:
           <<: *install_gruntwork_utils
       - run: mkdir -p /tmp/logs
+  select_python3:
+    description: Select python3 as default
+    steps:
+      - run: pyenv global 3.9.4
   store_results:
     description: Store test results for easy viewing.
     steps:
@@ -167,6 +171,7 @@ jobs:
           at: /home/circleci
       - checkout
       - prepare_environment
+      - select_python3
       - run: echo "export TEST_PACKAGE='data-stores'" >> $BASH_ENV
       - run:
           <<: *run_tests
@@ -178,6 +183,7 @@ jobs:
           at: /home/circleci
       - checkout
       - prepare_environment
+      - select_python3
       - run: echo "export TEST_PACKAGE='landingzone'" >> $BASH_ENV
       - run:
           <<: *run_tests
@@ -189,6 +195,7 @@ jobs:
           at: /home/circleci
       - checkout
       - prepare_environment
+      - select_python3
       - run: echo "export TEST_PACKAGE='mgmt'" >> $BASH_ENV
       - run:
           <<: *run_tests
@@ -200,6 +207,7 @@ jobs:
           at: /home/circleci
       - checkout
       - prepare_environment
+      - select_python3
       - run: echo "export TEST_PACKAGE='networking'" >> $BASH_ENV
       - run:
           <<: *run_tests
@@ -211,6 +219,7 @@ jobs:
           at: /home/circleci
       - checkout
       - prepare_environment
+      - select_python3
       - run:
           <<: *install_kube_utils
       - run: echo "export TEST_PACKAGE='services'" >> $BASH_ENV
@@ -224,6 +233,7 @@ jobs:
           at: /home/circleci
       - checkout
       - prepare_environment
+      - select_python3
       - run: echo "export TEST_PACKAGE='smoke'" >> $BASH_ENV
       - run:
           <<: *run_tests
@@ -235,6 +245,7 @@ jobs:
           at: /home/circleci
       - checkout
       - prepare_environment
+      - select_python3
       - run: echo "export TEST_PACKAGE='validation'" >> $BASH_ENV
       - run:
           <<: *run_tests
@@ -246,6 +257,7 @@ jobs:
           at: /home/circleci
       - checkout
       - prepare_environment
+      - select_python3
       - run: echo "export TEST_PACKAGE='tls-scripts'" >> $BASH_ENV
       - run:
           <<: *run_tests
