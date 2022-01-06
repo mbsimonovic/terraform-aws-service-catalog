@@ -84,7 +84,7 @@ variable "snapshot_window" {
 variable "snapshot_retention_limit" {
   description = "The number of days for which ElastiCache will retain automatic cache cluster snapshots before deleting them. Set to 0 to disable snapshots."
   type        = number
-  default     = 7
+  default     = 15
 }
 
 # By default, do maintenance from 3-4am EST on Saturday, which is 7-8am UTC.
