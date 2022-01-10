@@ -27,7 +27,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "openvpn" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-openvpn.git//modules/openvpn-server?ref=v0.17.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-openvpn.git//modules/openvpn-server?ref=v0.18.0"
 
   aws_region     = data.aws_region.current.name
   aws_account_id = data.aws_caller_identity.current.account_id
@@ -70,6 +70,9 @@ locals {
     concat(
       [for route in local.vpn_subnet_routes : ["--vpn-route", route]],
       [for domain in var.vpn_search_domains : ["--search-domain", "'${domain}'"]],
+      (
+        var.use_strong_prime ? ["--gen-strong-prime"] : []
+      ),
     )
   )
 

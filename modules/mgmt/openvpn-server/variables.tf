@@ -290,3 +290,9 @@ variable "default_user" {
   type        = string
   default     = "ubuntu"
 }
+
+variable "use_strong_prime" {
+  description = "When true, generate Diffie-Hellman parameters using strong primes. Note that while stronger primes make the keys more cryptographically secure, the effective security gains are known to be insignificant in practice."
+  type        = bool
+  default     = false
+}
