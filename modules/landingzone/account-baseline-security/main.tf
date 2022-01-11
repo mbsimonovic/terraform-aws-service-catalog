@@ -507,14 +507,21 @@ resource "aws_iam_service_linked_role" "role" {
 resource "aws_iam_openid_connect_provider" "github_actions" {
   count = var.enable_github_actions_access ? 1 : 0
 
-  url             = "https://token.actions.githubusercontent.com"
-  client_id_list  = ["sts.amazonaws.com"]
-  thumbprint_list = [data.tls_certificate.oidc_thumbprint[0].certificates[0].sha1_fingerprint]
+  url            = "https://token.actions.githubusercontent.com"
+  client_id_list = ["sts.amazonaws.com"]
+  thumbprint_list = (
+    var.github_actions_openid_connect_provider_thumbprint_list != null
+    ? var.github_actions_openid_connect_provider_thumbprint_list
+    : [data.tls_certificate.oidc_thumbprint[0].certificates[0].sha1_fingerprint]
+  )
 }
 
 data "tls_certificate" "oidc_thumbprint" {
-  count = var.enable_github_actions_access ? 1 : 0
-  url   = "https://token.actions.githubusercontent.com"
+  count = (
+    var.enable_github_actions_access && var.github_actions_openid_connect_provider_thumbprint_list == null
+    ? 1 : 0
+  )
+  url = "https://token.actions.githubusercontent.com"
 }
 
 # ----------------------------------------------------------------------------------------------------------------------

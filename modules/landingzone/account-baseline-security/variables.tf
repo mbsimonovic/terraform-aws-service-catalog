@@ -1063,6 +1063,12 @@ variable "enable_github_actions_access" {
   default     = false
 }
 
+variable "github_actions_openid_connect_provider_thumbprint_list" {
+  description = "When set, use the statically provided hardcoded list of thumbprints rather than looking it up dynamically. This is useful if you want to trade reliability of the OpenID Connect Provider across certificate renewals with a static list that is obtained using a trustworthy mechanism, to mitigate potential damage from a domain hijacking attack on GitHub domains."
+  type        = list(string)
+  default     = null
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL IAM ACCESS ANALYZER PARAMETERS
 # These variables have defaults, but may be overridden by the operator.
