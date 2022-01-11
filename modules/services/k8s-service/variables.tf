@@ -572,6 +572,13 @@ variable "values_file_path" {
   default     = null
 }
 
+variable "helm_chart_version" {
+  description = "The version of the k8s-service helm chart to deploy."
+  type        = string
+  # patcher auto-update: helm-kubernetes-services
+  default = "v0.2.10"
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # ESCAPE HATCH
 # These variables are provided as an escape hatch to override the computed helm chart values within the module. This is
