@@ -988,10 +988,10 @@ Please see:
 ### Auto-update
 
 This repo has been configured with support for automatic updates using
-[RenovateBot](https://renovate.whitesourcesoftware.com/), plus an experimental Gruntwork Registry endpoint. Here's how
+[Patcher](https://github.com/gruntwork-io/patcher/), plus an experimental Gruntwork Registry endpoint. Here's how
 it works:
 
-1. Any time a dependency of this repo releases an update, RenovateBot will automatically update the code in this repo
+1. Any time a dependency of this repo releases an update, Patcher will automatically update the code in this repo
    to use the new version and open up a PR with the changes.
 
 1. To get the list of available versions, we are using an **experimental** Gruntwork Registry endpoint:
@@ -999,37 +999,34 @@ it works:
     1. The code for this endpoint lives in [the `gruntwork-registry` module in the Gruntwork prototypes
        repo](https://github.com/gruntwork-io/prototypes/tree/master/gruntwork-registry).
 
-    1. This endpoint is NOT ready for production use with all customers and could break at any time. If RenovateBot
-       works well for us with this repo, we'll work to productionize this endpoint and roll out RenovateBot to all
+    1. This endpoint is NOT ready for production use with all customers and could break at any time. If Patcher
+       works well for us with this repo, we'll work to productionize this endpoint and roll out Patcher to all
        customers.
 
-    1. We are using a few weird hacks / workaronds. For example, all the `regex` managers in `renovate.json` set the
+    1. We are using a few weird hacks / workarounds. For example, all the `regex` managers in set the
        `datasourceTemplate` to `terraform-module`, even for non Terraform code. This is largely because we haven't
        figured out the right data source to use for all dependency types with our experimental endpoint, and pretending
        everything is a Terraform module works OK for now. Also, there are some TODOs in the code for dependencies we
        don't know how to update automatically, such as the Jenkins or Terraform version that gets installed (what
        endpoint do we get that info from?).
 
-    1. In the meantime, if you have questions or issues related to RenovateBot, contact [Jim](mailto:jim@gruntwork.io).
-
-1. RenovateBot is *extremely* configurable and customizable. The configuration is in [`renovate.json`](renovate.json).
-   See the [RenovateBot documentation](https://docs.renovatebot.com/) for instructions.
+    1. In the meantime, if you have questions or issues related to Patcher, contact [Jim](mailto:jim@gruntwork.io).
 
 1. Some auto-update conventions used in this repo:
 
     1. All Terraform and Terragrunt `source = <URL>?ref=XXX` dependencies get updated automatically.
 
-    1. For certain file types, if you put `renovate.json auto-update: <REPO NAME>` above a variable declaration that
+    1. For certain file types, if you put `patcher auto-update: <REPO NAME>` above a variable declaration that
        specifies a version number, the version number will be automatically updated whenever `<REPO NAME>` has a new
        release. For example, in Bash scripts (`.sh` files):
 
         ```bash
-        # renovate.json auto-update: terraform-aws-eks
+        # patcher auto-update: terraform-aws-eks
         readonly DEFAULT_TERRAFORM_AWS_EKS_VERSION="v0.1.2"
         ```
 
-        Any time there's a new release of the `terraform-aws-eks` repo, RenovateBot will submit a PR updating the
-        version number in this Bash script. See [`renovate.json`](renovate.json) for other supported file types.
+        Any time there's a new release of the `terraform-aws-eks` repo, Patcher will submit a PR updating the
+        version number in this Bash script.
 
 
 ### pre-commit requirements

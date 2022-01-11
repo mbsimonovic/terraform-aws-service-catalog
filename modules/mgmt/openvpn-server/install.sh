@@ -3,7 +3,7 @@
 
 set -e
 
-# renovate.json auto-update: terraform-aws-openvpn
+# patcher auto-update: terraform-aws-openvpn
 readonly DEFAULT_PACKAGE_OPENVPN_VERSION="v0.18.0"
 
 function include_ec2_baseline {

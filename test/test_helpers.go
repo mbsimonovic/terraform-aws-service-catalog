@@ -15,13 +15,13 @@ import (
 
 // The following comment exists to force a full test suite build when terraform, terragrunt, and packer versions are
 // updated.
-// renovate.json auto-update-github-releases: hashicorp/terraform
+// patcher auto-update-github-releases: hashicorp/terraform
 // Test TF Version: 1.0.10
-// renovate.json auto-update: terragrunt
+// patcher auto-update: terragrunt
 // Test TG Version: v0.35.16
-// renovate.json auto-update: terratest
+// patcher auto-update: terratest
 // Test TT Version: v0.38.8
-// renovate.json auto-update-github-releases: hashicorp/packer
+// patcher auto-update-github-releases: hashicorp/packer
 // Test PCK Version: 1.7.8
 
 // Retry configuration constants

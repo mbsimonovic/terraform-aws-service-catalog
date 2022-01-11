@@ -30,7 +30,7 @@ resource "helm_release" "application" {
   name       = var.application_name
   repository = "https://helmcharts.gruntwork.io"
   chart      = "k8s-service"
-  # renovate.json auto-update: helm-kubernetes-services
+  # patcher auto-update: helm-kubernetes-services
   version   = "v0.2.9"
   namespace = var.namespace
 

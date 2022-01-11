@@ -33,7 +33,7 @@ import (
 )
 
 const (
-	// renovate.json auto-update-variable: terraform-aws-eks
+	// patcher auto-update-variable: terraform-aws-eks
 	terraformAWSEKSVersion = "v0.46.5"
 )
 

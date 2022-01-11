@@ -3,13 +3,13 @@
 
 set -e
 
-# renovate.json auto-update: terraform-aws-ecs
+# patcher auto-update: terraform-aws-ecs
 readonly DEFAULT_ECS_CLUSTER_VERSION="v0.31.8"
 
 # ECS tooling
-# renovate.json auto-update: terraform-aws-ecs
+# patcher auto-update: terraform-aws-ecs
 readonly DEFAULT_ECS_SCRIPTS_VERSION="v0.31.8"
-# renovate.json auto-update: gruntkms
+# patcher auto-update: gruntkms
 readonly DEFAULT_GRUNT_KMS_VERSION="v0.0.10"
 
 # You can set the version of the build tooling to this value to skip installing it

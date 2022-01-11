@@ -2,13 +2,13 @@
 # When executed by the gruntwork-installer, it's a NOP
 
 # Gruntwork module versions
-# renovate.json auto-update: bash-commons
+# patcher auto-update: bash-commons
 readonly DEFAULT_BASH_COMMONS_VERSION="v0.1.9"
-# renovate.json auto-update: terraform-aws-security
+# patcher auto-update: terraform-aws-security
 readonly DEFAULT_MODULE_SECURITY_VERSION="v0.57.1"
-# renovate.json auto-update: terraform-aws-monitoring
+# patcher auto-update: terraform-aws-monitoring
 readonly DEFAULT_MODULE_AWS_MONITORING_VERSION="v0.30.5"
-# renovate.json auto-update: terraform-aws-server
+# patcher auto-update: terraform-aws-server
 readonly DEFAULT_MODULE_STATEFUL_SERVER_VERSION="v0.13.7"
 
 # Enable / disable features
