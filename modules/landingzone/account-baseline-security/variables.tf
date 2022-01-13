@@ -860,6 +860,15 @@ variable "kms_customer_master_keys" {
   #                                                                   omitted, the key will be created in all enabled regions. Any keys
   #                                                                   targeting an opted out region or invalid region string will show up in the
   #                                                                   invalid_cmk_inputs output.
+  # - replica_regions                         list(string)          : The regions (e.g., us-west-2) where the key should be replicated using the
+  #                                                                   multi-region KMS key feature of AWS
+  #                                                                   (https://docs.aws.amazon.com/kms/latest/developerguide/multi-region-keys-overview.html).
+  #                                                                   When the special region "*" is included (e.g., replica_regions = ["*"]),
+  #                                                                   the key will be replicated in all enabled regions. This is different from
+  #                                                                   creating the key in every region using region = null - when creating
+  #                                                                   the key in every region, a new different key is provisioned for each region.
+  #                                                                   With replica_regions, the same key is replicated in every region such that
+  #                                                                   it can decrypt the same encrypted data in each region.
   # - cmk_administrator_iam_arns              list(string)          : A list of IAM ARNs for users who should be given
   #                                                                   administrator access to this CMK (e.g.
   #                                                                   arn:aws:iam::<aws-account-id>:user/<iam-user-arn>).
