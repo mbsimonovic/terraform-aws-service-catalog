@@ -23,7 +23,7 @@ inputs = {
     filters = [
       {
         name   = "name"
-        values = ["openvpn-server-v0.65.0-*"]
+        values = ["openvpn-server-v0.70.0-*"]
       },
     ]
   }

@@ -24,7 +24,7 @@ inputs = {
     filters = [
       {
         name   = "name"
-        values = ["eks-workers-v0.65.0-*"]
+        values = ["eks-workers-v0.70.0-*"]
       },
     ]
   }

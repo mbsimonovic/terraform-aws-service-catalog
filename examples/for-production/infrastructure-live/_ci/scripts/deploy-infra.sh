@@ -25,15 +25,18 @@ readonly script_path="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$script_path/helpers.sh"
 
 # Function that routes updates to various folders to specific CI/CD actions to take. For example, we ignore changes to
-# to the ecs-deploy-runner folder as they contain infrastructure to manage the ECS deploy runner, and currently the
-# deploy runner can't manage itself.
+# to the ecs-deploy-runner folder as they contain infrastructure to manage the ECS deploy runner,
+# and currently the deploy runner can't manage itself.
 function route {
   local -r updated_folder="$1"
 
   # Add to this condition if you have other modules you do not want to manage with ECS deploy runner.
   if [[ "$updated_folder" == "." ]]; then
     echo "WARNING: A configuration in the repository root has changed. Because this could potentially impact many configurations, an operator must run a plan-all or apply-all manually in each account."
-  elif [[ "$updated_folder" =~ "^.+/ecs-deploy-runner(/.+)?$" ]]; then
+  # As of bash 3.2, do not use double quotes around regular expressions.
+  elif [[ "$updated_folder" =~ ^.+/ecs-deploy-runner(/.+)?$ ]]; then
+    echo "No action defined for changes to $updated_folder."
+  elif [[ "$updated_folder" =~ ^_envcommon/mgmt/ecs-deploy-runner.hcl$ ]]; then
     echo "No action defined for changes to $updated_folder."
   else
     invoke_infrastructure_deployer "$@"
@@ -98,8 +101,12 @@ function handle_updated_folders {
 
   # Use git-updated-folders to find all the terragrunt modules that changed, and pipe that via xargs to the
   # infrastructure-deployer.
+  # Note that we ignore the _envcommon folder as that is handled in a different pipeline.
   local updated_folders
-  updated_folders="$(git-updated-folders --source-ref "$source_ref" --target-ref "$ref" --terragrunt --ext yaml --ext yml --exclude-deleted)"
+  updated_folders="$(
+    git-updated-folders --source-ref "$source_ref" --target-ref "$ref" --terragrunt --ext yaml --ext yml --exclude-deleted \
+      | (grep -Ev '^_envcommon' || true)
+  )"
 
   # Run plan or apply on modified modules.
   if [[ -z "$updated_folders" ]]; then
@@ -141,6 +148,41 @@ function handle_updated_envcommon {
   local updated_common_files
   updated_common_files="$(git-updated-files --source-ref "$source_ref" --target-ref "$ref" --ext .hcl --exclude-ext terragrunt.hcl)"
 
+  # We also look for updated data files in the _envcommon directory, and pull in the related .hcl files.
+  # We do this by running through git-updated-files looking for data file extensions (yaml + json), and then filtering
+  # out anything that isn't in the _envcommon dir.
+  # Note that in order to pull in related data files, we have to get the directory where the data file is defined so we
+  # also feed the results through dirname and uniquify it.
+  local xargs_options="-r"
+  if [[ $(uname -s) == "Darwin" ]]; then
+    xargs_options=""
+  fi
+  local updated_common_data_file_dirs
+  updated_common_data_file_dirs="$(
+    git-updated-files --source-ref "$source_ref" --target-ref "$ref" --ext .yaml --ext .yml --ext .json \
+      | (grep -E '^_envcommon' || true) \
+      | xargs ${xargs_options} -L1 dirname \
+      | sort -u
+  )"
+
+  # For each common data file dir, make sure to extract all the common hcl files in that dir and add to the
+  # updated_common_files list.
+  if [[ -n "$updated_common_data_file_dirs" ]]; then
+    # Note that this is the bash way to iterate a string variable line by line.
+    # See https://superuser.com/questions/284187/bash-iterating-over-lines-in-a-variable
+    local hcl_files_in_data_file_dir
+    while IFS= read -r line; do
+      hcl_files_in_data_file_dir="$(find "$line" -name "*.hcl")"
+      # Prepend with newline. Note that because we are using double quote, we can't use the escape character for the
+      # newline.
+      updated_common_files+="
+$hcl_files_in_data_file_dir"
+    done <<< "$updated_common_data_file_dirs"
+    # Trim leading and trailing whitespace by feeding to xargs
+    # See https://stackoverflow.com/questions/369758/how-to-trim-whitespace-from-a-bash-variable for an explanation.
+    updated_common_files="$(echo "$updated_common_files" | xargs -L1)"
+  fi
+
   # Run plan or apply on modified modules.
   if [[ -z "$updated_common_files" ]]; then
     echo "No modules were updated. Skipping $command."
@@ -149,15 +191,11 @@ function handle_updated_envcommon {
     echo "$updated_common_files"
     echo "Running $command on the children of each common file."
 
-    # The bash way to iterate a string variable line by line. Note that we prefix each line with a '../', as the path
-    # needs to be relative to the account folder.
-    # See https://superuser.com/questions/284187/bash-iterating-over-lines-in-a-variable
+    # See above about how we iterate string variables line by line.
     local command_args
     while IFS= read -r line; do
       command_args+=" --terragrunt-modules-that-include=../$line"
     done <<< "$updated_common_files"
-    # Trim leading and trailing whitespace by feeding to xargs
-    # See https://stackoverflow.com/questions/369758/how-to-trim-whitespace-from-a-bash-variable for an explanation.
     command_args="$(echo "$command_args" | xargs)"
 
     # Run in each account, as opposed to each file, as the command_args captures all the files that need to run already.
@@ -180,8 +218,12 @@ function handle_deleted_folders {
 
   # Use git-updated-folders to find all the terragrunt modules that were deleted, and pipe that via xargs to the
   # infrastructure-deployer.
+  # Note that we ignore the _envcommon folder as that is handled in a different pipeline.
   local deleted_folders
-  deleted_folders="$(git-updated-folders --source-ref "$source_ref" --target-ref "$ref" --terragrunt --ext yaml --ext yml --include-deleted-only)"
+  deleted_folders="$(
+    git-updated-folders --source-ref "$source_ref" --target-ref "$ref" --terragrunt --ext yaml --ext yml --include-deleted-only \
+      | (grep -Ev '^_envcommon' || true)
+  )"
 
   if [[ -z "$deleted_folders" ]]; then
     echo "No modules were deleted. Skipping $command."

@@ -135,6 +135,73 @@ That's it. Access the pipeline in the Actions tab in GitHub.
 For instructions on how to destroy infrastructure, see the [Undeploy guide](07-undeploy.md).
 
 
+### Rolling out changes to `_envcommon`
+
+There are two ways to roll out changes to common configuration files (the files in the `_envcommon` folder):
+
+- [Using the default pipeline behavior to roll out the change at
+  once.](#using-the-default-pipeline-behavior-to-roll-out-the-changes-at-once)
+- [Incrementally promote the change across the environments.](#incrementally-promote-the-change-across-the-environments)
+
+The pipeline supports both approaches. Which approach you go with depends on the risk tolerance of your team, and the
+risk level of the change you are trying to make. For example, updating tags across resources might be a safe change that
+can be rolled out across all environments at once without incremental approval. On the other hand, you may want more
+control over updating the major engine version of a database. Both approaches are valid, and we recommend adapting your
+approach to the one that best fits your needs.
+
+#### Using the default pipeline behavior to roll out the changes at once
+
+In the section above, we provided an overview of the CI/CD pipeline for the infrastructure code we ship with the
+Reference Architecture. The specific pipeline we ship handles the common files by deploying them in a loop based on [the
+configured deploy order](./06-adding-a-new-account.md#set-the-deploy-order). For example, if you updated
+[`_envcommon/networking/vpc-app.hcl`](/_envcommon/networking/vpc-app.hcl), the pipeline will deploy the following
+modules in order:
+
+- `dev/us-west-2/dev/networking/vpc`
+- `stage/us-west-2/stage/networking/vpc`
+- `prod/us-west-2/prod/networking/vpc`
+
+This deployment follows the standard pipeline. That is, the pipeline runs `plan` on the modules when the change is
+introduced in a PR, and then runs `apply` when the change is merged into `main`. This pipeline
+provides a convenient way to roll out changes that affect all environments, but has the following drawbacks:
+
+- To deploy the change, the code change must be merged into the `main` branch. This means that
+  there is risk to leave the infrastructure in an inconsistent state. For example, if there was a problem rolling out
+  the change to the `stage` environment, but none for `dev`, you could end up in a partially rolled out state where the
+  change was rolled out to `dev` and not the other environments. This could be problematic when you then try to update
+  `prod` for the same module, as the code change is now committed in the `main` where all
+  changes stem from.
+- The approval chain is for all environments, not one at a time. You won't be able to partially approve the change,
+  where you want to approve the deployment for `dev` but not `stage` or `prod`.
+- The output of the deployment is combined into one stream, making it harder to read. It won't be clear if the `plan`
+  you are reviewing is for the `prod` environment, or the `dev` environment, unless you scroll to the beginning of the
+  logs and read the lines carefully.
+
+#### Incrementally promote the change across the environments
+
+If you wish for an alternative workflow to roll out changes to `_envcommon` that trades off convenience for deployment
+control, you can take the following, step wise promotion approach:
+
+1. Make the change to the corresponding `terragrunt` module in the `dev` folder, such that it would override the common
+   settings. This change should be rolled out in isolation. E.g.:
+    1. Open a PR to update `dev/us-west-2/dev/networking/vpc` with the change you want to make.
+    1. Review and merge the PR independently of the other environments. The pipeline should run only against the `dev`
+       environment.
+    1. Check the deployed infrastructure to make sure it was successfully rolled out to the `dev` environment.
+
+1. Promote that change by making the same edits to the corresponding `terragrunt` module in the `stage` folder,
+   following the same pattern to isolate the change to only the `stage` environment.
+
+1. Repeat the steps in desired promotion order until all environments have the same change.
+
+1. Once the change is rolled out to all environments, promote it to `_envcommon/networking/vpc-app.hcl` and undo the
+   changes in the individual child `terragrunt.hcl` files. This should be a no-op from the infrastructure perspective.
+
+The advantage of this workflow is that now you have more control over when and how the change is propagated across your
+environments. However, to get that advantage, you must trade off the convenience of making the change in one place (you
+now need to repeat the change across the environments).
+
+
 ## CI / CD pipeline for app code
 
 The Reference Architecture also includes configuration files for setting up a CI / CD pipeline for your application code.

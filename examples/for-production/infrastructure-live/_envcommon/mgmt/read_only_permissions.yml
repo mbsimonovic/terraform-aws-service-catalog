@@ -80,6 +80,13 @@ EC2ServiceReadOnlyAccess:
   - "ec2:Get*"
   resources:
   - "*"
+ECSReadOnlyAccess:
+  effect: "Allow"
+  actions:
+  - "ecs:Describe*"
+  - "ecs:List*"
+  resources:
+  - "*"
 ECRReadOnlyAccess:
   effect: "Allow"
   actions:
@@ -201,15 +208,6 @@ DLMReadOnlyAccess:
   effect: Allow
   actions:
   - "dlm:List*"
-  resources:
-  - "*"
-
-
-ECSReadOnlyAccess:
-  effect: "Allow"
-  actions:
-  - "ecs:Describe*"
-  - "ecs:List*"
   resources:
   - "*"
 

@@ -12,7 +12,7 @@
 terraform {
   # We're using a local file path here just so our automated tests run against the absolute latest code. However, when
   # using these modules in your code, you should use a Git URL with a ref attribute that pins you to a specific version:
-  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/data-stores/rds?ref=v0.65.0"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/data-stores/rds?ref=v0.70.0"
   source = "${get_parent_terragrunt_dir()}/../../../../..//modules/data-stores/rds"
 }
 
@@ -87,6 +87,12 @@ inputs = {
   engine_version    = "8.0"
   instance_type     = "db.t3.micro"
   allocated_storage = "20"
+
+  # Configure the logs that should be shipped to CloudWatch
+  enabled_cloudwatch_logs_exports = ["error", "slowquery"]
+
+  # Enable deletion protection
+  enable_deletion_protection = true
 
   # Specifies whether to deploy a standby instance to another availability zone. RDS will automatically failover
   # to the standby in the event of a problem with the primary.

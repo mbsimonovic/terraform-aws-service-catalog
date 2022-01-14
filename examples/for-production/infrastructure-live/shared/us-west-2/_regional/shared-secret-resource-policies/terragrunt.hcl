@@ -10,7 +10,7 @@
 # locally, you can use --terragrunt-source /path/to/local/checkout/of/module to override the source parameter to a
 # local check out of the module for faster iteration.
 terraform {
-  source = "${local.source_base_url}?ref=v0.55.1"
+  source = "${local.source_base_url}?ref=v0.55.4"
 }
 # Include all settings from the root terragrunt.hcl file
 include {

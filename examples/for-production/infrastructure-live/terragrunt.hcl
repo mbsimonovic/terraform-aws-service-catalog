@@ -50,11 +50,12 @@ EOF
 remote_state {
   backend = "s3"
   config = {
-    encrypt        = true
-    bucket         = "${local.name_prefix}-${local.account_name}-${local.aws_region}-tf-state"
-    key            = "${path_relative_to_include()}/terraform.tfstate"
-    region         = local.aws_region
-    dynamodb_table = "terraform-locks"
+    encrypt                   = true
+    bucket                    = "${local.name_prefix}-${local.account_name}-${local.aws_region}-tf-state"
+    key                       = "${path_relative_to_include()}/terraform.tfstate"
+    region                    = local.aws_region
+    dynamodb_table            = "terraform-locks"
+    accesslogging_bucket_name = "${local.name_prefix}-${local.account_name}-${local.aws_region}-tf-logs"
   }
   generate = {
     path      = "backend.tf"

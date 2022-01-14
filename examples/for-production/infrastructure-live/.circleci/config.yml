@@ -38,9 +38,9 @@ defaults: &defaults
   machine:
     image: "ubuntu-1604:201903-01"
   environment:
-    GRUNTWORK_INSTALLER_VERSION: v0.0.36
-    MODULE_CI_VERSION: v0.39.5
-    MODULE_SECURITY_VERSION: v0.55.1
+    GRUNTWORK_INSTALLER_VERSION: v0.0.38
+    MODULE_CI_VERSION: v0.40.0
+    MODULE_SECURITY_VERSION: v0.55.4
 
 
 # This common step is used to determine the user friendly Git Ref name of the build, either the branch or tag.

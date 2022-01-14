@@ -15,7 +15,7 @@ set -e
 
 readonly PACKER_TEMPLATE_REPO="https://github.com/gruntwork-io/aws-sample-app.git//modules/mgmt/bastion-host/bastion-host-ubuntu.pkr.hcl"
 readonly PACKER_TEMPLATE_REPO_REF="v0.0.5"
-readonly SERVICE_CATALOG_REF="v0.65.0"
+readonly SERVICE_CATALOG_REF="v0.70.0"
 readonly DEPLOY_RUNNER_REGION="us-west-2"
 readonly REGION="us-west-2"
 readonly COPY_REGIONS=()

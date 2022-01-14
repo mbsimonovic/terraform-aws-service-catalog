@@ -12,7 +12,7 @@
 terraform {
   # We're using a local file path here just so our automated tests run against the absolute latest code. However, when
   # using these modules in your code, you should use a Git URL with a ref attribute that pins you to a specific version:
-  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/services/k8s-service?ref=v0.65.0"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/services/k8s-service?ref=v0.70.0"
   source = "${get_parent_terragrunt_dir()}/../../../../..//modules/services/k8s-service"
 }
 
@@ -131,7 +131,7 @@ inputs = {
 
   # Make sure that all requests to the ALB for the given hostname routes to the Pods, and that the ALB uses HTTPS to
   # when forwarding requests to the Pods (for End to End encryption).
-  ingress_path             = "/*"
+  ingress_path             = "/"
   ingress_backend_protocol = "HTTPS"
 
   # To make the service easier to discover, bind a domain name to the service from our Route 53 Public Hosted Zone.

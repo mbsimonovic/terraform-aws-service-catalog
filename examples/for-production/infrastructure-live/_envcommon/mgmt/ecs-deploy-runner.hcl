@@ -13,7 +13,7 @@
 terraform {
   # We're using a local file path here just so our automated tests run against the absolute latest code. However, when
   # using these modules in your code, you should use a Git URL with a ref attribute that pins you to a specific version:
-  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/mgmt/ecs-deploy-runner?ref=v0.66.1"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/mgmt/ecs-deploy-runner?ref=v0.70.0"
   source = "${get_parent_terragrunt_dir()}/../../../../..//modules/mgmt/ecs-deploy-runner"
 }
 
@@ -107,6 +107,11 @@ locals {
   git_ssh_private_key_secrets_manager_arn = "arn:aws:secretsmanager:us-west-2:234567890123:secret:GitSSHPrivateKey"
   github_pat_secrets_manager_arn          = ""
 
+  infrastructure_live_repositories = concat(
+    [local.common_vars.locals.infra_live_repo_https],
+    local.common_vars.locals.additional_plan_and_apply_repos,
+  )
+
   # The following locals are used for constructing multi region provider configurations for the underlying module.
   multi_region_vars = read_terragrunt_config(find_in_parent_folders("multi_region_common.hcl"))
   all_aws_regions   = local.multi_region_vars.locals.all_aws_regions
@@ -135,10 +140,7 @@ inputs = {
       docker_image = local.common_vars.locals.deploy_runner_ecr_uri
       docker_tag   = local.common_vars.locals.deploy_runner_container_image_tag
     }
-    infrastructure_live_repositories = concat(
-      [local.common_vars.locals.infra_live_repo_ssh],
-      local.common_vars.locals.additional_plan_and_apply_repos,
-    )
+    infrastructure_live_repositories        = local.infrastructure_live_repositories
     infrastructure_live_repositories_regex  = []
     repo_access_ssh_key_secrets_manager_arn = local.git_ssh_private_key_secrets_manager_arn
     repo_access_https_tokens = {
@@ -156,10 +158,7 @@ inputs = {
       docker_image = local.common_vars.locals.deploy_runner_ecr_uri
       docker_tag   = local.common_vars.locals.deploy_runner_container_image_tag
     }
-    infrastructure_live_repositories = concat(
-      [local.common_vars.locals.infra_live_repo_ssh],
-      local.common_vars.locals.additional_plan_and_apply_repos,
-    )
+    infrastructure_live_repositories       = local.infrastructure_live_repositories
     infrastructure_live_repositories_regex = []
     allowed_update_variable_names          = ["tag", "ami", "docker_tag", "ami_version_tag", ]
     allowed_apply_git_refs                 = ["main", "origin/main", ]
@@ -200,7 +199,7 @@ inputs = {
       filters = [
         {
           name   = "name"
-          values = ["ecs-deploy-runner-worker-v0.66.1-*"]
+          values = ["ecs-deploy-runner-worker-v0.70.0-*"]
         },
       ]
     }

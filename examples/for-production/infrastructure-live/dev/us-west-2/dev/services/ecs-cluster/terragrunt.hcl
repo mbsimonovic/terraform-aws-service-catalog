@@ -32,7 +32,7 @@ inputs = {
     filters = [
       {
         name   = "name"
-        values = ["ecs-cluster-instance-v0.65.0-*"]
+        values = ["ecs-cluster-instance-v0.70.0-*"]
       },
     ]
   }

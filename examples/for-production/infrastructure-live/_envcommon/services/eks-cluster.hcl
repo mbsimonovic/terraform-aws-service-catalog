@@ -12,7 +12,7 @@
 terraform {
   # We're using a local file path here just so our automated tests run against the absolute latest code. However, when
   # using these modules in your code, you should use a Git URL with a ref attribute that pins you to a specific version:
-  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/services/eks-cluster?ref=v0.65.0"
+  # source = "git::git@github.com:gruntwork-io/terraform-aws-service-catalog.git//modules/services/eks-cluster?ref=v0.70.0"
   source = "${get_parent_terragrunt_dir()}/../../../../..//modules/services/eks-cluster"
 }
 
@@ -122,7 +122,7 @@ inputs = {
     filters = [
       {
         name   = "name"
-        values = ["eks-workers-v0.65.0-*"]
+        values = ["eks-workers-v0.70.0-*"]
       },
     ]
   }
@@ -140,6 +140,7 @@ inputs = {
 
   allow_inbound_api_access_from_security_groups = [dependency.ecs_deploy_runner.outputs.security_group_allow_all_outbound_id]
   allow_private_api_access_from_security_groups = [dependency.network_bastion.outputs.security_group_id]
+  allow_inbound_ssh_from_security_groups        = [dependency.network_bastion.outputs.security_group_id]
 
   iam_role_to_rbac_group_mapping = {
     "arn:aws:iam::${local.common_vars.locals.account_ids[local.account_name]}:role/GruntworkAccountAccessRole" = ["system:masters"]
