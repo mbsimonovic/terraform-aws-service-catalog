@@ -71,3 +71,10 @@ inputs = {
   aws_region     = local.aws_region
   name_prefix    = local.common_vars.locals.name_prefix
 }
+
+#-----------------------------------------------------------------------------------------------------------------
+# ALLOW .terraform-version FILE TO BE COPIED
+#-----------------------------------------------------------------------------------------------------------------
+terraform {
+  include_in_copy = [".terraform-version"]
+}

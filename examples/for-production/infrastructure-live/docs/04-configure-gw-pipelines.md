@@ -16,6 +16,9 @@ code](https://gruntwork.io/guides/automations/how-to-configure-a-production-grad
 * [Update the CI / CD pipeline itself](#update-the-ci--cd-pipeline-itself): How to pull in changes to the pipeline from
   `terraform-aws-ci` and redeploy pipeline containers.
 
+* [Upgrade Terraform using the pipeline](#./09-upgrading.md#upgrade-terraform): An easy way to upgrade terraform
+  versions across your Reference Architecture.
+
 
 ## CI / CD pipeline for infrastructure code
 
@@ -332,11 +335,10 @@ Here are the manual steps for this process:
 ### Why manually?
 
 The CI / CD pipeline has a guard in place to avoid being updated automatically by the pipeline itself. This is so that
-you cannot accidentally lock yourself out of the pipeline when applying a change to the pipeline that changes
-permissions. For example, if you change the IAM permissions of the CI user, you may no longer be able to run the
-pipeline. The pipeline job that updates the permissions will also be affected by the change. This can be difficult to
-recover from because you will have lost access to make further changes. That's why we recommend the manual approach
-detailed above.
+you cannot accidentally lock yourself out of the pipeline when applying a change to permissions. For example, if you
+change the IAM permissions of the CI user, you may no longer be able to run the pipeline. The pipeline job that
+updates the permissions will also be affected by the change. This can be difficult to recover from because you will
+have lost access to make further changes. That's why we recommend the manual approach detailed above.
 
 If you are certain that your changes will not break the pipeline itself, you can go ahead and use the pipeline to
 update itself. To do this, you need to remove the guard that's in place, temporarily. That is, comment or remove the
