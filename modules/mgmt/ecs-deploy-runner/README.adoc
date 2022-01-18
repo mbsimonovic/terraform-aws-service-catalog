@@ -27,14 +27,15 @@ endif::[]
 image:https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg[link="https://gruntwork.io/?ref=repo_aws_service_catalog"]
 image:https://img.shields.io/badge/tf-%3E%3D1.0.0-blue.svg[Terraform version]
 
-This Terraform Module deploys ECS Deploy Runner, the central component of link:https://gruntwork.io/pipelines[Gruntwork Pipelines].
+This Terraform Module deploys ECS Deploy Runner, the central component of
+link:https://gruntwork.io/pipelines[Gruntwork Pipelines].
 
 
 image::../../../_docs/pipelines-architecture.png?raw=true[Gruntwork Pipelines architecture]
 
-Gruntwork Pipelines is a code framework and approach that enables you to use
-your preferred CI tool to set up an end-to-end pipeline for infrastructure code
-(Terraform) and app code packaged in multiple formats, including container images (Docker) and Amazon Machine Images (AMIs built with Packer).
+Gruntwork Pipelines is a code framework and approach that enables you to use your preferred CI tool to set up an
+end-to-end pipeline for infrastructure code (Terraform) and app code packaged in multiple formats, including container
+images (Docker) and Amazon Machine Images (AMIs built with Packer).
 
 
 toc::[]
@@ -42,11 +43,12 @@ toc::[]
 
 * Set up a Terraform and Terragrunt pipeline based on best practices
 * Run deployments using Fargate or EC2 tasks on the ECS cluster
-* Configure the pipeline for building Packer and Docker images and for running plan and apply operations
+* Configure the pipeline for building Packer and Docker images and for running `plan` and `apply` operations
 * Grant fine-grained permissions for running deployments with minimum necessary privileges
 * Stream output from the pipeline to CloudWatch Logs
 * Protect secrets needed by the pipeline using AWS Secrets Manager
 * Use KMS grants to allow the ECS task containers to access shared secrets and encrypted images between accounts
+* Easily upgrade Terraform versions with Terraform version management support
 
 
 
@@ -56,10 +58,10 @@ link:https://github.com/gruntwork-io/terraform-aws-ci[terraform-aws-ci] repo.
 
 == Learn
 
-NOTE: This repo is a part of the https://github.com/gruntwork-io/terraform-aws-service-catalog/[Gruntwork Service Catalog], a collection of
-reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
-sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/[How to use the Gruntwork
-Service Catalog]!
+NOTE: This repo is a part of the https://github.com/gruntwork-io/terraform-aws-service-catalog/[Gruntwork Service Catalog],
+a collection of reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog
+before, make sure to read
+https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/[How to use the Gruntwork Service Catalog]!
 
 === Core concepts
 
@@ -97,6 +99,7 @@ If you want to deploy this repo in production, check out the following resources
 * For examples of how to invoke the pipeline to build Docker images, refer to the link:/examples/for-production/infrastructure-live/shared/us-west-2/_regional/container_images[container image build scripts in the for-production examples]
 * To see how to use the pipeline with CircleCI, see the link:/examples/for-production/infrastructure-live/.circleci/config.yml[`.circleci/config.yml` example]
 * There is also link:/examples/for-production/infrastructure-live/_ci/scripts[a collection of scripts] for invoking the ecs-deploy-runner with any CI/CD system. These scripts are used in the circleci config, but can also be used with Jenkins, GitHub Actions, etc.
+* The ecs-deploy-runner supports running with multiple versions of Terraform to help you incrementally upgrade your infrastructure. Learn more about this in the link:https://github.com/gruntwork-io/terraform-aws-ci/blob/master/modules/ecs-deploy-runner/core-concepts.md#how-do-i-use-the-deploy-runner-with-multiple-terraform-versions[deploy-runner documentation].
 
 
 == Support
