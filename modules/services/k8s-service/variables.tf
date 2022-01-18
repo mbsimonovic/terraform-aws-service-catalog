@@ -326,7 +326,7 @@ variable "alb_health_check_protocol" {
 }
 
 variable "alb_health_check_port" {
-  description = "String value specifying the port that the ALB health check should probe. By default, this will be set to the traffic port."
+  description = "String value specifying the port that the ALB health check should probe. By default, this will be set to the traffic port (the NodePort or port where the service receives traffic). This can also be set to a Kubernetes named port, or direct integer value. See https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.3/guide/ingress/annotations/#healthcheck-port for more information."
   type        = string
   default     = "traffic-port"
 }
