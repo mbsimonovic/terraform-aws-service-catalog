@@ -83,6 +83,8 @@ locals {
     [for user in local.ip_lockdown_users : "'${user}'"],
   )
 
+  log_group_name = "${var.name}_log_group"
+
   user_data_vars = {
     backup_bucket_name = module.openvpn.backup_bucket_name
     kms_key_arn        = local.kms_key_arn
@@ -107,7 +109,7 @@ locals {
     vpn_subnet              = var.vpn_subnet
     init_openvpn_extra_args = join(" ", local.extra_args)
 
-    log_group_name                      = "${var.name}_log_group"
+    log_group_name                      = local.log_group_name
     enable_cloudwatch_log_aggregation   = var.enable_cloudwatch_log_aggregation
     enable_ssh_grunt                    = var.enable_ssh_grunt
     enable_fail2ban                     = var.enable_fail2ban
@@ -188,6 +190,12 @@ module "ec2_baseline" {
   cloud_init_parts                    = local.cloud_init_parts
   ami                                 = var.ami
   ami_filters                         = var.ami_filters
+
+  should_create_cloudwatch_log_group     = var.should_create_cloudwatch_log_group
+  cloudwatch_log_group_name              = local.log_group_name
+  cloudwatch_log_group_retention_in_days = var.cloudwatch_log_group_retention_in_days
+  cloudwatch_log_group_kms_key_id        = var.cloudwatch_log_group_kms_key_id
+  cloudwatch_log_group_tags              = var.cloudwatch_log_group_tags
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

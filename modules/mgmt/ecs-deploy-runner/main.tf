@@ -321,6 +321,12 @@ module "ec2_baseline" {
   # Disable ssh grunt, given the implications of such access to the CI/CD pipeline.
   enable_ssh_grunt                    = false
   external_account_ssh_grunt_role_arn = ""
+
+  should_create_cloudwatch_log_group     = var.should_create_cloudwatch_log_group_for_ec2
+  cloudwatch_log_group_name              = var.name
+  cloudwatch_log_group_retention_in_days = var.cloudwatch_log_group_for_ec2_retention_in_days
+  cloudwatch_log_group_kms_key_id        = var.cloudwatch_log_group_for_ec2_kms_key_id
+  cloudwatch_log_group_tags              = var.cloudwatch_log_group_for_ec2_tags
 }
 
 locals {

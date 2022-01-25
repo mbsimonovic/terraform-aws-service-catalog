@@ -186,6 +186,12 @@ module "ec2_baseline" {
 
   # We use custom alarms for ECS, as specified above
   enable_instance_cloudwatch_alarms = false
+
+  should_create_cloudwatch_log_group     = var.should_create_cloudwatch_log_group
+  cloudwatch_log_group_name              = local.log_group
+  cloudwatch_log_group_retention_in_days = var.cloudwatch_log_group_retention_in_days
+  cloudwatch_log_group_kms_key_id        = var.cloudwatch_log_group_kms_key_id
+  cloudwatch_log_group_tags              = var.cloudwatch_log_group_tags
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

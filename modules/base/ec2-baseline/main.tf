@@ -71,6 +71,22 @@ resource "aws_iam_role_policy" "cloudwatch_log_aggregation" {
   policy = module.cloudwatch_log_aggregation.cloudwatch_logs_permissions_json
 }
 
+# ------------------------------------------------------------------------------
+# ADD CLOUDWATCH LOG GROUP TO ALLOW FURTHER CUSTOMIZATION
+# The CloudWatch agent installed on the instances will automatically create the
+# CloudWatch Log Group, but the configuration options are fairly basic.
+# Therefore, we manage the CloudWatch Log Group here in Terraform to offer the
+# full range of configuration options on the group.
+# ------------------------------------------------------------------------------
+
+resource "aws_cloudwatch_log_group" "log_aggregation" {
+  count             = var.enable_cloudwatch_log_aggregation && var.should_create_cloudwatch_log_group ? 1 : 0
+  name              = var.cloudwatch_log_group_name
+  retention_in_days = var.cloudwatch_log_group_retention_in_days
+  kms_key_id        = var.cloudwatch_log_group_kms_key_id
+  tags              = var.cloudwatch_log_group_tags
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # ADD CLOUDWATCH ALARMS THAT GO OFF IF THE CPU, MEMORY, OR DISK USAGE ON AN INSTANCE GET TOO HIGH
 # ---------------------------------------------------------------------------------------------------------------------

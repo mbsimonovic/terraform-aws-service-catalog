@@ -100,12 +100,6 @@ variable "enable_cloudwatch_log_aggregation" {
   default     = true
 }
 
-variable "cloudwatch_log_group_name" {
-  description = "The name of the log group to create in CloudWatch. Defaults to `var.cluster_name-logs`."
-  type        = string
-  default     = ""
-}
-
 variable "tenancy" {
   description = "The tenancy of this server. Must be one of: default, dedicated, or host."
   type        = string
@@ -310,4 +304,36 @@ variable "disallowed_availability_zones" {
   description = "A list of availability zones in the region that should be skipped when deploying ECS. You can use this to avoid availability zones that may not be able to provision the resources (e.g instance type does not exist). If empty, allows all availability zones."
   type        = list(string)
   default     = []
+}
+
+# CloudWatch Log Group settings (for log aggregation)
+
+variable "should_create_cloudwatch_log_group" {
+  description = "When true, precreate the CloudWatch Log Group to use for log aggregation from the EC2 instances. This is useful if you wish to customize the CloudWatch Log Group with various settings such as retention periods and KMS encryption. When false, the CloudWatch agent will automatically create a basic log group to use."
+  type        = bool
+  default     = true
+}
+
+variable "cloudwatch_log_group_name" {
+  description = "The name of the log group to create in CloudWatch. Defaults to `var.cluster_name-logs`."
+  type        = string
+  default     = ""
+}
+
+variable "cloudwatch_log_group_retention_in_days" {
+  description = "The number of days to retain log events in the log group. Refer to https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group#retention_in_days for all the valid values. When null, the log events are retained forever."
+  type        = number
+  default     = null
+}
+
+variable "cloudwatch_log_group_kms_key_id" {
+  description = "The ID (ARN, alias ARN, AWS ID) of a customer managed KMS Key to use for encrypting log data."
+  type        = string
+  default     = null
+}
+
+variable "cloudwatch_log_group_tags" {
+  description = "Tags to apply on the CloudWatch Log Group, encoded as a map where the keys are tag keys and values are tag values."
+  type        = map(string)
+  default     = null
 }
