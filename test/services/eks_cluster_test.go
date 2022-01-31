@@ -277,6 +277,7 @@ func testEKSClusterWithCoreServicesAndAuthMerger(t *testing.T, parentWorkingDir 
 		// Set up vars to disable all the core services and verify nothing gets deployed.
 		coreServicesTerraformOptions.Vars["enable_fluent_bit"] = false
 		coreServicesTerraformOptions.Vars["enable_fargate_fluent_bit"] = false
+		coreServicesTerraformOptions.Vars["enable_aws_cloudwatch_agent"] = false
 		coreServicesTerraformOptions.Vars["enable_alb_ingress_controller"] = false
 		coreServicesTerraformOptions.Vars["enable_external_dns"] = false
 		coreServicesTerraformOptions.Vars["enable_cluster_autoscaler"] = false

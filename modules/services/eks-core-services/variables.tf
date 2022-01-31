@@ -189,6 +189,90 @@ variable "fargate_fluent_bit_extra_parsers" {
   default     = ""
 }
 
+# AWS CloudWatch Agent options
+
+variable "enable_aws_cloudwatch_agent" {
+  description = "Whether to enable the AWS CloudWatch Agent DaemonSet for collecting container and node metrics from worker nodes (self-managed ASG or managed node groups)."
+  type        = bool
+  default     = true
+}
+
+variable "aws_cloudwatch_agent_pod_tolerations" {
+  description = "Configure tolerations rules to allow the AWS CloudWatch Agent Pods to schedule on nodes that have been tainted. Each item in the list specifies a toleration rule."
+  type        = list(map(any))
+  default     = []
+
+  # Each item in the list represents a particular toleration. See
+  # https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/ for the various rules you can specify.
+  #
+  # Example:
+  #
+  # [
+  #   {
+  #     key = "node.kubernetes.io/unreachable"
+  #     operator = "Exists"
+  #     effect = "NoExecute"
+  #     tolerationSeconds = 6000
+  #   }
+  # ]
+}
+
+variable "aws_cloudwatch_agent_pod_node_affinity" {
+  description = "Configure affinity rules for the AWS CloudWatch Agent Pod to control which nodes to schedule on. Each item in the list should be a map with the keys `key`, `values`, and `operator`, corresponding to the 3 properties of matchExpressions. Note that all expressions must be satisfied to schedule on the node."
+  type = list(object({
+    key      = string
+    values   = list(string)
+    operator = string
+  }))
+  default = []
+
+  # Each item in the list represents a matchExpression for requiredDuringSchedulingIgnoredDuringExecution.
+  # https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity for the various
+  # configuration option.
+  #
+  # Example:
+  #
+  # [
+  #   {
+  #     "key" = "node-label-key"
+  #     "values" = ["node-label-value", "another-node-label-value"]
+  #     "operator" = "In"
+  #   }
+  # ]
+  #
+  # Translates to:
+  #
+  # nodeAffinity:
+  #   requiredDuringSchedulingIgnoredDuringExecution:
+  #     nodeSelectorTerms:
+  #     - matchExpressions:
+  #       - key: node-label-key
+  #         operator: In
+  #         values:
+  #         - node-label-value
+  #         - another-node-label-value
+}
+
+variable "aws_cloudwatch_agent_pod_resources" {
+  description = "Pod resource requests and limits to use. Refer to https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/ for more information."
+
+  # We use any type here to avoid maintaining the kubernetes defined type spec for the resources here. That way, we can
+  # support wide range of kubernetes versions.
+  type = any
+
+  # Example value:
+  # {
+  #   requests = {
+  #     memory = "1024Mi"
+  #     cpu    = "250m"
+  #   }
+  #   limits = {
+  #     memory = "1024Mi"
+  #     cpu    = "250m"
+  #   }
+  # }
+  default = null
+}
 
 
 # AWS ALB Ingress controller options

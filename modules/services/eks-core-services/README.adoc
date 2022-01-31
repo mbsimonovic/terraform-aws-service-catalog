@@ -45,6 +45,7 @@ toc::[]
 * Deploy ALB Ingress Controller to configure ALBs from within Kubernetes
 * Deploy external-dns to manage Route 53 DNS records from within Kubernetes
 * Deploy Kubernetes cluster-autoscaler to configure auto scaling of ASGs based on Pod demand
+* Deploy AWS CloudWatch Agent to configure container and node level metrics from worker nodes
 
 
 
@@ -70,6 +71,7 @@ https://github.com/gruntwork-io/terraform-aws-eks[terraform-aws-eks] repo.
 * https://github.com/gruntwork-io/terraform-aws-eks/blob/master/modules/eks-alb-ingress-controller[ALB Ingress Controller]
 * https://github.com/gruntwork-io/terraform-aws-eks/tree/master/modules/eks-k8s-external-dns[external-dns]
 * https://github.com/gruntwork-io/terraform-aws-eks/tree/master/modules/eks-k8s-cluster-autoscaler[cluster-autoscaler]
+* https://github.com/gruntwork-io/terraform-aws-eks/tree/master/modules/eks-cloudwatch-agent[EKS CloudWatch Agent]
 
 
 === Repo organization

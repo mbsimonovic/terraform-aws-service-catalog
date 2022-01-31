@@ -100,6 +100,12 @@ variable "enable_fargate_fluent_bit" {
   default     = true
 }
 
+variable "enable_aws_cloudwatch_agent" {
+  description = "Whether to enable the AWS CloudWatch Agent DaemonSet for collecting container and node metrics from worker nodes (self-managed ASG or managed node groups)."
+  type        = bool
+  default     = true
+}
+
 variable "enable_alb_ingress_controller" {
   description = "Whether or not to enable the AWS LB Ingress controller."
   type        = bool

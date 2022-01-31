@@ -155,6 +155,29 @@ locals {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
+# SETUP CLOUDWATCH METRICS
+# The following sets up and deploys AWS CloudWatch Agent as a DaemonSet to expose container and node metrics to
+# CloudWatch.
+# NOTE: At this time, metrics collection from EKS Container Insights is not supported by Fargate.
+# ---------------------------------------------------------------------------------------------------------------------
+
+module "aws_cloudwatch_agent" {
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cloudwatch-agent?ref=v0.47.2"
+
+  # The contents of the for each set is irrelevant as it is only used to enable the module.
+  for_each = var.enable_aws_cloudwatch_agent ? { enable = true } : {}
+
+  iam_role_for_service_accounts_config = var.eks_iam_role_for_service_accounts_config
+  iam_role_name_prefix                 = var.eks_cluster_name
+  eks_cluster_name                     = var.eks_cluster_name
+
+  pod_tolerations   = var.aws_cloudwatch_agent_pod_tolerations
+  pod_node_affinity = var.aws_cloudwatch_agent_pod_node_affinity
+  pod_resources     = var.aws_cloudwatch_agent_pod_resources
+}
+
+
+# ---------------------------------------------------------------------------------------------------------------------
 # SETUP AWS ALB INGRESS CONTROLLER
 # The following sets up and deploys the AWS ALB Ingress Controller, which will translate Ingress resources into ALBs.
 # ---------------------------------------------------------------------------------------------------------------------

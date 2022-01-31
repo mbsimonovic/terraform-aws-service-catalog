@@ -54,6 +54,7 @@ module "eks_core_services" {
   # Feature flags for each individual service
   enable_fluent_bit             = var.enable_fluent_bit
   enable_fargate_fluent_bit     = var.enable_fargate_fluent_bit
+  enable_aws_cloudwatch_agent   = var.enable_aws_cloudwatch_agent
   enable_alb_ingress_controller = var.enable_alb_ingress_controller
   enable_external_dns           = var.enable_external_dns
   enable_cluster_autoscaler     = var.enable_cluster_autoscaler
