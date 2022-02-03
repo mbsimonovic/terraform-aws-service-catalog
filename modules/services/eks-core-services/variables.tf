@@ -50,6 +50,7 @@ variable "fargate_worker_disallowed_availability_zones" {
     # The following zones are known to not support EKS Fargate.
     "us-east-1d",
     "us-east-1e",
+    "ca-central-1d",
   ]
 }
 
