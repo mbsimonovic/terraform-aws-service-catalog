@@ -107,6 +107,20 @@ locals {
     module.vpc.private_app_subnet_route_table_ids,
     module.vpc.private_persistence_route_table_ids,
   ))
+
+  # Ideally, this will be length(local.destination_route_tables) but terraform has restrictions around count depending
+  # on resources that don't exist, so we have to rely on summation logic using information that is available at plan
+  # time. Note that this requires some knowledge of route table logic in the vpc module.
+  # TODO: expose additional outputs in vpc module to help simplify this.
+  num_destination_route_tables = (
+    local.num_public_route_tables + local.num_private_app_route_tables + local.num_private_persistence_route_tables
+  )
+  # 1 route table for all public subnets
+  num_public_route_tables = var.create_public_subnets ? 1 : 0
+  # 1 route table for each AZ for private app and private persistence subnet tiers
+  num_private_app_route_tables         = var.create_private_app_subnets ? module.vpc.num_availability_zones : 0
+  num_private_persistence_route_tables = var.create_private_persistence_subnets ? module.vpc.num_availability_zones : 0
+
 }
 
 module "vpc_peering_connection" {
@@ -125,7 +139,7 @@ module "vpc_peering_connection" {
   destination_vpc_name             = module.vpc.vpc_name
   destination_vpc_cidr_block       = module.vpc.vpc_cidr_block
   destination_vpc_route_table_ids  = local.destination_route_tables
-  num_destination_vpc_route_tables = length(local.destination_route_tables)
+  num_destination_vpc_route_tables = local.num_destination_route_tables
 }
 
 data "aws_caller_identity" "current" {}

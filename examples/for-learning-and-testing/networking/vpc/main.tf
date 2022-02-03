@@ -22,9 +22,10 @@ module "vpc" {
   num_nat_gateways = var.num_nat_gateways
   vpc_name         = var.vpc_name
 
-  // Providing an existing key avoids to create a new one every run,
-  // this is good to avoid since each costs $1/month
-  kms_key_arn = data.aws_kms_key.kms_key.arn
+  # Providing an existing key avoids to create a new one every run, this is good to avoid since each costs $1/month
+  # NOTE: This is only used if create_flow_logs is true.
+  kms_key_arn      = length(data.aws_kms_key.kms_key) > 0 ? data.aws_kms_key.kms_key[0].arn : null
+  create_flow_logs = var.create_flow_logs
 }
 
 # ----------------------------------------------------------------------------------------------------------------------

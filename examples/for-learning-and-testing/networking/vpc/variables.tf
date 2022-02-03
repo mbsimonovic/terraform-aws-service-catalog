@@ -50,3 +50,39 @@ variable "instance_types" {
   type        = list(string)
   default     = ["t3.micro", "t2.micro"]
 }
+
+variable "create_peering_connection" {
+  description = "Whether or not to create a peering connection to another VPC."
+  type        = bool
+  default     = false
+}
+
+variable "origin_vpc_id" {
+  description = "The ID of the origin VPC to use when creating peering connections and DNS forwarding."
+  type        = string
+  default     = null
+}
+
+variable "origin_vpc_name" {
+  description = "The name of the origin VPC to use when creating peering connections and DNS forwarding."
+  type        = string
+  default     = null
+}
+
+variable "origin_vpc_route_table_ids" {
+  description = "A list of route tables from the origin VPC that should have routes to this app VPC."
+  type        = list(string)
+  default     = []
+}
+
+variable "origin_vpc_cidr_block" {
+  description = "The CIDR block of the origin VPC."
+  type        = string
+  default     = null
+}
+
+variable "origin_vpc_public_subnet_ids" {
+  description = "The public subnets in the origin VPC to use when creating route53 resolvers. These are public subnets due to network ACLs restrictions. Although the forwarder is addressable publicly, access is blocked by security groups."
+  type        = list(string)
+  default     = null
+}
