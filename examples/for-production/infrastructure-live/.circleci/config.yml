@@ -39,7 +39,7 @@ defaults: &defaults
     image: "ubuntu-1604:201903-01"
   environment:
     GRUNTWORK_INSTALLER_VERSION: v0.0.38
-    MODULE_CI_VERSION: v0.40.0
+    MODULE_CI_VERSION: v0.41.1
     MODULE_SECURITY_VERSION: v0.55.4
 
 

@@ -39,7 +39,7 @@ RUN if [ -z "$GITHUB_OAUTH_TOKEN" ]; then echo "ERROR: You must set GITHUB_OAUTH
 # These build args have defaults that can be overridden. For example, you can update the module ci version by passing
 # in: --build-arg MODULE_CI_VERSION=v0.24.0
 ARG GRUNTWORK_INSTALLER_VERSION=v0.0.38
-ARG MODULE_CI_VERSION=v0.40.0
+ARG MODULE_CI_VERSION=v0.41.1
 ARG MODULE_SECURITY_VERSION=v0.55.4
 
 

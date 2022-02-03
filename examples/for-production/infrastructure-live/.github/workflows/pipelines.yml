@@ -29,7 +29,7 @@ on:
 
 env:
   GRUNTWORK_INSTALLER_VERSION: v0.0.38
-  MODULE_CI_VERSION: v0.40.0
+  MODULE_CI_VERSION: v0.41.1
   MODULE_SECURITY_VERSION: v0.55.4
   # Disables the use of the Amazon EC2 instance metadata service (IMDS).
   # Forces the AWS CLI to use the env vars defined above for credentials.
