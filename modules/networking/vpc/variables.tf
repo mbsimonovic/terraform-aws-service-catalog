@@ -148,6 +148,12 @@ variable "availability_zone_exclude_names" {
   default     = []
 }
 
+variable "create_igw" {
+  description = "Whether the VPC will create an Internet Gateway. There are use cases when the VPC is desired to not be routable from the internet, and hence, they should not have an Internet Gateway. For example, when it is desired that public subnets exist but they are not directly public facing, since they can be routed from other VPC hosting the IGW."
+  type        = bool
+  default     = true
+}
+
 variable "create_public_subnets" {
   description = "If set to false, this module will NOT create the public subnet tier. This is useful for VPCs that only need private subnets. Note that setting this to false also means the module will NOT create an Internet Gateway or the NAT gateways, so if you want any public Internet access in the VPC (even outbound access—e.g., to run apt get), you'll need to provide it yourself via some other mechanism (e.g., via VPC peering, a Transit Gateway, Direct Connect, etc)."
   type        = bool
@@ -274,6 +280,28 @@ variable "private_persistence_subnet_cidr_blocks" {
   # }
 }
 
+variable "public_propagating_vgws" {
+  description = "A list of Virtual Private Gateways that will propagate routes to public subnets. All routes from VPN connections that use Virtual Private Gateways listed here will appear in route tables of public subnets. If left empty, no routes will be propagated."
+  type        = list(string)
+  default     = []
+  # Example:
+  #  default = ["vgw-07bf8d1a"]
+}
+
+variable "private_propagating_vgws" {
+  description = "A list of Virtual Private Gateways that will propagate routes to private subnets. All routes from VPN connections that use Virtual Private Gateways listed here will appear in route tables of private subnets. If left empty, no routes will be propagated."
+  type        = list(string)
+  default     = []
+  # Example:
+  #  default = ["vgw-07bf8d1a"]
+}
+
+variable "persistence_propagating_vgws" {
+  description = "A list of Virtual Private Gateways that will propagate routes to persistence subnets. All routes from VPN connections that use Virtual Private Gateways listed here will appear in route tables of persistence subnets. If left empty, no routes will be propagated."
+  type        = list(string)
+  default     = []
+}
+
 # ----------------------------------------------------------------------------------------------------------------------
 # OPTIONAL PARAMETERS FOR DEFAULT SECURITY GROUP AND DEFAULT NACL
 # ----------------------------------------------------------------------------------------------------------------------
@@ -389,6 +417,33 @@ variable "private_app_allow_inbound_ports_from_cidr" {
   default = {}
 }
 
+variable "private_app_allow_outbound_ports_to_destination_cidr" {
+  description = "A map of unique names to destination IP CIDR block and outbound ports that should be allowed in the private app subnet tier nACLs. This is useful when allowing your VPC specific outbound communication to defined CIDR blocks(known networks)"
+  type = map(
+    object({
+      # The destination CIDR block used for leaving VPC traffic. Traffic will be allowed only from VPC to destination CIDR block.
+      client_cidr_block = string
+
+      # A rule number indicating priority. A lower number has precedence. Note that the default rules created by this
+      # module start with 100.
+      rule_number = number
+
+      # Network protocol (tcp, udp, icmp, or all) to expose.
+      protocol = string
+
+      # Range of ports to expose.
+      from_port = number
+      to_port   = number
+
+      # ICMP types to expose
+      # Required if specifying ICMP for the protocol
+      icmp_type = number
+      icmp_code = number
+    })
+  )
+  default = {}
+}
+
 variable "create_peering_connection" {
   description = "Whether or not to create a peering connection to another VPC."
   type        = bool
@@ -442,7 +497,6 @@ variable "destination_vpc_resolver_name" {
   type        = string
   default     = null
 }
-
 
 variable "create_vpc_endpoints" {
   description = "Create VPC endpoints for S3 and DynamoDB."
