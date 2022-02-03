@@ -70,6 +70,12 @@ variable "kms_key_arn" {
   default     = null
 }
 
+variable "kms_key_deletion_window_in_days" {
+  description = "The number of days to retain this KMS Key (a Customer Master Key) after it has been marked for deletion. Setting to null defaults to the provider default, which is the maximum possible value (30 days)."
+  type        = number
+  default     = null
+}
+
 variable "allow_private_persistence_internet_access" {
   description = "Should the private persistence subnet be allowed outbound access to the internet?"
   type        = bool
@@ -373,6 +379,11 @@ variable "private_app_allow_inbound_ports_from_cidr" {
       # Range of ports to expose.
       from_port = number
       to_port   = number
+
+      # ICMP types to expose
+      # Required if specifying ICMP for the protocol
+      icmp_type = number
+      icmp_code = number
     })
   )
   default = {}

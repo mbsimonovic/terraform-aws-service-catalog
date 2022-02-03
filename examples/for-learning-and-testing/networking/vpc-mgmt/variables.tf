@@ -44,3 +44,11 @@ variable "instance_types" {
   type        = list(string)
   default     = ["t3.micro", "t2.micro"]
 }
+
+variable "kms_key_id" {
+  description = "The ID of a KMS key to use for encrypting VPC the flow log."
+  type        = string
+  default     = "alias/dedicated-test-key"
+}
+
+

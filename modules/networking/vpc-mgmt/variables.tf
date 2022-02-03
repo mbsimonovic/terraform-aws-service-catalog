@@ -150,6 +150,12 @@ variable "kms_key_arn" {
   default     = null
 }
 
+variable "kms_key_deletion_window_in_days" {
+  description = "The number of days to retain this KMS Key (a Customer Master Key) after it has been marked for deletion. Setting to null defaults to the provider default, which is the maximum possible value (30 days)."
+  type        = number
+  default     = null
+}
+
 variable "create_network_acls" {
   description = "If set to false, this module will NOT create Network ACLs. This is useful if you don't want to use Network ACLs or you want to provide your own Network ACLs outside of this module."
   type        = bool

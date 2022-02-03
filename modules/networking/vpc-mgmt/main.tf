@@ -23,7 +23,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "vpc" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-mgmt?ref=v0.18.7"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-mgmt?ref=v0.18.11"
 
   aws_region                      = var.aws_region
   vpc_name                        = var.vpc_name
@@ -60,13 +60,14 @@ module "vpc" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "vpc_flow_logs" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-flow-logs?ref=v0.18.7"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-flow-logs?ref=v0.18.11"
 
-  vpc_id                    = module.vpc.vpc_id
-  cloudwatch_log_group_name = "${module.vpc.vpc_name}-vpc-flow-logs"
-  kms_key_users             = var.kms_key_user_iam_arns
-  kms_key_arn               = var.kms_key_arn
-  create_resources          = var.create_flow_logs
+  vpc_id                          = module.vpc.vpc_id
+  cloudwatch_log_group_name       = "${module.vpc.vpc_name}-vpc-flow-logs"
+  kms_key_users                   = var.kms_key_user_iam_arns
+  kms_key_arn                     = var.kms_key_arn
+  kms_key_deletion_window_in_days = var.kms_key_deletion_window_in_days
+  create_resources                = var.create_flow_logs
 }
 
 
@@ -77,7 +78,7 @@ module "vpc_flow_logs" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "vpc_network_acls" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-mgmt-network-acls?ref=v0.18.7"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-mgmt-network-acls?ref=v0.18.11"
 
   create_resources = var.create_network_acls
 

@@ -22,6 +22,10 @@ module "vpc" {
   cidr_block       = var.cidr_block
   num_nat_gateways = var.num_nat_gateways
   create_flow_logs = var.create_flow_logs
+
+  # Providing an existing key avoids creating a new one every run.
+  # This is good to avoid since each costs $1/month.
+  kms_key_arn = data.aws_kms_key.kms_key.arn
 }
 
 # ----------------------------------------------------------------------------------------------------------------------
