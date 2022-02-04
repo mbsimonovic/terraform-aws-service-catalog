@@ -166,6 +166,16 @@ module "iam_cross_account_roles" {
   allow_auto_deploy_from_other_account_arns = var.allow_auto_deploy_from_other_account_arns
   cloudtrail_kms_key_arn                    = module.cloudtrail.kms_key_arn
 
+  allow_auto_deploy_from_github_actions = (
+    var.enable_github_actions_access && length(var.allow_auto_deploy_from_github_actions_for_sources) > 0
+    ? {
+      openid_connect_provider_arn = concat(aws_iam_openid_connect_provider.github_actions.*.arn, [""])[0]
+      openid_connect_provider_url = concat(aws_iam_openid_connect_provider.github_actions.*.url, [""])[0]
+      allowed_sources             = var.allow_auto_deploy_from_github_actions_for_sources
+    }
+    : null
+  )
+
   max_session_duration_human_users   = var.max_session_duration_human_users
   max_session_duration_machine_users = var.max_session_duration_machine_users
 }

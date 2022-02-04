@@ -222,6 +222,15 @@ module "iam_cross_account_roles" {
 
   auto_deploy_permissions                   = var.auto_deploy_permissions
   allow_auto_deploy_from_other_account_arns = var.allow_auto_deploy_from_other_account_arns
+  allow_auto_deploy_from_github_actions = (
+    var.enable_github_actions_access && length(var.allow_auto_deploy_from_github_actions_for_sources) > 0
+    ? {
+      openid_connect_provider_arn = concat(aws_iam_openid_connect_provider.github_actions.*.arn, [""])[0]
+      openid_connect_provider_url = concat(aws_iam_openid_connect_provider.github_actions.*.url, [""])[0]
+      allowed_sources             = var.allow_auto_deploy_from_github_actions_for_sources
+    }
+    : null
+  )
 
   cloudtrail_kms_key_arn = module.cloudtrail.kms_key_arn
 

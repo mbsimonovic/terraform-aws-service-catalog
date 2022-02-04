@@ -408,6 +408,16 @@ variable "allow_auto_deploy_from_other_account_arns" {
   # ]
 }
 
+variable "allow_auto_deploy_from_github_actions_for_sources" {
+  description = "Map of github repositories to the list of branches that are allowed to assume the IAM role. The repository should be encoded as org/repo-name (e.g., gruntwork-io/terrraform-aws-ci). Allows GitHub Actions to assume the auto deploy IAM role using an OpenID Connect Provider for the given repositories. Refer to the docs for github-actions-iam-role for more information. Note that this is mutually exclusive with var.allow_auto_deploy_from_other_account_arns. Only used if var.enable_github_actions_access is true. "
+  type        = map(list(string))
+  default     = {}
+  # Example:
+  # default = {
+  #   "gruntwork-io/terraform-aws-security" = ["main", "dev"]
+  # }
+}
+
 variable "auto_deploy_permissions" {
   description = "A list of IAM permissions (e.g. ec2:*) that will be added to an IAM Group for doing automated deployments. NOTE: If var.should_create_iam_group_auto_deploy is true, the list must have at least one element (e.g. '*')."
   type        = list(string)
