@@ -607,6 +607,15 @@ variable "autoscaling_group_include_autoscaler_discovery_tags" {
   default     = true
 }
 
+# VPC CNI Customization options
+
+variable "use_prefix_mode_to_calculate_max_pods" {
+  description = "When true, assumes prefix delegation mode is in use for the AWS VPC CNI component of the EKS cluster when computing max pods allowed on the node. In prefix delegation mode, each ENI will be allocated 16 IP addresses (/28) instead of 1, allowing you to pack more Pods per node."
+  type        = bool
+  default     = false
+}
+
+
 # CloudWatch Dashboard Widgets
 
 variable "dashboard_cpu_usage_widget_parameters" {

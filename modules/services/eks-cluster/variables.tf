@@ -262,6 +262,26 @@ variable "use_kubergrunt_to_fetch_token" {
 # Configure these if you would like to manage your EKS cluster worker pool with the control plane.
 # ---------------------------------------------------------------------------------------------------------------------
 
+# VPC CNI Pod networking configurations for self-managed and managed node groups.
+
+variable "vpc_cni_enable_prefix_delegation" {
+  description = "When true, enable prefix delegation mode for the AWS VPC CNI component of the EKS cluster. In prefix delegation mode, each ENI will be allocated 16 IP addresses (/28) instead of 1, allowing you to pack more Pods per node. Note that by default, AWS VPC CNI will always preallocate 1 full prefix - this means that you can potentially take up 32 IP addresses from the VPC network space even if you only have 1 Pod on the node. You can tweak this behavior by configuring the var.vpc_cni_warm_ip_target input variable."
+  type        = bool
+  default     = true
+}
+
+variable "vpc_cni_warm_ip_target" {
+  description = "The number of free IP addresses each node should maintain. When null, defaults to the aws-vpc-cni application setting (currently 16 as of version 1.9.0). In prefix delegation mode, determines whether the node will preallocate another full prefix. For example, if this is set to 5 and a node is currently has 9 Pods scheduled, then the node will NOT preallocate a new prefix block of 16 IP addresses. On the other hand, if this was set to the default value, then the node will allocate a new block when the first pod is scheduled."
+  type        = number
+  default     = null
+}
+
+variable "vpc_cni_minimum_ip_target" {
+  description = "The minimum number of IP addresses (free and used) each node should start with. When null, defaults to the aws-vpc-cni application setting (currently 16 as of version 1.9.0). For example, if this is set to 25, every node will allocate 2 prefixes (32 IP addresses). On the other hand, if this was set to the default value, then each node will allocate only 1 prefix (16 IP addresses)."
+  type        = number
+  default     = null
+}
+
 # Configuration options common to both self-managed and managed worker types
 
 variable "cluster_instance_ami" {
@@ -851,6 +871,7 @@ variable "dashboard_disk_usage_widget_parameters" {
   }
 }
 
+
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL PARAMETERS WITH RECOMMENDED DEFAULTS
 # These values shouldn't be changed unless you are testing things or you have good reasons to adjust these flags. All of
@@ -890,6 +911,12 @@ variable "cluster_instance_associate_public_ip_address" {
 
 variable "asg_use_resource_name_prefix" {
   description = "When true, all the relevant resources for self managed workers will be set to use the name_prefix attribute so that unique names are generated for them. This allows those resources to support recreation through create_before_destroy lifecycle rules. Set to false if you were using any version before 0.65.0 and wish to avoid recreating the entire worker pool on your cluster."
+  type        = bool
+  default     = true
+}
+
+variable "use_vpc_cni_customize_script" {
+  description = "When set to true, this will enable management of the aws-vpc-cni configuration options using kubergrunt running as a local-exec provisioner. If you set this to false, the vpc_cni_* variables will be ignored."
   type        = bool
   default     = true
 }

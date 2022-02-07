@@ -141,8 +141,9 @@ locals {
     enable_ip_lockdown = false
 
     # Extra args for bootstrap script
-    eks_kubelet_extra_args       = ""
-    eks_bootstrap_script_options = ""
+    use_prefix_mode_to_calculate_max_pods = var.use_prefix_mode_to_calculate_max_pods
+    eks_kubelet_extra_args                = ""
+    eks_bootstrap_script_options          = ""
   }
 
   # Trim excess whitespace, because AWS will do that on deploy. This prevents
@@ -168,7 +169,7 @@ locals {
 # is in use.
 
 module "eks_k8s_role_mapping" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.46.10"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.47.2"
 
   # Only setup the mapping if AWS Auth Merger is deployed.
   # The contents of the for each set is irrelevant as it is only used to enable the module.

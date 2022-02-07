@@ -9,7 +9,7 @@ env: &env
     # patcher auto-update: terratest
     TERRATEST_LOG_PARSER_VERSION: v0.38.8
     # patcher auto-update: kubergrunt
-    KUBERGRUNT_VERSION: v0.7.11
+    KUBERGRUNT_VERSION: v0.8.0
     # patcher auto-update: terraform-aws-ci
     MODULE_CI_VERSION: v0.40.0
     # patcher auto-update: terragrunt

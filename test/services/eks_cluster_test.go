@@ -27,6 +27,7 @@ import (
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/gruntwork-io/aws-service-catalog/test"
@@ -34,7 +35,7 @@ import (
 
 const (
 	// patcher auto-update-variable: terraform-aws-eks
-	terraformAWSEKSVersion = "v0.46.5"
+	terraformAWSEKSVersion = "v0.47.2"
 )
 
 var defaultDomainTagFilterForTest = []map[string]string{
@@ -69,6 +70,7 @@ func TestEksCluster(t *testing.T) {
 	//os.Setenv("SKIP_build_aws_auth_merger_image", "true")
 	//os.Setenv("SKIP_setup_deploy_terraform", "true")
 	//os.Setenv("SKIP_deploy_terraform", "true")
+	//os.Setenv("SKIP_check_perpetual_diff", "true")
 	//os.Setenv("SKIP_validate_cluster", "true")
 	//os.Setenv("SKIP_validate_core_services_optionality", "true")
 	//os.Setenv("SKIP_deploy_core_services", "true")
@@ -210,6 +212,7 @@ func testEKSClusterWithoutAuthMerger(t *testing.T, parentWorkingDir string) {
 
 	test_structure.RunTestStage(t, "validate_cluster", func() {
 		validateEKSCluster(t, workingDir, expectedEksNodeCountWithoutAuthMerger)
+		validateEKSClusterMaxPods(t, workingDir)
 	})
 }
 
@@ -422,6 +425,29 @@ func validateEKSCluster(t *testing.T, workingDir string, expectedEksNodeCount in
 	k8s.WaitUntilAllNodesReady(t, kubectlOptions, 30, 10*time.Second)
 	readyNodes := k8s.GetReadyNodes(t, kubectlOptions)
 	assert.Equal(t, len(readyNodes), expectedEksNodeCount)
+}
+
+// Validate that each physical worker node (non-Fargate) has the prefix delegation mode max pods setting set.
+func validateEKSClusterMaxPods(t *testing.T, workingDir string) {
+	kubectlOptions := test_structure.LoadKubectlOptions(t, workingDir)
+
+	nonFargateNodes := []corev1.Node{}
+	readyNodes := k8s.GetReadyNodes(t, kubectlOptions)
+	for _, node := range readyNodes {
+		_, hasComputeTypeLabel := node.ObjectMeta.Labels["eks.amazonaws.com/compute-type"]
+		if !hasComputeTypeLabel {
+			nonFargateNodes = append(nonFargateNodes, node)
+		}
+	}
+
+	// Expect 2 non-fargate nodes, and each one should set max pods to 110 when in prefix delegation mode.
+	assert.Equal(t, 2, len(nonFargateNodes))
+	for _, node := range nonFargateNodes {
+		maxPodsQuantity := node.Status.Capacity["pods"]
+		maxPods, converted := maxPodsQuantity.AsInt64()
+		require.True(t, converted)
+		assert.Equal(t, int64(110), maxPods)
+	}
 }
 
 // Setup the core services module terraform options in the test.

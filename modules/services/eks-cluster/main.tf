@@ -82,7 +82,7 @@ data "aws_eks_cluster_auth" "kubernetes_token" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "eks_cluster" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.46.10"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.47.2"
 
   cluster_name = var.cluster_name
 
@@ -94,6 +94,12 @@ module "eks_cluster" {
     for group_id in var.allow_private_api_access_from_security_groups :
     group_id => group_id
   }
+
+  # VPC CNI Customization options
+  use_vpc_cni_customize_script     = var.use_vpc_cni_customize_script
+  vpc_cni_enable_prefix_delegation = var.vpc_cni_enable_prefix_delegation
+  vpc_cni_warm_ip_target           = var.vpc_cni_warm_ip_target
+  vpc_cni_minimum_ip_target        = var.vpc_cni_minimum_ip_target
 
   enabled_cluster_log_types              = var.enabled_control_plane_log_types
   kubernetes_version                     = var.kubernetes_version
@@ -213,6 +219,9 @@ module "eks_workers" {
   cluster_instance_ami_filters = var.cluster_instance_ami_filters
   cloud_init_parts             = var.cloud_init_parts
 
+  # - VPC CNI options
+  use_prefix_mode_to_calculate_max_pods = var.vpc_cni_enable_prefix_delegation
+
   # - Security group settings
   additional_security_groups_for_workers = var.additional_security_groups_for_workers
   allow_inbound_ssh_from_cidr_blocks     = var.allow_inbound_ssh_from_cidr_blocks
@@ -319,7 +328,7 @@ resource "kubernetes_namespace" "aws_auth_merger" {
 }
 
 module "eks_aws_auth_merger" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-aws-auth-merger?ref=v0.46.10"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-aws-auth-merger?ref=v0.47.2"
   create_resources = var.enable_aws_auth_merger
 
   create_namespace       = false
@@ -335,7 +344,7 @@ module "eks_aws_auth_merger" {
 }
 
 module "eks_k8s_role_mapping" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.46.10"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.47.2"
 
   # Configure to create this in the merger namespace if using the aws-auth-merger. Otherwise create it as the main
   # config.

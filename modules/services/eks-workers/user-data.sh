@@ -29,11 +29,19 @@ function configure_eks_instance {
 
   start_fail2ban
 
+  %{ if use_prefix_mode_to_calculate_max_pods }
+  local max_pods
+  max_pods="$(/etc/eks/max-pods-calculator.sh --instance-type-from-imds --cni-version 1.9.0-eksbuild.1 --cni-prefix-delegation-enabled)"
+  %{ endif }
+
   echo "Running eks bootstrap script to register instance to cluster"
   /etc/eks/bootstrap.sh \
     --apiserver-endpoint "$eks_endpoint" \
     --b64-cluster-ca "$eks_certificate_authority" \
-    --kubelet-extra-args "--node-labels=\"$node_labels\" ${eks_kubelet_extra_args}" \
+    --kubelet-extra-args "--node-labels=\"$node_labels\"%{ if use_prefix_mode_to_calculate_max_pods } --max-pods=$max_pods%{ endif } ${eks_kubelet_extra_args}" \
+    %{ if use_prefix_mode_to_calculate_max_pods ~}
+    --use-max-pods false \
+    %{ endif ~}
     ${eks_bootstrap_script_options} "$eks_cluster_name"
 }
 
