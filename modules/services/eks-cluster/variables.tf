@@ -243,6 +243,24 @@ variable "enabled_control_plane_log_types" {
   default     = ["api", "audit", "authenticator"]
 }
 
+variable "control_plane_cloudwatch_log_group_retention_in_days" {
+  description = "The number of days to retain log events in the CloudWatch log group for EKS control plane logs. Refer to https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group#retention_in_days for all the valid values. When null, the log events are retained forever."
+  type        = number
+  default     = null
+}
+
+variable "control_plane_cloudwatch_log_group_kms_key_id" {
+  description = "The ID (ARN, alias ARN, AWS ID) of a customer managed KMS Key to use for encrypting log data in the CloudWatch log group for EKS control plane logs."
+  type        = string
+  default     = null
+}
+
+variable "control_plane_cloudwatch_log_group_tags" {
+  description = "Tags to apply on the CloudWatch Log Group for EKS control plane logs, encoded as a map where the keys are tag keys and values are tag values."
+  type        = map(string)
+  default     = null
+}
+
 # Properties of the EKS Cluster's EC2 Instances
 
 variable "use_exec_plugin_for_auth" {
@@ -917,6 +935,12 @@ variable "asg_use_resource_name_prefix" {
 
 variable "use_vpc_cni_customize_script" {
   description = "When set to true, this will enable management of the aws-vpc-cni configuration options using kubergrunt running as a local-exec provisioner. If you set this to false, the vpc_cni_* variables will be ignored."
+  type        = bool
+  default     = true
+}
+
+variable "should_create_control_plane_cloudwatch_log_group" {
+  description = "When true, precreate the CloudWatch Log Group to use for EKS control plane logging. This is useful if you wish to customize the CloudWatch Log Group with various settings such as retention periods and KMS encryption. When false, EKS will automatically create a basic log group to use. Note that logs are only streamed to this group if var.enabled_cluster_log_types is true."
   type        = bool
   default     = true
 }

@@ -82,7 +82,7 @@ data "aws_eks_cluster_auth" "kubernetes_token" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "eks_cluster" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.47.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.48.0"
 
   cluster_name = var.cluster_name
 
@@ -101,7 +101,13 @@ module "eks_cluster" {
   vpc_cni_warm_ip_target           = var.vpc_cni_warm_ip_target
   vpc_cni_minimum_ip_target        = var.vpc_cni_minimum_ip_target
 
+  # Control Plane logging configuration
   enabled_cluster_log_types              = var.enabled_control_plane_log_types
+  should_create_cloudwatch_log_group     = var.should_create_control_plane_cloudwatch_log_group
+  cloudwatch_log_group_retention_in_days = var.control_plane_cloudwatch_log_group_retention_in_days
+  cloudwatch_log_group_kms_key_id        = var.control_plane_cloudwatch_log_group_kms_key_id
+  cloudwatch_log_group_tags              = var.control_plane_cloudwatch_log_group_tags
+
   kubernetes_version                     = var.kubernetes_version
   endpoint_public_access                 = var.endpoint_public_access
   secret_envelope_encryption_kms_key_arn = var.secret_envelope_encryption_kms_key_arn
@@ -328,7 +334,7 @@ resource "kubernetes_namespace" "aws_auth_merger" {
 }
 
 module "eks_aws_auth_merger" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-aws-auth-merger?ref=v0.47.2"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-aws-auth-merger?ref=v0.48.0"
   create_resources = var.enable_aws_auth_merger
 
   create_namespace       = false
@@ -344,7 +350,7 @@ module "eks_aws_auth_merger" {
 }
 
 module "eks_k8s_role_mapping" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.47.2"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.48.0"
 
   # Configure to create this in the merger namespace if using the aws-auth-merger. Otherwise create it as the main
   # config.

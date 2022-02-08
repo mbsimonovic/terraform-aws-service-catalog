@@ -166,6 +166,18 @@ variable "fluent_bit_pod_node_affinity" {
   #         - another-node-label-value
 }
 
+variable "fluent_bit_version" {
+  description = "Which version of aws-for-fluent-bit to install. When null, uses the default version set in the chart. Only applies to non-fargate workers."
+  type        = string
+  default     = null
+}
+
+variable "fluent_bit_image_repository" {
+  description = "The Container repository to use for looking up the aws-for-fluent-bit Container image when deploying the pods. When null, uses the default repository set in the chart. Only applies to non-fargate workers."
+  type        = string
+  default     = null
+}
+
 variable "fargate_fluent_bit_execution_iam_role_arns" {
   description = "List of ARNs of Fargate execution IAM Roles that should get permissions to ship logs using fluent-bit. This must be provided if enable_fargate_fluent_bit is true."
   type        = list(string)
@@ -273,6 +285,18 @@ variable "aws_cloudwatch_agent_pod_resources" {
   #   }
   # }
   default = null
+}
+
+variable "aws_cloudwatch_agent_version" {
+  description = "Which version of amazon/cloudwatch-agent to install. When null, uses the default version set in the chart. Only applies to non-fargate workers."
+  type        = string
+  default     = null
+}
+
+variable "aws_cloudwatch_agent_image_repository" {
+  description = "The Container repository to use for looking up the cloudwatch-agent Container image when deploying the pods. When null, uses the default repository set in the chart. Only applies to non-fargate workers."
+  type        = string
+  default     = null
 }
 
 
