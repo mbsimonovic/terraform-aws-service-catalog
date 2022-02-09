@@ -36,7 +36,7 @@ Under the hood, this is all implemented using Terraform modules from the Gruntwo
 
 To understand core concepts like what is ECS, the different cluster types, how to authenticate to Kubernetes, and
 more, see the documentation in the
-[ecs module](https://github.com/gruntwork-io/terraform-aws-ecs) repo.
+[terraform-aws-ecs](https://github.com/gruntwork-io/terraform-aws-ecs) repo.
 
 ### Repo organization
 
