@@ -64,7 +64,7 @@ If you want to deploy this repo in production, check out the following resources
 ## Manage
 
 For information on how to manage your ECS cluster, see the documentation in the
-[module ecs](https://github.com/gruntwork-io/terraform-aws-ecs) repo.
+[terraform-aws-ecs](https://github.com/gruntwork-io/terraform-aws-ecs) repo.
 
 ## Contributions
 
