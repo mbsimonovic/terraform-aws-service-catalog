@@ -45,7 +45,7 @@ Under the hood, this is all implemented using Terraform modules from the Gruntwo
 ### Core concepts
 
 To understand core concepts like what is ECS, and the different cluster types, see the documentation in the
-[ecs module](https://github.com/gruntwork-io/terraform-aws-ecs) repo.
+[terraform-aws-ecs](https://github.com/gruntwork-io/terraform-aws-ecs) repo.
 
 To use ECS, you first deploy one or more EC2 Instances into a "cluster". The ECS scheduler can then deploy Docker
 containers across any of the instances in this cluster. Each instance needs to have the
