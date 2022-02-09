@@ -25,7 +25,7 @@ This folder contains code to deploy [Auto Scaling Groups](https://aws.amazon.com
 This repo is a part of the [Gruntwork Service Catalog](https://github.com/gruntwork-io/terraform-aws-service-catalog/), a collection of reusable, battle-tested, production ready infrastructure code. If you’ve never used the Service Catalog before, make sure to read [How to use the Gruntwork Service Catalog](https://docs.gruntwork.io/reference/services/intro/overview)!
 
 Under the hood, this is all implemented using Terraform modules from the Gruntwork
-[module-asg](https://github.com/gruntwork-io/terraform-aws-asg) repo. If you don’t have access to this repo, email
+[terraform-aws-asg](https://github.com/gruntwork-io/terraform-aws-asg) repo. If you don’t have access to this repo, email
 <support@gruntwork.io>.
 
 - [ASG Documentation](https://docs.aws.amazon.com/autoscaling/ec2/userguide/what-is-amazon-ec2-auto-scaling.html): Amazon’s docs for ASG that cover core concepts such as launch templates, launch configuration and auto scaling groups.
