@@ -29,7 +29,7 @@ Container Service (ECS)](https://docs.aws.amazon.com/AmazonECS/latest/developerg
 This repo is a part of the [Gruntwork Service Catalog](https://github.com/gruntwork-io/terraform-aws-service-catalog/), a collection of reusable, battle-tested, production ready infrastructure code. If you’ve never used the Service Catalog before, make sure to read [How to use the Gruntwork Service Catalog](https://docs.gruntwork.io/reference/services/intro/overview)!
 
 Under the hood, this is all implemented using Terraform modules from the Gruntwork
-[module-ecs](https://github.com/gruntwork-io/terraform-aws-ecs) repo. If you don’t have access to this repo, email
+[terraform-aws-ecs](https://github.com/gruntwork-io/terraform-aws-ecs) repo. If you don’t have access to this repo, email
 <support@gruntwork.io>.
 
 ### Core concepts
