@@ -41,7 +41,7 @@ Service Catalog](https://docs.gruntwork.io/reference/services/intro/overview)!
 
 To understand core concepts like why you should use a bastion host, how to connect to the bastion host, how to use the
 bastion host as a "jump host" to connect to other instances, port forwarding, and more, see the [bastion-host
-documentation](https://github.com/gruntwork-io/terraform-aws-server/tree/master/examples/bastion-host) documentation in the [module-server](https://github.com/gruntwork-io/terraform-aws-server) repo.
+documentation](https://github.com/gruntwork-io/terraform-aws-server/tree/master/examples/bastion-host) documentation in the [terraform-aws-server](https://github.com/gruntwork-io/terraform-aws-server) repo.
 
 ### The bastion host AMI
 
