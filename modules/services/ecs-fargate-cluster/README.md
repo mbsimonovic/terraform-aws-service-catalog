@@ -30,7 +30,7 @@ sure to read [How to use the Gruntwork
 Service Catalog](https://docs.gruntwork.io/reference/services/intro/overview)!
 
 Under the hood, this is all implemented using Terraform modules from the Gruntwork
-[module-ecs](https://github.com/gruntwork-io/terraform-aws-ecs) repo. If you don’t have access to this repo, email
+[terraform-aws-ecs](https://github.com/gruntwork-io/terraform-aws-ecs) repo. If you don’t have access to this repo, email
 <support@gruntwork.io>.
 
 ### Core concepts
