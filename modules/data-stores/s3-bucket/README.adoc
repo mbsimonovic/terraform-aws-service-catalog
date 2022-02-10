@@ -42,7 +42,7 @@ toc::[]
 == Learn
 NOTE: This repo is a part of the https://github.com/gruntwork-io/terraform-aws-service-catalog/[Gruntwork Service Catalog], a collection of
 reusable, battle-tested, production ready infrastructure code. If you've never used the Service Catalog before, make
-sure to read https://gruntwork.io/guides/foundations/how-to-use-gruntwork-service-catalog/[How to use the Gruntwork
+sure to read https://docs.gruntwork.io/reference/services/intro/overview[How to use the Gruntwork
 Service Catalog]!
 
 * https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/private-s3-bucket[Gruntwork private-s3-bucket module]: The underlying module that implements the private S3 bucket functionality.
