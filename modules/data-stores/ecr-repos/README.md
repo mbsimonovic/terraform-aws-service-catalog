@@ -23,10 +23,11 @@ This folder contains code to create and manage multiple [Amazon Elastic Containe
 ## Learn
 
 > **NOTE**
-This repo is a part of the [Gruntwork Service Catalog](https://github.com/gruntwork-io/terraform-aws-service-catalog/), a collection of
-reusable, battle-tested, production ready infrastructure code. If you’ve never used the Service Catalog before, make
-sure to read [How to use the Gruntwork
-Service Catalog](https://docs.gruntwork.io/reference/services/intro/overview)!
+>
+> This repo is a part of the [Gruntwork Service Catalog](https://github.com/gruntwork-io/terraform-aws-service-catalog/),
+> a collection of reusable, battle-tested, production ready infrastructure code.
+> If you’ve never used the Service Catalog before, make sure to read
+> [How to use the Gruntwork Service Catalog](https://docs.gruntwork.io/reference/services/intro/overview)!
 
 - [ECR documentation](https://docs.aws.amazon.com/AmazonECR/latest/userguide/what-is-ecr.html): Amazon’s docs for ECR that
     cover core concepts such as repository URLs, image scanning, and access control.

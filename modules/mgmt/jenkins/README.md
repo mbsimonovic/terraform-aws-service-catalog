@@ -34,8 +34,11 @@ This folder contains code to deploy [Jenkins CI Server](https://jenkins.io/) on 
 ## Learn
 
 > **NOTE**
-This repo is a part of the [Gruntwork Service Catalog](https://github.com/gruntwork-io/terraform-aws-service-catalog/), a collection of reusable, battle-tested, production ready infrastructure code. If you’ve never used the Service Catalog before, make
-sure to read [How to use the Gruntwork Service Catalog](https://docs.gruntwork.io/reference/services/intro/overview)!
+>
+> This repo is a part of the [Gruntwork Service Catalog](https://github.com/gruntwork-io/terraform-aws-service-catalog/),
+> a collection of reusable, battle-tested, production ready infrastructure code.
+> If you’ve never used the Service Catalog before, make sure to read
+> [How to use the Gruntwork Service Catalog](https://docs.gruntwork.io/reference/services/intro/overview)!
 
 - [CI/ CD Core Concepts](https://gruntwork.io/guides/automation-and-workflows/how-to-configure-a-production-grade-ci-cd-setup-for-apps-and-infrastructure-code/#core_concepts): An overview of the core concepts you need to understand what a typical CI/CD pipeline entails for application and infrastructure code, including a sample workflow, infrastructure to support CI/CD, and threat models to consider to protect your infrastructure.
 

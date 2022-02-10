@@ -26,7 +26,11 @@ This module creates a public static website using [S3](https://docs.aws.amazon.c
 Serving static content from S3 rather than from your own app server can significantly reduce the load on your server, allowing it to focus on serving dynamic data. This saves money and makes your website run faster. For even bigger improvements in performance, deploy a CloudFront Content Distribution Network (CDN) in front of the S3 bucket.
 
 > **NOTE**
-This repo is a part of the [Gruntwork Service Catalog](https://github.com/gruntwork-io/terraform-aws-service-catalog/), a collection of reusable, battle-tested, production ready infrastructure code. If you’ve never used the Service Catalog before, make sure to read [How to use the Gruntwork Service Catalog](https://docs.gruntwork.io/reference/services/intro/overview)!
+>
+> This repo is a part of the [Gruntwork Service Catalog](https://github.com/gruntwork-io/terraform-aws-service-catalog/),
+> a collection of reusable, battle-tested, production ready infrastructure code.
+> If you’ve never used the Service Catalog before, make sure to read
+> [How to use the Gruntwork Service Catalog](https://docs.gruntwork.io/reference/services/intro/overview)!
 
 ### Core concepts
 

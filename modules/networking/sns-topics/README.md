@@ -18,8 +18,11 @@ This folder contains code to create [Amazon SNS topics](https://aws.amazon.com/s
 ## Learn
 
 > **NOTE**
-This repo is a part of the [Gruntwork Service Catalog](https://github.com/gruntwork-io/terraform-aws-service-catalog/), a collection of reusable, battle-tested, production ready infrastructure code. If you’ve never used the Service Catalog before, make
-sure to read [How to use the Gruntwork Service Catalog](https://docs.gruntwork.io/reference/services/intro/overview)!
+>
+> This repo is a part of the [Gruntwork Service Catalog](https://github.com/gruntwork-io/terraform-aws-service-catalog/),
+> a collection of reusable, battle-tested, production ready infrastructure code.
+> If you’ve never used the Service Catalog before, make sure to read
+> [How to use the Gruntwork Service Catalog](https://docs.gruntwork.io/reference/services/intro/overview)!
 
 - [SNS Documentation](https://docs.aws.amazon.com/sns/): Amazon’s docs for SNS that cover core concepts and configuration
 

@@ -24,10 +24,11 @@ automatic node discovery, recovery from failures, patching, and the ability to s
 ## Learn
 
 > **NOTE**
-This repo is a part of the [Gruntwork Service Catalog](https://github.com/gruntwork-io/terraform-aws-service-catalog/), a collection of
-reusable, battle-tested, production ready infrastructure code. If you’ve never used the Service Catalog before, make
-sure to read [How to use the Gruntwork
-Service Catalog](https://docs.gruntwork.io/reference/services/intro/overview)!
+>
+> This repo is a part of the [Gruntwork Service Catalog](https://github.com/gruntwork-io/terraform-aws-service-catalog/),
+> a collection of reusable, battle-tested, production ready infrastructure code.
+> If you’ve never used the Service Catalog before, make sure to read
+> [How to use the Gruntwork Service Catalog](https://docs.gruntwork.io/reference/services/intro/overview)!
 
 - [Amazon ElastiCache for Memcached documentation](https://docs.aws.amazon.com/AmazonElastiCache/latest/mem-ug/WhatIs.html): Amazon’s ElastiCache for Memcached docs that
     cover core concepts such as the options and versions supported, security, backup & restore, and monitoring.
