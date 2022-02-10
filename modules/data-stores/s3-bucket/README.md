@@ -20,10 +20,11 @@ This folder contains code to deploy an [S3 bucket](https://aws.amazon.com/s3/) o
 ## Learn
 
 > **NOTE**
-This repo is a part of the [Gruntwork Service Catalog](https://github.com/gruntwork-io/terraform-aws-service-catalog/), a collection of
-reusable, battle-tested, production ready infrastructure code. If you’ve never used the Service Catalog before, make
-sure to read [How to use the Gruntwork
-Service Catalog](https://docs.gruntwork.io/reference/services/intro/overview)!
+>
+> This repo is a part of the [Gruntwork Service Catalog](https://github.com/gruntwork-io/terraform-aws-service-catalog/),
+> a collection of reusable, battle-tested, production ready infrastructure code.
+> If you’ve never used the Service Catalog before, make sure to read
+> [How to use the Gruntwork Service Catalog](https://docs.gruntwork.io/reference/services/intro/overview)!
 
 - [Gruntwork private-s3-bucket module](https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/private-s3-bucket): The underlying module that implements the private S3 bucket functionality.
 
