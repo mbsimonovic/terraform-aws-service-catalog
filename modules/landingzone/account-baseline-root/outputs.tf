@@ -249,11 +249,11 @@ output "allow_logs_access_sign_in_url" {
 }
 
 output "allow_ssh_grunt_access_sign_in_url" {
-  value = module.iam_cross_account_roles.allow_read_only_access_from_other_accounts_iam_role_arn
+  value = module.iam_cross_account_roles.allow_ssh_grunt_access_sign_in_url
 }
 
 output "allow_ssh_grunt_houston_access_sign_in_url" {
-  value = module.iam_cross_account_roles.allow_ssh_grunt_access_sign_in_url
+  value = module.iam_cross_account_roles.allow_ssh_grunt_houston_access_sign_in_url
 }
 
 output "allow_dev_access_sign_in_url" {
