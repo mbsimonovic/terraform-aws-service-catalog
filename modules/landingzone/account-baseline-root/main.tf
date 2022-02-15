@@ -245,7 +245,9 @@ module "iam_groups" {
   should_create_iam_group_auto_deploy            = var.should_create_iam_group_auto_deploy
   should_create_iam_group_houston_cli_users      = var.should_create_iam_group_houston_cli_users
 
-  auto_deploy_permissions = var.auto_deploy_permissions
+  iam_group_names_ssh_grunt_sudo_users = var.iam_group_names_ssh_grunt_sudo_users
+  iam_group_names_ssh_grunt_users      = var.iam_group_names_ssh_grunt_users
+  auto_deploy_permissions              = var.auto_deploy_permissions
 
   cloudtrail_kms_key_arn = local.cloudtrail_kms_key_arn_with_dependency
 }

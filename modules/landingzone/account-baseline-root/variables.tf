@@ -552,6 +552,18 @@ variable "should_create_iam_group_houston_cli_users" {
   default     = false
 }
 
+variable "iam_group_names_ssh_grunt_sudo_users" {
+  description = "The list of names to be used for the IAM Group that enables its members to SSH as a sudo user into any server configured with the ssh-grunt Gruntwork module. Pass in multiple to configure multiple different IAM groups to control different groupings of access at the server level. Pass in empty list to disable creation of the IAM groups."
+  type        = list(string)
+  default     = []
+}
+
+variable "iam_group_names_ssh_grunt_users" {
+  description = "The name to be used for the IAM Group that enables its members to SSH as a non-sudo user into any server configured with the ssh-grunt Gruntwork module. Pass in multiple to configure multiple different IAM groups to control different groupings of access at the server level. Pass in empty list to disable creation of the IAM groups."
+  type        = list(string)
+  default     = []
+}
+
 variable "cross_account_access_all_group_name" {
   description = "The name of the IAM group that will grant access to all external AWS accounts in var.iam_groups_for_cross_account_access."
   type        = string
