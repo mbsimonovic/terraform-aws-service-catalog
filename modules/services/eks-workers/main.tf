@@ -13,10 +13,11 @@ terraform {
   # for provider binary validation.
   required_version = ">= 0.13.7"
 
+  # AWS provider 4.x was released with backward incompatibilities that this module is not yet adapted to.
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = ">= 3.0"
+      version = ">= 3.0, < 4.0"
     }
   }
 }

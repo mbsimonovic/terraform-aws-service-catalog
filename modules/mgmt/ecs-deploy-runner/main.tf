@@ -14,10 +14,11 @@ terraform {
   # forwards compatible with 1.0.x code.
   required_version = ">= 0.15.1"
 
+  # AWS provider 4.x was released with backward incompatibilities that this module is not yet adapted to.
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = ">= 2.6"
+      version = ">= 2.6, < 4.0"
 
       configuration_aliases = [
         aws.af_south_1,

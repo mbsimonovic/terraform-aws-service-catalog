@@ -10,8 +10,9 @@ terraform {
 
   required_providers {
     aws = {
-      source  = "hashicorp/aws"
-      version = ">= 2.58"
+      source = "hashicorp/aws"
+      # AWS provider 4.x was released with backward incompatibilities that this module is not yet adapted to.
+      version = ">= 2.58, < 4.0"
       configuration_aliases = [
         aws.af_south_1,
         aws.ap_east_1,

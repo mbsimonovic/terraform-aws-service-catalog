@@ -11,10 +11,11 @@ terraform {
   # https://www.terraform.io/docs/language/values/variables.html#custom-validation-rules
   required_version = ">= 0.13.7"
 
+  # AWS provider 4.x was released with backward incompatibilities that this module is not yet adapted to.
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = ">= 2.6"
+      version = ">= 2.6, < 4.0"
     }
   }
 }

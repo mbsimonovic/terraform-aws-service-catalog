@@ -10,8 +10,9 @@ terraform {
 
   required_providers {
     aws = {
-      source  = "hashicorp/aws"
-      version = ">= 2.68"
+      source = "hashicorp/aws"
+      # AWS provider 4.x was released with backward incompatibilities that this module is not yet adapted to.
+      version = ">= 2.68, < 4.0"
     }
   }
 }
