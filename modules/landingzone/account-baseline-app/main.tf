@@ -255,10 +255,14 @@ module "cloudtrail" {
 
   create_resources      = var.enable_cloudtrail
   is_multi_region_trail = true
-  cloudtrail_trail_name = var.name_prefix
-  s3_bucket_name        = var.cloudtrail_s3_bucket_name != null ? var.cloudtrail_s3_bucket_name : "${var.name_prefix}-cloudtrail"
-  s3_mfa_delete         = var.cloudtrail_s3_mfa_delete
-  tags                  = var.cloudtrail_tags
+  cloudtrail_trail_name = (
+    var.custom_cloudtrail_trail_name != null
+    ? var.custom_cloudtrail_trail_name
+    : var.name_prefix
+  )
+  s3_bucket_name = var.cloudtrail_s3_bucket_name != null ? var.cloudtrail_s3_bucket_name : "${var.name_prefix}-cloudtrail"
+  s3_mfa_delete  = var.cloudtrail_s3_mfa_delete
+  tags           = var.cloudtrail_tags
 
   num_days_after_which_archive_log_data = var.cloudtrail_num_days_after_which_archive_log_data
   num_days_after_which_delete_log_data  = var.cloudtrail_num_days_after_which_delete_log_data

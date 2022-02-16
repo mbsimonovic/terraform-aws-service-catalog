@@ -733,6 +733,12 @@ variable "enable_cloudtrail" {
   default     = true
 }
 
+variable "custom_cloudtrail_trail_name" {
+  description = "A custom name to use for the Cloudtrail Trail. If null, defaults to the var.name_prefix input variable."
+  type        = string
+  default     = null
+}
+
 variable "cloudtrail_s3_bucket_name" {
   description = "The name of the S3 Bucket where CloudTrail logs will be stored. If value is `null`, defaults to `var.name_prefix`-cloudtrail"
   type        = string
