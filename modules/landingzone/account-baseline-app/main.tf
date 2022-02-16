@@ -145,7 +145,7 @@ module "config" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 module "iam_cross_account_roles" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/cross-account-iam-roles?ref=v0.59.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-security.git//modules/cross-account-iam-roles?ref=v0.60.3"
 
   create_resources = var.enable_iam_cross_account_roles
 
