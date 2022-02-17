@@ -1,20 +1,30 @@
+---
+type: service
+name: S3 Bucket
+description: Deploy an S3 bucket for data storage, with support for access logging, versioning and replication.
+category: data-store
+cloud: aws
+tags: ["s3", "data", "storage"]
+license: gruntwork
+built-with: terraform
+---
+
 # S3 Bucket
 
 ![Maintained by Gruntwork](https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg)
 ![Terraform version](https://img.shields.io/badge/tf-%3E%3D1.0.0-blue.svg)
 
-This folder contains code to deploy an [S3 bucket](https://aws.amazon.com/s3/) on AWS.
+## Overview
+
+This service contains code to deploy an [S3 bucket](https://aws.amazon.com/s3/) on AWS.
 
 ![S3 bucket architecture](../../../_docs/s3-bucket-architecture.png?raw=true)
 
 ## Features
 
 - Deploy a private, secure S3 bucket
-
 - Configure access logging to another S3 bucket
-
 - Configure object versioning
-
 - Configure cross-region replication
 
 ## Learn
@@ -28,7 +38,8 @@ This folder contains code to deploy an [S3 bucket](https://aws.amazon.com/s3/) o
 
 - [Gruntwork private-s3-bucket module](https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/private-s3-bucket): The underlying module that implements the private S3 bucket functionality.
 
-- [S3 Documentation](https://docs.aws.amazon.com/AmazonS3/latest/gsg/GetStartedWithS3.html): Amazon’s docs for S3 that cover core concepts such as creating, accessing, copying and deleting buckets.
+- [S3 Documentation](https://docs.aws.amazon.com/AmazonS3/latest/gsg/GetStartedWithS3.html): Amazon’s docs for S3 that
+  cover core concepts such as creating, accessing, copying and deleting buckets.
 
 ## Deploy
 
@@ -37,36 +48,32 @@ This folder contains code to deploy an [S3 bucket](https://aws.amazon.com/s3/) o
 If you just want to try this repo out for experimenting and learning, check out the following resources:
 
 - [examples/for-learning-and-testing folder](/examples/for-learning-and-testing): The
-    `examples/for-learning-and-testing` folder contains standalone sample code optimized for learning, experimenting, and
-    testing (but not direct production usage).
+  `examples/for-learning-and-testing` folder contains standalone sample code optimized for learning, experimenting, and
+  testing (but not direct production usage).
 
 ### Production deployment
 
 If you want to deploy this repo in production, check out the following resources:
 
-- [examples/for-production folder](/examples/for-production): The `examples/for-production` folder contains sample
-    code optimized for direct usage in production. This is code from the
-    [Gruntwork Reference Architecture](https://gruntwork.io/reference-architecture/:), and it shows you how we build an
-    end-to-end, integrated tech stack on top of the Gruntwork Service Catalog.
+- [examples/for-production folder](/examples/for-production): The `examples/for-production` folder contains sample code
+  optimized for direct usage in production. This is code from the
+  [Gruntwork Reference Architecture](https://gruntwork.io/reference-architecture/), and it shows you how we build an
+  end-to-end, integrated tech stack on top of the Gruntwork Service Catalog.
 
 - [How to enable MFA Delete?](https://github.com/gruntwork-io/terraform-aws-security/tree/master/modules/private-s3-bucket#how-do-you-enable-mfa-delete): step-by-step guide on enabling MFA delete for your S3 buckets.
 
 ## Support
 
-If you need help with this repo or anything else related to infrastructure or DevOps, Gruntwork offers
-[Commercial Support](https://gruntwork.io/support/) via Slack, email, and phone/video. If you’re already a Gruntwork
-customer, hop on Slack and ask away! If not, [subscribe now](https://www.gruntwork.io/pricing/). If you’re not sure,
-feel free to email us at <support@gruntwork.io>.
+If you need help with this repo, [post a question in our knowledge base](https://github.com/gruntwork-io/knowledge-base/discussions?discussions_q=label%3Ar%3Aterraform-aws-service-catalog)
+or [reach out via our support channels](https://docs.gruntwork.io/support) included with your subscription. If you’re
+not yet a Gruntwork subscriber, [subscribe now](https://www.gruntwork.io/pricing/).
 
 ## Contributions
 
-Contributions to this repo are very welcome and appreciated! If you find a bug or want to add a new feature or even
-contribute an entirely new module, we are very happy to accept pull requests, provide feedback, and run your changes
+Contributions to this repo are both welcome and appreciated! If you fix a bug, add a new feature, or even wish to
+contribute an entirely new module, we’re happy to accept pull requests, provide feedback, and run your changes
 through our automated test suite.
-
-Please see
-[Contributing to the Gruntwork Infrastructure as Code Library](https://gruntwork.io/guides/foundations/how-to-use-gruntwork-infrastructure-as-code-library#contributing-to-the-gruntwork-infrastructure-as-code-library)
-for instructions.
+See our [contribution guide](https://docs.gruntwork.io/guides/working-with-code/contributing) for instructions.
 
 ## License
 
