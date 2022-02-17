@@ -525,7 +525,7 @@ variable "iam_password_policy_allow_users_to_change_password" {
 variable "iam_password_policy_hard_expiry" {
   description = "Password expiration requires administrator reset."
   type        = bool
-  default     = true
+  default     = false
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
