@@ -33,7 +33,6 @@ production-grade Kubernetes cluster on [AWS](https://aws.amazon.com) using
 - IAM to RBAC mapping
 - Auto scaling and auto healing
 - For Self Managed and Managed Node Group Workers:
-
   - Server-hardening with fail2ban, ip-lockdown, auto-update, and more
   - Manage SSH access via IAM groups via ssh-grunt
   - CloudWatch log aggregation
