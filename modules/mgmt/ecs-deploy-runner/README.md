@@ -73,10 +73,9 @@ If you just want to try this repo out for experimenting and learning, check out 
 
 If you want to deploy this repo in production, check out the following resources:
 
-- [shared account ecs-deploy-runner configuration in the for-production
-  folder](/examples/for-production/infrastructure-live/shared/us-west-2/mgmt/ecs-deploy-runner/): The
-  `examples/for-production` folder contains sample code optimized for direct usage in production. This is code from the
-  [Gruntwork Reference Architecture](https://gruntwork.io/reference-architecture/), and it shows you how we build an
+- [shared account ecs-deploy-runner configuration in the for-production folder](/examples/for-production/infrastructure-live/shared/us-west-2/mgmt/ecs-deploy-runner/):
+  The `examples/for-production` folder contains sample code optimized for direct usage in production. This is code from
+  the [Gruntwork Reference Architecture](https://gruntwork.io/reference-architecture/), and it shows you how we build an
   end-to-end, integrated tech stack on top of the Gruntwork Service Catalog.
 
 ## Operate
