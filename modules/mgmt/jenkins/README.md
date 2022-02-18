@@ -4,7 +4,7 @@ name: Jenkins
 description: Deploy Jenkins CI Server on AWS.
 category: ci-cd
 cloud: aws
-tags: "jenkins", "ec2", "ci", "cd", "ci-cd"]
+tags: ["jenkins", "ec2", "ci", "cd", "ci-cd"]
 license: gruntwork
 built-with: terraform, bash, packer
 ---
