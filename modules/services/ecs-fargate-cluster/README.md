@@ -4,7 +4,7 @@ name: Amazon ECS Fargate Cluster
 description: Deploy an Amazon ECS Cluster optimized for Fargate only usage.
 category: docker-orchestration
 cloud: aws
-tags: ["docker", "orchestration", ecs, "containers"]
+tags: ["docker", "orchestration", "ecs", "containers"]
 license: gruntwork
 built-with: terraform
 ---
