@@ -167,12 +167,6 @@ of these multi-region modules is to deploy them across _all_ the regions that ar
 Terraform, each region requires creating a separate `provider` block, so using multi-region services requires that you
 do the following:  
  
-1. **Upgrade to at least Terraform 0.15.1.** The multi-region services use the `configuration_aliases` parameter in 
-   Terraform, which is only available in versions 0.15.0 and above, and as you need the latest GPG keys 
-   ([context](https://discuss.hashicorp.com/t/terraform-updates-for-hcsec-2021-12/23570)), you must use 0.15.1 or above. 
-   Therefore, you must upgrade to at least Terraform 0.15.1 to use multi-region services. [Read our Terraform 0.15 
-   migration guide here](https://gruntwork.io/guides/upgrades/how-to-update-to-terraform-15/).
-
 1. **Instantiate a `provider` block for each AWS region.** In your Terraform or Terragrunt code, in the "root" module 
    (i.e., the one on which you run `apply`), you MUST instantiate one `provider` block for each AWS region. Don't 
    worry if you're not using all the regions or some are not enabled in your account: you'll configure `opt_in_regions` 

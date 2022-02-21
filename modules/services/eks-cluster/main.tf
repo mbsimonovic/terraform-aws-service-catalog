@@ -9,10 +9,8 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 terraform {
-  # This module is now only being tested with Terraform 1.0.x. However, to make upgrading easier, we are setting
-  # 0.13.7 as the minimum version, as that version added support for module for_each, and includes the latest GPG key
-  # for provider binary validation.
-  required_version = ">= 0.13.7"
+  # This module is now only being tested with Terraform 1.1.x. However, to make upgrading easier, we are setting 1.0.0 as the minimum version.
+  required_version = ">= 1.0.0"
 
   # AWS provider 4.x was released with backward incompatibilities that this module is not yet adapted to.
   required_providers {

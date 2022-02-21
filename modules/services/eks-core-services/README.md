@@ -12,7 +12,7 @@ built-with: terraform, helm
 # Amazon EKS Core Services
 
 ![Maintained by Gruntwork](https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg)
-![Terraform version](https://img.shields.io/badge/tf-%3E%3D1.0.0-blue.svg)
+![Terraform version](https://img.shields.io/badge/tf-%3E%3D1.1.0-blue.svg)
 ![Helm version](https://img.shields.io/badge/helm-%3E%3D3.1.0-green)
 ![K8s version](https://img.shields.io/badge/k8s-1.16%20~%201.21-5dbcd2)
 

@@ -12,7 +12,7 @@ built-with: terraform, bash, packer
 # ECS Deploy Runner
 
 ![Maintained by Gruntwork](https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg)
-![Terraform version](https://img.shields.io/badge/tf-%3E%3D1.0.0-blue.svg)
+![Terraform version](https://img.shields.io/badge/tf-%3E%3D1.1.0-blue.svg)
 
 ## Overview
 

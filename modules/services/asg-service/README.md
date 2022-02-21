@@ -12,7 +12,7 @@ built-with: terraform
 # Auto Scaling Group
 
 ![Maintained by Gruntwork](https://img.shields.io/badge/maintained%20by-gruntwork.io-%235849a6.svg)
-![Terraform version](https://img.shields.io/badge/tf-~%3E%200.12.6-blue)
+![Terraform version](https://img.shields.io/badge/tf-%3E%3D1.1.0-blue)
 
 ## Overview
 
