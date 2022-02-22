@@ -117,6 +117,13 @@ module "config" {
   sns_topic_name          = var.config_sns_topic_name
   should_create_sns_topic = var.config_should_create_sns_topic
 
+  sns_topic_kms_key_region_map = var.config_sns_topic_kms_key_region_map
+  delivery_channel_kms_key_arn = (
+    var.config_should_create_s3_bucket
+    ? var.config_s3_bucket_kms_key_arn
+    : var.config_delivery_channel_kms_key_arn
+  )
+
   force_destroy  = var.config_force_destroy
   opt_in_regions = var.config_opt_in_regions
 

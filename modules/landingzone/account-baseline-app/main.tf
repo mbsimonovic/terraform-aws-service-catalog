@@ -92,11 +92,12 @@ module "config" {
   aws_account_id         = var.aws_account_id
   global_recorder_region = var.aws_region
 
-  s3_bucket_name                        = var.config_s3_bucket_name != null ? var.config_s3_bucket_name : "${var.name_prefix}-config"
-  should_create_s3_bucket               = var.config_should_create_s3_bucket
-  s3_mfa_delete                         = var.config_s3_mfa_delete
-  sns_topic_name                        = var.config_sns_topic_name
-  should_create_sns_topic               = var.config_should_create_sns_topic
+  s3_bucket_name          = var.config_s3_bucket_name != null ? var.config_s3_bucket_name : "${var.name_prefix}-config"
+  should_create_s3_bucket = var.config_should_create_s3_bucket
+  s3_mfa_delete           = var.config_s3_mfa_delete
+  sns_topic_name          = var.config_sns_topic_name
+  should_create_sns_topic = var.config_should_create_sns_topic
+
   force_destroy                         = var.config_force_destroy
   num_days_after_which_archive_log_data = var.config_num_days_after_which_archive_log_data
   num_days_after_which_delete_log_data  = var.config_num_days_after_which_delete_log_data
@@ -105,6 +106,14 @@ module "config" {
   linked_accounts                           = var.config_linked_accounts
   aggregate_config_data_in_external_account = var.config_aggregate_config_data_in_external_account
   central_account_id                        = var.config_central_account_id
+
+  s3_bucket_kms_key_arn = local.config_s3_bucket_kms_key_arn
+  sns_topic_kms_key_region_map = (
+    length(local.config_sns_topic_kms_key_arn_region_map) > 0
+    ? local.config_sns_topic_kms_key_arn_region_map
+    : null
+  )
+  delivery_channel_kms_key_arn = local.config_delivery_channel_kms_key_arn
 
   tags = var.config_tags
 
@@ -142,6 +151,44 @@ module "config" {
   # Recorders. So by switching to account-level rules, we now have to apply the same rules in each and every account,
   # but we can ensure that the rules are only enforced after the Config Recorder is in place.
   create_account_rules = true
+}
+
+locals {
+  # If the KMS Key is provided by name, look up the ARN from the result of the module call to kms-master-key-multi-region.
+  config_sns_topic_kms_key_arn_region_map = merge(
+    (
+      var.config_sns_topic_kms_key_by_name_region_map != null
+      ? {
+        for region, name in var.config_sns_topic_kms_key_by_name_region_map :
+        region => module.customer_master_keys.key_arns[region][name]
+      }
+      : {}
+    ),
+    # Use merge so that var.config_sns_topic_kms_key_region_map wins out in the end
+    (
+      var.config_sns_topic_kms_key_region_map != null
+      ? var.config_sns_topic_kms_key_region_map
+      : {}
+    ),
+  )
+  config_s3_bucket_kms_key_arn = (
+    var.config_s3_bucket_kms_key_arn != null
+    ? var.config_s3_bucket_kms_key_arn
+    : (
+      var.config_s3_bucket_kms_key_by_name != null
+      ? module.customer_master_keys.key_arns[var.aws_region][var.config_s3_bucket_kms_key_by_name]
+      : null
+    )
+  )
+  config_delivery_channel_kms_key_arn = (
+    var.config_delivery_channel_kms_key_arn != null
+    ? var.config_delivery_channel_kms_key_arn
+    : (
+      var.config_delivery_channel_kms_key_by_name != null
+      ? module.customer_master_keys.key_arns[var.config_delivery_channel_kms_key_by_name.region][var.config_delivery_channel_kms_key_by_name.name]
+      : null
+    )
+  )
 }
 
 # ----------------------------------------------------------------------------------------------------------------------

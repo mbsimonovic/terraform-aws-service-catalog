@@ -244,6 +244,24 @@ variable "config_central_account_id" {
   default     = ""
 }
 
+variable "config_s3_bucket_kms_key_arn" {
+  description = "Optional KMS key (in logs account) to use for encrypting S3 objects on the AWS Config bucket, when the S3 bucket is created within this module (var.config_should_create_s3_bucket is true). For encrypting S3 objects on delivery for an externally managed S3 bucket, refer to the var.config_delivery_channel_kms_key_arn input variable. If null, data in S3 will be encrypted using the default aws/s3 key. If provided, the key policy of the provided key must permit the IAM role used by AWS Config. See https://docs.aws.amazon.com/sns/latest/dg/sns-key-management.html. Note that the KMS key must reside in the global recorder region (as configured by var.aws_region)."
+  type        = string
+  default     = null
+}
+
+variable "config_sns_topic_kms_key_region_map" {
+  description = "Optional KMS key to use for each region for configuring default encryption for the SNS topic (encoded as a map from region - e.g. us-east-1 - to ARN of KMS key). If null or the region key is missing, encryption will not be configured for the SNS topic in that region."
+  type        = map(string)
+  default     = null
+}
+
+variable "config_delivery_channel_kms_key_arn" {
+  description = "Optional KMS key to use for encrypting S3 objects on the AWS Config delivery channel for an externally managed S3 bucket. This must belong to the same region as the destination S3 bucket. If null, AWS Config will default to encrypting the delivered data with AES-256 encryption. Only used if var.should_create_s3_bucket is false - otherwise, var.config_s3_bucket_kms_key_arn is used."
+  type        = string
+  default     = null
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL CONFIG RULE PARAMETERS
 # These variables have defaults, but may be overridden by the operator.

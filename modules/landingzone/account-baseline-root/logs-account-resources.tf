@@ -156,6 +156,8 @@ module "config_bucket" {
   num_days_after_which_archive_log_data = var.config_num_days_after_which_archive_log_data
   num_days_after_which_delete_log_data  = var.config_num_days_after_which_delete_log_data
   tags                                  = var.config_tags
+
+  kms_key_arn = var.config_s3_bucket_kms_key_arn
 }
 
 module "cloudtrail_bucket" {
@@ -178,7 +180,6 @@ module "cloudtrail_bucket" {
     ? module.organization.organization_id
     : var.cloudtrail_organization_id
   )
-
 
   kms_key_already_exists                          = var.cloudtrail_kms_key_arn != null
   kms_key_arn                                     = var.cloudtrail_kms_key_arn
