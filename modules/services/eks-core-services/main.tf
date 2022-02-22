@@ -138,6 +138,15 @@ resource "aws_cloudwatch_log_group" "eks_cluster" {
   kms_key_id        = var.fluent_bit_log_group_kms_key_id
 }
 
+resource "aws_cloudwatch_log_subscription_filter" "eks_cluster" {
+  count = local.create_cloudwatch_log_group && var.fluent_bit_log_group_subscription_arn != null ? 1 : 0
+
+  name            = "${aws_cloudwatch_log_group.eks_cluster[0].id}-subscription"
+  log_group_name  = aws_cloudwatch_log_group.eks_cluster[0].id
+  filter_pattern  = var.fluent_bit_log_group_subscription_filter
+  destination_arn = var.fluent_bit_log_group_subscription_arn
+}
+
 locals {
   create_cloudwatch_log_group = (var.enable_fluent_bit || var.enable_fargate_fluent_bit) && var.fluent_bit_log_group_already_exists == false
   log_group_name = (

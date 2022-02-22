@@ -86,6 +86,18 @@ variable "fluent_bit_log_group_kms_key_id" {
   default     = null
 }
 
+variable "fluent_bit_log_group_subscription_arn" {
+  description = "ARN of the lambda function to trigger when events arrive at the fluent bit log group."
+  type        = string
+  default     = null
+}
+
+variable "fluent_bit_log_group_subscription_filter" {
+  description = "Filter pattern for the CloudWatch subscription. Only used if var.fluent_bit_log_group_subscription_arn is set."
+  type        = string
+  default     = ""
+}
+
 variable "fluent_bit_log_group_already_exists" {
   description = "If set to true, that means that the CloudWatch Log Group fluent-bit should use for streaming logs already exists and does not need to be created."
   type        = bool
