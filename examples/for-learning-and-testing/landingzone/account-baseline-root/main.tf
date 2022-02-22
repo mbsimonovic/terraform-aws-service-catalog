@@ -22,6 +22,7 @@ module "root_baseline" {
   # regions that are enabled in your AWS account.
   providers = {
     aws                = aws.default
+    aws.default        = aws.default
     aws.af_south_1     = aws.af_south_1
     aws.ap_east_1      = aws.ap_east_1
     aws.ap_northeast_1 = aws.ap_northeast_1
