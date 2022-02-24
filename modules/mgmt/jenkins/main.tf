@@ -37,7 +37,7 @@ locals {
 }
 
 module "jenkins" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/jenkins-server?ref=v0.41.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/jenkins-server?ref=v0.45.0"
 
   name       = var.name
   aws_region = data.aws_region.current.name
@@ -165,20 +165,45 @@ locals {
 # GIVE JENKINS PERMISSIONS TO DECRYPT THE ENCRYPTED EBS VOLUME
 # ---------------------------------------------------------------------------------------------------------------------
 
+resource "aws_iam_role_policy" "ebs_kms_cmk_permissions" {
+  count = (
+    var.ebs_kms_key_arn != null && local.use_inline_policies
+    ? 1 : 0
+  )
+
+  name   = "ebs-kms-cmk-permissions"
+  role   = module.jenkins.jenkins_iam_role_id
+  policy = data.aws_iam_policy_document.kms_cmk[0].json
+}
+
+resource "aws_iam_policy" "ebs_kms_cmk_permissions" {
+  count = (
+    var.ebs_kms_key_arn != null && var.use_managed_iam_policies
+    ? 1 : 0
+  )
+
+  name_prefix = "jenkins-ebs-kms-permissions"
+  policy      = data.aws_iam_policy_document.kms_cmk[0].json
+}
+
+resource "aws_iam_role_policy_attachment" "ebs_kms_cmk_permissions" {
+  count = (
+    var.ebs_kms_key_arn != null && var.use_managed_iam_policies
+    ? 1 : 0
+  )
+
+  role       = module.jenkins.jenkins_iam_role_id
+  policy_arn = aws_iam_policy.ebs_kms_cmk_permissions[0].arn
+}
+
 data "aws_iam_policy_document" "kms_cmk" {
   count = var.ebs_kms_key_arn != null ? 1 : 0
+
   statement {
     effect    = "Allow"
     actions   = ["kms:CreateGrant"]
     resources = [local.kms_key_arn]
   }
-}
-
-resource "aws_iam_role_policy" "ebs_kms_cmk_permissions" {
-  count  = var.ebs_kms_key_arn != null ? 1 : 0
-  name   = "ebs-kms-cmk-permissions"
-  role   = module.jenkins.jenkins_iam_role_id
-  policy = data.aws_iam_policy_document.kms_cmk[0].json
 }
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -188,7 +213,8 @@ resource "aws_iam_role_policy" "ebs_kms_cmk_permissions" {
 # ----------------------------------------------------------------------------------------------------------------------
 
 data "aws_kms_key" "by_loose_id" {
-  count  = var.ebs_kms_key_arn != null && var.ebs_kms_key_arn_is_alias ? 1 : 0
+  count = var.ebs_kms_key_arn != null && var.ebs_kms_key_arn_is_alias ? 1 : 0
+
   key_id = var.ebs_kms_key_arn
 }
 
@@ -205,19 +231,45 @@ locals {
 # GIVE JENKINS THE PERMISSIONS IT NEEDS TO RUN BUILDS IN THIS ACCOUNT
 # ---------------------------------------------------------------------------------------------------------------------
 
+resource "aws_iam_role_policy" "deploy_this_account_permissions" {
+  count = (
+    length(var.build_permission_actions) > 0 && local.use_inline_policies
+    ? 1 : 0
+  )
+
+  name   = "deploy-this-account-permissions"
+  role   = module.jenkins.jenkins_iam_role_id
+  policy = data.aws_iam_policy_document.build_permissions[0].json
+}
+
+resource "aws_iam_policy" "deploy_this_account_permissions" {
+  count = (
+    length(var.build_permission_actions) > 0 && var.use_managed_iam_policies
+    ? 1 : 0
+  )
+
+  name_prefix = "jenkins-deploy-this-account"
+  policy      = data.aws_iam_policy_document.build_permissions[0].json
+}
+
+resource "aws_iam_role_policy_attachment" "deploy_this_account_permissions" {
+  count = (
+    length(var.build_permission_actions) > 0 && var.use_managed_iam_policies
+    ? 1 : 0
+  )
+
+  role       = module.jenkins.jenkins_iam_role_id
+  policy_arn = aws_iam_policy.deploy_this_account_permissions[0].arn
+}
+
 data "aws_iam_policy_document" "build_permissions" {
+  count = length(var.build_permission_actions) > 0 ? 1 : 0
+
   statement {
     effect    = "Allow"
     actions   = var.build_permission_actions
     resources = ["*"]
   }
-}
-
-resource "aws_iam_role_policy" "deploy_this_account_permissions" {
-  count  = length(var.build_permission_actions) > 0 ? 1 : 0
-  name   = "deploy-this-account-permissions"
-  role   = module.jenkins.jenkins_iam_role_id
-  policy = data.aws_iam_policy_document.build_permissions.json
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -239,10 +291,34 @@ module "auto_deploy_iam_policies" {
 }
 
 resource "aws_iam_role_policy" "deploy_other_account_permissions" {
-  count  = length(var.external_account_auto_deploy_iam_role_arns) > 0 ? 1 : 0
+  count = (
+    length(var.external_account_auto_deploy_iam_role_arns) > 0 && local.use_inline_policies
+    ? 1 : 0
+  )
+
   name   = "deploy-other-accounts-permissions"
   role   = module.jenkins.jenkins_iam_role_id
   policy = module.auto_deploy_iam_policies.allow_access_to_all_other_accounts
+}
+
+resource "aws_iam_policy" "deploy_other_account_permissions" {
+  count = (
+    length(var.external_account_auto_deploy_iam_role_arns) > 0 && var.use_managed_iam_policies
+    ? 1 : 0
+  )
+
+  name_prefix = "jenkins-deploy-other-accounts"
+  policy      = module.auto_deploy_iam_policies.allow_access_to_all_other_accounts
+}
+
+resource "aws_iam_role_policy_attachment" "deploy_other_account_permissions" {
+  count = (
+    length(var.external_account_auto_deploy_iam_role_arns) > 0 && var.use_managed_iam_policies
+    ? 1 : 0
+  )
+
+  role       = module.jenkins.jenkins_iam_role_id
+  policy_arn = aws_iam_policy.deploy_other_account_permissions[0].arn
 }
 
 
@@ -291,7 +367,7 @@ module "jenkins_backup_dlm" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "jenkins_backup" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ec2-backup?ref=v0.41.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ec2-backup?ref=v0.45.0"
   count  = var.backup_using_lambda ? 1 : 0
 
   instance_name = module.jenkins.jenkins_asg_name
@@ -306,6 +382,9 @@ module "jenkins_backup" {
   cloudwatch_metric_namespace = var.backup_job_metric_namespace
 
   alarm_sns_topic_arns = var.alarms_sns_topic_arn
+
+  # Backward compatible feature flags
+  use_managed_iam_policies = var.use_managed_iam_policies
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

@@ -55,7 +55,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "ecs_deploy_runner" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner?ref=v0.41.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner?ref=v0.45.0"
 
   name                          = var.name
   container_images              = module.standard_config.container_images
@@ -69,10 +69,20 @@ module "ecs_deploy_runner" {
   container_memory     = var.container_memory
   container_max_cpu    = var.container_max_cpu
   container_max_memory = var.container_max_memory
+
+  # CloudWatch Log Group settings (for invoker lambda)
+  invoker_lambda_cloudwatch_log_group_retention_in_days = var.invoker_lambda_cloudwatch_log_group_retention_in_days
+  invoker_lambda_cloudwatch_log_group_kms_key_id        = var.invoker_lambda_cloudwatch_log_group_kms_key_id
+  invoker_lambda_cloudwatch_log_group_tags              = var.invoker_lambda_cloudwatch_log_group_tags
+
+  # Backward compatible feature flags
+  invoker_lambda_should_create_cloudwatch_log_group = var.invoker_lambda_should_create_cloudwatch_log_group
+  outbound_security_group_name                      = var.outbound_security_group_name
+  use_managed_iam_policies                          = var.use_managed_iam_policies
 }
 
 module "standard_config" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner-standard-configuration?ref=v0.41.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner-standard-configuration?ref=v0.45.0"
 
   docker_image_builder = (
     var.docker_image_builder_config != null
@@ -405,15 +415,42 @@ locals {
   configure_terraform_applier_iam_policy    = var.terraform_applier_config != null ? length(var.terraform_applier_config.iam_policy) > 0 : false
 }
 
+# Docker Image Builder IAM
+
 resource "aws_iam_role_policy" "docker_image_builder" {
-  count  = local.configure_docker_image_builder_iam_policy ? 1 : 0
+  count = (
+    local.configure_docker_image_builder_iam_policy && local.use_inline_policies
+    ? 1 : 0
+  )
+
   name   = "access-to-services"
   role   = module.ecs_deploy_runner.ecs_task_iam_roles["docker-image-builder"].name
   policy = data.aws_iam_policy_document.docker_image_builder[0].json
 }
 
+resource "aws_iam_policy" "docker_image_builder" {
+  count = (
+    local.configure_docker_image_builder_iam_policy && var.use_managed_iam_policies
+    ? 1 : 0
+  )
+
+  name_prefix = "edr-access-to-docker-services"
+  policy      = data.aws_iam_policy_document.docker_image_builder[0].json
+}
+
+resource "aws_iam_role_policy_attachment" "docker_image_builder" {
+  count = (
+    local.configure_docker_image_builder_iam_policy && var.use_managed_iam_policies
+    ? 1 : 0
+  )
+
+  role       = module.ecs_deploy_runner.ecs_task_iam_roles["docker-image-builder"].name
+  policy_arn = aws_iam_policy.docker_image_builder[0].arn
+}
+
 data "aws_iam_policy_document" "docker_image_builder" {
   count = local.configure_docker_image_builder_iam_policy ? 1 : 0
+
   dynamic "statement" {
     for_each = var.docker_image_builder_config.iam_policy
     content {
@@ -425,15 +462,42 @@ data "aws_iam_policy_document" "docker_image_builder" {
   }
 }
 
+# AMI Builder IAM
+
 resource "aws_iam_role_policy" "ami_builder" {
-  count  = local.configure_ami_builder_iam_policy ? 1 : 0
+  count = (
+    local.configure_ami_builder_iam_policy && local.use_inline_policies
+    ? 1 : 0
+  )
+
   name   = "access-to-services"
   role   = module.ecs_deploy_runner.ecs_task_iam_roles["ami-builder"].name
   policy = data.aws_iam_policy_document.ami_builder[0].json
 }
 
+resource "aws_iam_policy" "ami_builder" {
+  count = (
+    local.configure_ami_builder_iam_policy && var.use_managed_iam_policies
+    ? 1 : 0
+  )
+
+  name_prefix = "edr-access-to-ami-services"
+  policy      = data.aws_iam_policy_document.ami_builder[0].json
+}
+
+resource "aws_iam_role_policy_attachment" "ami_builder" {
+  count = (
+    local.configure_ami_builder_iam_policy && var.use_managed_iam_policies
+    ? 1 : 0
+  )
+
+  role       = module.ecs_deploy_runner.ecs_task_iam_roles["ami-builder"].name
+  policy_arn = aws_iam_policy.ami_builder[0].arn
+}
+
 data "aws_iam_policy_document" "ami_builder" {
   count = local.configure_ami_builder_iam_policy ? 1 : 0
+
   dynamic "statement" {
     for_each = var.ami_builder_config.iam_policy
     content {
@@ -445,15 +509,42 @@ data "aws_iam_policy_document" "ami_builder" {
   }
 }
 
+# Terraform Planner IAM
+
 resource "aws_iam_role_policy" "terraform_planner" {
-  count  = local.configure_terraform_planner_iam_policy ? 1 : 0
+  count = (
+    local.configure_terraform_planner_iam_policy && local.use_inline_policies
+    ? 1 : 0
+  )
+
   name   = "access-to-services"
   role   = module.ecs_deploy_runner.ecs_task_iam_roles["terraform-planner"].name
   policy = data.aws_iam_policy_document.terraform_planner[0].json
 }
 
+resource "aws_iam_policy" "terraform_planner" {
+  count = (
+    local.configure_terraform_planner_iam_policy && var.use_managed_iam_policies
+    ? 1 : 0
+  )
+
+  name_prefix = "edr-access-to-plan-services"
+  policy      = data.aws_iam_policy_document.terraform_planner[0].json
+}
+
+resource "aws_iam_role_policy_attachment" "terraform_planner" {
+  count = (
+    local.configure_terraform_planner_iam_policy && var.use_managed_iam_policies
+    ? 1 : 0
+  )
+
+  role       = module.ecs_deploy_runner.ecs_task_iam_roles["terraform-planner"].name
+  policy_arn = aws_iam_policy.terraform_planner[0].arn
+}
+
 data "aws_iam_policy_document" "terraform_planner" {
   count = local.configure_terraform_planner_iam_policy ? 1 : 0
+
   dynamic "statement" {
     for_each = var.terraform_planner_config.iam_policy
     content {
@@ -465,15 +556,42 @@ data "aws_iam_policy_document" "terraform_planner" {
   }
 }
 
+# Terraform Applier IAM
+
 resource "aws_iam_role_policy" "terraform_applier" {
-  count  = local.configure_terraform_applier_iam_policy ? 1 : 0
+  count = (
+    local.configure_terraform_applier_iam_policy && local.use_inline_policies
+    ? 1 : 0
+  )
+
   name   = "access-to-services"
   role   = module.ecs_deploy_runner.ecs_task_iam_roles["terraform-applier"].name
   policy = data.aws_iam_policy_document.terraform_applier[0].json
 }
 
+resource "aws_iam_policy" "terraform_applier" {
+  count = (
+    local.configure_terraform_applier_iam_policy && var.use_managed_iam_policies
+    ? 1 : 0
+  )
+
+  name_prefix = "edr-access-to-apply-services"
+  policy      = data.aws_iam_policy_document.terraform_applier[0].json
+}
+
+resource "aws_iam_role_policy_attachment" "terraform_applier" {
+  count = (
+    local.configure_terraform_applier_iam_policy && var.use_managed_iam_policies
+    ? 1 : 0
+  )
+
+  role       = module.ecs_deploy_runner.ecs_task_iam_roles["terraform-applier"].name
+  policy_arn = aws_iam_policy.terraform_applier[0].arn
+}
+
 data "aws_iam_policy_document" "terraform_applier" {
   count = local.configure_terraform_applier_iam_policy ? 1 : 0
+
   dynamic "statement" {
     for_each = var.terraform_applier_config.iam_policy
     content {
@@ -702,7 +820,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "invoke_policy" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner-invoke-iam-policy?ref=v0.41.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner-invoke-iam-policy?ref=v0.45.0"
 
   name                                      = "invoke-${var.name}"
   deploy_runner_invoker_lambda_function_arn = module.ecs_deploy_runner.invoker_function_arn
