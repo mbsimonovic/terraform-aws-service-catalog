@@ -965,3 +965,13 @@ variable "should_create_control_plane_cloudwatch_log_group" {
   type        = bool
   default     = true
 }
+
+variable "use_managed_iam_policies" {
+  description = "When true, all IAM policies will be managed as dedicated policies rather than inline policies attached to the IAM roles. Dedicated managed policies are friendlier to automated policy checkers, which may scan a single resource for findings. As such, it is important to avoid inline policies when targeting compliance with various security standards."
+  type        = bool
+  default     = true
+}
+
+locals {
+  use_inline_policies = var.use_managed_iam_policies == false
+}

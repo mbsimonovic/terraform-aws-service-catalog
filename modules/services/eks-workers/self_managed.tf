@@ -5,7 +5,7 @@
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "self_managed_workers" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.48.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-workers?ref=v0.49.1"
 
   # Ideally, we can use module count to drive this resource creation, but using module counts and for_each adds a
   # limitation where dependency chains apply at the module level, not the individual resources. This causes a cyclic
@@ -58,6 +58,7 @@ module "self_managed_workers" {
 
   # Backward compatibility flags
   use_resource_name_prefix = var.asg_use_resource_name_prefix
+  use_managed_iam_policies = var.use_managed_iam_policies
 }
 
 resource "aws_security_group_rule" "allow_inbound_ssh_from_security_groups" {

@@ -35,7 +35,7 @@ import (
 
 const (
 	// patcher auto-update-variable: terraform-aws-eks
-	terraformAWSEKSVersion = "v0.48.0"
+	terraformAWSEKSVersion = "v0.49.1"
 )
 
 var defaultDomainTagFilterForTest = []map[string]string{

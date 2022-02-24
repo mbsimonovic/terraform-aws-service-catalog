@@ -81,7 +81,7 @@ data "aws_eks_cluster_auth" "kubernetes_token" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "eks_cluster" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.48.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-control-plane?ref=v0.49.1"
 
   cluster_name = var.cluster_name
 
@@ -136,6 +136,7 @@ module "eks_cluster" {
   # Feature flags
   use_kubergrunt_verification = var.use_kubergrunt_verification
   use_upgrade_cluster_script  = var.use_kubergrunt_sync_components
+  use_managed_iam_policies    = var.use_managed_iam_policies
 }
 
 # This null_resource is a hack to avoid depends_on on modules. When you use a depends_on on a module, there is an
@@ -259,6 +260,9 @@ module "eks_workers" {
 
   # These are dangerous variables that are exposed to make testing easier, but should be left untouched.
   cluster_instance_associate_public_ip_address = var.cluster_instance_associate_public_ip_address
+
+  # Feature flags
+  use_managed_iam_policies = var.use_managed_iam_policies
 }
 
 # Precreate the IAM roles for workers to avoid cyclic dependencies between the role mapping ConfigMap and ASGs/Node
@@ -335,7 +339,7 @@ resource "kubernetes_namespace" "aws_auth_merger" {
 }
 
 module "eks_aws_auth_merger" {
-  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-aws-auth-merger?ref=v0.48.0"
+  source           = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-aws-auth-merger?ref=v0.49.1"
   create_resources = var.enable_aws_auth_merger
 
   create_namespace       = false
@@ -351,7 +355,7 @@ module "eks_aws_auth_merger" {
 }
 
 module "eks_k8s_role_mapping" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.48.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-role-mapping?ref=v0.49.1"
 
   # Configure to create this in the merger namespace if using the aws-auth-merger. Otherwise create it as the main
   # config.
