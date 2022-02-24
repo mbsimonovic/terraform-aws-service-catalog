@@ -945,6 +945,36 @@ variable "route53_health_check_port" {
   default     = 80
 }
 
+variable "route53_health_check_provider_role_arn" {
+  description = "The optional role_arn to be used in the us-east-1 provider block defined in the route53-health-check-alarms module.  This module configures its own AWS provider to ensure resources are created in us-east-1."
+  type        = string
+  default     = null
+}
+
+variable "route53_health_check_provider_external_id" {
+  description = "The optional external_id to be used in the us-east-1 provider block defined in the route53-health-check-alarms module.  This module configures its own AWS provider to ensure resources are created in us-east-1."
+  type        = string
+  default     = null
+}
+
+variable "route53_health_check_provider_session_name" {
+  description = "The optional session_name to be used in the us-east-1 provider block defined in the route53-health-check-alarms module.  This module configures its own AWS provider to ensure resources are created in us-east-1."
+  type        = string
+  default     = null
+}
+
+variable "route53_health_check_provider_profile" {
+  description = "The optional AWS profile to be used in the us-east-1 provider block defined in the route53-health-check-alarms module.  This module configures its own AWS provider to ensure resources are created in us-east-1."
+  type        = string
+  default     = null
+}
+
+variable "route53_health_check_provider_shared_credentials_file" {
+  description = "The optional path to a credentials file used in the us-east-1 provider block defined in the route53-health-check-alarms module.  This module configures its own AWS provider to ensure resources are created in us-east-1."
+  type        = string
+  default     = null
+}
+
 variable "original_lb_dns_name" {
   description = "The DNS name that was assigned by AWS to the load balancer upon creation"
   type        = string

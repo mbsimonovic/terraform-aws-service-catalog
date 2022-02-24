@@ -502,6 +502,42 @@ variable "enable_route53_health_check" {
   default     = false
 }
 
+variable "alarm_sns_topic_arns_us_east_1" {
+  description = "A list of SNS topic ARNs to notify when the health check changes to ALARM, OK, or INSUFFICIENT_DATA state. Note: these SNS topics MUST be in us-east-1! This is because Route 53 only sends CloudWatch metrics to us-east-1, so we must create the alarm in that region, and therefore, can only notify SNS topics in that region."
+  type        = list(string)
+  default     = []
+}
+
+variable "route53_health_check_provider_role_arn" {
+  description = "The optional role_arn to be used in the us-east-1 provider block defined in the route53-health-check-alarms module.  This module configures its own AWS provider to ensure resources are created in us-east-1."
+  type        = string
+  default     = null
+}
+
+variable "route53_health_check_provider_external_id" {
+  description = "The optional external_id to be used in the us-east-1 provider block defined in the route53-health-check-alarms module.  This module configures its own AWS provider to ensure resources are created in us-east-1."
+  type        = string
+  default     = null
+}
+
+variable "route53_health_check_provider_session_name" {
+  description = "The optional session_name to be used in the us-east-1 provider block defined in the route53-health-check-alarms module.  This module configures its own AWS provider to ensure resources are created in us-east-1."
+  type        = string
+  default     = null
+}
+
+variable "route53_health_check_provider_profile" {
+  description = "The optional AWS profile to be used in the us-east-1 provider block defined in the route53-health-check-alarms module.  This module configures its own AWS provider to ensure resources are created in us-east-1."
+  type        = string
+  default     = null
+}
+
+variable "route53_health_check_provider_shared_credentials_file" {
+  description = "The optional path to a credentials file used in the us-east-1 provider block defined in the route53-health-check-alarms module.  This module configures its own AWS provider to ensure resources are created in us-east-1."
+  type        = string
+  default     = null
+}
+
 variable "enable_cloudwatch_metrics" {
   description = "Set to true to add IAM permissions to send custom metrics to CloudWatch. This is useful in combination with https://github.com/gruntwork-io/terraform-aws-monitoring/tree/master/modules/agents/cloudwatch-agent to get memory and disk metrics in CloudWatch for your Auto Scaling Group"
   type        = bool
@@ -512,12 +548,6 @@ variable "enable_cloudwatch_alarms" {
   description = "Set to true to enable several basic CloudWatch alarms around CPU usage, memory usage, and disk space usage. If set to true, make sure to specify SNS topics to send notifications to using var.alarms_sns_topic_arn."
   type        = bool
   default     = true
-}
-
-variable "alarm_sns_topic_arns_us_east_1" {
-  description = "A list of SNS topic ARNs to notify when the health check changes to ALARM, OK, or INSUFFICIENT_DATA state. Note: these SNS topics MUST be in us-east-1! This is because Route 53 only sends CloudWatch metrics to us-east-1, so we must create the alarm in that region, and therefore, can only notify SNS topics in that region."
-  type        = list(string)
-  default     = []
 }
 
 variable "enable_cloudwatch_log_aggregation" {

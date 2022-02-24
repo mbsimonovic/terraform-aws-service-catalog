@@ -313,9 +313,14 @@ resource "aws_route53_record" "service" {
 module "route53_health_check" {
   source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/route53-health-check-alarms?ref=v0.30.5"
 
-  create_resources               = var.enable_route53_health_check
-  alarm_configs                  = local.route53_alarm_configurations
-  alarm_sns_topic_arns_us_east_1 = var.alarm_sns_topic_arns_us_east_1
+  create_resources                 = var.enable_route53_health_check
+  alarm_configs                    = local.route53_alarm_configurations
+  alarm_sns_topic_arns_us_east_1   = var.alarm_sns_topic_arns_us_east_1
+  provider_role_arn                = var.route53_health_check_provider_role_arn
+  provider_external_id             = var.route53_health_check_provider_external_id
+  provider_session_name            = var.route53_health_check_provider_session_name
+  provider_profile                 = var.route53_health_check_provider_profile
+  provider_shared_credentials_file = var.route53_health_check_provider_shared_credentials_file
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
