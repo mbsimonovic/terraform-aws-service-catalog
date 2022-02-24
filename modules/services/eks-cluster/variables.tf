@@ -466,6 +466,10 @@ variable "autoscaling_group_configurations" {
   #                                            instances to use for the ASG (e.g., "standard").
   # - asg_instance_root_volume_encryption   bool  : (Defaults to value from var.asg_default_instance_root_volume_encryption)
   #                                             Whether or not to enable root volume encryption for instances of the ASG.
+  # - max_pods_allowed    number             : (Defaults to value from var.asg_default_max_pods_allowed) The
+  #                                            maximum number of Pods allowed to be scheduled on the node. When null,
+  #                                            the max will be automatically calculated based on the availability of
+  #                                            total IP addresses to the instance type.
   # - tags                list(object[Tag])  : (Defaults to value from var.asg_default_tags) Custom tags to apply to the
   #                                            EC2 Instances in this ASG. Refer to structure definition below for the
   #                                            object type of each entry in the list.
@@ -615,6 +619,12 @@ variable "asg_default_on_demand_percentage_above_base_capacity" {
   default     = null
 }
 
+variable "asg_default_max_pods_allowed" {
+  description = "Default value for the max_pods_allowed field of autoscaling_group_configurations. Any map entry that does not specify max_pods_allowed will use this value."
+  type        = number
+  default     = null
+}
+
 variable "asg_default_spot_allocation_strategy" {
   description = "Default value for the spot_allocation_strategy field of autoscaling_group_configurations. Any map entry that does not specify spot_allocation_strategy will use this value."
   type        = string
@@ -710,6 +720,10 @@ variable "managed_node_group_configurations" {
   #                                            The root volume type of instances to use for the ASG (e.g., "standard").
   # - instance_root_volume_encryption  bool  : (Defaults to value from var.node_group_default_instance_root_volume_encryption)
   #                                             Whether or not to enable root volume encryption for instances of the ASG.
+  # - max_pods_allowed    number             : (Defaults to value from var.node_group_default_max_pods_allowed) The
+  #                                            maximum number of Pods allowed to be scheduled on the node. When null,
+  #                                            the max will be automatically calculated based on the availability of
+  #                                            total IP addresses to the instance type.
   # - tags                map(string)        : (Defaults to value from var.node_group_default_tags) Custom tags to apply
   #                                            to the EC2 Instances in this node group. This should be a key value pair,
   #                                            where the keys are tag keys and values are the tag values. Merged with
@@ -832,6 +846,13 @@ variable "node_group_default_instance_root_volume_encryption" {
   type        = bool
   default     = true
 }
+
+variable "node_group_default_max_pods_allowed" {
+  description = "Default value for the max_pods_allowed field of managed_node_group_configurations. Any map entry that does not specify max_pods_allowed will use this value."
+  type        = number
+  default     = null
+}
+
 
 # CloudWatch Dashboard Widgets
 

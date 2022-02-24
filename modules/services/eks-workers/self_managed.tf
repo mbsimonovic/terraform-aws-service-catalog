@@ -136,6 +136,7 @@ data "cloudinit_config" "asg_cloud_inits" {
         {
           eks_kubelet_extra_args       = lookup(each.value, "eks_kubelet_extra_args", "")
           eks_bootstrap_script_options = lookup(each.value, "eks_bootstrap_script_options", "")
+          max_pods_allowed             = lookup(each.value, "max_pods_allowed", var.asg_default_max_pods_allowed)
         },
       ),
     ))

@@ -143,6 +143,7 @@ locals {
     use_prefix_mode_to_calculate_max_pods = var.use_prefix_mode_to_calculate_max_pods
     eks_kubelet_extra_args                = ""
     eks_bootstrap_script_options          = ""
+    max_pods_allowed                      = null
   }
 
   # Trim excess whitespace, because AWS will do that on deploy. This prevents

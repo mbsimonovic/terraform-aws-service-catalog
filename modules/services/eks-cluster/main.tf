@@ -170,6 +170,7 @@ module "eks_workers" {
   asg_default_min_size                                 = var.asg_default_min_size
   asg_default_max_size                                 = var.asg_default_max_size
   asg_default_instance_type                            = var.asg_default_instance_type
+  asg_default_max_pods_allowed                         = var.asg_default_max_pods_allowed
   asg_default_tags                                     = var.asg_default_tags
   asg_default_instance_root_volume_size                = var.asg_default_instance_root_volume_size
   asg_default_instance_root_volume_type                = var.asg_default_instance_root_volume_type
@@ -207,6 +208,7 @@ module "eks_workers" {
   node_group_default_min_size                = var.node_group_default_min_size
   node_group_default_max_size                = var.node_group_default_max_size
   node_group_default_desired_size            = var.node_group_default_desired_size
+  node_group_default_max_pods_allowed        = var.node_group_default_max_pods_allowed
   node_group_launch_template_instance_type   = var.node_group_launch_template_instance_type
   node_group_default_instance_types          = var.node_group_default_instance_types
   node_group_default_capacity_type           = var.node_group_default_capacity_type

@@ -29,20 +29,39 @@ function configure_eks_instance {
 
   start_fail2ban
 
-  %{ if use_prefix_mode_to_calculate_max_pods }
-  local max_pods
+  local max_pods=""
+  %{ if max_pods_allowed != null }
+  max_pods="${max_pods_allowed}"
+  %{ else }
+    %{ if use_prefix_mode_to_calculate_max_pods }
   max_pods="$(/etc/eks/max-pods-calculator.sh --instance-type-from-imds --cni-version 1.9.0-eksbuild.1 --cni-prefix-delegation-enabled)"
+    %{ endif }
   %{ endif }
 
-  echo "Running eks bootstrap script to register instance to cluster"
-  /etc/eks/bootstrap.sh \
+  local kubelet_extra_args="--node-labels=\"$node_labels\""
+  if [[ -n "$max_pods" ]]; then
+    kubelet_extra_args+=" --max-pods=$max_pods"
+  fi
+  kubelet_extra_args+=" ${eks_kubelet_extra_args}"
+
+  local -a bootstrap_args=( \
     --apiserver-endpoint "$eks_endpoint" \
     --b64-cluster-ca "$eks_certificate_authority" \
-    --kubelet-extra-args "--node-labels=\"$node_labels\"%{ if use_prefix_mode_to_calculate_max_pods } --max-pods=$max_pods%{ endif } ${eks_kubelet_extra_args}" \
-    %{ if use_prefix_mode_to_calculate_max_pods ~}
-    --use-max-pods false \
-    %{ endif ~}
-    ${eks_bootstrap_script_options} "$eks_cluster_name"
+    --kubelet-extra-args "$kubelet_extra_args" \
+  )
+  if [[ -n "$max_pods" ]]; then
+    # NOTE: The max_pods setting logic may be contradictory, but is correct. The bootstrap.sh script has a routine to
+    # automatically calculate the max pods for the node based on non prefix delegated ENI IP address availability. When
+    # setting the max pods setting directly or with CNI prefix delegation, we need to disable this routine, but also
+    # configure the max pods setting directly on the kubelet. Hence, we disable the automatic routine in the
+    # bootstrap.sh script by passing in --use-max-pods false, and then configure the kubelet extra args to set the max
+    # pods on the kubelet directly.
+    bootstrap_args+=( --use-max-pods false )
+  fi
+  bootstrap_args+=( ${eks_bootstrap_script_options} "$eks_cluster_name" )
+
+  echo "Running eks bootstrap script to register instance to cluster"
+  /etc/eks/bootstrap.sh "$${bootstrap_args[@]}"
 }
 
 start_ec2_baseline \

@@ -35,6 +35,10 @@ variable "autoscaling_group_configurations" {
   #                                            will be used to deploy updates to the cluster.
   # - asg_instance_type   string             : (Defaults to value from var.asg_default_instance_type) The type of
   #                                            instances to use for the ASG (e.g., t2.medium).
+  # - max_pods_allowed    number             : (Defaults to value from var.asg_default_max_pods_allowed) The
+  #                                            maximum number of Pods allowed to be scheduled on the node. When null,
+  #                                            the max will be automatically calculated based on the availability of
+  #                                            total IP addresses to the instance type.
   # - asg_instance_root_volume_size   number : (Defaults to value from var.asg_default_instance_root_volume_size) The root volume size of
   #                                            instances to use for the ASG in GB (e.g., 40).
   # - asg_instance_root_volume_type   string : (Defaults to value from var.asg_default_instance_root_volume_type) The root volume type of
@@ -137,6 +141,10 @@ variable "managed_node_group_configurations" {
   #                                            of the aws_launch_template data source or resource instead. See
   #                                            https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eks_node_group#launch_template-configuration-block
   #                                            for more information.
+  # - max_pods_allowed    number             : (Defaults to value from var.node_group_default_max_pods_allowed) The
+  #                                            maximum number of Pods allowed to be scheduled on the node. When null,
+  #                                            the max will be automatically calculated based on the availability of
+  #                                            total IP addresses to the instance type.
   # - instance_root_volume_size   number     : (Defaults to value from var.node_group_default_instance_root_volume_size)
   #                                            The root volume size of instances to use for the ASG in GB (e.g., 40).
   # - instance_root_volume_type   string     : (Defaults to value from var.node_group_default_instance_root_volume_type)
@@ -482,6 +490,12 @@ variable "asg_security_group_tags" {
   default     = {}
 }
 
+variable "asg_default_max_pods_allowed" {
+  description = "Default value for the max_pods_allowed field of autoscaling_group_configurations. Any map entry that does not specify max_pods_allowed will use this value."
+  type        = number
+  default     = null
+}
+
 
 # Defaults for the Node Group configurations passed in through var.managed_node_group_configurations. These values are used when
 # the corresponding setting is omitted from the underlying map. Refer to the documentation under
@@ -557,6 +571,12 @@ variable "node_group_default_instance_root_volume_encryption" {
   description = "Default value for the instance_root_volume_encryption field of managed_node_group_configurations."
   type        = bool
   default     = true
+}
+
+variable "node_group_default_max_pods_allowed" {
+  description = "Default value for the max_pods_allowed field of managed_node_group_configurations. Any map entry that does not specify max_pods_allowed will use this value."
+  type        = number
+  default     = null
 }
 
 # Ideally we don't need this variable, but for_each breaks when the values of the managed_node_group_configurations map depends
