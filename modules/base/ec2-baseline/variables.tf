@@ -147,3 +147,19 @@ variable "cloudwatch_log_group_tags" {
   type        = map(string)
   default     = null
 }
+
+# ---------------------------------------------------------------------------------------------------------------------
+# BACKWARD COMPATIBILITY FEATURE FLAGS
+# The following variables are feature flags to enable and disable certain features in the module. These are primarily
+# introduced to maintain backward compatibility by avoiding unnecessary resource creation.
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "use_managed_iam_policies" {
+  description = "When true, all IAM policies will be managed as dedicated policies rather than inline policies attached to the IAM roles. Dedicated managed policies are friendlier to automated policy checkers, which may scan a single resource for findings. As such, it is important to avoid inline policies when targeting compliance with various security standards."
+  type        = bool
+  default     = true
+}
+
+locals {
+  use_inline_policies = var.use_managed_iam_policies == false
+}

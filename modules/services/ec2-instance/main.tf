@@ -63,7 +63,7 @@ data "aws_route53_zone" "selected" {
   name = var.route53_lookup_domain_name
 
   tags = var.base_domain_name_tags
-  # Since our host may need to be publicly addressable, we look up Route 53 Public Hosted zones when querying for the zone_id 
+  # Since our host may need to be publicly addressable, we look up Route 53 Public Hosted zones when querying for the zone_id
   private_zone = var.dns_zone_is_private
 }
 
@@ -178,9 +178,25 @@ resource "aws_ebs_volume" "ec2_instance" {
 data "aws_caller_identity" "current" {}
 
 resource "aws_iam_role_policy" "manage_ebs_volume" {
+  count = local.use_inline_policies ? 1 : 0
+
   name   = "manage-ebs-volume"
   role   = module.ec2_instance.iam_role_id
   policy = data.aws_iam_policy_document.manage_ebs_volume.json
+}
+
+resource "aws_iam_policy" "manage_ebs_volume" {
+  count = var.use_managed_iam_policies ? 1 : 0
+
+  name_prefix = "manage-ebs-volume"
+  policy      = data.aws_iam_policy_document.manage_ebs_volume.json
+}
+
+resource "aws_iam_role_policy_attachment" "manage_ebs_volume" {
+  count = var.use_managed_iam_policies ? 1 : 0
+
+  role       = module.ec2_instance.iam_role_id
+  policy_arn = aws_iam_policy.manage_ebs_volume[0].arn
 }
 
 data "aws_iam_policy_document" "manage_ebs_volume" {

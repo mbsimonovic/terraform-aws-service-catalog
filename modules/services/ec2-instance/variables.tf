@@ -182,7 +182,7 @@ variable "ebs_volumes" {
   #   },
   # }
   #
-  # Other keys include "encrypted", "iops", "snapshot_id", "kms_key_id", "throughput", and "tags". See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ebs_volume for more information. 
+  # Other keys include "encrypted", "iops", "snapshot_id", "kms_key_id", "throughput", and "tags". See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ebs_volume for more information.
 }
 
 variable "allow_port_from_cidr_blocks" {
@@ -283,4 +283,20 @@ variable "cloudwatch_log_group_tags" {
   description = "Tags to apply on the CloudWatch Log Group, encoded as a map where the keys are tag keys and values are tag values."
   type        = map(string)
   default     = null
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# BACKWARD COMPATIBILITY FEATURE FLAGS
+# The following variables are feature flags to enable and disable certain features in the module. These are primarily
+# introduced to maintain backward compatibility by avoiding unnecessary resource creation.
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "use_managed_iam_policies" {
+  description = "When true, all IAM policies will be managed as dedicated policies rather than inline policies attached to the IAM roles. Dedicated managed policies are friendlier to automated policy checkers, which may scan a single resource for findings. As such, it is important to avoid inline policies when targeting compliance with various security standards."
+  type        = bool
+  default     = true
+}
+
+locals {
+  use_inline_policies = var.use_managed_iam_policies == false
 }

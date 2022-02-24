@@ -27,16 +27,32 @@ module "ssh_grunt_policies" {
   trust_policy_should_require_mfa = false
 
   # Since our IAM users are defined in a separate AWS account, we need to give ssh-grunt permission to make API calls to
-  # that account. The input takes a map with group name as the key, but the key is only used in the output. In this case, 
+  # that account. The input takes a map with group name as the key, but the key is only used in the output. In this case,
   # we won't use the output, so the "ssh-grunt" key is just a placeholder.
   allow_access_to_other_account_arns = var.external_account_ssh_grunt_role_arn == "" ? {} : { "ssh-grunt" = [var.external_account_ssh_grunt_role_arn] }
 }
 
 resource "aws_iam_role_policy" "ssh_grunt_permissions" {
-  count  = var.enable_ssh_grunt ? 1 : 0
+  count = var.enable_ssh_grunt && local.use_inline_policies ? 1 : 0
+
   name   = "ssh-grunt-permissions"
   role   = var.iam_role_name
   policy = var.external_account_ssh_grunt_role_arn == "" ? module.ssh_grunt_policies.ssh_grunt_permissions : module.ssh_grunt_policies.allow_access_to_other_accounts["ssh-grunt"]
+}
+
+resource "aws_iam_policy" "ssh_grunt_permissions" {
+  count = var.enable_ssh_grunt && var.use_managed_iam_policies ? 1 : 0
+
+  name_prefix = "ssh-grunt-permissions"
+  description = "IAM Policy to allow ssh-grunt permission to make API calls to other accounts."
+  policy      = var.external_account_ssh_grunt_role_arn == "" ? module.ssh_grunt_policies.ssh_grunt_permissions : module.ssh_grunt_policies.allow_access_to_other_accounts["ssh-grunt"]
+}
+
+resource "aws_iam_role_policy_attachment" "ssh_grunt_permissions" {
+  count = var.enable_ssh_grunt && var.use_managed_iam_policies ? 1 : 0
+
+  role       = var.iam_role_name
+  policy_arn = aws_iam_policy.ssh_grunt_permissions[0].arn
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -52,10 +68,26 @@ module "cloudwatch_metrics" {
 }
 
 resource "aws_iam_role_policy" "custom_cloudwatch_metrics" {
-  count  = var.enable_cloudwatch_metrics ? 1 : 0
+  count = var.enable_cloudwatch_metrics && local.use_inline_policies ? 1 : 0
+
   name   = "custom-cloudwatch-metrics"
   role   = var.iam_role_name
   policy = module.cloudwatch_metrics.cloudwatch_metrics_read_write_permissions_json
+}
+
+resource "aws_iam_policy" "custom_cloudwatch_metrics" {
+  count = var.enable_cloudwatch_metrics && var.use_managed_iam_policies ? 1 : 0
+
+  name_prefix = "custom-cloudwatch-metrics"
+  description = "IAM Policy to allow access to CloudWatch metrics."
+  policy      = module.cloudwatch_metrics.cloudwatch_metrics_read_write_permissions_json
+}
+
+resource "aws_iam_role_policy_attachment" "custom_cloudwatch_metrics" {
+  count = var.enable_cloudwatch_metrics && var.use_managed_iam_policies ? 1 : 0
+
+  role       = var.iam_role_name
+  policy_arn = aws_iam_policy.custom_cloudwatch_metrics[0].arn
 }
 
 # ------------------------------------------------------------------------------
@@ -71,10 +103,26 @@ module "cloudwatch_log_aggregation" {
 }
 
 resource "aws_iam_role_policy" "cloudwatch_log_aggregation" {
-  count  = var.enable_cloudwatch_log_aggregation ? 1 : 0
+  count = var.enable_cloudwatch_log_aggregation && local.use_inline_policies ? 1 : 0
+
   name   = "cloudwatch-log-aggregation"
   role   = var.iam_role_name
   policy = module.cloudwatch_log_aggregation.cloudwatch_logs_permissions_json
+}
+
+resource "aws_iam_policy" "cloudwatch_log_aggregation" {
+  count = var.enable_cloudwatch_metrics && var.use_managed_iam_policies ? 1 : 0
+
+  name_prefix = "cloudwatch-log-aggregation"
+  description = "IAM Policy to allow CloudWatch log aggregation."
+  policy      = module.cloudwatch_log_aggregation.cloudwatch_logs_permissions_json
+}
+
+resource "aws_iam_role_policy_attachment" "cloudwatch_log_aggregation" {
+  count = var.enable_cloudwatch_metrics && var.use_managed_iam_policies ? 1 : 0
+
+  role       = var.iam_role_name
+  policy_arn = aws_iam_policy.cloudwatch_log_aggregation[0].arn
 }
 
 # ------------------------------------------------------------------------------
@@ -86,7 +134,8 @@ resource "aws_iam_role_policy" "cloudwatch_log_aggregation" {
 # ------------------------------------------------------------------------------
 
 resource "aws_cloudwatch_log_group" "log_aggregation" {
-  count             = var.enable_cloudwatch_log_aggregation && var.should_create_cloudwatch_log_group ? 1 : 0
+  count = var.enable_cloudwatch_log_aggregation && var.should_create_cloudwatch_log_group ? 1 : 0
+
   name              = var.cloudwatch_log_group_name
   retention_in_days = var.cloudwatch_log_group_retention_in_days
   kms_key_id        = var.cloudwatch_log_group_kms_key_id

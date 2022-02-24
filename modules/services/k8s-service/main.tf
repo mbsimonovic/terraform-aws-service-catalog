@@ -403,7 +403,8 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "aws_iam_role" "new_role" {
-  count              = var.iam_role_name != "" && var.iam_role_exists == false ? 1 : 0
+  count = var.iam_role_name != "" && var.iam_role_exists == false ? 1 : 0
+
   name               = var.iam_role_name
   assume_role_policy = module.service_account_assume_role_policy.assume_role_policy_json
 }
@@ -421,10 +422,25 @@ module "service_account_assume_role_policy" {
 }
 
 resource "aws_iam_role_policy" "service_policy" {
-  count  = var.iam_role_name != "" && var.iam_role_exists == false ? 1 : 0
+  count = var.iam_role_name != "" && var.iam_role_exists == false && local.use_inline_policies ? 1 : 0
+
   name   = "${var.iam_role_name}Policy"
   role   = var.iam_role_name != "" && var.iam_role_exists == false ? aws_iam_role.new_role[0].id : data.aws_iam_role.existing_role[0].id
   policy = data.aws_iam_policy_document.service_policy[0].json
+}
+
+resource "aws_iam_policy" "service_policy" {
+  count = var.iam_role_name != "" && var.iam_role_exists == false && var.use_managed_iam_policies ? 1 : 0
+
+  name_prefix = "${var.iam_role_name}-policy"
+  policy      = data.aws_iam_policy_document.service_policy[0].json
+}
+
+resource "aws_iam_role_policy_attachment" "service_policy" {
+  count = var.iam_role_name != "" && var.iam_role_exists == false && var.use_managed_iam_policies ? 1 : 0
+
+  role       = var.iam_role_name != "" && var.iam_role_exists == false ? aws_iam_role.new_role[0].id : data.aws_iam_role.existing_role[0].id
+  policy_arn = aws_iam_policy.service_policy[0].arn
 }
 
 data "aws_iam_policy_document" "service_policy" {
@@ -444,7 +460,8 @@ data "aws_iam_policy_document" "service_policy" {
 
 data "aws_iam_role" "existing_role" {
   count = var.iam_role_exists ? 1 : 0
-  name  = var.iam_role_name
+
+  name = var.iam_role_name
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -452,7 +469,8 @@ data "aws_iam_role" "existing_role" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 resource "local_file" "debug_values" {
-  count           = var.values_file_path != null ? 1 : 0
+  count = var.values_file_path != null ? 1 : 0
+
   content         = yamlencode(local.helm_chart_input)
   filename        = var.values_file_path
   file_permission = "0644"
