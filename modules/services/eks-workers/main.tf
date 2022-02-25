@@ -76,6 +76,9 @@ module "ec2_baseline_common" {
   enable_cloudwatch_log_aggregation = false
   enable_cloudwatch_metrics         = false
   should_render_cloud_init          = false
+
+  # Backward compatibility feature flag
+  use_managed_iam_policies = var.use_managed_iam_policies
 }
 
 module "ec2_baseline_asg" {
@@ -96,6 +99,9 @@ module "ec2_baseline_asg" {
   # Disable everything else
   should_render_cloud_init          = false
   enable_cloudwatch_log_aggregation = false
+
+  # Backward compatibility feature flag
+  use_managed_iam_policies = var.use_managed_iam_policies
 }
 
 module "ec2_baseline_mng" {
@@ -116,6 +122,9 @@ module "ec2_baseline_mng" {
   # Disable everything else
   should_render_cloud_init          = false
   enable_cloudwatch_log_aggregation = false
+
+  # Backward compatibility feature flag
+  use_managed_iam_policies = var.use_managed_iam_policies
 }
 
 locals {

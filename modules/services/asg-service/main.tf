@@ -156,6 +156,9 @@ module "ec2_baseline" {
   cloudwatch_log_group_retention_in_days = var.cloudwatch_log_group_retention_in_days
   cloudwatch_log_group_kms_key_id        = var.cloudwatch_log_group_kms_key_id
   cloudwatch_log_group_tags              = var.cloudwatch_log_group_tags
+
+  # Backward compatibility feature flag
+  use_managed_iam_policies = var.use_managed_iam_policies
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
