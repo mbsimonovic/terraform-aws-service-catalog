@@ -54,6 +54,9 @@ module "redis" {
   enable_transit_encryption = var.enable_transit_encryption
   cluster_mode              = var.cluster_mode
 
+  snapshot_name = var.snapshot_name
+  snapshot_arn  = var.snapshot_arn
+
   tags = var.tags
 }
 

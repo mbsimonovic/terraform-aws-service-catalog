@@ -127,6 +127,19 @@ variable "allow_connections_from_security_groups" {
   default     = []
 }
 
+# Restore settings
+variable "snapshot_name" {
+  description = "The name of a snapshot from which to restore the Redis cluster. You can use this to restore from an ElastiCache snapshot. If you have an externally created snapshot, use snapshot_arn."
+  type        = string
+  default     = null
+}
+
+variable "snapshot_arn" {
+  description = "The Amazon Resource Name (ARN) of a Redis RDB snapshot file stored in Amazon S3. You can use this parameter to restore from an externally created snapshot. If you have an ElastiCache snapshot, use snapshot_name."
+  type        = string
+  default     = null
+}
+
 # Monitoring settings
 
 variable "enable_cloudwatch_alarms" {
