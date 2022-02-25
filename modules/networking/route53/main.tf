@@ -120,11 +120,7 @@ data "aws_route53_zone" "parent_hosted_zone" {
 resource "aws_route53_record" "apex" {
   count = length(local.public_apex_records)
 
-  zone_id = (
-    local.public_apex_records[count.index].hosted_zone_id == ""
-    ? aws_route53_zone.public_zones[local.public_apex_records[count.index].hosted_zone_domain].zone_id
-    : local.public_apex_records[count.index].hosted_zone_id
-  )
+  zone_id = local.hosted_zone_id_lookup[local.public_apex_records[count.index].name]
 
   name            = local.public_apex_records[count.index].name
   type            = local.public_apex_records[count.index].type
@@ -139,11 +135,8 @@ resource "aws_route53_record" "apex" {
 
 resource "aws_route53_record" "public" {
   for_each = local.public_subdomains
-  zone_id = (
-    each.value.hosted_zone_id == ""
-    ? aws_route53_zone.public_zones[each.value.hosted_zone_domain].zone_id
-    : each.value.hosted_zone_id
-  )
+
+  zone_id = local.hosted_zone_id_lookup[each.value.root_domain]
 
   name            = each.key
   type            = each.value.config.type
@@ -176,16 +169,14 @@ resource "aws_service_discovery_private_dns_namespace" "namespaces" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "acm-tls-certificates" {
-  # When using these modules in your own repos, you will need to use a Git URL with a ref attribute that pins you
-  # to a specific version of the modules, such as the following example:
-  source               = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/acm-tls-certificate?ref=v0.27.1"
-  acm_tls_certificates = local.acm_tls_certificates
+  source = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/acm-tls-certificate?ref=v0.27.3"
 
-  # Workaround Terraform limitation where there is no module depends_on.
-  # See https://github.com/hashicorp/terraform/issues/1178 for more details.
-  # This effectively draws an explicit dependency between the public
-  # and private zones managed here and the ACM certificates that will be optionally
-  # provisioned for them
+  acm_tls_certificates   = local.acm_tls_certificates
+  domain_hosted_zone_ids = local.hosted_zone_id_lookup
+
+  # Terraform 0.13+ supports module depends_on now, but using depends_on on modules has the adverse side effect of
+  # marking every data source in the module to only be available at apply time. This causes perpetual diff issues and
+  # unnecessary resource tainting, so we avoid using module depends_on and instead rely on the dependencies pattern.
   dependencies = flatten(concat([
     values(aws_route53_zone.public_zones).*.name_servers,
     values(aws_service_discovery_public_dns_namespace.namespaces).*.id,
@@ -205,6 +196,60 @@ locals {
     domain => zone if !zone.created_outside_terraform && lookup(zone, "parent_hosted_zone_id", null) != null
   }
 
+  # Build a map for looking up the hosted zone information. This is useful to avoid linking for_each clauses to dynamic
+  # data, which has the unfortunate side effect of tainting the resources.
+  hosted_zone_id_lookup = merge(
+    # The map of domain to zone id. Look up the zone id by domain if the zone config doesn't have an explicit 
+    # hosted_zone_domain_name set, for public zones.
+    {
+      for domain, zone in var.public_zones :
+      domain => (
+        zone.created_outside_terraform
+        ? data.aws_route53_zone.selected[domain].zone_id
+        : aws_route53_zone.public_zones[domain].zone_id
+      )
+      if lookup(zone, "hosted_zone_domain_name", "") == ""
+    },
+    # The map of domain to zone id. Look up the zone id by domain name if the zone config has an explicit 
+    # hosted_zone_domain_name set, for public zones.
+    {
+      for domain, zone in var.public_zones :
+      domain => (
+        zone.created_outside_terraform
+        ? data.aws_route53_zone.selected[zone.hosted_zone_domain_name].zone_id
+        : aws_route53_zone.public_zones[zone.hosted_zone_domain_name].zone_id
+      )
+      if lookup(zone, "hosted_zone_domain_name", "") != ""
+    },
+    # The map of domain to zone id for cloud map namespaces. Look up the zone id by domain if the cloud map config 
+    # doesn't have an explicit hosted zone domain name set.
+    {
+      for domain, config in var.service_discovery_public_namespaces :
+      domain => (
+        config.created_outside_terraform
+        ? data.aws_route53_zone.selected[domain].zone_id
+        : aws_service_discovery_public_dns_namespace.namespaces[domain].hosted_zone
+      )
+      if lookup(config, "hosted_zone_domain_name", "") == ""
+    },
+    # The map of domain to zone id for cloud map namespaces if the cloud map config has an explicit hosted zone
+    # domain name set.
+    {
+      for domain, config in var.service_discovery_public_namespaces :
+      domain => (
+        config.created_outside_terraform
+        ? data.aws_route53_zone.selected[config.hosted_zone_domain_name].zone_id
+        : aws_service_discovery_public_dns_namespace.namespaces[config.hosted_zone_domain_name].hosted_zone
+      )
+      if lookup(config, "hosted_zone_domain_name", "") != ""
+    },
+    # The map of domain to zone id for private zones.
+    {
+      for domain, zone in var.private_zones :
+      domain => aws_route53_zone.private_zones[domain].zone_id
+    },
+  )
+
   # Build a map of objects representing the subdomains to create.
   # First, we take the subdomains field on each domain and extract the information we need to create the
   # aws_route53_record resources. The output of this expression is a list of objects.
@@ -214,18 +259,9 @@ locals {
       [
         for subdomain, config in lookup(zone, "subdomains", {}) :
         {
-          name               = "${subdomain}.${domain}"
-          config             = config,
-          hosted_zone_domain = domain
-          hosted_zone_id = (
-            zone.created_outside_terraform
-            ? (
-              zone.hosted_zone_domain_name != ""
-              ? data.aws_route53_zone.selected[zone.hosted_zone_domain_name].zone_id
-              : data.aws_route53_zone.selected[domain].zone_id
-            )
-            : ""
-          )
+          name        = "${subdomain}.${domain}"
+          config      = config
+          root_domain = domain
         }
       ]
     ]
@@ -235,9 +271,8 @@ locals {
   public_subdomains = {
     for domain_pair in local.public_subdomains_pairs :
     domain_pair.name => {
-      config             = domain_pair.config
-      hosted_zone_domain = domain_pair.hosted_zone_domain
-      hosted_zone_id     = domain_pair.hosted_zone_id
+      config      = domain_pair.config
+      root_domain = domain_pair.root_domain
     }
   }
 
@@ -250,17 +285,7 @@ locals {
       [
         for record in lookup(zone, "apex_records", []) :
         {
-          name               = domain,
-          hosted_zone_domain = domain,
-          hosted_zone_id = (
-            zone.created_outside_terraform
-            ? (
-              zone.hosted_zone_domain_name != ""
-              ? data.aws_route53_zone.selected[zone.hosted_zone_domain_name].zone_id
-              : data.aws_route53_zone.selected[domain].zone_id
-            )
-            : ""
-          )
+          name    = domain
           type    = record.type
           ttl     = record.ttl
           records = record.records
@@ -281,8 +306,6 @@ locals {
       subject_alternative_names  = zone.subject_alternative_names
       create_verification_record = lookup(zone, "create_verification_record", true)
       verify_certificate         = lookup(zone, "verify_certificate", true)
-      # If the created_outside_terraform attribute is set to true, the zone ID will be looked up dynamically
-      hosted_zone_id = zone.created_outside_terraform ? (zone.hosted_zone_domain_name != "" ? data.aws_route53_zone.selected[zone.hosted_zone_domain_name].zone_id : data.aws_route53_zone.selected[domain].zone_id) : ""
     }
     if lookup(zone, "provision_certificates", true)
   }
@@ -298,7 +321,6 @@ locals {
       subject_alternative_names  = config.subject_alternative_names
       create_verification_record = lookup(config, "create_verification_record", true)
       verify_certificate         = lookup(config, "verify_certificate", true)
-      hosted_zone_id             = config.created_outside_terraform ? data.aws_route53_zone.selected[config.hosted_zone_domain_name].zone_id : ""
     }
     if lookup(config, "provision_certificates", true)
   }
