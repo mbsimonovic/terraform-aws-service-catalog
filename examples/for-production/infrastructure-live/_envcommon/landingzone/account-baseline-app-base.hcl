@@ -40,6 +40,11 @@ generate "providers" {
   path      = "providers.tf"
   if_exists = "overwrite"
   contents  = <<EOF
+provider "aws" {
+  region = "${local.aws_region}"
+  alias = "default"
+}
+
 %{for region in local.all_aws_regions}
 provider "aws" {
   region = "${region}"
