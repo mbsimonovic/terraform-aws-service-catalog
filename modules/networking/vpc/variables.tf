@@ -503,3 +503,15 @@ variable "create_vpc_endpoints" {
   type        = bool
   default     = true
 }
+
+variable "iam_role_permissions_boundary" {
+  description = "The ARN of the policy that is used to set the permissions boundary for the IAM role."
+  type        = string
+  default     = null
+}
+
+variable "use_managed_iam_policies" {
+  description = "When true, all IAM policies will be managed as dedicated policies rather than inline policies attached to the IAM roles. Dedicated managed policies are friendlier to automated policy checkers, which may scan a single resource for findings. As such, it is important to avoid inline policies when targeting compliance with various security standards."
+  type        = bool
+  default     = true
+}

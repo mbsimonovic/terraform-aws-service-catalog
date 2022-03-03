@@ -252,7 +252,7 @@ module "vpc_network_acls" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "vpc_flow_logs" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-flow-logs?ref=v0.18.12"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-vpc.git//modules/vpc-flow-logs?ref=v0.20.1"
 
   vpc_id = module.vpc.vpc_id
   cloudwatch_log_group_name = (
@@ -266,4 +266,6 @@ module "vpc_flow_logs" {
   create_resources                = var.create_flow_logs
   traffic_type                    = var.flow_logs_traffic_type
   cloudwatch_iam_role_name        = var.flow_log_cloudwatch_iam_role_name
+  iam_role_permissions_boundary   = var.iam_role_permissions_boundary
+  use_managed_iam_policies        = var.use_managed_iam_policies
 }
