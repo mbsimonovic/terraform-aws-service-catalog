@@ -147,7 +147,7 @@ locals {
       volume_name_tag = "ebs-volume-0"
 
       aws_region                          = data.aws_region.current.name
-      device_name                         = var.jenkins_device_name
+      device_name                         = "/dev/${var.jenkins_device_name}"
       mount_point                         = var.jenkins_mount_point
       owner                               = var.jenkins_user
       memory                              = var.memory
@@ -330,11 +330,11 @@ resource "aws_iam_role_policy_attachment" "deploy_other_account_permissions" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "high_disk_usage_jenkins_volume_alarms" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/asg-disk-alarms?ref=v0.30.5"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-monitoring.git//modules/alarms/asg-disk-alarms?ref=v0.32.0"
 
   asg_names            = [module.jenkins.jenkins_asg_name]
   num_asg_names        = 1
-  file_system          = var.jenkins_device_name
+  device               = var.jenkins_device_name
   mount_path           = var.jenkins_mount_point
   alarm_sns_topic_arns = var.alarms_sns_topic_arn
   create_resources     = var.enable_cloudwatch_alarms

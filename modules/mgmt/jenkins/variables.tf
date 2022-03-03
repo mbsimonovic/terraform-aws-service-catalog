@@ -108,7 +108,7 @@ variable "ebs_kms_key_arn_is_alias" {
 variable "jenkins_device_name" {
   description = "The OS device name where the Jenkins EBS volume should be attached"
   type        = string
-  default     = "/dev/xvdh"
+  default     = "xvdh"
 }
 
 variable "jenkins_mount_point" {
