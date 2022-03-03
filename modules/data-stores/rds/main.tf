@@ -65,6 +65,8 @@ module "database" {
   apply_immediately               = var.apply_immediately
   delete_automated_backups        = var.delete_automated_backups
 
+  performance_insights_enabled = var.performance_insights_enabled
+
   # These are dangerous variables that exposed to make testing easier, but should be left untouched.
   publicly_accessible = var.publicly_accessible
   skip_final_snapshot = var.skip_final_snapshot

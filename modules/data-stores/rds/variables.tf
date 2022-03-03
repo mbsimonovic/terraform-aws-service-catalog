@@ -281,6 +281,12 @@ variable "delete_automated_backups" {
   default     = true
 }
 
+variable "performance_insights_enabled" {
+  description = "Specifies whether Performance Insights are enabled. Performance Insights can be enabled for specific versions of database engines. See https://aws.amazon.com/rds/performance-insights/ for more details."
+  type        = bool
+  default     = false
+}
+
 variable "replica_backup_retention_period" {
   description = "How many days to keep backup snapshots around before cleaning them up on the read replicas. Must be 1 or greater to support read replicas. 0 means disable automated backups."
   type        = number
