@@ -67,8 +67,8 @@ module "vpc_flow_logs" {
   kms_key_arn                     = var.kms_key_arn
   kms_key_deletion_window_in_days = var.kms_key_deletion_window_in_days
   create_resources                = var.create_flow_logs
-
-  use_managed_iam_policies = var.use_managed_iam_policies
+  iam_role_permissions_boundary   = var.iam_role_permissions_boundary
+  use_managed_iam_policies        = var.use_managed_iam_policies
 }
 
 

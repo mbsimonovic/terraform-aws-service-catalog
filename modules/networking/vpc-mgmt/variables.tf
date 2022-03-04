@@ -257,6 +257,12 @@ variable "default_nacl_egress_rules" {
   }
 }
 
+variable "iam_role_permissions_boundary" {
+  description = "The ARN of the policy that is used to set the permissions boundary for the IAM role."
+  type        = string
+  default     = null
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # BACKWARD COMPATIBILITY FEATURE FLAGS
 # The following variables are feature flags to enable and disable certain features in the module. These are primarily
