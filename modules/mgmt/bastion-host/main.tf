@@ -29,6 +29,7 @@ module "bastion" {
   ami              = module.ec2_baseline.existing_ami
   user_data_base64 = module.ec2_baseline.cloud_init_rendered
   tenancy          = var.tenancy
+  ebs_optimized    = var.ebs_optimized
 
   vpc_id    = var.vpc_id
   subnet_id = var.subnet_id

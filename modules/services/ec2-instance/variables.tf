@@ -49,6 +49,12 @@ variable "instance_type" {
   type        = string
 }
 
+variable "ebs_optimized" {
+  description = "If true, the launched EC2 Instance will be EBS-optimized."
+  type        = bool
+  default     = true
+}
+
 variable "keypair_name" {
   description = "The name of a Key Pair that can be used to SSH to this instance. This instance may have ssh-grunt installed. The preferred way to do SSH access is with your own IAM user name and SSH key. This Key Pair is only as a fallback."
   type        = string

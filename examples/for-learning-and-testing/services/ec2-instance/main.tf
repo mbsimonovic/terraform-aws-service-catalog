@@ -34,6 +34,8 @@ module "ec2_instance" {
       },
     ]
   }
+  # t2.micro instances don't support EBS optimization, so set it to false whenever a t2.micro is selected
+  ebs_optimized = var.ebs_optimized
 
   # For this simple example, use a regular key pair instead of ssh-grunt
   keypair_name     = var.keypair_name

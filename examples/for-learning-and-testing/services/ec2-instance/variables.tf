@@ -28,6 +28,12 @@ variable "aws_region" {
   default     = "eu-west-1"
 }
 
+variable "ebs_optimized" {
+  description = "If true, the launched EC2 instance will be EBS-optimized."
+  type        = bool
+  default     = true
+}
+
 variable "base_domain_name_tags" {
   description = "Tags to use to filter the Route 53 Hosted Zones that might match var.base_domain_name."
   type        = map(string)

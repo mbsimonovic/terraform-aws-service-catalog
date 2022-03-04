@@ -56,6 +56,12 @@ variable "instance_type" {
   default     = "t3.micro"
 }
 
+variable "ebs_optimized" {
+  description = "If true, the launched EC2 Instance will be EBS-optimized."
+  type        = bool
+  default     = true
+}
+
 variable "keypair_name" {
   description = "The name of a Key Pair that can be used to SSH to this instance."
   type        = string

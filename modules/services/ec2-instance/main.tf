@@ -25,6 +25,12 @@ module "ec2_instance" {
   tenancy          = var.tenancy
   attach_eip       = var.attach_eip
 
+  # If var.instance_type references an instance type that is not compatible with EBS optimization, set the value to false.
+  # Otherwise, use the value of var.ebs_optimized. This check works by first examining the first two characters in var.ebs_optimized
+  # For example, if the first two characters are "t2", which is explicitly defined in the local list ebs_optimized_incompatible, then
+  # this check will return false, as attempting to enable ebs_optimization on a t2 instance will return an error
+  ebs_optimized = (contains(local.ebs_optimized_incompatible, substr(trimspace(var.instance_type), 0, 2)) ? false : var.ebs_optimized)
+
   vpc_id    = var.vpc_id
   subnet_id = var.subnet_id
 
@@ -63,6 +69,7 @@ data "aws_route53_zone" "selected" {
   name = var.route53_lookup_domain_name
 
   tags = var.base_domain_name_tags
+
   # Since our host may need to be publicly addressable, we look up Route 53 Public Hosted zones when querying for the zone_id
   private_zone = var.dns_zone_is_private
 }
@@ -72,6 +79,9 @@ data "aws_route53_zone" "selected" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 locals {
+  # A list of instance types that are not compatible with EBS optimization
+  ebs_optimized_incompatible = ["t2"]
+
   # Default cloud init script for this module
   cloud_init = {
     filename     = "ec2-server-default-cloud-init"
