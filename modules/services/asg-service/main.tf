@@ -21,7 +21,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "asg" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-asg.git//modules/asg-rolling-deploy?ref=v0.16.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-asg.git//modules/asg-rolling-deploy?ref=v0.17.2"
 
   launch_configuration_name = aws_launch_configuration.launch_configuration.name
   vpc_subnet_ids            = var.subnet_ids
