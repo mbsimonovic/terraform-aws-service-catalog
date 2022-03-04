@@ -25,7 +25,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "database" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/aurora?ref=v0.22.4"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-data-storage.git//modules/aurora?ref=v0.22.6"
 
   name                        = var.name
   port                        = local.port
@@ -58,6 +58,7 @@ module "database" {
   allow_connections_from_security_groups = var.allow_connections_from_security_groups
 
   backup_retention_period             = var.backup_retention_period
+  copy_tags_to_snapshot               = var.copy_tags_to_snapshot
   kms_key_arn                         = var.kms_key_arn
   iam_database_authentication_enabled = var.iam_database_authentication_enabled
   apply_immediately                   = var.apply_immediately
@@ -69,8 +70,12 @@ module "database" {
   publicly_accessible = var.publicly_accessible
   skip_final_snapshot = var.skip_final_snapshot
 
-  # Create DB instance from snapshot backup if var.snapshot_identifier is set
+  # Create DB instance from snapshot backup if var.snapshot_identifier is set. Cannot be used with var.restore_source_cluster_identifier.
   snapshot_identifier = var.snapshot_identifier
+
+  # Create DB instance from point_in_time restore. Cannot be used with var.snapshot_identifier
+  restore_source_cluster_identifier = var.restore_source_cluster_identifier
+  restore_type                      = var.restore_type
 }
 
 resource "aws_rds_cluster_parameter_group" "custom" {

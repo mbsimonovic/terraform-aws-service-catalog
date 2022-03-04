@@ -250,6 +250,18 @@ variable "snapshot_identifier" {
   default     = null
 }
 
+variable "restore_source_cluster_identifier" {
+  description = "If non-empty, the Aurora cluster will be restored from the given source cluster using the latest restorable time. Can only be used if snapshot_identifier is null. For more information see https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/USER_PIT.html"
+  type        = string
+  default     = null
+}
+
+variable "restore_type" {
+  description = "Only used if 'restore_source_cluster_identifier' is non-empty. Type of restore to be performed. Valid options are 'full-copy' and 'copy-on-write'. https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.Managing.Clone.html"
+  type        = string
+  default     = null
+}
+
 # By default, only apply changes during the scheduled maintenance window, as certain DB changes cause degraded
 # performance or downtime. For more info, see:
 # http://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Overview.DBInstance.Modifying.html
@@ -520,6 +532,12 @@ variable "custom_tags" {
   description = "A map of custom tags to apply to the RDS cluster and all associated resources created for it. The key is the tag name and the value is the tag value."
   type        = map(string)
   default     = {}
+}
+
+variable "copy_tags_to_snapshot" {
+  description = "Copy all the Aurora cluster tags to snapshots. Default is false."
+  type        = bool
+  default     = false
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
