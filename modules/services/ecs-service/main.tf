@@ -285,7 +285,7 @@ locals {
 # domain names (the condition block) to the Target Group that contains this ASG service.
 # ---------------------------------------------------------------------------------------------------------------------
 module "listener_rules" {
-  source                 = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/lb-listener-rules?ref=v0.27.3"
+  source                 = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/lb-listener-rules?ref=v0.28.0"
   default_listener_arns  = var.default_listener_arns
   default_listener_ports = var.default_listener_ports
 

@@ -56,7 +56,7 @@ locals {
 }
 
 module "alb" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/alb?ref=v0.27.3"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/alb?ref=v0.28.0"
 
   alb_name        = var.service_name
   is_internal_alb = false

@@ -169,7 +169,7 @@ resource "aws_service_discovery_private_dns_namespace" "namespaces" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "acm-tls-certificates" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/acm-tls-certificate?ref=v0.27.3"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-load-balancer.git//modules/acm-tls-certificate?ref=v0.28.0"
 
   acm_tls_certificates   = local.acm_tls_certificates
   domain_hosted_zone_ids = local.hosted_zone_id_lookup
