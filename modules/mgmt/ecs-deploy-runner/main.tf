@@ -58,9 +58,13 @@ module "ecs_deploy_runner" {
   source = "git::git@github.com:gruntwork-io/terraform-aws-ci.git//modules/ecs-deploy-runner?ref=v0.45.0"
 
   name                          = var.name
-  container_images              = module.standard_config.container_images
   ec2_worker_pool_configuration = local.ec2_worker_pool_configuration
   container_default_launch_type = var.container_default_launch_type
+
+  container_images = merge(
+    module.standard_config.container_images,
+    var.additional_container_images,
+  )
 
   vpc_id         = var.vpc_id
   vpc_subnet_ids = var.private_subnet_ids

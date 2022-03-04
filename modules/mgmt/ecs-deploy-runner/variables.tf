@@ -544,6 +544,71 @@ variable "cloudwatch_log_group_for_ec2_tags" {
   default     = null
 }
 
+variable "additional_container_images" {
+  description = "Container configurations that should be added to the ECS Deploy Runner that should be added in addition to the standard containers. This can be used to customize your deployment of the ECS Deploy Runner beyond the standard use cases."
+  type = map(object({
+    # Docker container identifiers
+    docker_image = string
+    docker_tag   = string
+
+    # Map of environment variable names to secret manager arns of secrets to share with the container during runtime.
+    # Note that the container processes will not be able to directly read these secrets directly using the Secrets
+    # Manager API (they are only available implicitly through the env vars).
+    secrets_manager_env_vars = map(string)
+
+    # Map of environment variable names to values share with the container during runtime.
+    # Do NOT use this for sensitive variables! Use secrets_manager_env_vars for secrets.
+    environment_vars = map(string)
+
+    # List of additional secrets manager entries that the container should have access to, but not directly injected as
+    # environment variables. These secrets can be read by the container processes using the Secrets Manager API, unlike
+    # those shared as environment variables with `secrets_manager_env_vars`.
+    additional_secrets_manager_arns = list(string)
+
+    # Security configuration for each script for each container. Each entry in the map corresponds to a script in the
+    # triggers directory. If a script is not included in the map, then the default is to allow no additional args to be
+    # passed in when invoked.
+    script_config = map(object({
+      # Which options and args to always pass in alongside the ones provided by the command.
+      # This is a map of option keys to args to pass in. Each arg in the list will be passed in as a separate option.
+      # E.g., if you had {'foo': ['bar', 'baz', 'car']}, then this will be: `--foo bar --foo baz --foo car`
+      # This will be passed in first, before the args provided by the user in the event data.
+      hardcoded_options = map(list(string))
+
+      # Unlike hardcoded_options, this is used for hardcoded positional args and will always be passed in at the end of
+      # the args list.
+      hardcoded_args = list(string)
+
+      # Whether or not positional args are allowed to be passed in.
+      allow_positional_args = bool
+
+      # This is a list of option keys that are explicitly allowed. When set, any option key that is not present in this
+      # list will cause an exception. Note that `null` means allow any option, as opposed to `[]` which means allow no
+      # option. Only one of `allowed_options` or `restricted_options` should be used.
+      allowed_options = list(string)
+
+      # List of options without arguments
+      allowed_options_without_args = list(string)
+
+      # This is a list of option keys that are not allowed. When set, any option key passed in that is in this list will
+      # cause an exception. Empty list means allow any option (unless restricted by allowed_options).
+      restricted_options = list(string)
+
+      # This is a map of option keys to a regex for specifying what args are allowed to be passed in for that option key.
+      # There is no restriction to the option if there is no entry in this map.
+      restricted_options_regex = map(string)
+    }))
+
+    # Whether or not the particular container is the default container for the pipeline. This container is used when no
+    # name is provided to the infrastructure deployer. Exactly one must be marked as the default: the behavior of which
+    # container becomes the default is undefined when there are multiple.
+    # If no containers are marked as default, then the invoker lambda function always requires a container name to be
+    # provided.
+    default = bool
+  }))
+  default = {}
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # ESCAPE HATCHES
 # The variables below will be moved to optional attributes of the docker_image_builder object once optional type
