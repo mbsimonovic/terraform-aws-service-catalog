@@ -5,7 +5,7 @@
 # patcher auto-update: bash-commons
 readonly DEFAULT_BASH_COMMONS_VERSION="v0.1.9"
 # patcher auto-update: terraform-aws-security
-readonly DEFAULT_MODULE_SECURITY_VERSION="v0.62.1"
+readonly DEFAULT_MODULE_SECURITY_VERSION="v0.62.3"
 # patcher auto-update: terraform-aws-monitoring
 readonly DEFAULT_MODULE_AWS_MONITORING_VERSION="v0.32.0"
 # patcher auto-update: terraform-aws-server
