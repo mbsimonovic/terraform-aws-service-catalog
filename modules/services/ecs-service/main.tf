@@ -62,8 +62,9 @@ module "ecs_service" {
   clb_container_name = var.clb_container_name
   clb_container_port = var.clb_container_port
 
-  elb_target_groups       = var.elb_target_groups
-  elb_target_group_vpc_id = var.elb_target_group_vpc_id
+  elb_target_groups                     = var.elb_target_groups
+  elb_target_group_vpc_id               = var.elb_target_group_vpc_id
+  elb_target_group_deregistration_delay = var.elb_target_group_deregistration_delay
 
   health_check_grace_period_seconds = var.health_check_grace_period_seconds
   health_check_enabled              = var.health_check_enabled
