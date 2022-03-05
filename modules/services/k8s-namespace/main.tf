@@ -26,7 +26,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "namespace" {
-  source = "git::git@github.com:gruntwork-io/terraform-kubernetes-namespace.git//modules/namespace?ref=v0.4.0"
+  source = "git::git@github.com:gruntwork-io/terraform-kubernetes-namespace.git//modules/namespace?ref=v0.5.0"
 
   name        = var.name
   labels      = var.labels
