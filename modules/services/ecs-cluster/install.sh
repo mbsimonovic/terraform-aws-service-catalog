@@ -4,11 +4,11 @@
 set -e
 
 # patcher auto-update: terraform-aws-ecs
-readonly DEFAULT_ECS_CLUSTER_VERSION="v0.31.8"
+readonly DEFAULT_ECS_CLUSTER_VERSION="v0.32.0"
 
 # ECS tooling
 # patcher auto-update: terraform-aws-ecs
-readonly DEFAULT_ECS_SCRIPTS_VERSION="v0.31.8"
+readonly DEFAULT_ECS_SCRIPTS_VERSION="v0.32.0"
 # patcher auto-update: gruntkms
 readonly DEFAULT_GRUNT_KMS_VERSION="v0.0.10"
 
