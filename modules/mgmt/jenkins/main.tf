@@ -352,7 +352,7 @@ module "high_disk_usage_jenkins_volume_alarms" {
 # AWS Data Lifecycle Management Policies Backup
 # ---------------------------------------------------------------------------------------------------------------------
 module "jenkins_backup_dlm" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-server.git//modules/ec2-backup?ref=v0.13.8"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-server.git//modules/ec2-backup?ref=v0.14.1"
   count  = var.backup_using_dlm ? 1 : 0
 
   target_tags = local.server_group_tags
