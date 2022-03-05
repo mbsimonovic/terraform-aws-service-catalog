@@ -122,7 +122,7 @@ resource "aws_security_group_rule" "allow_all_inbound_ssh" {
 # Use this utility to find an instance type for the bastion host
 # that exists in all availability zones for the AWS region in use.
 module "lookup_instance_type" {
-  source         = "git::git@github.com:gruntwork-io/terraform-aws-utilities.git//modules/instance-type?ref=v0.6.0"
+  source         = "git::git@github.com:gruntwork-io/terraform-aws-utilities.git//modules/instance-type?ref=v0.7.0"
   instance_types = ["t2.micro", "t3.micro"]
 }
 

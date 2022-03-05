@@ -8,7 +8,7 @@ provider "aws" {
 
 module "path" {
   # t2.micro and t3.micro instances are not available in all regions. The instance-type module reconciles that.
-  source         = "git::git@github.com:gruntwork-io/terraform-aws-utilities.git//modules/instance-type?ref=v0.6.0"
+  source         = "git::git@github.com:gruntwork-io/terraform-aws-utilities.git//modules/instance-type?ref=v0.7.0"
   instance_types = ["t2.micro", "t3.micro"]
 }
 
