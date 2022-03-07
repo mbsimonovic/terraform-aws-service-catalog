@@ -46,7 +46,7 @@ data "aws_organizations_organization" "logs_account_id_does_not_exist" {
 # role and cause all the other problems described in https://github.com/gruntwork-io/terraform-aws-security/issues/421.
 resource "time_sleep" "wait_30_seconds" {
   triggers = {
-    logs_account_name = length(local.logs_account_name_array) > 0 ? local.logs_account_name_array[0] : ""
+    logs_account_name = local.has_logs_account ? local.logs_account_name_array[0] : ""
   }
 
   create_duration = "30s"
