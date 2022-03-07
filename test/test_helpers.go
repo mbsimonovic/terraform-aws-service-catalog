@@ -16,7 +16,7 @@ import (
 // The following comment exists to force a full test suite build when terraform, terragrunt, and packer versions are
 // updated.
 // patcher auto-update-github-releases: hashicorp/terraform
-// Test TF Version: 1.0.10
+// Test TF Version: 1.1.7
 // patcher auto-update: terragrunt
 // Test TG Version: v0.35.16
 // patcher auto-update: terratest

@@ -21,7 +21,7 @@ readonly DEFAULT_TERRAGRUNT_VERSION="v0.35.16"
 # patcher auto-update-github-releases: jenkinsci/jenkins
 readonly DEFAULT_JENKINS_VERSION="2.277.2"
 # patcher auto-update-github-releases: hashicorp/terraform
-readonly DEFAULT_TERRAFORM_VERSION="1.0.10"
+readonly DEFAULT_TERRAFORM_VERSION="1.1.7"
 # We intentionally do NOT auto update K8S, as it should be tied to EKS versions, and our support for them in
 # terraform-aws-eks, both of which lag behind open source K8S
 readonly DEFAULT_KUBECTL_VERSION="v1.19.1"
