@@ -43,6 +43,23 @@ provider "aws" {
 }
 EOF
 }
+
+# Use an override file to lock the provider version, regardless of if required_providers is defined in the modules.
+generate "provider_version" {
+  path      = "provider_version_override.tf"
+  if_exists = "overwrite_terragrunt"
+  contents  = <<EOF
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 3.0"
+    }
+  }
+}
+EOF
+}
+
 # ----------------------------------------------------------------------------------------------------------------
 # GENERATED REMOTE STATE BLOCK
 # ----------------------------------------------------------------------------------------------------------------

@@ -14,9 +14,10 @@ function get_git_origin_url {
   origin_url="$(git config --get remote.origin.url)"
   # Confirm that the .git suffix is not present.
   if [[ $origin_url =~ .git$ ]]; then
-   echo "$origin_url"
+    echo "$origin_url"
+  else
+    echo "${origin_url}.git"
   fi
-  echo "${origin_url}.git"
 }
 
 # A function that uses aws-auth to assume the IAM role for invoking the ECS Deploy Runner.

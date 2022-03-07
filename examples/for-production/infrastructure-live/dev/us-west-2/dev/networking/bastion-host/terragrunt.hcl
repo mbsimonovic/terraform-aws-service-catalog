@@ -23,7 +23,7 @@ inputs = {
     filters = [
       {
         name   = "name"
-        values = ["bastion-host-v0.70.0-*"]
+        values = ["bastion-host-v0.82.0-*"]
       },
     ]
   }

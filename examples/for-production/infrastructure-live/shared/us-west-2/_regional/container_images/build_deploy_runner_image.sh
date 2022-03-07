@@ -44,8 +44,8 @@ function run {
     --docker-image-tag "$ecr_repo_url:$DOCKERFILE_REPO_REF" \
     --build-arg "module_ci_tag=$DOCKERFILE_REPO_REF" \
     --build-arg 'terraform_version=1.0.11' \
-    --build-arg 'terragrunt_version=v0.35.14' \
-    --build-arg 'kubergrunt_version=v0.7.10'
+    --build-arg 'terragrunt_version=v0.35.20' \
+    --build-arg 'kubergrunt_version=v0.8.0'
 }
 
 # Run the main function if this script is called directly, instead of being sourced.

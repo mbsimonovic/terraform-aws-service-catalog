@@ -40,7 +40,7 @@ defaults: &defaults
   environment:
     GRUNTWORK_INSTALLER_VERSION: v0.0.38
     MODULE_CI_VERSION: v0.41.1
-    MODULE_SECURITY_VERSION: v0.55.4
+    MODULE_SECURITY_VERSION: v0.61.0
 
 
 # This common step is used to determine the user friendly Git Ref name of the build, either the branch or tag.
@@ -98,6 +98,9 @@ jobs:
           name: install utilities
           command: ./_ci/scripts/install.sh
       - run:
+          name: run build scripts
+          command: ./_ci/scripts/run-build-scripts.sh "$SOURCE_REF" "$CIRCLE_BRANCH"
+      - run:
           name: run plan
           command: ./_ci/scripts/deploy-infra.sh "$SOURCE_REF" "$CIRCLE_SHA1" plan
       - slack/notify:
@@ -130,9 +133,6 @@ jobs:
       - run:
           name: install utilities
           command: ./_ci/scripts/install.sh
-      - run:
-          name: run build scripts
-          command: ./_ci/scripts/run-build-scripts.sh "$SOURCE_REF" "$CIRCLE_BRANCH"
       - run:
           name: run deployment
           command: ./_ci/scripts/deploy-infra.sh "$SOURCE_REF" "$CIRCLE_BRANCH" apply

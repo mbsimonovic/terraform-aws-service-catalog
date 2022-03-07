@@ -30,7 +30,7 @@ on:
 env:
   GRUNTWORK_INSTALLER_VERSION: v0.0.38
   MODULE_CI_VERSION: v0.41.1
-  MODULE_SECURITY_VERSION: v0.55.4
+  MODULE_SECURITY_VERSION: v0.61.0
   # Disables the use of the Amazon EC2 instance metadata service (IMDS).
   # Forces the AWS CLI to use the env vars defined above for credentials.
   AWS_EC2_METADATA_DISABLED: true
@@ -64,6 +64,15 @@ jobs:
           payload: "{\"status\":\"Preparing to run plan.\",\"branch\":\"${{ steps.ref.outputs.short_ref }}\",\"repo\":\"${{ github.repository }}\",\"actor\":\"${{ github.actor }}\",\"url\":\"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"}"
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: run build scripts
+        id: build-script
+        run: ./_ci/scripts/run-build-scripts.sh "${{ steps.ref.outputs.source_ref }}" "${{ github.sha }}"
+        shell: bash
+        env:
+          GITHUB_OAUTH_TOKEN: ${{ secrets.GH_TOKEN }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: run plan
         id: plan

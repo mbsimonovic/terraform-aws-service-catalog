@@ -71,8 +71,17 @@ pipeline {
 
             steps {
                 sh '''
+                    git config --global credential.helper 'cache --timeout 3600'
+                    printf "%s\n" protocol=https host=github.com username=git password=$GITHUB_OAUTH_TOKEN | git credential-cache store
+
+                    git -c remote.origin.fetch='+refs/heads/*:refs/remotes/origin/*' fetch --all
+                    git -c remote.origin.fetch='+refs/heads/*:refs/remotes/origin/*' checkout "$BRANCH_NAME"
+                    git -c remote.origin.fetch='+refs/heads/*:refs/remotes/origin/*' pull
+
+
                     # aws-auth expects USER to be set
                     export USER=jenkins
+                    ./_ci/scripts/run-build-scripts.sh "$SOURCE_REF" "$BRANCH_NAME"
                     ./_ci/scripts/deploy-infra.sh "$SOURCE_REF" "$GIT_COMMIT" 'plan'
                 '''
             }
@@ -122,7 +131,6 @@ pipeline {
 
                       # aws-auth expects USER to be set
                       export USER=jenkins
-                      ./_ci/scripts/run-build-scripts.sh "$SOURCE_REF" "$BRANCH_NAME"
                       ./_ci/scripts/deploy-infra.sh "$SOURCE_REF" "$BRANCH_NAME" 'apply'
                     '''
                 }

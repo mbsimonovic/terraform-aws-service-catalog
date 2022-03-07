@@ -7,15 +7,15 @@
 # the Shared Services AWS account.
 #
 # This is the build script for the ECS Deploy Runner EC2 Workers AMI. You can view the packer template at the following URL:
-# https://github.com/gruntwork-io/terraform-aws-service-catalog/blob/v0.70.0/modules/mgmt/ecs-deploy-runner/ecs-deploy-runner-worker-al2.pkr.hcl
+# https://github.com/gruntwork-io/terraform-aws-service-catalog/blob/v0.82.0/modules/mgmt/ecs-deploy-runner/ecs-deploy-runner-worker-al2.pkr.hcl
 #
 # Pass in the --run-local flag to build the image on the local machine, without going through the ECS Deploy Runner.
 
 set -e
 
 readonly PACKER_TEMPLATE_REPO="https://github.com/gruntwork-io/terraform-aws-service-catalog.git//modules/mgmt/ecs-deploy-runner/ecs-deploy-runner-worker-al2.pkr.hcl"
-readonly PACKER_TEMPLATE_REPO_REF="v0.70.0"
-readonly SERVICE_CATALOG_REF="v0.70.0"
+readonly PACKER_TEMPLATE_REPO_REF="v0.82.0"
+readonly SERVICE_CATALOG_REF="v0.82.0"
 readonly DEPLOY_RUNNER_REGION="us-west-2"
 readonly REGION="us-west-2"
 readonly COPY_REGIONS=()

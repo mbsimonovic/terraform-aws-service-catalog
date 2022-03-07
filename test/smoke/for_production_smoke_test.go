@@ -35,13 +35,19 @@ func TestSmokeForProductionExamples(t *testing.T) {
 	// git clone phase for all but one of the accounts that manage to "win" the race.
 	for _, account := range allAccounts {
 		t.Run(filepath.Base(account), func(t *testing.T) {
-			opts := &terraform.Options{
+			opts := terraform.WithDefaultRetryableErrors(t, &terraform.Options{
 				TerraformBinary: "terragrunt",
 				TerraformDir:    account,
-			}
-			// NOTE: Temporarily use validate-all to avoid -lock issue with run-all
-			_, err := terraform.RunTerraformCommandE(t, opts, terraform.FormatArgs(opts, "validate-all")...)
-			require.NoError(t, err)
+			})
+
+			// Terragrunt ignores dependency ordering when running run-all validate, which causes a race condition
+			// on init. To avoid this, we add a retryable error to keep trying when we hit the race condition.
+			opts.RetryableTerraformErrors[".*exit status 126.*"] = "Race condition caused file permission errors"
+			terraform.RunTerraformCommand(
+				t,
+				opts,
+				terraform.FormatArgs(opts, "run-all", "validate")...,
+			)
 		})
 	}
 }

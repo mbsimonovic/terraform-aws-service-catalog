@@ -74,7 +74,10 @@ locals {
 
   # List of known static CIDR blocks for the organization. Administrative access (e.g., VPN, SSH,
   # etc) will be limited to these source CIDRs.
-  ip_allow_list = [
+  vpn_ip_allow_list = [
+    "0.0.0.0/0",
+  ]
+  ssh_ip_allow_list = [
     "0.0.0.0/0",
   ]
 
