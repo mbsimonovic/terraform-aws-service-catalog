@@ -22,7 +22,7 @@ import (
 // patcher auto-update: terratest
 // Test TT Version: v0.38.8
 // patcher auto-update-github-releases: hashicorp/packer
-// Test PCK Version: 1.7.8
+// Test PCK Version: 1.8.0
 
 // Retry configuration constants
 const (
