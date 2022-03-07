@@ -20,7 +20,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "lambda_function" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-lambda//modules/lambda?ref=v0.14.3"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-lambda//modules/lambda?ref=v0.18.0"
 
   create_resources = var.create_resources
 
@@ -65,6 +65,15 @@ module "lambda_function" {
   working_directory = var.working_directory
 
   tags = var.tags
+
+  # CloudWatch Log Group settings
+  cloudwatch_log_group_retention_in_days = var.cloudwatch_log_group_retention_in_days
+  cloudwatch_log_group_kms_key_id        = var.cloudwatch_log_group_kms_key_id
+  cloudwatch_log_group_tags              = var.cloudwatch_log_group_tags
+
+  # Backward compatibility flags
+  use_managed_iam_policies           = var.use_managed_iam_policies
+  should_create_cloudwatch_log_group = var.should_create_cloudwatch_log_group
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -72,7 +81,7 @@ module "lambda_function" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "scheduled_job" {
-  source   = "git::git@github.com:gruntwork-io/terraform-aws-lambda//modules/scheduled-lambda-job?ref=v0.14.3"
+  source   = "git::git@github.com:gruntwork-io/terraform-aws-lambda//modules/scheduled-lambda-job?ref=v0.18.0"
   for_each = var.schedule_expression == null ? toset([]) : toset(["once"])
 
   create_resources = var.create_resources
