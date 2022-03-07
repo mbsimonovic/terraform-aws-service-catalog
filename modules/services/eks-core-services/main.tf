@@ -93,7 +93,7 @@ provider "helm" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "aws_for_fluent_bit" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-container-logs?ref=v0.49.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-container-logs?ref=v0.50.0"
 
   # The contents of the for each set is irrelevant as it is only used to enable the module.
   for_each = var.enable_fluent_bit ? { enable = true } : {}
@@ -118,7 +118,7 @@ module "aws_for_fluent_bit" {
 }
 
 module "fargate_fluent_bit" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-fargate-container-logs?ref=v0.49.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-fargate-container-logs?ref=v0.50.0"
 
   # The contents of the for each set is irrelevant as it is only used to enable the module.
   for_each = var.enable_fargate_fluent_bit ? { enable = true } : {}
@@ -179,7 +179,7 @@ locals {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "aws_cloudwatch_agent" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cloudwatch-agent?ref=v0.49.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cloudwatch-agent?ref=v0.50.0"
 
   # The contents of the for each set is irrelevant as it is only used to enable the module.
   for_each = var.enable_aws_cloudwatch_agent ? { enable = true } : {}
@@ -203,7 +203,7 @@ module "aws_cloudwatch_agent" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "alb_ingress_controller" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-alb-ingress-controller?ref=v0.49.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-alb-ingress-controller?ref=v0.50.0"
 
   # Ideally we would use module depends_on for this purpose, but module depends_on causes all data sources within the
   # module to be labeled as apply time data. This means that you end up with a perpetual diff. To avoid this, we use the
@@ -228,7 +228,7 @@ module "alb_ingress_controller" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "k8s_external_dns" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-external-dns?ref=v0.49.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-external-dns?ref=v0.50.0"
 
   # Ideally we would use module depends_on for this purpose, but module depends_on causes all data sources within the
   # module to be labeled as apply time data. This means that you end up with a perpetual diff. To avoid this, we use the
@@ -260,7 +260,7 @@ module "k8s_external_dns" {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "k8s_cluster_autoscaler" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-cluster-autoscaler?ref=v0.49.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-k8s-cluster-autoscaler?ref=v0.50.0"
 
   # Ideally we would use module depends_on for this purpose, but module depends_on causes all data sources within the
   # module to be labeled as apply time data. This means that you end up with a perpetual diff. To avoid this, we use the

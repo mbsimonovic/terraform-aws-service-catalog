@@ -4,7 +4,7 @@
 set -e
 
 # patcher auto-update: terraform-aws-eks
-readonly DEFAULT_TERRAFORM_AWS_EKS_VERSION="v0.49.1"
+readonly DEFAULT_TERRAFORM_AWS_EKS_VERSION="v0.50.0"
 
 # NOTE: A few variables will be imported from ec2-baseline
 # - DEFAULT_MODULE_SECURITY_VERSION
