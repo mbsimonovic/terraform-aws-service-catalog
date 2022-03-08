@@ -600,8 +600,8 @@ variable "additional_container_images" {
     }))
 
     # Whether or not the particular container is the default container for the pipeline. This container is used when no
-    # name is provided to the infrastructure deployer. Exactly one must be marked as the default: the behavior of which
-    # container becomes the default is undefined when there are multiple.
+    # name is provided to the infrastructure deployer. Exactly one must be marked as the default. An arbitrary container
+    # will be picked amongst the list of defaults when multiple are marked as default.
     # If no containers are marked as default, then the invoker lambda function always requires a container name to be
     # provided.
     default = bool
