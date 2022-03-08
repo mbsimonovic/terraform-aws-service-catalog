@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/gruntwork-io/gruntwork-cli/files"
+	"github.com/gruntwork-io/go-commons/files"
 	"github.com/gruntwork-io/terratest/modules/collections"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"

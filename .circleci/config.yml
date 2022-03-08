@@ -7,7 +7,7 @@ env: &env
     # patcher auto-update: gruntwork-installer
     GRUNTWORK_INSTALLER_VERSION: v0.0.38
     # patcher auto-update: terratest
-    TERRATEST_LOG_PARSER_VERSION: v0.38.8
+    TERRATEST_LOG_PARSER_VERSION: v0.40.6
     # patcher auto-update: kubergrunt
     KUBERGRUNT_VERSION: v0.8.0
     # patcher auto-update: terraform-aws-ci
