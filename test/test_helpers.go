@@ -18,7 +18,7 @@ import (
 // patcher auto-update-github-releases: hashicorp/terraform
 // Test TF Version: 1.1.7
 // patcher auto-update: terragrunt
-// Test TG Version: v0.35.16
+// Test TG Version: v0.36.3
 // patcher auto-update: terratest
 // Test TT Version: v0.38.8
 // patcher auto-update-github-releases: hashicorp/packer
