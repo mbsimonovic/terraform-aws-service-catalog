@@ -26,7 +26,7 @@ terraform {
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "openvpn" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-openvpn.git//modules/openvpn-server?ref=v0.19.1"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-openvpn.git//modules/openvpn-server?ref=v0.22.0"
 
   aws_region     = data.aws_region.current.name
   aws_account_id = data.aws_caller_identity.current.account_id
@@ -36,6 +36,7 @@ module "openvpn" {
   instance_type    = var.instance_type
   ami              = module.ec2_baseline.existing_ami
   user_data_base64 = module.ec2_baseline.cloud_init_rendered
+  ebs_optimized    = var.ebs_optimized
 
   request_queue_name    = var.request_queue_name
   revocation_queue_name = var.revocation_queue_name
@@ -54,6 +55,9 @@ module "openvpn" {
   allow_ssh_from_cidr      = length(var.allow_ssh_from_cidr_list) > 0
 
   backup_bucket_force_destroy = var.force_destroy
+
+  # Pass through backward compatibility flags
+  use_managed_iam_policies = var.use_managed_iam_policies
 }
 
 # ---------------------------------------------------------------------------------------------------------------------

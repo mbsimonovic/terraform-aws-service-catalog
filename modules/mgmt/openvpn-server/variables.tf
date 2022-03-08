@@ -297,6 +297,12 @@ variable "use_strong_prime" {
   default     = false
 }
 
+variable "ebs_optimized" {
+  description = "If true, the launched EC2 instance will be EBS-optimized. Note that for most instance types, EBS optimization does not incur additional cost, and that many newer EC2 instance types have EBS optimization enabled by default. However, if you are running previous generation instances, there may be an additional cost per hour to run your instances with EBS optimization enabled. Please see: https://aws.amazon.com/ec2/pricing/on-demand/#EBS-Optimized_Instances"
+  type        = bool
+  default     = true
+}
+
 # CloudWatch Log Group settings (for log aggregation)
 
 variable "should_create_cloudwatch_log_group" {
