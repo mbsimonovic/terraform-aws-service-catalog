@@ -43,6 +43,10 @@ variable "autoscaling_group_configurations" {
   #                                            instances to use for the ASG in GB (e.g., 40).
   # - asg_instance_root_volume_type   string : (Defaults to value from var.asg_default_instance_root_volume_type) The root volume type of
   #                                            instances to use for the ASG (e.g., "standard").
+  # - asg_instance_root_volume_iops   number : (Defaults to value from var.asg_default_instance_root_volume_iops) The root volume iops of
+  #                                            instances to use for the ASG (e.g., 200).
+  # - asg_instance_root_volume_throughput   number : (Defaults to value from var.asg_default_instance_root_volume_throughput) The root volume throughput in MiBPS of
+  #                                            instances to use for the ASG (e.g., 125).
   # - asg_instance_root_volume_encryption   bool  : (Defaults to value from var.asg_default_instance_root_volume_encryption)
   #                                             Whether or not to enable root volume encryption for instances of the ASG.
   # - tags                list(object[Tag])  : (Defaults to value from var.asg_default_tags) Custom tags to apply to the
@@ -583,6 +587,18 @@ variable "node_group_default_instance_root_volume_type" {
   description = "Default value for the instance_root_volume_type field of managed_node_group_configurations."
   type        = string
   default     = "gp3"
+}
+
+variable "asg_default_instance_root_volume_iops" {
+  description = "Default value for the asg_instance_root_volume_iops field of autoscaling_group_configurations. Any map entry that does not specify asg_instance_root_volume_iops will use this value."
+  type        = number
+  default     = null
+}
+
+variable "asg_default_instance_root_volume_throughput" {
+  description = "Default value for the asg_instance_root_volume_throughput field of autoscaling_group_configurations. Any map entry that does not specify asg_instance_root_volume_throughput will use this value."
+  type        = number
+  default     = null
 }
 
 variable "node_group_default_instance_root_volume_encryption" {

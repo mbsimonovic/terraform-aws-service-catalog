@@ -31,6 +31,8 @@ module "self_managed_workers" {
   asg_default_tags                                     = var.asg_default_tags
   asg_default_instance_root_volume_size                = var.asg_default_instance_root_volume_size
   asg_default_instance_root_volume_type                = var.asg_default_instance_root_volume_type
+  asg_default_instance_root_volume_iops                = var.asg_default_instance_root_volume_iops
+  asg_default_instance_root_volume_throughput          = var.asg_default_instance_root_volume_throughput
   asg_default_instance_root_volume_encryption          = var.asg_default_instance_root_volume_encryption
   asg_default_use_multi_instances_policy               = var.asg_default_use_multi_instances_policy
   asg_default_on_demand_allocation_strategy            = var.asg_default_on_demand_allocation_strategy
