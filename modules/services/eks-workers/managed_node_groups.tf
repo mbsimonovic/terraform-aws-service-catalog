@@ -4,7 +4,7 @@
 # ---------------------------------------------------------------------------------------------------------------------
 
 module "managed_node_groups" {
-  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-managed-workers?ref=v0.50.0"
+  source = "git::git@github.com:gruntwork-io/terraform-aws-eks.git//modules/eks-cluster-managed-workers?ref=v0.50.1"
 
   # Ideally, we can use module count to drive this resource creation, but using module counts and for_each adds a
   # limitation where dependency chains apply at the module level, not the individual resources. This causes a cyclic
