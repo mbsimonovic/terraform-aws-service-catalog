@@ -8,7 +8,7 @@ readonly JENKINS_USER="jenkins"
 
 # Gruntwork module versions
 # patcher auto-update: terraform-aws-ci
-readonly DEFAULT_MODULE_CI_VERSION="v0.45.3"
+readonly DEFAULT_MODULE_CI_VERSION="v0.45.4"
 
 # Build tooling
 # patcher auto-update: kubergrunt

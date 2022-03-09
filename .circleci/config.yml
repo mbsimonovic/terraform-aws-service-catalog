@@ -11,7 +11,7 @@ env: &env
     # patcher auto-update: kubergrunt
     KUBERGRUNT_VERSION: v0.8.0
     # patcher auto-update: terraform-aws-ci
-    MODULE_CI_VERSION: v0.45.3
+    MODULE_CI_VERSION: v0.45.4
     # patcher auto-update: terragrunt
     TERRAGRUNT_VERSION: v0.36.3
     # patcher auto-update-github-releases: hashicorp/terraform
