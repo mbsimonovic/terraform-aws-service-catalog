@@ -71,6 +71,12 @@ module "lambda_function" {
   cloudwatch_log_group_kms_key_id        = var.cloudwatch_log_group_kms_key_id
   cloudwatch_log_group_tags              = var.cloudwatch_log_group_tags
 
+  # CloudWatch Log Group Subscriptions
+  cloudwatch_log_group_subscription_destination_arn = var.cloudwatch_log_group_subscription_destination_arn
+  cloudwatch_log_group_subscription_filter_pattern  = var.cloudwatch_log_group_subscription_filter_pattern
+  cloudwatch_log_group_subscription_role_arn        = var.cloudwatch_log_group_subscription_role_arn
+  cloudwatch_log_group_subscription_distribution    = var.cloudwatch_log_group_subscription_distribution
+
   # Backward compatibility flags
   use_managed_iam_policies           = var.use_managed_iam_policies
   should_create_cloudwatch_log_group = var.should_create_cloudwatch_log_group

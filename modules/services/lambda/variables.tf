@@ -296,6 +296,30 @@ variable "cloudwatch_log_group_tags" {
   default     = null
 }
 
+variable "cloudwatch_log_group_subscription_destination_arn" {
+  description = "The ARN of the destination to deliver matching log events to. Kinesis stream or Lambda function ARN. Only applicable if var.should_create_cloudwatch_log_group is true."
+  type        = string
+  default     = null
+}
+
+variable "cloudwatch_log_group_subscription_filter_pattern" {
+  description = "A valid CloudWatch Logs filter pattern for subscribing to a filtered stream of log events."
+  type        = string
+  default     = ""
+}
+
+variable "cloudwatch_log_group_subscription_role_arn" {
+  description = "ARN of an IAM role that grants Amazon CloudWatch Logs permissions to deliver ingested log events to the destination. Only applicable when var.cloudwatch_log_group_subscription_destination_arn is a kinesis stream."
+  type        = string
+  default     = null
+}
+
+variable "cloudwatch_log_group_subscription_distribution" {
+  description = "The method used to distribute log data to the destination. Only applicable when var.cloudwatch_log_group_subscription_destination_arn is a kinesis stream. Valid values are `Random` and `ByLogStream`."
+  type        = string
+  default     = null
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # BACKWARD COMPATIBILITY FEATURE FLAGS
 # The following variables are feature flags to enable and disable certain features in the module. These are primarily
