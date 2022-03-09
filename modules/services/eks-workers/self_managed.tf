@@ -40,6 +40,7 @@ module "self_managed_workers" {
   asg_default_spot_instance_pools                      = var.asg_default_spot_instance_pools
   asg_default_spot_max_price                           = var.asg_default_spot_max_price
   asg_default_multi_instance_overrides                 = var.asg_default_multi_instance_overrides
+  asg_default_enable_detailed_monitoring               = var.asg_default_enable_detailed_monitoring
 
   custom_tags_security_group = var.asg_security_group_tags
 

@@ -48,6 +48,9 @@ variable "autoscaling_group_configurations" {
   # - tags                list(object[Tag])  : (Defaults to value from var.asg_default_tags) Custom tags to apply to the
   #                                            EC2 Instances in this ASG. Refer to structure definition below for the
   #                                            object type of each entry in the list.
+  # - enable_detailed_monitoring   bool      : (Defaults to value from
+  #                                            var.asg_default_enable_detailed_monitoring) Whether to enable
+  #                                            detailed monitoring on the EC2 instances that comprise the ASG.
   # - use_multi_instances_policy   bool       : (Defaults to value from var.asg_default_use_multi_instances_policy)
   #                                             Whether or not to use a multi_instances_policy for the ASG.
   # - multi_instance_overrides     list(MultiInstanceOverride) : (Defaults to value from var.asg_default_multi_instance_overrides)
@@ -159,6 +162,10 @@ variable "managed_node_group_configurations" {
   #                                            Labels to apply to the EC2 Instances in this node group. This should be a
   #                                            key value pair, where the keys are label keys and values are the label
   #                                            values. Merged with var.common_labels.
+  # - enable_detailed_monitoring    bool     : (Defaults to value from
+  #                                            var.node_group_default_enable_detailed_monitoring) Whether to enable
+  #                                            detailed monitoring on the EC2 instances that comprise the Managed node
+  #                                            group.
   # - eks_kubelet_extra_args        string   : Extra args to pass to the kubelet process on node boot.
   # - eks_bootstrap_script_options  string   : Extra option args to pass to the bootstrap.sh script. This will be
   #                                            passed through directly to the bootstrap script.
@@ -346,7 +353,6 @@ variable "alarms_sns_topic_arn" {
   default     = []
 }
 
-
 # Defaults for the Self-managed ASG configurations passed in through var.autoscaling_group_configurations. These values are used when
 # the corresponding setting is omitted from the underlying map. Refer to the documentation under
 # var.autoscaling_group_configurations for more on info on what each of these settings do.
@@ -460,6 +466,12 @@ variable "asg_default_multi_instance_overrides" {
   # ]
 }
 
+variable "asg_default_enable_detailed_monitoring" {
+  description = "Default value for enable_detailed_monitoring field of autoscaling_group_configurations."
+  type        = bool
+  default     = true
+}
+
 variable "asg_iam_role_already_exists" {
   description = "Whether or not the IAM role used for the Self-managed workers already exists. When false, this module will create a new IAM role."
   type        = bool
@@ -523,6 +535,12 @@ variable "node_group_default_desired_size" {
   description = "Default value for desired_size field of managed_node_group_configurations."
   type        = number
   default     = 1
+}
+
+variable "node_group_default_enable_detailed_monitoring" {
+  description = "Default value for enable_detailed_monitoring field of managed_node_group_configurations."
+  type        = bool
+  default     = true
 }
 
 variable "node_group_launch_template_instance_type" {

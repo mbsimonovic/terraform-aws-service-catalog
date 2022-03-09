@@ -173,6 +173,7 @@ module "eks_workers" {
   asg_default_instance_type                            = var.asg_default_instance_type
   asg_default_max_pods_allowed                         = var.asg_default_max_pods_allowed
   asg_default_tags                                     = var.asg_default_tags
+  asg_default_enable_detailed_monitoring               = var.asg_default_enable_detailed_monitoring
   asg_default_instance_root_volume_size                = var.asg_default_instance_root_volume_size
   asg_default_instance_root_volume_type                = var.asg_default_instance_root_volume_type
   asg_default_instance_root_volume_encryption          = var.asg_default_instance_root_volume_encryption
@@ -203,19 +204,20 @@ module "eks_workers" {
   # module for_each calculation by providing values that are only derived from variables.
   node_group_names = [for name, config in var.managed_node_group_configurations : name]
   # The rest configure the defaults for the node group configurations.
-  managed_node_group_iam_role_already_exists = local.has_managed_node_groups
-  managed_node_group_iam_role_arn            = length(aws_iam_role.managed_node_group) > 0 ? aws_iam_role.managed_node_group[0].arn : null
-  node_group_default_subnet_ids              = var.node_group_default_subnet_ids
-  node_group_default_min_size                = var.node_group_default_min_size
-  node_group_default_max_size                = var.node_group_default_max_size
-  node_group_default_desired_size            = var.node_group_default_desired_size
-  node_group_default_max_pods_allowed        = var.node_group_default_max_pods_allowed
-  node_group_launch_template_instance_type   = var.node_group_launch_template_instance_type
-  node_group_default_instance_types          = var.node_group_default_instance_types
-  node_group_default_capacity_type           = var.node_group_default_capacity_type
-  node_group_default_tags                    = var.node_group_default_tags
-  node_group_default_labels                  = var.node_group_default_labels
-  node_group_security_group_tags             = var.node_group_security_group_tags
+  managed_node_group_iam_role_already_exists    = local.has_managed_node_groups
+  managed_node_group_iam_role_arn               = length(aws_iam_role.managed_node_group) > 0 ? aws_iam_role.managed_node_group[0].arn : null
+  node_group_default_subnet_ids                 = var.node_group_default_subnet_ids
+  node_group_default_min_size                   = var.node_group_default_min_size
+  node_group_default_max_size                   = var.node_group_default_max_size
+  node_group_default_desired_size               = var.node_group_default_desired_size
+  node_group_default_max_pods_allowed           = var.node_group_default_max_pods_allowed
+  node_group_launch_template_instance_type      = var.node_group_launch_template_instance_type
+  node_group_default_instance_types             = var.node_group_default_instance_types
+  node_group_default_capacity_type              = var.node_group_default_capacity_type
+  node_group_default_tags                       = var.node_group_default_tags
+  node_group_default_enable_detailed_monitoring = var.node_group_default_enable_detailed_monitoring
+  node_group_default_labels                     = var.node_group_default_labels
+  node_group_security_group_tags                = var.node_group_security_group_tags
 
   # The rest of the block specifies settings that are common to both worker groups
 

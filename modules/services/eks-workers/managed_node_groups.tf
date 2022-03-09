@@ -62,6 +62,14 @@ resource "aws_launch_template" "template" {
   # AMI configurations from each Managed Node Group entry.
   image_id = module.ec2_baseline_common.existing_ami
 
+  # Enable detailed monitoring for EC2 instances in the managed node groups
+  dynamic "monitoring" {
+    for_each = lookup(each.value, "enable_detailed_monitoring", var.node_group_default_enable_detailed_monitoring) ? ["once"] : []
+    content {
+      enabled = true
+    }
+  }
+
   network_interfaces {
     security_groups = concat(
       [data.aws_eks_cluster.cluster.vpc_config[0].cluster_security_group_id],
