@@ -296,6 +296,16 @@ module "iam_cross_account_roles" {
   allow_auto_deploy_from_other_account_arns = var.allow_auto_deploy_from_other_account_arns
 
   cloudtrail_kms_key_arn = local.cloudtrail_kms_key_arn_with_dependency
+
+  allow_auto_deploy_from_github_actions = (
+    var.enable_github_actions_access && length(var.allow_auto_deploy_from_github_actions_for_sources) > 0
+    ? {
+      openid_connect_provider_arn = concat(aws_iam_openid_connect_provider.github_actions.*.arn, [""])[0]
+      openid_connect_provider_url = concat(aws_iam_openid_connect_provider.github_actions.*.url, [""])[0]
+      allowed_sources             = var.allow_auto_deploy_from_github_actions_for_sources
+    }
+    : null
+  )
 }
 
 module "iam_user_password_policy" {
@@ -412,6 +422,29 @@ module "ebs_encryption" {
   # the configuration to permit custom keys if desired.
   use_existing_kms_keys = var.ebs_use_existing_kms_keys
   kms_key_arns          = var.ebs_kms_key_arns
+}
+
+# ----------------------------------------------------------------------------------------------------------------------
+# EXTERNAL IAM ACCESS VIA OPENID CONNECT PROVIDERS
+# ----------------------------------------------------------------------------------------------------------------------
+
+resource "aws_iam_openid_connect_provider" "github_actions" {
+  count          = var.enable_github_actions_access ? 1 : 0
+  url            = "https://token.actions.githubusercontent.com"
+  client_id_list = ["sts.amazonaws.com"]
+  thumbprint_list = (
+    var.github_actions_openid_connect_provider_thumbprint_list != null
+    ? var.github_actions_openid_connect_provider_thumbprint_list
+    : [data.tls_certificate.oidc_thumbprint[0].certificates[0].sha1_fingerprint]
+  )
+}
+
+data "tls_certificate" "oidc_thumbprint" {
+  count = (
+    var.enable_github_actions_access && var.github_actions_openid_connect_provider_thumbprint_list == null
+    ? 1 : 0
+  )
+  url = "https://token.actions.githubusercontent.com"
 }
 
 # ----------------------------------------------------------------------------------------------------------------------

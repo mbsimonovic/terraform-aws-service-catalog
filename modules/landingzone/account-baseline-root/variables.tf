@@ -735,6 +735,16 @@ variable "allow_auto_deploy_from_other_account_arns" {
   # ]
 }
 
+variable "allow_auto_deploy_from_github_actions_for_sources" {
+  description = "Map of github repositories to the list of branches that are allowed to assume the IAM role. The repository should be encoded as org/repo-name (e.g., gruntwork-io/terrraform-aws-ci). Allows GitHub Actions to assume the auto deploy IAM role using an OpenID Connect Provider for the given repositories. Refer to the docs for github-actions-iam-role for more information. Note that this is mutually exclusive with var.allow_auto_deploy_from_other_account_arns. Only used if var.enable_github_actions_access is true. "
+  type        = map(list(string))
+  default     = {}
+  # Example:
+  # default = {
+  #   "gruntwork-io/terraform-aws-security" = ["main", "dev"]
+  # }
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # OPTIONAL GUARDDUTY PARAMETERS
 # These variables must be passed in by the operator. In a real-world usage, some of these variables might not be needed
@@ -959,6 +969,23 @@ variable "ebs_kms_key_arns" {
 variable "ebs_opt_in_regions" {
   description = "Creates resources in the specified regions. The best practice is to enable EBS Encryption in all enabled regions in your AWS account. This variable must NOT be set to null or empty. Otherwise, we won't know which regions to use and authenticate to, and may use some not enabled in your AWS account (e.g., GovCloud, China, etc). To get the list of regions enabled in your AWS account, you can use the AWS CLI: aws ec2 describe-regions. The value provided for global_recorder_region must be in this list."
   type        = list(string)
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
+# OPTIONAL EXTERNAL IAM ACCESS PARAMETERS
+# These variables have defaults, but may be overridden by the operator.
+# ---------------------------------------------------------------------------------------------------------------------
+
+variable "enable_github_actions_access" {
+  description = "When true, create an Open ID Connect Provider that GitHub actions can use to assume IAM roles in the account. Refer to https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services for more information."
+  type        = bool
+  default     = false
+}
+
+variable "github_actions_openid_connect_provider_thumbprint_list" {
+  description = "When set, use the statically provided hardcoded list of thumbprints rather than looking it up dynamically. This is useful if you want to trade reliability of the OpenID Connect Provider across certificate renewals with a static list that is obtained using a trustworthy mechanism, to mitigate potential damage from a domain hijacking attack on GitHub domains."
+  type        = list(string)
+  default     = null
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
