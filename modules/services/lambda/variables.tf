@@ -56,6 +56,12 @@ variable "s3_object_version" {
   default     = null
 }
 
+variable "set_source_code_hash" {
+  description = "If set to false, this function will no longer set the source_code_hash parameter, so this module will no longer detect and upload changes to the deployment package. This is primarily useful if you update the Lambda function from outside of this module (e.g., you have scripts that do it separately) and want to avoid a plan diff. Used only if var.source_path is non-empty."
+  type        = bool
+  default     = true
+}
+
 variable "runtime" {
   description = "The runtime environment for the Lambda function (e.g. nodejs, python2.7, java8). See https://docs.aws.amazon.com/lambda/latest/dg/API_CreateFunction.html#SSS-CreateFunction-request-Runtime for all possible values."
   type        = string
