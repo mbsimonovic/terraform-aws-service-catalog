@@ -11,6 +11,7 @@ import (
 	"github.com/gruntwork-io/aws-service-catalog/test"
 
 	awsgo "github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/gruntwork-io/module-ci/test/edrhelpers"
 	"github.com/gruntwork-io/terratest/modules/aws"
 	"github.com/gruntwork-io/terratest/modules/docker"
@@ -18,6 +19,7 @@ import (
 	"github.com/gruntwork-io/terratest/modules/logger"
 	"github.com/gruntwork-io/terratest/modules/packer"
 	"github.com/gruntwork-io/terratest/modules/random"
+	"github.com/gruntwork-io/terratest/modules/retry"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	test_structure "github.com/gruntwork-io/terratest/modules/test-structure"
 	"github.com/stretchr/testify/require"
@@ -25,7 +27,7 @@ import (
 
 const (
 	serviceCatalogRepo = "git@github.com:gruntwork-io/aws-service-catalog.git"
-	moduleCITag        = "v0.38.7"
+	moduleCITag        = "v0.45.4"
 	deployRunnerImgTag = "deploy-runner-v1"
 	kanikoImgTag       = "kaniko-v1"
 
@@ -47,6 +49,7 @@ func TestEcsDeployRunner(t *testing.T) {
 	//os.Setenv("SKIP_apply_deploy_runner", "true")
 	//os.Setenv("SKIP_validate_deploy_runner_ec2", "true")
 	//os.Setenv("SKIP_validate_deploy_runner_fargate", "true")
+	//os.Setenv("SKIP_validate_deploy_runner_schedule", "true")
 	//os.Setenv("SKIP_destroy_deploy_runner", "true")
 	//os.Setenv("SKIP_delete_docker_image", "true")
 	//os.Setenv("SKIP_cleanup_ssh_private_key", "true")
@@ -147,30 +150,30 @@ func TestEcsDeployRunner(t *testing.T) {
 		edrhelpers.DeleteDockerImage(t, kanikoImg)
 	})
 	test_structure.RunTestStage(t, "build_docker_image", func() {
+		buildArgs := []string{
+			"GITHUB_OAUTH_TOKEN",
+			fmt.Sprintf("module_ci_tag=%s", moduleCITag),
+		}
+		otherOptions := []string{"--no-cache"}
+
 		// deploy-runner docker image
 		deployRunnerBuildOpts := &docker.BuildOptions{
-			Tags: []string{deployRunnerImg},
-			BuildArgs: []string{
-				"GITHUB_OAUTH_TOKEN",
-				fmt.Sprintf("module_ci_tag=%s", moduleCITag),
-			},
-			OtherOptions: []string{"--no-cache"},
+			Tags:         []string{deployRunnerImg},
+			BuildArgs:    buildArgs,
+			OtherOptions: otherOptions,
 		}
 		edrhelpers.GitCloneAndDockerBuild(t, edrhelpers.ModuleCIRepo, moduleCITag, "modules/ecs-deploy-runner/docker/deploy-runner", deployRunnerBuildOpts)
 
 		// kaniko docker image
 		kanikoBuildOpts := &docker.BuildOptions{
-			Tags: []string{kanikoImg},
-			BuildArgs: []string{
-				"GITHUB_OAUTH_TOKEN",
-				fmt.Sprintf("module_ci_tag=%s", moduleCITag),
-			},
-			OtherOptions: []string{"--no-cache"},
+			Tags:         []string{kanikoImg},
+			BuildArgs:    buildArgs,
+			OtherOptions: otherOptions,
 		}
 		edrhelpers.GitCloneAndDockerBuild(t, edrhelpers.ModuleCIRepo, moduleCITag, "modules/ecs-deploy-runner/docker/kaniko", kanikoBuildOpts)
 	})
 	test_structure.RunTestStage(t, "push_docker_image", func() {
-		test.RunCommandWithEcrAuth(t, fmt.Sprintf("docker push %s && docker push %s", deployRunnerImg, kanikoImg), region)
+		test.AuthECRAndPushImages(t, region, []string{deployRunnerImg, kanikoImg})
 	})
 
 	// Deploy the ECS deploy runner
@@ -254,6 +257,20 @@ func TestEcsDeployRunner(t *testing.T) {
 			},
 			"enable_ec2_worker_pool":          true,
 			"ec2_worker_pool_ami_version_tag": branchName,
+			"invoke_schedule": map[string]interface{}{
+				"run_terraform_applier_help": map[string]string{
+					"container_name":      "terraform-applier",
+					"script":              "infrastructure-deploy-script",
+					"args":                "--help",
+					"schedule_expression": "rate(1 minute)",
+				},
+				"run_docker_image_builder_help": map[string]string{
+					"container_name":      "docker-image-builder",
+					"script":              "build-docker-image",
+					"args":                "--help",
+					"schedule_expression": "rate(1 minute)",
+				},
+			},
 		},
 	}
 	defer test_structure.RunTestStage(t, "destroy_deploy_runner", func() {
@@ -287,5 +304,81 @@ func TestEcsDeployRunner(t *testing.T) {
 				edrhelpers.InvokeInfrastructureDeployer(t, deployOpts, infraDeployerBinPath, "FARGATE")
 			})
 		})
+		t.Run("Schedule", func(t *testing.T) {
+			t.Parallel()
+			test_structure.RunTestStage(t, "validate_deploy_runner_schedule", func() {
+				validateECSDeployRunnerPeriodicInvoke(t, deployOpts, region)
+			})
+		})
 	})
+}
+
+func validateECSDeployRunnerPeriodicInvoke(t *testing.T, deployOpts *terraform.Options, awsRegion string) {
+	logGroupName := terraform.OutputRequired(t, deployOpts, "cloudwatch_log_group_name")
+
+	// Help text for infrastructure-deploy-script
+	requireEDRExpectedLogEntry(
+		t,
+		awsRegion,
+		logGroupName,
+		"ecs-deploy-runner/terraform-applier",
+		"Usage: infrastructure-deploy-script [OPTIONS]",
+	)
+
+	// Help text for build-docker-image
+	requireEDRExpectedLogEntry(
+		t,
+		awsRegion,
+		logGroupName,
+		"ecs-deploy-runner/docker-image-builder",
+		"Command to trigger a docker build using kaniko.",
+	)
+}
+
+func requireEDRExpectedLogEntry(t *testing.T, awsRegion, logGroupName, logStreamPrefix, expectedLogEntry string) {
+	description := "Looking in CloudWatch Logs to see if EDR was invoked"
+	maxRetries := 10
+	timeBetweenRetries := 30 * time.Second
+
+	retry.DoWithRetry(t, description, maxRetries, timeBetweenRetries, func() (string, error) {
+		logStreamNames, err := getLogStreamNamesWithPrefix(t, awsRegion, logGroupName, logStreamPrefix)
+		if err != nil {
+			return "", err
+		}
+
+		for _, logStreamName := range logStreamNames {
+			entries, err := aws.GetCloudWatchLogEntriesE(t, awsRegion, logStreamName, logGroupName)
+			if err != nil {
+				return "", err
+			}
+
+			for _, entry := range entries {
+				if strings.Contains(entry, expectedLogEntry) {
+					return entry, nil
+				}
+			}
+		}
+
+		return "", fmt.Errorf("Did not find entry '%s' in CloudWatch Logs", expectedLogEntry)
+	})
+}
+
+func getLogStreamNamesWithPrefix(t *testing.T, awsRegion, logGroupName, logStreamPrefix string) ([]string, error) {
+	svc := aws.NewCloudWatchLogsClient(t, awsRegion)
+
+	input := cloudwatchlogs.DescribeLogStreamsInput{LogGroupName: awsgo.String(logGroupName)}
+	output, err := svc.DescribeLogStreams(&input)
+	if err != nil {
+		return []string{}, err
+	}
+
+	logStreamNames := []string{}
+	for _, logStream := range output.LogStreams {
+		logStreamName := awsgo.StringValue(logStream.LogStreamName)
+		if strings.HasPrefix(logStreamName, logStreamPrefix) {
+			logStreamNames = append(logStreamNames, logStreamName)
+		}
+	}
+
+	return logStreamNames, nil
 }

@@ -59,6 +59,8 @@ module "ecs_deploy_runner" {
   terraform_planner_config    = var.terraform_planner_config
   terraform_applier_config    = var.terraform_applier_config
 
+  invoke_schedule = var.invoke_schedule
+
   kms_grant_opt_in_regions = var.kms_grant_opt_in_regions
 
   ec2_worker_pool_configuration = (

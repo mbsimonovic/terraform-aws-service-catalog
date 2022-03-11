@@ -297,13 +297,16 @@ func validateECRRepo(t *testing.T, testFolder string) {
 		}
 		docker.Build(t, "../fixtures/simple-docker-img", buildOpts)
 
-		test.RunCommandWithEcrAuth(t, fmt.Sprintf("docker push %s", imgTag), awsRegion)
+		test.AuthECRAndPushImages(t, awsRegion, []string{imgTag})
 	})
 
 	// Validate the image in ECR by pulling it down and running it.
 	test_structure.RunTestStage(t, "validate_image", func() {
-		out := test.RunCommandWithEcrAuth(t, fmt.Sprintf("docker run --rm %s", imgTag), awsRegion)
-		assert.Contains(t, out, "Hello from Docker!")
+		test.AuthECRAndCallFn(t, awsRegion, func() {
+			runOpts := &docker.RunOptions{Remove: true}
+			out := docker.Run(t, imgTag, runOpts)
+			assert.Contains(t, out, "Hello from Docker!")
+		})
 	})
 
 }

@@ -609,6 +609,24 @@ variable "additional_container_images" {
   default = {}
 }
 
+variable "invoke_schedule" {
+  description = "Configurations for invoking ECS Deploy Runner on a schedule. Use this to configure any periodic background jobs that you would like run through the ECS Deploy Runner (e.g., regularly running plan on your infrastructure to detect drift). Input is a map of unique schedule name to its settings."
+  type = map(object({
+    # Name of the container in ECS Deploy Runner that should be invoked (e.g., terraform-planner).
+    container_name = string
+
+    # The script within the container that should be invoked (e.g., infrastructure-deploy-script).
+    script = string
+
+    # The args that should be passed to the script.
+    args = string
+
+    # An expression that defines the schedule. For example, cron(0 20 * * ? *) or rate(5 minutes).
+    schedule_expression = string
+  }))
+  default = {}
+}
+
 # ---------------------------------------------------------------------------------------------------------------------
 # ESCAPE HATCHES
 # The variables below will be moved to optional attributes of the docker_image_builder object once optional type

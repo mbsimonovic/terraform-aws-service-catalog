@@ -287,6 +287,26 @@ locals {
 }
 
 # ---------------------------------------------------------------------------------------------------------------------
+# SCHEDULED INVOKE CONFIG
+# Configure a periodic alarm that can be used to invoke any script in the ECS Deploy Runner on a periodic schedule.
+# ---------------------------------------------------------------------------------------------------------------------
+
+module "invoke_schedule" {
+  source   = "git::git@github.com:gruntwork-io/terraform-aws-lambda.git//modules/scheduled-lambda-job?ref=v0.18.2"
+  for_each = var.invoke_schedule
+
+  lambda_function_name = module.ecs_deploy_runner.invoker_function_name
+  lambda_function_arn  = module.ecs_deploy_runner.invoker_function_arn
+  namespace            = each.key
+  schedule_expression  = each.value.schedule_expression
+  lambda_function_input = jsonencode({
+    container_name = each.value.container_name
+    script         = each.value.script
+    args           = each.value.args
+  })
+}
+
+# ---------------------------------------------------------------------------------------------------------------------
 # EC2 WORKER POOL SETTINGS
 # Configure the baseline IAM permissions for the various services, as well as the user data boot script.
 # ---------------------------------------------------------------------------------------------------------------------

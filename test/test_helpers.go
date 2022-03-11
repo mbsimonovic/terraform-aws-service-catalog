@@ -8,6 +8,8 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gruntwork-io/terratest/modules/aws"
+	"github.com/gruntwork-io/terratest/modules/docker"
 	"github.com/gruntwork-io/terratest/modules/shell"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/stretchr/testify/require"
@@ -96,23 +98,46 @@ func RequireEnvVar(t *testing.T, envVarName string) {
 
 var ecrAuthMutex sync.Mutex
 
-// Authenticate to ECR in the given region and run the given command.
-func RunCommandWithEcrAuth(t *testing.T, command string, awsRegion string) string {
+// AuthECRAndPushImages authenticates to ECR and pushes the given image tags using docker
+func AuthECRAndPushImages(t *testing.T, awsRegion string, imgTags []string) {
+	AuthECRAndCallFn(t, awsRegion, func() {
+		for _, imgTag := range imgTags {
+			docker.Push(t, nil, imgTag)
+		}
+	})
+}
+
+func AuthECRAndCallFn(t *testing.T, awsRegion string, fn func()) {
 	// We've seen issues where multiple tests doing 'docker login' concurrently leads to conflicts, so we use a lock
 	// to ensure they don't do it simultaneously.
 	defer ecrAuthMutex.Unlock()
 	ecrAuthMutex.Lock()
+
+	defer func() {
+		cmd := shell.Command{
+			Command: "docker",
+			Args:    []string{"logout"},
+		}
+		shell.RunCommand(t, cmd)
+	}()
+
+	ecrURI := fmt.Sprintf(
+		"%s.dkr.ecr.%s.amazonaws.com",
+		aws.GetAccountId(t), awsRegion,
+	)
 
 	cmd := shell.Command{
 		Command: "bash",
 		Args: []string{
 			"-c",
 			fmt.Sprintf(
-				"eval $(aws ecr get-login --no-include-email --region %s) && %s",
+				"aws ecr get-login-password --region %s | docker login -u AWS --password-stdin %s",
 				awsRegion,
-				command,
+				ecrURI,
 			),
 		},
 	}
-	return shell.RunCommandAndGetOutput(t, cmd)
+	shell.RunCommand(t, cmd)
+
+	fn()
 }

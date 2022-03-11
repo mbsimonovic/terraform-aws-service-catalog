@@ -749,7 +749,7 @@ func buildAWSAuthMergerImage(t *testing.T, parentWorkingDir string, workingDir s
 		OtherOptions: []string{"--no-cache"},
 	}
 	docker.Build(t, filepath.Join(repoDir, "modules/eks-aws-auth-merger"), buildOpts)
-	test.RunCommandWithEcrAuth(t, fmt.Sprintf("docker push %s", awsAuthMergerDockerRepoTag), region)
+	test.AuthECRAndPushImages(t, region, []string{awsAuthMergerDockerRepoTag})
 }
 
 func validateSameALBDomain(t *testing.T, workingDir string, k8sServiceRoot string, altK8sServiceRoot string) {

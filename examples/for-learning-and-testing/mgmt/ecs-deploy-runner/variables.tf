@@ -383,6 +383,24 @@ variable "container_default_launch_type" {
   default     = "FARGATE"
 }
 
+variable "invoke_schedule" {
+  description = "Configurations for invoking ECS Deploy Runner on a schedule. Use this to configure any periodic background jobs that you would like run through the ECS Deploy Runner (e.g., regularly running plan on your infrastructure to detect drift). Input is a map of unique schedule name to its settings."
+  type = map(object({
+    # Name of the container in ECS Deploy Runner that should be invoked (e.g., terraform-planner).
+    container_name = string
+
+    # The script within the container that should be invoked (e.g., infrastructure-deploy-script).
+    script = string
+
+    # The args that should be passed to the script.
+    args = string
+
+    # An expression that defines the schedule. For example, cron(0 20 * * ? *) or rate(5 minutes).
+    schedule_expression = string
+  }))
+  default = {}
+}
+
 variable "kms_grant_opt_in_regions" {
   description = "Create multi-region resources in the specified regions. The best practice is to enable multi-region services in all enabled regions in your AWS account. This variable must NOT be set to null or empty. Otherwise, we won't know which regions to use and authenticate to, and may use some not enabled in your AWS account (e.g., GovCloud, China, etc). To get the list of regions enabled in your AWS account, you can use the AWS CLI: aws ec2 describe-regions."
   type        = list(string)

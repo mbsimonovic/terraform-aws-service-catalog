@@ -33,6 +33,11 @@ output "invoker_function_arn" {
   value       = module.ecs_deploy_runner.invoker_function_arn
 }
 
+output "invoker_function_name" {
+  description = "Name of the invoker lambda function that can be used to invoke a deployment."
+  value       = module.ecs_deploy_runner.invoker_function_name
+}
+
 output "cloudwatch_log_group_name" {
   description = "Name of the CloudWatch Log Group used to store the log output from the Deploy Runner ECS task."
   value       = module.ecs_deploy_runner.cloudwatch_log_group_name
