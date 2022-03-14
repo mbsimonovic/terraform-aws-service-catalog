@@ -11,7 +11,7 @@ env: &env
     # patcher auto-update: kubergrunt
     KUBERGRUNT_VERSION: v0.8.0
     # patcher auto-update: terraform-aws-ci
-    MODULE_CI_VERSION: v0.45.4
+    MODULE_CI_VERSION: v0.47.1
     # patcher auto-update: terragrunt
     TERRAGRUNT_VERSION: v0.36.3
     # patcher auto-update-github-releases: hashicorp/terraform
@@ -37,7 +37,7 @@ defaults: &defaults
   resource_class: large
   machine:
     enabled: true
-    image: ubuntu-1604:202104-01
+    image: ubuntu-2004:202111-02
   <<: *env
 install_gruntwork_utils: &install_gruntwork_utils
   name: install gruntwork utils
@@ -54,7 +54,11 @@ install_gruntwork_utils: &install_gruntwork_utils
 install_test_finder: &install_test_finder
   name: install test finder
   command: |
-    gruntwork-install --module-name "monorepo-helpers" --repo "https://github.com/gruntwork-io/terraform-aws-ci" --tag "${MODULE_CI_VERSION}"
+    gruntwork-install \
+      --module-name "monorepo-helpers" \
+      --repo "https://github.com/gruntwork-io/terraform-aws-ci" \
+      --module-param "no-sudo=true" \
+      --tag "${MODULE_CI_VERSION}"
 install_kube_utils: &install_kube_utils
   name: install kubernetes utilities
   command: |
@@ -103,7 +107,8 @@ run_tests: &run_tests
 # ---------------------------------------------------------------------------------------------------------------------
 commands:
   prepare_environment:
-    description: Prepare the environment by installing necessary tools, and run preflight checks before main tests
+    description: Prepare the environment by installing necessary tools, and run preflight
+      checks before main tests
     steps:
       - run:
           <<: *install_gruntwork_utils
@@ -111,7 +116,7 @@ commands:
   select_python3:
     description: Select python3 as default
     steps:
-      - run: pyenv global 3.9.4
+      - run: pyenv global 3.9.7
   store_results:
     description: Store test results for easy viewing.
     steps:
@@ -129,7 +134,8 @@ jobs:
   precommit:
     <<: *env
     docker:
-      - image: circleci/python:3.10.1
+      - image: cimg/python:3.10.2
+    resource_class: small
     steps:
       - checkout
       - prepare_environment
@@ -140,7 +146,8 @@ jobs:
   find_tests_to_run:
     <<: *env
     docker:
-      - image: circleci/python:3.10.1
+      - image: cimg/python:3.10.2
+    resource_class: small
     steps:
       - checkout
       - prepare_environment
